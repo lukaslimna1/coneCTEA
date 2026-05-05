@@ -1,85 +1,81 @@
 # ConeCTEA - Carteirinha Digital 🧩
 
-O **ConeCTEA** é um ecossistema mobile robusto desenvolvido em Flutter para a gestão simplificada de identificação para pessoas com TEA (Transtorno do Espectro Autista). O projeto une tecnologia de ponta com acessibilidade para entregar uma experiência fluida tanto para usuários quanto para administradores.
+O **ConeCTEA** é um aplicativo mobile desenvolvido em Flutter para a solicitação, aprovação e visualização de carteirinhas de identificação para pessoas com TEA (Transtorno do Espectro Autista). O projeto foca em simplificar o processo burocrático, oferecendo uma interface intuitiva para usuários e uma gestão eficiente para administradores.
 
 ---
 
-## ⚡ Real-Time Sync & Performance
-O ConeCTEA agora opera em **tempo real**. Utilizando a tecnologia de **Streams do Firestore**, o aplicativo sincroniza dados instantaneamente:
-- **Interface Reativa**: Mudanças no banco de dados são refletidas na UI sem necessidade de recarregar a página.
-- **Client-Side Sorting**: Otimização técnica que realiza a ordenação de dados diretamente no dispositivo, eliminando a dependência de índices compostos complexos no Firebase e garantindo maior velocidade de consulta.
-- **Zero Latency UX**: Implementação de `StreamBuilder` em todas as telas críticas (Dashboard Admin e Home Usuário).
+## ⚡ Sincronização e Performance
+O ConeCTEA utiliza tecnologias modernas para garantir uma experiência fluida:
+- **Interface Reativa**: Atualização dinâmica nas telas essenciais, garantindo que o status das solicitações seja refletido rapidamente.
+- **Client-Side Sorting**: Ordenação de dados realizada diretamente no dispositivo para otimizar a performance e reduzir a dependência de índices complexos no backend.
+- **Eficiência de Dados**: Implementação focada em manter a interface atualizada evitando o consumo excessivo de leituras no Firestore.
 
 ---
 
 ## 🛠️ Tecnologias e Arquitetura
-- **Framework**: [Flutter](https://flutter.dev) (Dart) - UI performática e multi-plataforma.
-- **Backend-as-a-Service**: [Firebase](https://firebase.google.com)
-  - **Firestore**: Banco de dados NoSQL com sincronização em tempo real.
-  - **Authentication**: Gestão segura de identidades e sessões.
-- **Automação Inteligente**:
-  - **Token Automático**: Geração de identificadores únicos no formato `CTEA-XXXX-YYYY`.
-  - **Validade Dinâmica**: Atribuição automática de 365 dias de validade a partir do momento da aprovação.
+- **Framework**: [Flutter](https://flutter.dev) (Dart) - Aplicativo nativo para Android.
+- **Backend**: [Firebase](https://firebase.google.com)
+  - **Firestore**: Banco de dados NoSQL para armazenamento e sincronização de dados.
+  - **Authentication**: Gestão segura de usuários.
+- **Automação de Processos**:
+  - **Token Único**: Geração automática de identificadores no formato `CTEA-XXXX-YYYY`.
+  - **Gestão de Validade**: Definição automática de 365 dias de validade a partir da aprovação.
 
 ---
 
-## 📋 Funcionalidades Principais
+## 📋 Funcionalidades
 
 ### 👤 Área do Usuário
-- **Solicitação Simplificada**: Envio de dados para análise de forma intuitiva.
-- **Acompanhamento Live**: Status da solicitação atualizado em tempo real (Pendente ➔ Aprovado ➔ Rejeitado).
-- **Carteirinha Digital Premium**: Visualização elegante da carteirinha com QR Code e dados de validade após a aprovação.
-- **Suporte Integrado**: Canal direto via WhatsApp para auxílio rápido.
+- **Solicitação de Carteirinha**: Formulário simplificado para envio de dados.
+- **Acompanhamento de Status**: Visualização reativa do progresso (Pendente, Aprovado ou Rejeitado).
+- **Carteirinha Digital**: Exibição dos dados e validade após a aprovação.
+- **Suporte**: Link direto para atendimento via WhatsApp.
 
-### 🛡️ Painel Administrativo (Elite)
-- **Gestão Reativa**: Lista de solicitações organizada automaticamente por data de criação.
-- **Fluxo de Aprovação Inteligente**:
-  - Sistema sugere tokens únicos.
-  - Cálculo automático de data de vencimento.
-  - Feedback via notas administrativas para o usuário.
-- **Filtros Ágeis**: Visualização clara de pendências e histórico de ações.
-
----
-
-## 🔧 Configuração e Desenvolvimento
-
-### 1. Ambiente Windows
-- Flutter SDK (Recomendado na unidade `H:`).
-- JDK 21 configurado via `flutter config --jdk-dir`.
-
-### 2. Integração Firebase
-- O projeto utiliza o padrão `firebase_options.dart` para máxima compatibilidade.
-- **Regras de Segurança**: Implementadas para garantir que dados sensíveis sejam acessíveis apenas pelo proprietário ou administradores autorizados.
+### 🛡️ Área Administrativa
+- **Gestão de Pedidos**: Lista organizada de solicitações pendentes e processadas.
+- **Fluxo de Aprovação**:
+  - Atribuição automática de tokens e datas de validade.
+  - Possibilidade de adicionar notas de feedback para o usuário.
+- **Interface Responsiva**: Dashboard otimizado para gestão rápida das demandas.
 
 ---
 
-## 📂 Organização do Projeto
+## 🔧 Configuração do Ambiente
+
+### Pré-requisitos
+- Flutter SDK instalado.
+- Android Studio e Android Emulator configurados.
+- JDK configurado conforme as exigências do ambiente local.
+
+---
+
+## 📂 Estrutura do Projeto
 ```text
 lib/
-├── core/         # Configurações de tema, cores e constantes globais.
-├── models/       # Estruturas de dados tipadas (IDRequest, etc).
-├── services/     # Serviços de backend (Auth, Firestore, Automations).
-├── screens/      # Interfaces de usuário (User & Admin flows).
-└── widgets/      # UI Components (Cards, Buttons, Loaders).
+├── core/         # Configurações de tema, cores e Firebase.
+├── models/       # Estruturas de dados (IDRequest, etc).
+├── services/     # Lógica de negócio (Auth, Firestore, Automations).
+├── screens/      # Telas do usuário e do administrador.
+└── widgets/      # Componentes de interface reutilizáveis.
 ```
 
 ---
 
-## 🚢 Execução Local
-1. Obtenha as dependências:
+## 🚢 Como Executar
+1. Certifique-se de que um **Emulador Android** ou dispositivo físico está conectado.
+2. Instale as dependências:
    ```bash
    flutter pub get
    ```
-2. Inicie o ambiente de desenvolvimento:
+3. Execute o aplicativo:
    ```bash
-   flutter run -d chrome
+   flutter run
    ```
 
 ---
 
-## 📦 Repositório Oficial
-Código fonte versionado em: [https://github.com/lukaslimna1/coneCTEA.git](https://github.com/lukaslimna1/coneCTEA.git)
+## 📦 Repositório
+[https://github.com/lukaslimna1/coneCTEA.git](https://github.com/lukaslimna1/coneCTEA.git)
 
 ---
-*Desenvolvido com foco em impacto social por Lucas Lima & Antigravity AI.*
-
+*Desenvolvido por Lucas Lima & Antigravity AI.*
