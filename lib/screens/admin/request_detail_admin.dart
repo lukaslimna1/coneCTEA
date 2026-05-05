@@ -23,13 +23,13 @@ class _RequestDetailAdminState extends State<RequestDetailAdmin> {
     try {
       DateTime? expiry;
       if (status == RequestStatus.approved) {
-        expiry = DateTime.now().add(const Duration(days: 365 * 5)); // 5 years validity
+        expiry = DateTime.now().add(const Duration(days: 365)); // 1 year validity
       }
 
       await _db.updateRequestStatus(
         widget.request.id,
         IDRequest.statusToString(status),
-        cardNumber: _cardNumberController.text.isEmpty ? null : _cardNumberController.text,
+        cardNumber: _cardNumberController.text.trim().isEmpty ? null : _cardNumberController.text.trim(),
         expiryDate: expiry,
         adminNotes: _notesController.text,
       );
@@ -67,8 +67,8 @@ class _RequestDetailAdminState extends State<RequestDetailAdmin> {
             TextField(
               controller: _cardNumberController,
               decoration: const InputDecoration(
-                labelText: 'Número da Carteirinha (Se aprovado)',
-                hintText: 'Ex: 2024-0001',
+                labelText: 'Número da Carteirinha (Opcional)',
+                hintText: 'Deixe vazio para gerar automático',
               ),
             ),
             const SizedBox(height: 16),

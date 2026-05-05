@@ -1,83 +1,85 @@
 # ConeCTEA - Carteirinha Digital 🧩
 
-O **ConeCTEA** é um aplicativo Flutter desenvolvido para facilitar a solicitação, emissão e gestão de carteirinhas de identificação para pessoas com TEA (Transtorno do Espectro Autista). O projeto foca em acessibilidade, simplicidade e segurança.
+O **ConeCTEA** é um ecossistema mobile robusto desenvolvido em Flutter para a gestão simplificada de identificação para pessoas com TEA (Transtorno do Espectro Autista). O projeto une tecnologia de ponta com acessibilidade para entregar uma experiência fluida tanto para usuários quanto para administradores.
 
 ---
 
-## 🚀 Status do Projeto e Migração
-O projeto foi migrado com sucesso de Supabase para **Firebase**, utilizando uma arquitetura escalável e segura. O ambiente de desenvolvimento foi otimizado para Windows e Web.
+## ⚡ Real-Time Sync & Performance
+O ConeCTEA agora opera em **tempo real**. Utilizando a tecnologia de **Streams do Firestore**, o aplicativo sincroniza dados instantaneamente:
+- **Interface Reativa**: Mudanças no banco de dados são refletidas na UI sem necessidade de recarregar a página.
+- **Client-Side Sorting**: Otimização técnica que realiza a ordenação de dados diretamente no dispositivo, eliminando a dependência de índices compostos complexos no Firebase e garantindo maior velocidade de consulta.
+- **Zero Latency UX**: Implementação de `StreamBuilder` em todas as telas críticas (Dashboard Admin e Home Usuário).
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
-- **Framework**: [Flutter](https://flutter.dev) (Dart)
-- **Backend**: [Firebase](https://firebase.google.com)
-  - **Authentication**: Login por e-mail/senha.
-  - **Cloud Firestore**: Banco de dados NoSQL em tempo real.
-- **Gerenciamento de Estado**: [Provider](https://pub.dev/packages/provider)
-- **Estilização**: Tema customizado (Indigo/Teal) com suporte a fontes premium.
+## 🛠️ Tecnologias e Arquitetura
+- **Framework**: [Flutter](https://flutter.dev) (Dart) - UI performática e multi-plataforma.
+- **Backend-as-a-Service**: [Firebase](https://firebase.google.com)
+  - **Firestore**: Banco de dados NoSQL com sincronização em tempo real.
+  - **Authentication**: Gestão segura de identidades e sessões.
+- **Automação Inteligente**:
+  - **Token Automático**: Geração de identificadores únicos no formato `CTEA-XXXX-YYYY`.
+  - **Validade Dinâmica**: Atribuição automática de 365 dias de validade a partir do momento da aprovação.
 
 ---
 
-## 📋 Funcionalidades
-### 👤 Usuário Comum
-- Cadastro e login seguro.
-- Solicitação de carteirinha via formulário simplificado.
-- Visualização do status da solicitação.
-- Visualização da carteirinha digital após aprovação.
-- Botão de suporte direto via WhatsApp.
+## 📋 Funcionalidades Principais
 
-### 🛡️ Administrador
-- Dashboard completo para gestão de pedidos.
-- Lista de todos os usuários e solicitações.
-- Aprovação/Rejeição de solicitações com campo de notas.
-- Atribuição de número de carteirinha e data de validade.
+### 👤 Área do Usuário
+- **Solicitação Simplificada**: Envio de dados para análise de forma intuitiva.
+- **Acompanhamento Live**: Status da solicitação atualizado em tempo real (Pendente ➔ Aprovado ➔ Rejeitado).
+- **Carteirinha Digital Premium**: Visualização elegante da carteirinha com QR Code e dados de validade após a aprovação.
+- **Suporte Integrado**: Canal direto via WhatsApp para auxílio rápido.
 
----
-
-## 🔧 Configuração do Ambiente
-
-### 1. Requisitos do Sistema (Windows)
-- Flutter SDK instalado (recomendado na unidade `H:` conforme o setup atual).
-- JDK 21 (recomendado o que vem com o Android Studio).
-- **Atenção**: Para evitar erros de Gradle, configure o JDK no Flutter:
-  ```powershell
-  flutter config --jdk-dir="C:\Program Files\Android\Android Studio\jbr"
-  ```
-
-### 2. Configuração do Firebase
-- O projeto utiliza o arquivo `lib/core/firebase_options.dart` gerado pelo FlutterFire CLI.
-- **Firestore**: Deve ser inicializado no **Modo Nativo**.
-- **Security Rules**: O banco está protegido com regras que permitem aos usuários acessar apenas seus próprios dados e aos admins gerenciar tudo.
+### 🛡️ Painel Administrativo (Elite)
+- **Gestão Reativa**: Lista de solicitações organizada automaticamente por data de criação.
+- **Fluxo de Aprovação Inteligente**:
+  - Sistema sugere tokens únicos.
+  - Cálculo automático de data de vencimento.
+  - Feedback via notas administrativas para o usuário.
+- **Filtros Ágeis**: Visualização clara de pendências e histórico de ações.
 
 ---
 
-## 📂 Estrutura de Pastas
+## 🔧 Configuração e Desenvolvimento
+
+### 1. Ambiente Windows
+- Flutter SDK (Recomendado na unidade `H:`).
+- JDK 21 configurado via `flutter config --jdk-dir`.
+
+### 2. Integração Firebase
+- O projeto utiliza o padrão `firebase_options.dart` para máxima compatibilidade.
+- **Regras de Segurança**: Implementadas para garantir que dados sensíveis sejam acessíveis apenas pelo proprietário ou administradores autorizados.
+
+---
+
+## 📂 Organização do Projeto
 ```text
 lib/
-├── core/         # Temas, constantes e Firebase Options
-├── models/       # Modelos de dados (User, IDRequest)
-├── services/     # Lógica de Auth e Banco de Dados
-├── screens/      # Interfaces (Auth, User, Admin)
-└── widgets/      # Componentes UI reutilizáveis
+├── core/         # Configurações de tema, cores e constantes globais.
+├── models/       # Estruturas de dados tipadas (IDRequest, etc).
+├── services/     # Serviços de backend (Auth, Firestore, Automations).
+├── screens/      # Interfaces de usuário (User & Admin flows).
+└── widgets/      # UI Components (Cards, Buttons, Loaders).
 ```
 
 ---
 
-## 🚢 Como Executar
-1. Instale as dependências:
+## 🚢 Execução Local
+1. Obtenha as dependências:
    ```bash
    flutter pub get
    ```
-2. Execute o projeto (Web/Chrome):
+2. Inicie o ambiente de desenvolvimento:
    ```bash
    flutter run -d chrome
    ```
 
 ---
 
-## 📦 Deploy e Controle de Versão
-O código está versionado no GitHub: [https://github.com/lukaslimna1/coneCTEA.git](https://github.com/lukaslimna1/coneCTEA.git)
+## 📦 Repositório Oficial
+Código fonte versionado em: [https://github.com/lukaslimna1/coneCTEA.git](https://github.com/lukaslimna1/coneCTEA.git)
 
 ---
-Desenvolvido por Lucas Lima e Antigravity (IA).
+*Desenvolvido com foco em impacto social por Lucas Lima & Antigravity AI.*
+

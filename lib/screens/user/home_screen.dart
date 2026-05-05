@@ -16,31 +16,15 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
+
 class _HomeScreenState extends State<HomeScreen> {
   final DatabaseService _db = DatabaseService();
-  List<IDRequest> _requests = [];
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadRequests();
-  }
-
-  Future<void> _loadRequests() async {
-    final userId = context.read<AuthService>().currentUser?.uid;
-    if (userId != null) {
-      final requests = await _db.getUserRequests(userId);
-      setState(() {
-        _requests = requests;
-        _isLoading = false;
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
-    final profile = context.watch<AuthService>().currentProfile;
+    final auth = context.watch<AuthService>();
+    final profile = auth.currentProfile;
+    final userId = auth.currentUser?.uid;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -49,96 +33,111 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: () => context.read<AuthService>().signOut(),
+            onPressed: () => auth.signOut(),
           ),
         ],
       ),
       floatingActionButton: const SupportButton(),
-      body: RefreshIndicator(
-        onRefresh: _loadRequests,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Olá, ${profile?.fullName ?? "Usuário"}',
-                style: Theme.of(context).textTheme.displayLarge?.copyWith(fontSize: 24),
+      body: StreamBuilder<List<IDRequest>>(
+        stream: userId != null ? _db.streamUserRequests(userId) : Stream.value([]),
+        builder: (context, snapshot) {
+          final requests = snapshot.data ?? [];
+          final isLoading = snapshot.connectionState == ConnectionState.waiting && requests.isEmpty;
+
+          if (snapshot.hasError) {
+            return Center(child: Text('Erro ao carregar dados: ${snapshot.error}'));
+          }
+
+          return RefreshIndicator(
+            onRefresh: () async {
+              // Streams update automatically, but this allows manual pull-to-refresh feel
+              await Future.delayed(const Duration(seconds: 1));
+            },
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Olá, ${profile?.fullName ?? "Usuário"}',
+                    style: Theme.of(context).textTheme.displayLarge?.copyWith(fontSize: 24),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text('Acompanhe suas solicitações ou visualize sua carteirinha.'),
+                  const SizedBox(height: 32),
+                  
+                  // Action Cards
+                  _buildActionCard(
+                    context,
+                    title: 'Minha Carteirinha',
+                    subtitle: 'Visualize seu documento digital',
+                    icon: Icons.badge_outlined,
+                    color: AppColors.primary,
+                    onTap: () {
+                      final approved = requests.where((r) => r.status == RequestStatus.approved).toList();
+                      if (approved.isNotEmpty) {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => MyIDScreen(request: approved.first)));
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Você ainda não possui uma carteirinha aprovada.')),
+                        );
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  _buildActionCard(
+                    context,
+                    title: 'Nova Solicitação',
+                    subtitle: 'Solicite uma nova carteirinha',
+                    icon: Icons.add_card_outlined,
+                    color: AppColors.secondary,
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RequestIDScreen())),
+                  ),
+                  
+                  const SizedBox(height: 24),
+                  _buildActionCard(
+                    context,
+                    title: 'Termos e Privacidade',
+                    subtitle: 'Saiba como cuidamos dos seus dados',
+                    icon: Icons.shield_outlined,
+                    color: AppColors.textSecondary,
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TermsScreen())),
+                  ),
+                  
+                  const SizedBox(height: 40),
+                  Text(
+                    'Minhas Solicitações',
+                    style: Theme.of(context).textTheme.displayLarge?.copyWith(fontSize: 20),
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  if (isLoading)
+                    const Center(child: Padding(
+                      padding: EdgeInsets.all(20),
+                      child: CircularProgressIndicator(),
+                    ))
+                  else if (requests.isEmpty)
+                    const Center(child: Padding(
+                      padding: EdgeInsets.only(top: 40),
+                      child: Text('Nenhuma solicitação encontrada.'),
+                    ))
+                  else
+                    ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: requests.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        final req = requests[index];
+                        return _buildRequestItem(req);
+                      },
+                    ),
+                ],
               ),
-              const SizedBox(height: 8),
-              const Text('Acompanhe suas solicitações ou visualize sua carteirinha.'),
-              const SizedBox(height: 32),
-              
-              // Action Cards
-              _buildActionCard(
-                context,
-                title: 'Minha Carteirinha',
-                subtitle: 'Visualize seu documento digital',
-                icon: Icons.badge_outlined,
-                color: AppColors.primary,
-                onTap: () {
-                  final approved = _requests.where((r) => r.status == RequestStatus.approved).toList();
-                  if (approved.isNotEmpty) {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => MyIDScreen(request: approved.first)));
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Você ainda não possui uma carteirinha aprovada.')),
-                    );
-                  }
-                },
-              ),
-              const SizedBox(height: 16),
-              _buildActionCard(
-                context,
-                title: 'Nova Solicitação',
-                subtitle: 'Solicite uma nova carteirinha',
-                icon: Icons.add_card_outlined,
-                color: AppColors.secondary,
-                onTap: () async {
-                  await Navigator.push(context, MaterialPageRoute(builder: (_) => const RequestIDScreen()));
-                  _loadRequests();
-                },
-              ),
-              
-              const SizedBox(height: 24),
-              _buildActionCard(
-                context,
-                title: 'Termos e Privacidade',
-                subtitle: 'Saiba como cuidamos dos seus dados',
-                icon: Icons.shield_outlined,
-                color: AppColors.textSecondary,
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TermsScreen())),
-              ),
-              
-              const SizedBox(height: 40),
-              Text(
-                'Minhas Solicitações',
-                style: Theme.of(context).textTheme.displayLarge?.copyWith(fontSize: 20),
-              ),
-              const SizedBox(height: 16),
-              
-              if (_isLoading)
-                const Center(child: CircularProgressIndicator())
-              else if (_requests.isEmpty)
-                const Center(child: Padding(
-                  padding: EdgeInsets.only(top: 40),
-                  child: Text('Nenhuma solicitação encontrada.'),
-                ))
-              else
-                ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: _requests.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final req = _requests[index];
-                    return _buildRequestItem(req);
-                  },
-                ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }
