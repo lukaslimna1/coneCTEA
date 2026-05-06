@@ -8,14 +8,24 @@ import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/user/home_screen.dart';
 import 'screens/admin/admin_dashboard.dart';
-import 'models/profile.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    debugPrint("❌ Erro ao Inicializar Firebase: $e");
+  }
+
+  FlutterError.onError = (details) {
+    debugPrint("🚨 Erro de Flutter: ${details.exception}");
+    if (details.exception.toString().contains('isDisposed')) {
+      debugPrint("ℹ️ Nota: Erro de disposição detectado. Comum em Hot Restart no Chrome.");
+    }
+  };
 
   runApp(
     MultiProvider(
@@ -41,7 +51,7 @@ class ConeCTEAApp extends StatelessWidget {
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
         '/home': (context) => const HomeScreen(),
-        '/admin': (context) => const AdminDashboard(),
+        '/admin_dashboard': (context) => const AdminDashboard(),
       },
     );
   }
@@ -77,10 +87,8 @@ class _AuthWrapperState extends State<AuthWrapper> {
       );
     }
 
-    if (auth.currentProfile!.role == UserRole.admin) {
-      return const AdminDashboard();
-    }
-
+    // Todos entram pela HomeScreen para ver a experiência do usuário.
+    // O botão de ADM aparecerá na HomeScreen se o role for admin.
     return const HomeScreen();
   }
 }

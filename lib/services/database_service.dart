@@ -10,6 +10,10 @@ class DatabaseService {
     await _firestore.collection('id_requests').add(request.toJson());
   }
 
+  Future<void> updateRequest(IDRequest request) async {
+    await _firestore.collection('id_requests').doc(request.id).update(request.toJson());
+  }
+
   Future<List<IDRequest>> getUserRequests(String userId) async {
     final snapshot = await _firestore
         .collection('id_requests')
@@ -78,22 +82,25 @@ class DatabaseService {
   Stream<List<IDRequest>> streamAllRequests() {
     return _firestore
         .collection('id_requests')
-        .orderBy('created_at', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) => IDRequest.fromJson({
-          ...doc.data(),
-          'id': doc.id,
-        })).toList());
+        .map((snapshot) {
+      final requests = snapshot.docs.map((doc) => IDRequest.fromJson({
+        ...doc.data(),
+        'id': doc.id,
+      })).toList();
+      requests.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return requests;
+    });
   }
 
-  Future<void> updateRequestStatus(String requestId, String status, {String? cardNumber, DateTime? expiryDate, String? adminNotes}) async {
+  Future<void> updateRequestStatus(String requestId, String status, {String? cardNumber, DateTime? expiryDate, String? adminNotes, String? driveLink}) async {
     final data = <String, dynamic>{
       'status': status,
       if (adminNotes != null) 'admin_notes': adminNotes,
+      if (driveLink != null) 'drive_link': driveLink,
     };
 
     if (status == 'approved') {
-      // If approved and no card number provided, generate one
       if (cardNumber == null || cardNumber.isEmpty) {
         final timestamp = DateTime.now().millisecondsSinceEpoch.toString().substring(7);
         final random = (1000 + (9999 - 1000) * (DateTime.now().microsecond / 1000000)).toInt();
@@ -102,7 +109,6 @@ class DatabaseService {
         data['card_number'] = cardNumber;
       }
 
-      // If approved and no expiry provided, set to 365 days
       if (expiryDate == null) {
         data['expiry_date'] = DateTime.now().add(const Duration(days: 365)).toIso8601String();
       } else {
@@ -113,8 +119,73 @@ class DatabaseService {
     await _firestore.collection('id_requests').doc(requestId).update(data);
   }
 
+  Future<void> updateRequestData(String requestId, Map<String, dynamic> data) async {
+    await _firestore.collection('id_requests').doc(requestId).update(data);
+  }
+
+  Future<void> suspendRequest(String requestId) async {
+    await _firestore.collection('id_requests').doc(requestId).update({
+      'status': 'suspended',
+      'admin_notes': 'Carteirinha suspensa pela administração.',
+    });
+  }
+
+  Future<void> requestRenewal(String requestId) async {
+    await _firestore.collection('id_requests').doc(requestId).update({
+      'status': 'renewal_requested',
+    });
+  }
+
+  Future<void> checkAndProcessExpirations(String userId) async {
+    final now = DateTime.now();
+    final snapshot = await _firestore
+        .collection('id_requests')
+        .where('user_id', isEqualTo: userId)
+        .where('status', isEqualTo: 'approved')
+        .get();
+
+    for (var doc in snapshot.docs) {
+      final data = doc.data();
+      final expiryStr = data['expiry_date'];
+      if (expiryStr != null) {
+        final expiryDate = DateTime.parse(expiryStr);
+        if (expiryDate.isBefore(now)) {
+          await doc.reference.update({
+            'status': 'renewal_requested',
+            'admin_notes': 'Vencimento automático (365 dias). Renovação solicitada automaticamente pelo sistema.'
+          });
+        }
+      }
+    }
+  }
+
+  Future<void> checkAllExpirations() async {
+    final now = DateTime.now();
+    final snapshot = await _firestore
+        .collection('id_requests')
+        .where('status', isEqualTo: 'approved')
+        .get();
+
+    for (var doc in snapshot.docs) {
+      final data = doc.data();
+      final expiryStr = data['expiry_date'];
+      if (expiryStr != null) {
+        final expiryDate = DateTime.parse(expiryStr);
+        if (expiryDate.isBefore(now)) {
+          await doc.reference.update({
+            'status': 'renewal_requested',
+            'admin_notes': 'Vencimento automático (365 dias). Renovação solicitada automaticamente pelo sistema.'
+          });
+        }
+      }
+    }
+  }
+
   Future<List<Map<String, dynamic>>> getAllUsers() async {
-    final snapshot = await _firestore.collection('profiles').orderBy('full_name').get();
-    return snapshot.docs.map((doc) => doc.data()).toList();
+    final snapshot = await _firestore.collection('profiles').get();
+    final users = snapshot.docs.map((doc) => doc.data()).toList();
+    users.sort((a, b) => (a['full_name'] ?? '').compareTo(b['full_name'] ?? ''));
+    return users;
   }
 }
+

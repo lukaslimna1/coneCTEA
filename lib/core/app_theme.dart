@@ -2,15 +2,30 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppColors {
-  static const Color primary = Color(0xFF6366F1); // Indigo 500
-  static const Color secondary = Color(0xFF14B8A6); // Teal 500
-  static const Color background = Color(0xFFF8FAFC); // Slate 50
+  // Cores Principais do Manual
+  static const Color navy = Color(0xFF0D1B4C);     // Azul Escuro Profundo
+  static const Color blue = Color(0xFF1E63D8);     // Azul Vibrante
+  static const Color purple = Color(0xFF8A44E8);   // Roxo (Início Gradiente)
+  static const Color teal = Color(0xFF4FD4C8);     // Teal (Fim Gradiente)
+  
+  // Cores de Interface
+  static const Color primary = purple;
+  static const Color secondary = teal;
+  static const Color background = Color(0xFFF8FAFC);
   static const Color surface = Colors.white;
-  static const Color textPrimary = Color(0xFF1E293B); // Slate 800
-  static const Color textSecondary = Color(0xFF64748B); // Slate 500
-  static const Color error = Color(0xFFEF4444); // Red 500
-  static const Color success = Color(0xFF10B981); // Emerald 500
-  static const Color pending = Color(0xFFF59E0B); // Amber 500
+  static const Color textPrimary = Color(0xFF0D1B4C); // Usando Navy para texto
+  static const Color textSecondary = Color(0xFF64748B);
+  static const Color error = Color(0xFFEF4444);
+  static const Color success = Color(0xFF10B981);
+  static const Color pending = Color(0xFFFFB020);
+  static const Color warning = Color(0xFFF59E0B);
+
+  // Gradiente Oficial ConeCTEA
+  static const LinearGradient brandGradient = LinearGradient(
+    colors: [purple, teal],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
 }
 
 class AppTheme {
@@ -18,9 +33,9 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: AppColors.primary,
-        primary: AppColors.primary,
-        secondary: AppColors.secondary,
+        seedColor: AppColors.purple,
+        primary: AppColors.purple,
+        secondary: AppColors.teal,
         surface: AppColors.background,
         error: AppColors.error,
       ),
@@ -28,6 +43,7 @@ class AppTheme {
         displayLarge: GoogleFonts.inter(
           color: AppColors.textPrimary,
           fontWeight: FontWeight.bold,
+          letterSpacing: -0.5,
         ),
         bodyLarge: GoogleFonts.inter(
           color: AppColors.textPrimary,
@@ -41,19 +57,19 @@ class AppTheme {
         elevation: 0,
         centerTitle: true,
         titleTextStyle: TextStyle(
-          color: AppColors.textPrimary,
-          fontSize: 18,
+          color: AppColors.navy,
+          fontSize: 20,
           fontWeight: FontWeight.bold,
         ),
-        iconTheme: IconThemeData(color: AppColors.textPrimary),
+        iconTheme: IconThemeData(color: AppColors.navy),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
+          backgroundColor: AppColors.purple,
           foregroundColor: Colors.white,
-          minimumSize: const Size(double.infinity, 50),
+          minimumSize: const Size(double.infinity, 54),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
           ),
           elevation: 0,
         ),
@@ -62,18 +78,18 @@ class AppTheme {
         filled: true,
         fillColor: AppColors.surface,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.primary, width: 2),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: AppColors.purple, width: 2),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
       ),
     );
   }

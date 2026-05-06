@@ -13,31 +13,38 @@ class AuthService extends ChangeNotifier {
   bool get isAuthenticated => currentUser != null;
 
   Future<void> initialize() async {
-    if (isAuthenticated) {
-      await fetchProfile();
+    try {
+      if (isAuthenticated) {
+        await fetchProfile();
+      }
+    } catch (e) {
+      debugPrint("❌ AuthService: Erro na inicialização: $e");
     }
   }
 
   Future<void> fetchProfile() async {
-    final user = currentUser;
-    if (user == null) return;
+    try {
+      final user = currentUser;
+      if (user == null) return;
 
-    final doc = await _firestore.collection('profiles').doc(user.uid).get();
-    
-    if (doc.exists) {
-      _currentProfile = Profile.fromJson(doc.data()!);
-    } else {
-      // Caso o usuário exista no Auth mas não no Firestore (ex: criado manualmente)
-      // Criamos um perfil básico para não travar o app
-      _currentProfile = Profile(
-        id: user.uid,
-        email: user.email ?? '',
-        fullName: 'Usuário',
-        role: UserRole.common,
-      );
-      await _firestore.collection('profiles').doc(user.uid).set(_currentProfile!.toJson());
+      final doc = await _firestore.collection('profiles').doc(user.uid).get();
+      
+      if (doc.exists) {
+        _currentProfile = Profile.fromJson(doc.data()!);
+      } else {
+        _currentProfile = Profile(
+          id: user.uid,
+          email: user.email ?? '',
+          fullName: 'Usuário',
+          role: UserRole.common,
+        );
+        await _firestore.collection('profiles').doc(user.uid).set(_currentProfile!.toJson());
+      }
+      notifyListeners();
+    } catch (e) {
+      debugPrint("❌ AuthService: Erro ao buscar perfil: $e");
+      rethrow;
     }
-    notifyListeners();
   }
 
   Future<void> signIn(String email, String password) async {

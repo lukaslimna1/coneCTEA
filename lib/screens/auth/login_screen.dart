@@ -29,7 +29,7 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -87,11 +87,11 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 8),
               Align(
                 alignment: Alignment.centerRight,
-                child: TextButton(
+                child: TextButton.icon(
                   onPressed: () async {
                     final email = _emailController.text.trim();
                     if (email.isEmpty) {
-                      if (!context.mounted) return;
+                      if (!mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Digite seu e-mail para recuperar a senha.')),
                       );
@@ -99,18 +99,19 @@ class _LoginScreenState extends State<LoginScreen> {
                     }
                     try {
                       await context.read<AuthService>().resetPassword(email);
-                      if (!context.mounted) return;
+                      if (!mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('E-mail de recuperação enviado!')),
                       );
                     } catch (e) {
-                      if (!context.mounted) return;
+                      if (!mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Erro: $e'), backgroundColor: AppColors.error),
                       );
                     }
                   },
-                  child: const Text('Esqueceu a senha?'),
+                  icon: const Icon(Icons.help_outline_rounded, size: 16),
+                  label: const Text('Esqueceu a senha?'),
                 ),
               ),
               const SizedBox(height: 32),
@@ -118,16 +119,26 @@ class _LoginScreenState extends State<LoginScreen> {
                 onPressed: _isLoading ? null : _login,
                 child: _isLoading 
                   ? const CircularProgressIndicator(color: Colors.white) 
-                  : const Text('Entrar', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  : const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.login, color: Colors.white),
+                        SizedBox(width: 8),
+                        Text('Entrar', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
               ),
               const SizedBox(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  const Icon(Icons.person_add_outlined, size: 20, color: AppColors.textSecondary),
+                  const SizedBox(width: 8),
                   const Text('Não tem uma conta?'),
-                  TextButton(
+                  TextButton.icon(
                     onPressed: () => Navigator.pushNamed(context, '/register'),
-                    child: const Text('Cadastre-se', style: TextStyle(fontWeight: FontWeight.bold)),
+                    icon: const Icon(Icons.arrow_forward_rounded, size: 16),
+                    label: const Text('Cadastre-se', style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),

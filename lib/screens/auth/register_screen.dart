@@ -39,7 +39,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         );
       }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -91,7 +91,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
               onPressed: _isLoading ? null : _register,
               child: _isLoading 
                 ? const CircularProgressIndicator(color: Colors.white) 
-                : const Text('Criar Conta', style: TextStyle(fontWeight: FontWeight.bold)),
+                : const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.check_circle_outline, color: Colors.white),
+                      SizedBox(width: 8),
+                      Text('Criar Conta', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ],
+                  ),
             ),
           ],
         ),

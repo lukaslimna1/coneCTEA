@@ -5,7 +5,7 @@ class SupportButton extends StatelessWidget {
   const SupportButton({super.key});
 
   Future<void> _launchWhatsApp() async {
-    final Uri url = Uri.parse('https://wa.me/5514999999999'); // Substitua pelo número real da ConeCTEA Bauru
+    final Uri url = Uri.parse('https://wa.me/5514981156828');
     if (!await launchUrl(url)) {
       throw Exception('Não foi possível abrir o WhatsApp');
     }
@@ -17,7 +17,8 @@ class SupportButton extends StatelessWidget {
       onPressed: _launchWhatsApp,
       backgroundColor: const Color(0xFF25D366), // WhatsApp Green
       icon: const Icon(Icons.chat, color: Colors.white),
-      label: const Text('Suporte WhatsApp', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+      label: const Text('Suporte WhatsApp',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
     );
   }
 }
