@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../core/widgets/bottom_nav.dart';
 import '../../core/constants/colors.dart';
 import '../../services/auth_service.dart';
 import '../../services/database_service.dart';
@@ -11,6 +10,7 @@ import '../cards/cards_view.dart';
 import '../requests/requests_view.dart';
 import '../notifications/notifications_view.dart';
 import '../account/account_view.dart';
+import '../admin/admin_view.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -33,9 +33,16 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _loadData() async {
-    final userId = _authService.currentUser?.id;
+    final currentUser = _authService.currentUser;
+    final userId = currentUser?.id;
     if (userId != null) {
-      final user = await _databaseService.getUserProfile(userId);
+      var user = await _databaseService.getUserProfile(userId);
+      
+      // Perfil deve ser criado apenas via registro
+      if (user == null) {
+        // Não faz nada aqui, o usuário deve se registrar ou ser criado pelo admin no DB
+      }
+
       final notifications = await _databaseService.getNotifications(userId);
       if (mounted) {
         setState(() {
@@ -69,27 +76,30 @@ class _HomePageState extends State<HomePage> {
       const RequestsView(),
       const NotificationsView(),
       const AccountView(),
+      const AdminView(),
     ];
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: AppColors.backgroundPremium,
       appBar: AppBar(
-        backgroundColor: AppColors.backgroundLight,
+        backgroundColor: AppColors.backgroundPremium,
         elevation: 0,
-        toolbarHeight: 80,
+        toolbarHeight: 80, // Slightly reduced for better balance
         title: Padding(
           padding: const EdgeInsets.only(left: 8),
           child: Hero(
             tag: 'app_logo_mini',
             child: SvgPicture.asset(
-              'assets/images/logo.svg',
-              height: 54, // Slightly larger for better legibility
-              placeholderBuilder: (context) => const Text(
+              'assets/images/logo_horizontal.svg',
+              width: 150,
+              height: 40,
+              fit: BoxFit.contain,
+              placeholderBuilder: (context) => Text(
                 'ConeCTEA',
-                style: TextStyle(
-                  color: AppColors.primary,
+                style: GoogleFonts.inter(
+                  color: AppColors.darkBlue,
                   fontWeight: FontWeight.w900,
-                  fontSize: 22,
+                  fontSize: 24,
                 ),
               ),
             ),
@@ -98,85 +108,169 @@ class _HomePageState extends State<HomePage> {
         centerTitle: false,
         actions: [
           _buildNotificationAction(),
-          const SizedBox(width: 8),
+          const SizedBox(width: 12),
           _buildUserAvatar(),
-          const SizedBox(width: 20),
+          const SizedBox(width: 24),
         ],
       ),
       body: IndexedStack(
         index: _currentIndex,
         children: pages,
       ),
-      bottomNavigationBar: BottomNav(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
+      bottomNavigationBar: _buildBottomNav(),
+    );
+  }
+
+  Widget _buildBottomNav() {
+    final currentUserEmail = _authService.currentUser?.email;
+    final isAdmin = _user?.role == UserRole.admin;
+    
+    return Container(
+      height: 100,
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(32),
+          topRight: Radius.circular(32),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.darkBlue.withValues(alpha: 0.05),
+            blurRadius: 20,
+            offset: const Offset(0, -5),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildNavItem(0, Icons.home_rounded, 'Início'),
+          _buildNavItem(1, Icons.badge_rounded, 'Carteirinha'),
+          _buildNavItem(2, Icons.description_rounded, 'Solicitações'),
+          if (isAdmin) _buildNavItem(5, Icons.admin_panel_settings_rounded, 'Gestão'),
+          _buildNavItem(4, Icons.person_rounded, 'Conta'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNavItem(int index, IconData icon, String label, {int badge = 0}) {
+    final isSelected = _currentIndex == index;
+    return GestureDetector(
+      onTap: () => setState(() => _currentIndex = index),
+      behavior: HitTestBehavior.opaque,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Icon(
+                icon,
+                color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                size: 28,
+              ),
+              if (badge > 0)
+                Positioned(
+                  right: -6,
+                  top: -4,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: AppColors.errorRed,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                    ),
+                    constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                    child: Center(
+                      child: Text(
+                        badge > 9 ? '9+' : '$badge',
+                        style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: GoogleFonts.inter(
+              fontSize: 10,
+              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+              color: isSelected ? AppColors.primary : AppColors.textSecondary,
+            ),
+          ),
+          if (isSelected) ...[
+            const SizedBox(height: 4),
+            Container(
+              width: 4,
+              height: 4,
+              decoration: const BoxDecoration(
+                color: AppColors.primary,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
 
   Widget _buildNotificationAction() {
-    return IconButton(
-      icon: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          const Icon(Icons.notifications_none_rounded, color: AppColors.textPrimary, size: 28),
-          if (_unreadCount > 0)
-            Positioned(
-              right: -2,
-              top: -2,
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: AppColors.errorRed,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 2),
-                ),
-                constraints: const BoxConstraints(
-                  minWidth: 16,
-                  minHeight: 16,
-                ),
-                child: Center(
-                  child: Text(
-                    _unreadCount > 9 ? '9+' : '$_unreadCount',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 8,
-                      fontWeight: FontWeight.bold,
+    return Center(
+      child: GestureDetector(
+        onTap: () => setState(() => _currentIndex = 3),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            const Icon(Icons.notifications_none_rounded, color: AppColors.textSecondary, size: 32),
+            if (_unreadCount > 0)
+              Positioned(
+                right: -2,
+                top: -2,
+                child: Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: AppColors.errorRed,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 2),
+                  ),
+                  child: Center(
+                    child: Text(
+                      '$_unreadCount',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
-      onPressed: () {
-        setState(() {
-          _currentIndex = 3; // Go to notifications
-        });
-      },
     );
   }
 
   Widget _buildUserAvatar() {
     return Center(
       child: Container(
-        width: 36,
-        height: 36,
-        decoration: BoxDecoration(
-          color: AppColors.primary.withOpacity(0.1),
+        width: 64,
+        height: 64,
+        decoration: const BoxDecoration(
+          color: AppColors.purpleLight,
           shape: BoxShape.circle,
-          border: Border.all(color: AppColors.primary.withOpacity(0.2), width: 1),
         ),
         child: Center(
           child: Text(
             _initials,
             style: GoogleFonts.inter(
               color: AppColors.primary,
-              fontSize: 13,
+              fontSize: 22,
               fontWeight: FontWeight.w700,
             ),
           ),

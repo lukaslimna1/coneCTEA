@@ -89,7 +89,7 @@ class _RequestsViewState extends State<RequestsView> {
       child: Column(
         children: [
           const SizedBox(height: 60),
-          Icon(Icons.assignment_late_outlined, size: 80, color: AppColors.textSecondary.withOpacity(0.2)),
+          Icon(Icons.assignment_late_outlined, size: 80, color: AppColors.textSecondary.withValues(alpha: 0.2)),
           const SizedBox(height: 16),
           Text(
             'Nenhuma solicitação encontrada',
@@ -105,7 +105,7 @@ class _RequestsViewState extends State<RequestsView> {
             textAlign: TextAlign.center,
             style: GoogleFonts.inter(
               fontSize: 14,
-              color: AppColors.textSecondary.withOpacity(0.7),
+              color: AppColors.textSecondary.withValues(alpha: 0.7),
             ),
           ),
         ],
@@ -164,7 +164,7 @@ class _RequestsViewState extends State<RequestsView> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -178,7 +178,7 @@ class _RequestsViewState extends State<RequestsView> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: ui.color.withOpacity(0.1),
+                  color: ui.color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Icon(_getTypeIcon(request.type), color: ui.color, size: 22),
@@ -210,7 +210,7 @@ class _RequestsViewState extends State<RequestsView> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: ui.color.withOpacity(0.1),
+                  color: ui.color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(100),
                 ),
                 child: Text(

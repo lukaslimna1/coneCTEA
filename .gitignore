@@ -43,3 +43,14 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Firebase sensitive files (DO NOT commit)
+google-services.json
+GoogleService-Info.plist
+lib/core/firebase_options.dart
+
+# Temp analysis files
+analysis.txt
+analysis_output.txt
+analysis_output_full.txt
+analyze.txt

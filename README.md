@@ -7,6 +7,20 @@ App de identificação digital, solicitações e acompanhamento individual para 
 - **Backend**: Firebase (Auth, Firestore, Hosting)
 - **Design**: Material 3 + Google Fonts (Inter)
 
+## 🚀 Versão 2.3.0 - UI Polish & Structural Cleanup (Current)
+- [x] **HomeView Refactor**: Eliminação de duplicação de código e inconsistências estruturais.
+- [x] **Premium UI Polishing**: Ajuste fino nos componentes de carteirinha (wallet preview) e seleção de membros.
+- [x] **Design System Unification**: Aplicação consistente do sistema de cores e tipografia no módulo Home.
+- [x] **Docs**: Introdução do `DOCTecnico.md` para documentação técnica de suporte.
+
+## 🚀 Versão 2.2.0 (Polishing) - UI Consistency & Global Notifications
+- [x] **Notification Sync**: Unificação definitiva do ícone de sino no AppBar, removendo duplicidades no menu inferior para um visual mais limpo.
+- [x] **Refined Home Architecture**: Estruturação completa conforme o layout premium (Saudação, Membros, Wallet Preview e Quick Access).
+- [x] **Logo Clarity**: Ajuste de dimensões e posicionamento da `logo_horizontal.svg` para máxima legibilidade.
+- [x] **Firebase Integration**: Estabilização dos modelos de dados e resolução de erros de importação de tipos.
+
+## 🚀 Versão 2.1.0 (Refactoring) - Premium Home UI & Branding Integration
+
 ## 🚀 Versão 2.0.0 (MVP+) - Premium UI Overhaul & Firebase Migration
 - [x] Migração completa de Supabase para Firebase (Auth e Firestore)
 - [x] **Home Screen Redesign**: Interface premium com foco em legibilidade e UX.

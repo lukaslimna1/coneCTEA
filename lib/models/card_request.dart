@@ -7,6 +7,8 @@ class CardRequest {
   final String protocol;
   final String adminNotes;
   final String driveFolderUrl;
+  final String idPhotoUrl;
+  final String medicalReportUrl;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -19,6 +21,8 @@ class CardRequest {
     required this.protocol,
     required this.adminNotes,
     required this.driveFolderUrl,
+    required this.idPhotoUrl,
+    required this.medicalReportUrl,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -33,6 +37,8 @@ class CardRequest {
       protocol: data['protocol'] ?? '',
       adminNotes: data['adminNotes'] ?? data['admin_notes'] ?? '',
       driveFolderUrl: data['driveFolderUrl'] ?? data['drive_folder_url'] ?? '',
+      idPhotoUrl: data['idPhotoUrl'] ?? data['id_photo_url'] ?? '',
+      medicalReportUrl: data['medicalReportUrl'] ?? data['medical_report_url'] ?? '',
       createdAt: data['createdAt'] != null 
           ? DateTime.parse(data['createdAt']) 
           : (data['created_at'] != null ? DateTime.parse(data['created_at']) : DateTime.now()),
@@ -52,6 +58,8 @@ class CardRequest {
       'protocol': protocol,
       'admin_notes': adminNotes,
       'drive_folder_url': driveFolderUrl,
+      'id_photo_url': idPhotoUrl,
+      'medical_report_url': medicalReportUrl,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };

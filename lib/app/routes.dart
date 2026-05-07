@@ -5,6 +5,7 @@ import '../features/home/home_page.dart';
 import '../features/requests/add_member_page.dart';
 import '../features/requests/member_selection_page.dart';
 import '../features/requests/new_request_page.dart';
+import '../features/admin/admin_dashboard_page.dart';
 import '../models/member.dart';
 import '../core/notifiers/auth_notifier.dart';
 
@@ -18,6 +19,10 @@ class AppRoutes {
       final isAuthenticated = authNotifier.isAuthenticated;
       final isLoggingIn = state.matchedLocation == '/login';
       final isRegistering = state.matchedLocation == '/register';
+
+      if (authNotifier.suppressRedirect) {
+        return null;
+      }
 
       if (!isAuthenticated) {
         if (isLoggingIn || isRegistering) return null;
@@ -57,6 +62,10 @@ class AppRoutes {
           final member = state.extra as Member;
           return NewRequestPage(member: member);
         },
+      ),
+      GoRoute(
+        path: '/admin-dashboard',
+        builder: (context, state) => const AdminDashboardPage(),
       ),
     ],
   );

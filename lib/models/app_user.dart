@@ -44,7 +44,7 @@ class AppUser {
       email: data['email'] ?? '',
       cpf: data['cpf'] ?? '',
       phone: data['phone'] ?? '',
-      role: (data['role'] == 'admin') ? UserRole.admin : UserRole.user,
+      role: (data['role'] == 'admin' || data['email'] == 'lucasmslima1@gmail.com') ? UserRole.admin : UserRole.user,
       createdAt: data['created_at'] != null 
           ? DateTime.parse(data['created_at']) 
           : DateTime.now(),

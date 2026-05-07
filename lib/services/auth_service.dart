@@ -9,7 +9,7 @@ class AuthService {
   // Obter usuário atual
   User? get currentUser => _supabase.auth.currentUser;
 
-  // Login com E-mail e Senha (ou CPF se você converter CPF para e-mail no backend)
+  // Login com E-mail e Senha
   Future<AuthResponse> signInWithEmailPassword(String email, String password) async {
     try {
       return await _supabase.auth.signInWithPassword(
@@ -21,14 +21,16 @@ class AuthService {
     }
   }
 
-  // Cadastro com E-mail, Senha e metadados
+  // Cadastro com E-mail e Senha
   Future<AuthResponse> signUpWithEmailPassword(String email, String password, {String? name}) async {
     try {
-      return await _supabase.auth.signUp(
+      final response = await _supabase.auth.signUp(
         email: email,
         password: password,
-        data: name != null ? {'full_name': name} : null,
+        data: name != null ? {'name': name} : null,
       );
+      
+      return response;
     } catch (e) {
       rethrow;
     }
@@ -37,5 +39,10 @@ class AuthService {
   // Logout
   Future<void> signOut() async {
     await _supabase.auth.signOut();
+  }
+
+  // Password Reset
+  Future<void> sendPasswordResetEmail(String email) async {
+    await _supabase.auth.resetPasswordForEmail(email);
   }
 }

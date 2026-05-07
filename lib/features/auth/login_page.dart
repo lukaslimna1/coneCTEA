@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/constants/colors.dart';
 import '../../services/auth_service.dart';
+import '../../services/database_service.dart';
+import '../../models/app_user.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -47,9 +49,28 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      await _authService.signInWithEmailPassword(email, password);
-      // Se tiver sucesso, você pode navegar para a Home
-      // O stream de auth pode lidar com isso no GoRouter, ou você pode fazer push
+      final response = await _authService.signInWithEmailPassword(email, password);
+      
+      if (response.user != null) {
+        final databaseService = DatabaseService();
+        final profile = await databaseService.getUserProfile(response.user!.id);
+        
+        if (profile == null) {
+          // Se o perfil não existe (ex: conta antiga ou erro no cadastro), cria um perfil básico
+          final newUser = AppUser(
+            id: response.user!.id,
+            name: response.user!.userMetadata?['full_name'] ?? email.split('@')[0],
+            email: email,
+            cpf: '',
+            phone: '',
+            role: UserRole.user,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+            isActive: true,
+          );
+          await databaseService.createUserProfile(newUser);
+        }
+      }
     } on AuthException catch (e) {
       setState(() {
         _errorMessage = e.message;

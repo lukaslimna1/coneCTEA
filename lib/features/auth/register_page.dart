@@ -9,6 +9,7 @@ import '../../core/constants/colors.dart';
 import '../../services/auth_service.dart';
 import '../../services/database_service.dart';
 import '../../models/app_user.dart';
+import '../../app/routes.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -19,34 +20,34 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
-  
+
   // Principais
   final _nomeController = TextEditingController();
   final _emailController = TextEditingController();
   final _telefoneController = TextEditingController();
   final _dataNascimentoController = TextEditingController();
-  
+
   // Localização
   final _cidadeController = TextEditingController();
   String? _estadoSelecionado;
-  
+
   // Vínculo
   String _indicacaoInstituicao = 'Não';
   final _nomeInstituicaoController = TextEditingController();
-  
+
   // Complementares
   String? _sexoSelecionado;
   String? _racaSelecionada;
   final _nomeSocialController = TextEditingController();
-  
+
   // Segurança
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  
+
   // Termos
   bool _concordaTermos = false;
   bool _autorizaDados = false;
-  
+
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
@@ -62,9 +63,33 @@ class _RegisterPageState extends State<RegisterPage> {
   );
 
   final List<String> _estados = [
-    'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA',
-    'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN',
-    'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'
+    'AC',
+    'AL',
+    'AP',
+    'AM',
+    'BA',
+    'CE',
+    'DF',
+    'ES',
+    'GO',
+    'MA',
+    'MT',
+    'MS',
+    'MG',
+    'PA',
+    'PB',
+    'PR',
+    'PE',
+    'PI',
+    'RJ',
+    'RN',
+    'RS',
+    'RO',
+    'RR',
+    'SC',
+    'SP',
+    'SE',
+    'TO',
   ];
 
   @override
@@ -83,41 +108,48 @@ class _RegisterPageState extends State<RegisterPage> {
 
   Future<void> _handleRegister() async {
     if (!_formKey.currentState!.validate()) return;
-    
+
     if (!_concordaTermos) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Você precisa concordar com os Termos de Uso.')),
+        const SnackBar(
+          content: Text('Você precisa concordar com os Termos de Uso.'),
+        ),
       );
       return;
     }
 
     if (!_autorizaDados) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Você precisa autorizar o tratamento de dados.')),
+        const SnackBar(
+          content: Text('Você precisa autorizar o tratamento de dados.'),
+        ),
       );
       return;
     }
 
     setState(() => _isLoading = true);
-    
+
+    // Suprimir redirecionamento automático
+    AppRoutes.authNotifier.setSuppressRedirect(true);
+
     try {
       final authService = AuthService();
       final databaseService = DatabaseService();
-      
-      // 1. Criar conta no Supabase Auth
-      final response = await authService.signUpWithEmailPassword(
+
+      // 1. Criar conta no Firebase Auth
+      final credential = await authService.signUpWithEmailPassword(
         _emailController.text.trim(),
         _passwordController.text,
         name: _nomeController.text.trim(),
       );
 
-      if (response.user != null) {
-        // 2. Criar perfil no banco de dados (tabela profiles)
+      if (credential.user != null) {
+        // 2. Criar perfil no banco de dados (coleção profiles)
         final newUser = AppUser(
-          id: response.user!.id,
+          id: credential.user!.id,
           name: _nomeController.text.trim(),
           email: _emailController.text.trim(),
-          cpf: '', // CPF não está no formulário de registro inicial conforme solicitado
+          cpf: '', // CPF não está no formulário de registro inicial
           phone: _telefoneController.text,
           role: UserRole.user,
           createdAt: DateTime.now(),
@@ -126,20 +158,57 @@ class _RegisterPageState extends State<RegisterPage> {
           dateOfBirth: _dataNascimentoController.text,
           city: _cidadeController.text,
           state: _estadoSelecionado,
-          institution: _indicacaoInstituicao == 'Sim' ? _nomeInstituicaoController.text : null,
+          institution: _indicacaoInstituicao == 'Sim'
+              ? _nomeInstituicaoController.text
+              : null,
           gender: _sexoSelecionado,
           race: _racaSelecionada,
           socialName: _nomeSocialController.text,
         );
 
-        await databaseService.createUserProfile(newUser);
-        
+        try {
+          await databaseService.createUserProfile(newUser);
+        } catch (dbError) {
+          debugPrint('Erro ao salvar perfil no DB: $dbError');
+        }
+
+        // Fazer logout IMEDIATO
+        await authService.signOut();
+
         if (mounted) {
-          context.go('/login');
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Conta criada com sucesso! Verifique seu e-mail para confirmar o cadastro.'),
-              backgroundColor: Colors.green,
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+              ),
+              title: const Text('🎉 Conta Criada!'),
+              content: const Text(
+                'Sua conta foi criada com sucesso.\n\nPor segurança, você será redirecionado para a tela de login para acessar o sistema.',
+                textAlign: TextAlign.center,
+              ),
+              actions: [
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      context.go('/login');
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Ir para Login',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ),
+              ],
             ),
           );
         }
@@ -153,10 +222,16 @@ class _RegisterPageState extends State<RegisterPage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao criar conta: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Erro ao criar conta: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } finally {
+      // Aguarda o evento de logout propagar no AuthNotifier
+      await Future.delayed(const Duration(milliseconds: 500));
+      AppRoutes.authNotifier.setSuppressRedirect(false);
       if (mounted) setState(() => _isLoading = false);
     }
   }
@@ -176,7 +251,6 @@ class _RegisterPageState extends State<RegisterPage> {
             child: Column(
               children: [
                 const SizedBox(height: 10), // Respiro de 10px do topo
-                
                 // Logo principal mais destacada
                 Hero(
                   tag: 'app_logo',
@@ -188,7 +262,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                
+
                 Text(
                   'Criar sua conta',
                   style: GoogleFonts.inter(
@@ -208,7 +282,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     height: 1.4,
                   ),
                 ),
-                
+
                 const SizedBox(height: 24),
 
                 // Card de Cadastro
@@ -233,13 +307,14 @@ class _RegisterPageState extends State<RegisterPage> {
                         // --- Dados Pessoais ---
                         _buildSectionTitle('👤 Dados Pessoais'),
                         const SizedBox(height: 16),
-                        
+
                         _buildInputField(
                           label: 'Nome Completo*',
                           controller: _nomeController,
                           hint: 'Digite seu nome completo',
                           icon: Icons.person_outline,
-                          validator: (v) => v!.isEmpty ? 'Campo obrigatório' : null,
+                          validator: (v) =>
+                              v!.isEmpty ? 'Campo obrigatório' : null,
                         ),
                         const SizedBox(height: 16),
 
@@ -256,7 +331,8 @@ class _RegisterPageState extends State<RegisterPage> {
                                 icon: Icons.phone_outlined,
                                 inputFormatters: [phoneMask],
                                 keyboardType: TextInputType.phone,
-                                validator: (v) => v!.length < 14 ? 'Telefone inválido' : null,
+                                validator: (v) =>
+                                    v!.length < 14 ? 'Telefone inválido' : null,
                               ),
                             ),
                             SizedBox(
@@ -268,7 +344,8 @@ class _RegisterPageState extends State<RegisterPage> {
                                 icon: Icons.calendar_today_outlined,
                                 inputFormatters: [dateMask],
                                 keyboardType: TextInputType.datetime,
-                                validator: (v) => v!.length < 10 ? 'Data inválida' : null,
+                                validator: (v) =>
+                                    v!.length < 10 ? 'Data inválida' : null,
                               ),
                             ),
                           ],
@@ -293,7 +370,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         // --- Localização ---
                         _buildSectionTitle('📍 Localização'),
                         const SizedBox(height: 16),
-                        
+
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -304,7 +381,8 @@ class _RegisterPageState extends State<RegisterPage> {
                                 controller: _cidadeController,
                                 hint: 'Sua cidade',
                                 icon: Icons.location_on_outlined,
-                                validator: (v) => v!.isEmpty ? 'Campo obrigatório' : null,
+                                validator: (v) =>
+                                    v!.isEmpty ? 'Campo obrigatório' : null,
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -315,8 +393,10 @@ class _RegisterPageState extends State<RegisterPage> {
                                 value: _estadoSelecionado,
                                 items: _estados,
                                 icon: Icons.map_outlined,
-                                validator: (v) => v == null ? 'Obrigatório' : null,
-                                onChanged: (v) => setState(() => _estadoSelecionado = v),
+                                validator: (v) =>
+                                    v == null ? 'Obrigatório' : null,
+                                onChanged: (v) =>
+                                    setState(() => _estadoSelecionado = v),
                               ),
                             ),
                           ],
@@ -333,14 +413,19 @@ class _RegisterPageState extends State<RegisterPage> {
                           hint: 'Crie uma senha',
                           icon: Icons.lock_outline,
                           obscure: _obscurePassword,
-                          validator: (v) => v!.length < 6 ? 'Mínimo 6 caracteres' : null,
+                          validator: (v) =>
+                              v!.length < 6 ? 'Mínimo 6 caracteres' : null,
                           suffixIcon: IconButton(
                             icon: Icon(
-                              _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                              _obscurePassword
+                                  ? Icons.visibility_off_outlined
+                                  : Icons.visibility_outlined,
                               color: AppColors.textSecondary,
                               size: 20,
                             ),
-                            onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                            onPressed: () => setState(
+                              () => _obscurePassword = !_obscurePassword,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -351,21 +436,30 @@ class _RegisterPageState extends State<RegisterPage> {
                           hint: 'Repita sua senha',
                           icon: Icons.lock_reset_outlined,
                           obscure: _obscureConfirmPassword,
-                          validator: (v) => v != _passwordController.text ? 'Senhas não conferem' : null,
+                          validator: (v) => v != _passwordController.text
+                              ? 'Senhas não conferem'
+                              : null,
                           suffixIcon: IconButton(
                             icon: Icon(
-                              _obscureConfirmPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                              _obscureConfirmPassword
+                                  ? Icons.visibility_off_outlined
+                                  : Icons.visibility_outlined,
                               color: AppColors.textSecondary,
                               size: 20,
                             ),
-                            onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+                            onPressed: () => setState(
+                              () => _obscureConfirmPassword =
+                                  !_obscureConfirmPassword,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 24),
 
                         // --- Dados Complementares (Optional Accordion) ---
                         Theme(
-                          data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                          data: Theme.of(
+                            context,
+                          ).copyWith(dividerColor: Colors.transparent),
                           child: ExpansionTile(
                             tilePadding: EdgeInsets.zero,
                             title: Text(
@@ -384,7 +478,8 @@ class _RegisterPageState extends State<RegisterPage> {
                                 value: _indicacaoInstituicao,
                                 items: const ['Não', 'Sim'],
                                 icon: Icons.account_balance_outlined,
-                                onChanged: (v) => setState(() => _indicacaoInstituicao = v!),
+                                onChanged: (v) =>
+                                    setState(() => _indicacaoInstituicao = v!),
                               ),
                               if (_indicacaoInstituicao == 'Sim') ...[
                                 const SizedBox(height: 12),
@@ -411,15 +506,16 @@ class _RegisterPageState extends State<RegisterPage> {
                                       label: 'Sexo',
                                       value: _sexoSelecionado,
                                       items: const [
-                                        'Feminino', 
-                                        'Masculino', 
-                                        'Não-binário', 
+                                        'Feminino',
+                                        'Masculino',
+                                        'Não-binário',
                                         'Intersexo',
-                                        'Prefiro não informar', 
-                                        'Outro'
+                                        'Prefiro não informar',
+                                        'Outro',
                                       ],
                                       icon: Icons.wc_outlined,
-                                      onChanged: (v) => setState(() => _sexoSelecionado = v),
+                                      onChanged: (v) =>
+                                          setState(() => _sexoSelecionado = v),
                                     ),
                                   ),
                                   const SizedBox(width: 12),
@@ -427,9 +523,17 @@ class _RegisterPageState extends State<RegisterPage> {
                                     child: _buildDropdownField(
                                       label: 'Raça / Cor',
                                       value: _racaSelecionada,
-                                      items: const ['Branca', 'Preta', 'Parda', 'Amarela', 'Indígena', 'Prefiro não informar'],
+                                      items: const [
+                                        'Branca',
+                                        'Preta',
+                                        'Parda',
+                                        'Amarela',
+                                        'Indígena',
+                                        'Prefiro não informar',
+                                      ],
                                       icon: Icons.groups_outlined,
-                                      onChanged: (v) => setState(() => _racaSelecionada = v),
+                                      onChanged: (v) =>
+                                          setState(() => _racaSelecionada = v),
                                     ),
                                   ),
                                 ],
@@ -444,24 +548,34 @@ class _RegisterPageState extends State<RegisterPage> {
                         // Termos
                         _buildTermsCheckbox(
                           value: _concordaTermos,
-                          onChanged: (v) => setState(() => _concordaTermos = v!),
+                          onChanged: (v) =>
+                              setState(() => _concordaTermos = v!),
                           text: Text.rich(
                             TextSpan(
                               text: 'Li e concordo com os ',
                               children: [
                                 TextSpan(
                                   text: 'Termos de Uso',
-                                  style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700),
+                                  style: TextStyle(
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.w700,
+                                  ),
                                 ),
                                 const TextSpan(text: ' e '),
                                 TextSpan(
                                   text: 'Política de Privacidade',
-                                  style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700),
+                                  style: TextStyle(
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.w700,
+                                  ),
                                 ),
                                 const TextSpan(text: '.'),
                               ],
                             ),
-                            style: GoogleFonts.inter(fontSize: 13, color: AppColors.textPrimary),
+                            style: GoogleFonts.inter(
+                              fontSize: 13,
+                              color: AppColors.textPrimary,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -470,10 +584,13 @@ class _RegisterPageState extends State<RegisterPage> {
                           onChanged: (v) => setState(() => _autorizaDados = v!),
                           text: Text(
                             'Autorizo o tratamento de meus dados pessoais para as finalidades do aplicativo.',
-                            style: GoogleFonts.inter(fontSize: 13, color: AppColors.textPrimary),
+                            style: GoogleFonts.inter(
+                              fontSize: 13,
+                              color: AppColors.textPrimary,
+                            ),
                           ),
                         ),
-                        
+
                         const SizedBox(height: 32),
 
                         // Botão Criar Conta
@@ -484,17 +601,28 @@ class _RegisterPageState extends State<RegisterPage> {
                             onPressed: _isLoading ? null : _handleRegister,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.primary,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
                               elevation: 0,
                             ),
-                            child: _isLoading 
-                                ? const CircularProgressIndicator(color: Colors.white)
-                                : const Text('Criar minha conta', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white)),
+                            child: _isLoading
+                                ? const CircularProgressIndicator(
+                                    color: Colors.white,
+                                  )
+                                : const Text(
+                                    'Criar minha conta',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w800,
+                                      color: Colors.white,
+                                    ),
+                                  ),
                           ),
                         ),
-                        
+
                         const SizedBox(height: 16),
-                        
+
                         // Botão Já tenho conta
                         Center(
                           child: TextButton(
@@ -505,11 +633,17 @@ class _RegisterPageState extends State<RegisterPage> {
                                 children: [
                                   TextSpan(
                                     text: 'Entrar agora',
-                                    style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w800),
+                                    style: TextStyle(
+                                      color: AppColors.primary,
+                                      fontWeight: FontWeight.w800,
+                                    ),
                                   ),
                                 ],
                               ),
-                              style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary),
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                color: AppColors.textSecondary,
+                              ),
                             ),
                           ),
                         ),
@@ -517,7 +651,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                   ),
                 ),
-                
+
                 const SizedBox(height: 32),
 
                 // Ilustração Familiar
@@ -532,11 +666,19 @@ class _RegisterPageState extends State<RegisterPage> {
 
                 // Rodapé de segurança (Alinhado com o Login)
                 Padding(
-                  padding: const EdgeInsets.only(left: 24, right: 24, bottom: 40),
+                  padding: const EdgeInsets.only(
+                    left: 24,
+                    right: 24,
+                    bottom: 40,
+                  ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      const Icon(Icons.lock_outline, color: AppColors.textSecondary, size: 28),
+                      const Icon(
+                        Icons.lock_outline,
+                        color: AppColors.textSecondary,
+                        size: 28,
+                      ),
                       const SizedBox(width: 16),
                       Expanded(
                         child: Text(
@@ -599,7 +741,9 @@ class _RegisterPageState extends State<RegisterPage> {
           controller: controller,
           obscureText: obscure,
           validator: validator,
-          inputFormatters: inputFormatters != null ? List<TextInputFormatter>.from(inputFormatters) : null,
+          inputFormatters: inputFormatters != null
+              ? List<TextInputFormatter>.from(inputFormatters)
+              : null,
           keyboardType: keyboardType,
           style: GoogleFonts.inter(fontSize: 15),
           decoration: InputDecoration(
@@ -608,7 +752,10 @@ class _RegisterPageState extends State<RegisterPage> {
             suffixIcon: suffixIcon,
             filled: true,
             fillColor: Colors.white,
-            contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+            contentPadding: const EdgeInsets.symmetric(
+              vertical: 16,
+              horizontal: 16,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
@@ -628,7 +775,10 @@ class _RegisterPageState extends State<RegisterPage> {
           const SizedBox(height: 4),
           Text(
             helper,
-            style: GoogleFonts.inter(fontSize: 12, color: AppColors.textSecondary),
+            style: GoogleFonts.inter(
+              fontSize: 12,
+              color: AppColors.textSecondary,
+            ),
           ),
         ],
       ],
@@ -648,42 +798,63 @@ class _RegisterPageState extends State<RegisterPage> {
       children: [
         Text(
           label,
-          style: GoogleFonts.inter(fontWeight: FontWeight.w700, color: AppColors.darkBlue, fontSize: 13),
+          style: GoogleFonts.inter(
+            fontWeight: FontWeight.w700,
+            color: AppColors.darkBlue,
+            fontSize: 13,
+          ),
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          value: value,
+          initialValue: value,
           onChanged: onChanged,
           validator: validator,
           isExpanded: true,
           style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary),
           decoration: InputDecoration(
             prefixIcon: Icon(icon, color: AppColors.primary, size: 22),
-            contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+            contentPadding: const EdgeInsets.symmetric(
+              vertical: 16,
+              horizontal: 12,
+            ),
             filled: true,
             fillColor: Colors.white,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+            ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: AppColors.primary, width: 2),
             ),
             errorStyle: const TextStyle(height: 0.8),
           ),
-          items: items.map((e) => DropdownMenuItem(
-            value: e, 
-            child: Text(
-              e, 
-              overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.inter(fontSize: 14),
-            ),
-          )).toList(),
+          items: items
+              .map(
+                (e) => DropdownMenuItem(
+                  value: e,
+                  child: Text(
+                    e,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.inter(fontSize: 14),
+                  ),
+                ),
+              )
+              .toList(),
         ),
       ],
     );
   }
 
-  Widget _buildTermsCheckbox({required bool value, required void Function(bool?) onChanged, required Widget text}) {
+  Widget _buildTermsCheckbox({
+    required bool value,
+    required void Function(bool?) onChanged,
+    required Widget text,
+  }) {
     return InkWell(
       onTap: () => onChanged(!value),
       child: Row(
@@ -696,7 +867,9 @@ class _RegisterPageState extends State<RegisterPage> {
               value: value,
               onChanged: onChanged,
               activeColor: AppColors.primary,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(4),
+              ),
             ),
           ),
           const SizedBox(width: 12),
@@ -706,5 +879,3 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 }
-
-

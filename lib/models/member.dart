@@ -7,6 +7,11 @@ class Member {
   final String phone;
   final String emergencyContact;
   final String responsibleName;
+  final String dateOfBirth; // Changed from birthDate to dateOfBirth (String to match AdminView usage)
+  final String bloodType;
+  final String cid;
+  final String documentUrl;
+  final String medicalReportUrl;
   final String status;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -20,6 +25,11 @@ class Member {
     required this.phone,
     required this.emergencyContact,
     required this.responsibleName,
+    required this.dateOfBirth,
+    required this.bloodType,
+    required this.cid,
+    required this.documentUrl,
+    required this.medicalReportUrl,
     required this.status,
     required this.createdAt,
     required this.updatedAt,
@@ -35,6 +45,11 @@ class Member {
       phone: json['phone'] ?? '',
       emergencyContact: json['emergencyContact'] ?? json['emergency_contact'] ?? '',
       responsibleName: json['responsibleName'] ?? json['responsible_name'] ?? '',
+      dateOfBirth: json['dateOfBirth'] ?? json['birth_date'] ?? json['birthDate'] ?? '',
+      bloodType: json['bloodType'] ?? json['blood_type'] ?? '',
+      cid: json['cid'] ?? '',
+      documentUrl: json['documentUrl'] ?? json['document_url'] ?? '',
+      medicalReportUrl: json['medicalReportUrl'] ?? json['medical_report_url'] ?? '',
       status: json['status'] ?? 'active',
       createdAt: json['createdAt'] != null 
           ? DateTime.parse(json['createdAt']) 
@@ -54,6 +69,11 @@ class Member {
       'phone': phone,
       'emergency_contact': emergencyContact,
       'responsible_name': responsibleName,
+      'birth_date': dateOfBirth,
+      'blood_type': bloodType,
+      'cid': cid,
+      'document_url': documentUrl,
+      'medical_report_url': medicalReportUrl,
       'status': status,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
