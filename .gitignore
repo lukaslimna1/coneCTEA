@@ -47,6 +47,7 @@ app.*.map.json
 # Supabase / Environment sensitive files (DO NOT commit)
 .env
 .env.*
+DOCTecnico.md
 
 # Temp analysis files
 analysis.txt
