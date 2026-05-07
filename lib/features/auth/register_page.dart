@@ -5,6 +5,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import '../../core/constants/colors.dart';
 import '../../services/auth_service.dart';
 import '../../services/database_service.dart';
@@ -28,8 +30,11 @@ class _RegisterPageState extends State<RegisterPage> {
   final _dataNascimentoController = TextEditingController();
 
   // Localização
-  final _cidadeController = TextEditingController();
-  String? _estadoSelecionado;
+  String? _selectedState;
+  String? _selectedCity;
+  List<Map<String, dynamic>> _states = [];
+  List<String> _cities = [];
+  bool _isLoadingCities = false;
 
   // Vínculo
   String _indicacaoInstituicao = 'Não';
@@ -62,35 +67,53 @@ class _RegisterPageState extends State<RegisterPage> {
     filter: {"#": RegExp(r'[0-9]')},
   );
 
-  final List<String> _estados = [
-    'AC',
-    'AL',
-    'AP',
-    'AM',
-    'BA',
-    'CE',
-    'DF',
-    'ES',
-    'GO',
-    'MA',
-    'MT',
-    'MS',
-    'MG',
-    'PA',
-    'PB',
-    'PR',
-    'PE',
-    'PI',
-    'RJ',
-    'RN',
-    'RS',
-    'RO',
-    'RR',
-    'SC',
-    'SP',
-    'SE',
-    'TO',
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _fetchStates();
+  }
+
+  Future<void> _fetchStates() async {
+    try {
+      final response = await http.get(
+        Uri.parse('https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome'),
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          _states = data.map((s) => {
+            'sigla': s['sigla'],
+            'nome': s['nome'],
+          }).toList();
+        });
+      }
+    } catch (e) {
+      debugPrint('Erro ao buscar estados: $e');
+    }
+  }
+
+  Future<void> _fetchCities(String stateSigla) async {
+    setState(() {
+      _isLoadingCities = true;
+      _cities = [];
+      _selectedCity = null;
+    });
+    try {
+      final response = await http.get(
+        Uri.parse('https://servicodados.ibge.gov.br/api/v1/localidades/estados/$stateSigla/municipios?orderBy=nome'),
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          _cities = data.map((c) => c['nome'].toString()).toList();
+        });
+      }
+    } catch (e) {
+      debugPrint('Erro ao buscar cidades: $e');
+    } finally {
+      setState(() => _isLoadingCities = false);
+    }
+  }
 
   @override
   void dispose() {
@@ -98,7 +121,6 @@ class _RegisterPageState extends State<RegisterPage> {
     _emailController.dispose();
     _telefoneController.dispose();
     _dataNascimentoController.dispose();
-    _cidadeController.dispose();
     _nomeInstituicaoController.dispose();
     _nomeSocialController.dispose();
     _passwordController.dispose();
@@ -108,6 +130,13 @@ class _RegisterPageState extends State<RegisterPage> {
 
   Future<void> _handleRegister() async {
     if (!_formKey.currentState!.validate()) return;
+
+    if (_selectedState == null || _selectedCity == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Selecione Estado e Cidade')),
+      );
+      return;
+    }
 
     if (!_concordaTermos) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -129,14 +158,12 @@ class _RegisterPageState extends State<RegisterPage> {
 
     setState(() => _isLoading = true);
 
-    // Suprimir redirecionamento automático
     AppRoutes.authNotifier.setSuppressRedirect(true);
 
     try {
       final authService = AuthService();
       final databaseService = DatabaseService();
 
-      // 1. Criar conta no Firebase Auth
       final credential = await authService.signUpWithEmailPassword(
         _emailController.text.trim(),
         _passwordController.text,
@@ -144,20 +171,19 @@ class _RegisterPageState extends State<RegisterPage> {
       );
 
       if (credential.user != null) {
-        // 2. Criar perfil no banco de dados (coleção profiles)
         final newUser = AppUser(
           id: credential.user!.id,
           name: _nomeController.text.trim(),
           email: _emailController.text.trim(),
-          cpf: '', // CPF não está no formulário de registro inicial
+          cpf: '',
           phone: _telefoneController.text,
           role: UserRole.user,
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
           isActive: true,
           dateOfBirth: _dataNascimentoController.text,
-          city: _cidadeController.text,
-          state: _estadoSelecionado,
+          city: _selectedCity,
+          state: _selectedState,
           institution: _indicacaoInstituicao == 'Sim'
               ? _nomeInstituicaoController.text
               : null,
@@ -172,7 +198,6 @@ class _RegisterPageState extends State<RegisterPage> {
           debugPrint('Erro ao salvar perfil no DB: $dbError');
         }
 
-        // Fazer logout IMEDIATO
         await authService.signOut();
 
         if (mounted) {
@@ -229,7 +254,6 @@ class _RegisterPageState extends State<RegisterPage> {
         );
       }
     } finally {
-      // Aguarda o evento de logout propagar no AuthNotifier
       await Future.delayed(const Duration(milliseconds: 500));
       AppRoutes.authNotifier.setSuppressRedirect(false);
       if (mounted) setState(() => _isLoading = false);
@@ -250,13 +274,12 @@ class _RegisterPageState extends State<RegisterPage> {
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: Column(
               children: [
-                const SizedBox(height: 10), // Respiro de 10px do topo
-                // Logo principal mais destacada
+                const SizedBox(height: 10),
                 Hero(
                   tag: 'app_logo',
                   child: SvgPicture.asset(
                     'assets/images/logo.svg',
-                    width: screenWidth * 0.8, // Aumentado conforme solicitado
+                    width: screenWidth * 0.8,
                     height: screenHeight * 0.12,
                     fit: BoxFit.contain,
                   ),
@@ -285,7 +308,6 @@ class _RegisterPageState extends State<RegisterPage> {
 
                 const SizedBox(height: 24),
 
-                // Card de Cadastro
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
@@ -293,7 +315,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     borderRadius: BorderRadius.circular(28),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
+                        color: Colors.black.withOpacity(0.05),
                         blurRadius: 30,
                         offset: const Offset(0, 10),
                       ),
@@ -304,7 +326,6 @@ class _RegisterPageState extends State<RegisterPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // --- Dados Pessoais ---
                         _buildSectionTitle('👤 Dados Pessoais'),
                         const SizedBox(height: 16),
 
@@ -367,7 +388,6 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                         const SizedBox(height: 24),
 
-                        // --- Localização ---
                         _buildSectionTitle('📍 Localização'),
                         const SizedBox(height: 16),
 
@@ -375,35 +395,40 @@ class _RegisterPageState extends State<RegisterPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Expanded(
-                              flex: 3,
-                              child: _buildInputField(
-                                label: 'Cidade*',
-                                controller: _cidadeController,
-                                hint: 'Sua cidade',
-                                icon: Icons.location_on_outlined,
-                                validator: (v) =>
-                                    v!.isEmpty ? 'Campo obrigatório' : null,
+                              flex: 2,
+                              child: _buildDropdownField<String>(
+                                label: 'Estado*',
+                                value: _selectedState,
+                                items: _states.map((s) => DropdownMenuItem(
+                                  value: s['sigla'] as String,
+                                  child: Text(s['sigla'] as String),
+                                )).toList(),
+                                icon: Icons.map_outlined,
+                                onChanged: (v) {
+                                  setState(() => _selectedState = v);
+                                  if (v != null) _fetchCities(v);
+                                },
                               ),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
-                              flex: 2,
-                              child: _buildDropdownField(
-                                label: 'Estado*',
-                                value: _estadoSelecionado,
-                                items: _estados,
-                                icon: Icons.map_outlined,
-                                validator: (v) =>
-                                    v == null ? 'Obrigatório' : null,
-                                onChanged: (v) =>
-                                    setState(() => _estadoSelecionado = v),
+                              flex: 4,
+                              child: _buildDropdownField<String>(
+                                label: 'Cidade*',
+                                value: _selectedCity,
+                                items: _cities.map((c) => DropdownMenuItem(
+                                  value: c,
+                                  child: Text(c, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 14)),
+                                )).toList(),
+                                icon: Icons.location_on_outlined,
+                                hint: _isLoadingCities ? 'Buscando...' : 'Selecione',
+                                onChanged: (v) => setState(() => _selectedCity = v),
                               ),
                             ),
                           ],
                         ),
                         const SizedBox(height: 24),
 
-                        // --- Segurança ---
                         _buildSectionTitle('🔐 Segurança'),
                         const SizedBox(height: 16),
 
@@ -455,7 +480,6 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                         const SizedBox(height: 24),
 
-                        // --- Dados Complementares (Optional Accordion) ---
                         Theme(
                           data: Theme.of(
                             context,
@@ -472,11 +496,12 @@ class _RegisterPageState extends State<RegisterPage> {
                             ),
                             children: [
                               const SizedBox(height: 12),
-                              // Vínculo movido para cá conforme solicitado
-                              _buildDropdownField(
+                              _buildDropdownField<String>(
                                 label: 'Foi indicado por alguma instituição?',
                                 value: _indicacaoInstituicao,
-                                items: const ['Não', 'Sim'],
+                                items: const ['Não', 'Sim']
+                                    .map((t) => DropdownMenuItem(value: t, child: Text(t)))
+                                    .toList(),
                                 icon: Icons.account_balance_outlined,
                                 onChanged: (v) =>
                                     setState(() => _indicacaoInstituicao = v!),
@@ -502,7 +527,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Expanded(
-                                    child: _buildDropdownField(
+                                    child: _buildDropdownField<String>(
                                       label: 'Sexo',
                                       value: _sexoSelecionado,
                                       items: const [
@@ -512,7 +537,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                         'Intersexo',
                                         'Prefiro não informar',
                                         'Outro',
-                                      ],
+                                      ].map((t) => DropdownMenuItem(value: t, child: Text(t, style: const TextStyle(fontSize: 12)))).toList(),
                                       icon: Icons.wc_outlined,
                                       onChanged: (v) =>
                                           setState(() => _sexoSelecionado = v),
@@ -520,7 +545,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                   ),
                                   const SizedBox(width: 12),
                                   Expanded(
-                                    child: _buildDropdownField(
+                                    child: _buildDropdownField<String>(
                                       label: 'Raça / Cor',
                                       value: _racaSelecionada,
                                       items: const [
@@ -530,7 +555,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                         'Amarela',
                                         'Indígena',
                                         'Prefiro não informar',
-                                      ],
+                                      ].map((t) => DropdownMenuItem(value: t, child: Text(t, style: const TextStyle(fontSize: 12)))).toList(),
                                       icon: Icons.groups_outlined,
                                       onChanged: (v) =>
                                           setState(() => _racaSelecionada = v),
@@ -545,7 +570,6 @@ class _RegisterPageState extends State<RegisterPage> {
 
                         const Divider(height: 48),
 
-                        // Termos
                         _buildTermsCheckbox(
                           value: _concordaTermos,
                           onChanged: (v) =>
@@ -593,7 +617,6 @@ class _RegisterPageState extends State<RegisterPage> {
 
                         const SizedBox(height: 32),
 
-                        // Botão Criar Conta
                         SizedBox(
                           width: double.infinity,
                           height: 58,
@@ -623,7 +646,6 @@ class _RegisterPageState extends State<RegisterPage> {
 
                         const SizedBox(height: 16),
 
-                        // Botão Já tenho conta
                         Center(
                           child: TextButton(
                             onPressed: () => context.go('/login'),
@@ -654,7 +676,6 @@ class _RegisterPageState extends State<RegisterPage> {
 
                 const SizedBox(height: 32),
 
-                // Ilustração Familiar
                 SvgPicture.asset(
                   'assets/images/family_login_Color.svg',
                   width: double.infinity,
@@ -664,7 +685,6 @@ class _RegisterPageState extends State<RegisterPage> {
 
                 const SizedBox(height: 24),
 
-                // Rodapé de segurança (Alinhado com o Login)
                 Padding(
                   padding: const EdgeInsets.only(
                     left: 24,
@@ -722,7 +742,7 @@ class _RegisterPageState extends State<RegisterPage> {
     bool obscure = false,
     Widget? suffixIcon,
     String? Function(String?)? validator,
-    List<dynamic>? inputFormatters,
+    List<TextInputFormatter>? inputFormatters,
     TextInputType? keyboardType,
   }) {
     return Column(
@@ -741,9 +761,7 @@ class _RegisterPageState extends State<RegisterPage> {
           controller: controller,
           obscureText: obscure,
           validator: validator,
-          inputFormatters: inputFormatters != null
-              ? List<TextInputFormatter>.from(inputFormatters)
-              : null,
+          inputFormatters: inputFormatters,
           keyboardType: keyboardType,
           style: GoogleFonts.inter(fontSize: 15),
           decoration: InputDecoration(
@@ -785,13 +803,14 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  Widget _buildDropdownField({
+  Widget _buildDropdownField<T>({
     required String label,
-    required String? value,
-    required List<String> items,
+    required T? value,
+    required List<DropdownMenuItem<T>> items,
     required IconData icon,
-    required void Function(String?) onChanged,
-    String? Function(String?)? validator,
+    required void Function(T?) onChanged,
+    String? Function(T?)? validator,
+    String? hint,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -805,20 +824,21 @@ class _RegisterPageState extends State<RegisterPage> {
           ),
         ),
         const SizedBox(height: 8),
-        DropdownButtonFormField<String>(
-          initialValue: value,
+        DropdownButtonFormField<T>(
+          isExpanded: true,
+          value: value,
+          items: items,
           onChanged: onChanged,
           validator: validator,
-          isExpanded: true,
-          style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary),
           decoration: InputDecoration(
+            hintText: hint,
             prefixIcon: Icon(icon, color: AppColors.primary, size: 22),
-            contentPadding: const EdgeInsets.symmetric(
-              vertical: 16,
-              horizontal: 12,
-            ),
             filled: true,
             fillColor: Colors.white,
+            contentPadding: const EdgeInsets.symmetric(
+              vertical: 16,
+              horizontal: 16,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
@@ -833,18 +853,6 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
             errorStyle: const TextStyle(height: 0.8),
           ),
-          items: items
-              .map(
-                (e) => DropdownMenuItem(
-                  value: e,
-                  child: Text(
-                    e,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.inter(fontSize: 14),
-                  ),
-                ),
-              )
-              .toList(),
         ),
       ],
     );
@@ -852,30 +860,26 @@ class _RegisterPageState extends State<RegisterPage> {
 
   Widget _buildTermsCheckbox({
     required bool value,
-    required void Function(bool?) onChanged,
+    required ValueChanged<bool?> onChanged,
     required Widget text,
   }) {
-    return InkWell(
-      onTap: () => onChanged(!value),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            height: 24,
-            width: 24,
-            child: Checkbox(
-              value: value,
-              onChanged: onChanged,
-              activeColor: AppColors.primary,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(4),
-              ),
+    return Row(
+      children: [
+        SizedBox(
+          height: 24,
+          width: 24,
+          child: Checkbox(
+            value: value,
+            onChanged: onChanged,
+            activeColor: AppColors.primary,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(4),
             ),
           ),
-          const SizedBox(width: 12),
-          Expanded(child: text),
-        ],
-      ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(child: text),
+      ],
     );
   }
 }

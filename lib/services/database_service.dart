@@ -1,14 +1,14 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/app_user.dart';
 import '../models/member.dart';
-import '../models/digital_card.dart';
 import '../models/card_request.dart';
+import '../models/digital_card.dart';
 import '../models/notification_item.dart';
 
 class DatabaseService {
-  final SupabaseClient _supabase = Supabase.instance.client;
+  final _supabase = Supabase.instance.client;
 
-  // --- User Profile ---
+  // --- Profile ---
   Future<AppUser?> getUserProfile(String userId) async {
     try {
       final data = await _supabase
@@ -34,7 +34,8 @@ class DatabaseService {
       final List<dynamic> data = await _supabase
           .from('members')
           .select()
-          .eq('user_id', userId);
+          .eq('user_id', userId)
+          .order('created_at', ascending: false);
       
       return data.map((json) => Member.fromJson(json)).toList();
     } catch (e) {
@@ -44,9 +45,12 @@ class DatabaseService {
 
   Future<void> addMember(Member member) async {
     final data = member.toJson();
-    // If id is empty, Supabase/Postgres can generate it if configured, 
-    // or we can use the one from the model if it was generated.
     await _supabase.from('members').upsert(data);
+  }
+
+  Future<void> updateMember(Member member) async {
+    final data = member.toJson();
+    await _supabase.from('members').update(data).eq('id', member.id);
   }
 
   // --- Digital Cards ---
@@ -55,7 +59,8 @@ class DatabaseService {
       final List<dynamic> data = await _supabase
           .from('digital_cards')
           .select()
-          .eq('user_id', userId);
+          .eq('user_id', userId)
+          .order('created_at', ascending: false);
       
       return data.map((json) => DigitalCard.fromJson(json)).toList();
     } catch (e) {
@@ -71,9 +76,10 @@ class DatabaseService {
   Future<List<CardRequest>> getCardRequests(String userId) async {
     try {
       final List<dynamic> data = await _supabase
-          .from('id_requests')
+          .from('card_requests')
           .select()
-          .eq('user_id', userId);
+          .eq('user_id', userId)
+          .order('created_at', ascending: false);
       
       return data.map((json) => CardRequest.fromJson(json)).toList();
     } catch (e) {
@@ -82,14 +88,14 @@ class DatabaseService {
   }
 
   Future<void> createCardRequest(CardRequest request) async {
-    await _supabase.from('id_requests').upsert(request.toJson());
+    await _supabase.from('card_requests').upsert(request.toJson());
   }
 
   // --- Admin ---
   Future<List<CardRequest>> getAllCardRequests() async {
     try {
       final List<dynamic> data = await _supabase
-          .from('id_requests')
+          .from('card_requests')
           .select()
           .order('created_at', ascending: false);
       
@@ -107,7 +113,19 @@ class DatabaseService {
     if (adminNotes != null) {
       updates['admin_notes'] = adminNotes;
     }
-    await _supabase.from('id_requests').update(updates).eq('id', requestId);
+    await _supabase.from('card_requests').update(updates).eq('id', requestId);
+  }
+
+  Future<void> updateCardRequest(CardRequest request) async {
+    final data = request.toJson();
+    await _supabase.from('card_requests').update(data).eq('id', request.id);
+  }
+
+  Future<void> updateRequestFileUrl(String requestId, String field, String url) async {
+    await _supabase.from('card_requests').update({
+      field: url,
+      'updated_at': DateTime.now().toIso8601String(),
+    }).eq('id', requestId);
   }
 
   Future<List<AppUser>> getAllProfiles() async {

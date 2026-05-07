@@ -29,6 +29,7 @@ class AppColors {
   // Cores Admin (correção de erros do terminal)
   static const Color successGreen = Color(0xFF10B981);
   static const Color alertYellow = Color(0xFFF59E0B);
+  static const Color warning = Color(0xFFF59E0B);
 
   // Bordas e Sombras
   static const Color borderLight = Color(0xFFE5E7EB);

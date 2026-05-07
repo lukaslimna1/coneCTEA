@@ -298,8 +298,10 @@ class _RequestsViewState extends State<RequestsView> {
 
   IconData _getTypeIcon(String type) {
     switch (type) {
+      case 'Primeira via':
       case 'new_card':
         return Icons.badge_rounded;
+      case 'Atualização de Dados':
       case 'update_data':
         return Icons.edit_note_rounded;
       case 'support':
@@ -311,8 +313,10 @@ class _RequestsViewState extends State<RequestsView> {
 
   String _getTypeLabel(String type) {
     switch (type) {
+      case 'Primeira via':
       case 'new_card':
         return 'Emissão de Carteirinha CIPTEA';
+      case 'Atualização de Dados':
       case 'update_data':
         return 'Atualização Cadastral';
       case 'support':

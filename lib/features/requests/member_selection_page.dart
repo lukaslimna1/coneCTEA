@@ -106,11 +106,11 @@ class _MemberSelectionPageState extends State<MemberSelectionPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.black.withOpacity(0.05)),
+        border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
       ),
       child: Column(
         children: [
-          Icon(Icons.person_add_outlined, size: 48, color: AppColors.primary.withOpacity(0.4)),
+          Icon(Icons.person_add_outlined, size: 48, color: AppColors.primary.withValues(alpha: 0.4)),
           const SizedBox(height: 16),
           Text(
             'Nenhum beneficiário cadastrado',
@@ -148,16 +148,16 @@ class _MemberSelectionPageState extends State<MemberSelectionPage> {
             duration: const Duration(milliseconds: 200),
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: isSelected ? AppColors.primary.withOpacity(0.05) : Colors.white,
+              color: isSelected ? AppColors.primary.withValues(alpha: 0.05) : Colors.white,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: isSelected ? AppColors.primary : Colors.black.withOpacity(0.05),
+                color: isSelected ? AppColors.primary : Colors.black.withValues(alpha: 0.05),
                 width: isSelected ? 2 : 1,
               ),
               boxShadow: [
                 if (isSelected)
                   BoxShadow(
-                    color: AppColors.primary.withOpacity(0.1),
+                    color: AppColors.primary.withValues(alpha: 0.1),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -169,7 +169,7 @@ class _MemberSelectionPageState extends State<MemberSelectionPage> {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: isSelected ? AppColors.primary : AppColors.primary.withOpacity(0.1),
+                    color: isSelected ? AppColors.primary : AppColors.primary.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Center(
@@ -210,7 +210,7 @@ class _MemberSelectionPageState extends State<MemberSelectionPage> {
                 if (isSelected)
                   const Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 24)
                 else
-                  Icon(Icons.circle_outlined, color: Colors.black.withOpacity(0.1), size: 24),
+                  Icon(Icons.circle_outlined, color: Colors.black.withValues(alpha: 0.1), size: 24),
               ],
             ),
           ),
@@ -235,7 +235,7 @@ class _MemberSelectionPageState extends State<MemberSelectionPage> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: AppColors.primary.withOpacity(0.2),
+              color: AppColors.primary.withValues(alpha: 0.2),
               style: BorderStyle.solid,
             ),
           ),
@@ -266,18 +266,40 @@ class _MemberSelectionPageState extends State<MemberSelectionPage> {
       child: ElevatedButton(
         onPressed: _selectedMember == null
             ? null
-            : () {
-                context.push('/new-request', extra: _selectedMember);
+            : () async {
+                final status = _selectedMember!.status.toLowerCase();
+                if (status == 'active' || status == 'ativa' || status == 'under_review' || status == 'analise') {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Solicitação em andamento'),
+                      content: Text('Já existe uma solicitação ativa ou em análise para ${_selectedMember!.name}.'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('OK'),
+                        ),
+                      ],
+                    ),
+                  );
+                } else {
+                  // Se por algum motivo o membro não tiver solicitação (caso de dados antigos)
+                  // Mas o ideal é que o AddMemberPage já crie.
+                  // Para o MVP, se ele chegar aqui e não estiver ativa/analise, podemos direcionar ou apenas avisar.
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Este membro não possui documentos válidos anexados.')),
+                  );
+                }
               },
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           elevation: 0,
-          disabledBackgroundColor: Colors.black.withOpacity(0.05),
+          disabledBackgroundColor: Colors.black.withValues(alpha: 0.05),
         ),
         child: Text(
-          'Continuar Solicitação',
+          'Verificar Status',
           style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w800),
         ),
       ),

@@ -7,6 +7,9 @@ import 'package:conectea/services/auth_service.dart';
 import 'package:conectea/models/app_user.dart';
 import 'package:conectea/models/member.dart';
 import 'package:conectea/models/card_request.dart';
+import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher_string.dart';
+import '../requests/add_member_page.dart';
 
 class HomeView extends StatefulWidget {
   final Function(int) onNavigate;
@@ -23,6 +26,7 @@ class _HomeViewState extends State<HomeView> {
   
   AppUser? _user;
   List<Member> _members = [];
+  List<CardRequest> _requests = [];
   CardRequest? _ongoingRequest;
   bool _isLoading = true;
   int _selectedMemberIndex = 0;
@@ -42,7 +46,6 @@ class _HomeViewState extends State<HomeView> {
       if (userId != null) {
         var user = await _databaseService.getUserProfile(userId);
         
-        // Removida lógica de auto-healing para permitir registro limpo
         if (user == null) {
           if (mounted) setState(() => _isLoading = false);
           return;
@@ -51,27 +54,12 @@ class _HomeViewState extends State<HomeView> {
         final members = await _databaseService.getMembers(userId);
         final requests = await _databaseService.getCardRequests(userId);
         
-        // Encontrar a solicitação mais relevante (pendente ou em análise)
-        CardRequest? ongoing;
-        if (requests.isNotEmpty) {
-          try {
-            ongoing = requests.firstWhere(
-              (r) => r.status.toLowerCase() == 'under_review' || 
-                     r.status.toLowerCase() == 'pending' ||
-                     r.status.toLowerCase() == 'em análise' ||
-                     r.status.toLowerCase() == 'pendente'
-            );
-          } catch (_) {
-            // Se não houver pendente, pega a última criada
-            ongoing = requests.first;
-          }
-        }
-        
         if (mounted) {
           setState(() {
             _user = user;
             _members = members;
-            _ongoingRequest = ongoing;
+            _requests = requests;
+            _ongoingRequest = requests.isNotEmpty ? requests.first : null;
             _isLoading = false;
           });
         }
@@ -430,144 +418,322 @@ class _HomeViewState extends State<HomeView> {
         ),
       ),
     );
-  }
+    }
 
     final member = _members[_selectedMemberIndex];
-    final String status = member.status.isNotEmpty ? member.status : 'PENDENTE';
-    final bool isActive = status.toLowerCase() == 'ativa' || status.toLowerCase() == 'active';
+    // Encontrar a solicitação vinculada ao membro
+    CardRequest? memberRequest;
+    try {
+      memberRequest = _requests.firstWhere((r) => r.memberId == member.id);
+    } catch (_) {
+      memberRequest = null;
+    }
+
+    final String rawStatus = memberRequest?.status.toLowerCase() ?? member.status.toLowerCase();
+    
+    // Status translation and logic
+    String statusDisplay = 'EM ANÁLISE';
+    Color statusColor = const Color(0xFFF9A825); // Yellow
+    IconData statusIcon = Icons.history_rounded;
+    bool isActive = false;
+    bool showJustification = false;
+    bool isRejected = false;
+
+    // Check for automatic expiration (365 days after last update if active)
+    final lastUpdate = memberRequest?.updatedAt ?? member.updatedAt;
+    final isExpired = rawStatus == 'active' && DateTime.now().difference(lastUpdate).inDays >= 365;
+    final effectiveStatus = isExpired ? 'expired' : rawStatus;
+    final status = effectiveStatus; // Define local status variable for use in widgets
+
+    switch (effectiveStatus) {
+      case 'active':
+      case 'ativa':
+        statusDisplay = 'CARTEIRINHA ATIVA';
+        statusColor = AppColors.statusGreen;
+        statusIcon = Icons.verified_user_rounded;
+        isActive = true;
+        break;
+      case 'waiting_approval':
+      case 'under_review':
+      case 'analise':
+        statusDisplay = 'EM ANÁLISE';
+        statusColor = const Color(0xFFF9A825); // Yellow
+        statusIcon = Icons.history_rounded;
+        break;
+      case 'waiting_docs':
+        statusDisplay = 'AGUARDANDO DOCS';
+        statusColor = Colors.blue;
+        statusIcon = Icons.file_present_rounded;
+        showJustification = true;
+        break;
+      case 'reviewing_data':
+        statusDisplay = 'REVISAR DADOS';
+        statusColor = Colors.orange;
+        statusIcon = Icons.edit_note_rounded;
+        showJustification = true;
+        break;
+      case 'rejected':
+      case 'rejeitada':
+        statusDisplay = 'REPROVADA';
+        statusColor = Colors.red;
+        statusIcon = Icons.error_outline_rounded;
+        showJustification = true;
+        isRejected = true;
+        break;
+      case 'suspended':
+      case 'suspensa':
+        statusDisplay = 'SUSPENSA';
+        statusColor = Colors.black;
+        statusIcon = Icons.block_flipped;
+        showJustification = true;
+        break;
+      case 'expired':
+      case 'vencida':
+        statusDisplay = 'VENCIDA';
+        statusColor = Colors.brown;
+        statusIcon = Icons.event_busy_rounded;
+        break;
+      case 'renewing':
+        statusDisplay = 'EM RENOVAÇÃO';
+        statusColor = Colors.purple;
+        statusIcon = Icons.autorenew_rounded;
+        break;
+      default:
+        statusDisplay = 'EM ANÁLISE';
+        statusColor = const Color(0xFFF9A825);
+        statusIcon = Icons.pending_actions_rounded;
+    }
+
+    final adminNotes = memberRequest?.adminNotes ?? '';
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(32),
-        border: Border.all(color: AppColors.borderLight.withValues(alpha: 1.0), width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 28,
-            offset: const Offset(0, 14),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              // Stacked Cards Preview
-              Expanded(
-                flex: 3,
-                child: SizedBox(
-                  height: 120,
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      // Back Card
-                      Positioned(
-                        right: 0,
-                        top: 15,
-                        child: Transform.rotate(
-                          angle: 0.1,
-                          child: _buildMiniCard(isVerso: true, member: member),
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(32),
+          border: Border.all(color: AppColors.borderLight.withValues(alpha: 1.0), width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 28,
+              offset: const Offset(0, 14),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                // Stacked Cards Preview
+                Expanded(
+                  flex: 3,
+                  child: SizedBox(
+                    height: 120,
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        // Back Card
+                        Positioned(
+                          right: 0,
+                          top: 15,
+                          child: Transform.rotate(
+                            angle: 0.1,
+                            child: _buildMiniCard(isVerso: true, member: member),
+                          ),
                         ),
-                      ),
-                      // Front Card
-                      Positioned(
-                        left: 0,
-                        top: 0,
-                        child: Transform.rotate(
-                          angle: -0.05,
-                          child: _buildMiniCard(isVerso: false, member: member),
+                        // Front Card
+                        Positioned(
+                          left: 0,
+                          top: 0,
+                          child: Transform.rotate(
+                            angle: -0.05,
+                            child: _buildMiniCard(isVerso: false, member: member),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 16),
-              // Status Card
-              Expanded(
-                flex: 2,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-                  decoration: BoxDecoration(
-                    color: AppColors.backgroundLight,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        isActive ? Icons.verified_user_rounded : Icons.pending_actions_rounded, 
-                        color: isActive ? AppColors.statusGreen : AppColors.alertOrange, 
-                        size: 24,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Carteirinha',
-                        style: GoogleFonts.inter(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
-                      ),
-                      Text(
-                        status.toUpperCase(),
-                        style: GoogleFonts.inter(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w900,
-                          color: isActive ? AppColors.statusGreen : AppColors.alertOrange,
+                const SizedBox(width: 16),
+                // Status Card
+                Expanded(
+                  flex: 2,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: AppColors.backgroundLight,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          statusIcon, 
+                          color: statusColor, 
+                          size: 24,
                         ),
-                      ),
-                      const Divider(height: 20, color: AppColors.borderLight),
-                      Text(
-                        'Vencimento',
-                        style: GoogleFonts.inter(fontSize: 10, color: AppColors.textSecondary),
-                      ),
-                      Text(
-                        isActive ? '12/04/2026' : '--/--/----',
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
+                        const SizedBox(height: 8),
+                        Text(
+                          'Carteirinha',
+                          style: GoogleFonts.inter(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
                         ),
-                      ),
-                    ],
+                        Text(
+                          statusDisplay,
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w900,
+                            color: statusColor,
+                          ),
+                        ),
+                        const Divider(height: 20, color: AppColors.borderLight),
+                        Text(
+                          'Vencimento',
+                          style: GoogleFonts.inter(fontSize: 10, color: AppColors.textSecondary),
+                        ),
+                        Text(
+                          isActive ? DateFormat('dd/MM/yyyy').format(lastUpdate.add(const Duration(days: 365))) : '--/--/----',
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
+                ),
+              ],
+            ),
+            
+            if (showJustification && adminNotes.isNotEmpty) ...[
+              const SizedBox(height: 20),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: statusColor.withValues(alpha: 0.2)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.info_outline_rounded, color: statusColor, size: 18),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Justificativa da Equipe:',
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: statusColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      adminNotes,
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        color: AppColors.textPrimary,
+                        height: 1.5,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
-          ),
-          const SizedBox(height: 20),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: isActive ? () => widget.onNavigate(1) : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: isActive ? AppColors.primary : AppColors.borderLight,
-                foregroundColor: isActive ? Colors.white : AppColors.textSecondary,
-                elevation: isActive ? 4 : 0,
-                shadowColor: AppColors.primary.withValues(alpha: 0.3),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(isActive ? Icons.qr_code_scanner_rounded : Icons.lock_outline_rounded, size: 20),
-                  const SizedBox(width: 10),
-                  Text(
-                    isActive ? 'Abrir Carteira Digital' : 'Indisponível',
-                    style: GoogleFonts.inter(fontWeight: FontWeight.w800, fontSize: 15),
+
+            const SizedBox(height: 24),
+            
+            if (isRejected)
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: () async {
+                    const whatsappUrl = "https://wa.me/5511999999999"; // TODO: Substituir pelo número real do suporte
+                    if (await canLaunchUrlString(whatsappUrl)) {
+                      await launchUrlString(whatsappUrl, mode: LaunchMode.externalApplication);
+                    } else {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Não foi possível abrir o WhatsApp')),
+                        );
+                      }
+                    }
+                  },
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    side: const BorderSide(color: Colors.red),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
                   ),
-                ],
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.support_agent_rounded, color: Colors.red),
+                      const SizedBox(width: 10),
+                      Text(
+                        'Falar com Suporte',
+                        style: GoogleFonts.inter(fontWeight: FontWeight.w800, fontSize: 15, color: Colors.red),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (isActive) {
+                      widget.onNavigate(1);
+                    } else if (status == 'waiting_docs' || status == 'reviewing_data') {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AddMemberPage(member: member),
+                        ),
+                      ).then((_) => _loadData());
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isActive ? AppColors.primary : (status == 'waiting_docs' || status == 'reviewing_data' ? AppColors.warning : AppColors.borderLight),
+                    foregroundColor: isActive || status == 'waiting_docs' || status == 'reviewing_data' ? Colors.white : AppColors.textSecondary,
+                    elevation: isActive ? 4 : 0,
+                    shadowColor: AppColors.primary.withValues(alpha: 0.3),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        isActive ? Icons.qr_code_scanner_rounded : 
+                        (status == 'waiting_docs' || status == 'reviewing_data' ? Icons.edit_document : Icons.lock_outline_rounded), 
+                        size: 20
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        isActive ? 'Abrir Carteira Digital' : 
+                        (status == 'waiting_docs' ? 'Enviar Documentos' : 
+                        (status == 'reviewing_data' ? 'Revisar Dados' : 'Aguardando Aprovação')),
+                        style: GoogleFonts.inter(fontWeight: FontWeight.w800, fontSize: 15),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildMiniCard({required bool isVerso, Member? member}) {
     final String name = member?.name ?? (_user?.socialName ?? _user?.name ?? 'Membro');

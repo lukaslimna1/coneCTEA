@@ -7,11 +7,24 @@ App de identificação digital, solicitações e acompanhamento individual para 
 - **Backend**: Firebase (Auth, Firestore, Hosting)
 - **Design**: Material 3 + Google Fonts (Inter)
 
-## 🚀 Versão 2.3.0 - UI Polish & Structural Cleanup (Current)
+## 🚀 Versão 2.4.0 - Card Request Lifecycle & Supabase Sync (Current)
+- [x] **CardRequest Model Robustness**: Implementação de parser resiliente para datas e mapeamento unificado (snake_case/camelCase).
+- [x] **Admin Dashboard Stabilization**: Correção de escopo e chamadas de serviço no `AdminView`, permitindo aprovação de solicitações.
+- [x] **DatabaseService Integrity**: Reescrita completa do serviço de banco de dados com suporte a ordenação descendente e novos métodos de atualização.
+- [x] **UI Status Unification**: Sincronização visual de status (`waiting_approval`, `approved`, etc.) entre o mural do usuário e o painel administrativo.
+
+## 🚀 Versão 2.3.0 - UI Polish & Structural Cleanup
 - [x] **HomeView Refactor**: Eliminação de duplicação de código e inconsistências estruturais.
 - [x] **Premium UI Polishing**: Ajuste fino nos componentes de carteirinha (wallet preview) e seleção de membros.
 - [x] **Design System Unification**: Aplicação consistente do sistema de cores e tipografia no módulo Home.
 - [x] **Docs**: Introdução do `DOCTecnico.md` para documentação técnica de suporte.
+
+## 🛠️ Pendências e Futuros Testes
+- [ ] **Validação de Ciclo Completo**: Testar o fluxo ponta a ponta: Criação -> Aprovação Admin -> Emissão de Carteirinha Digital.
+- [ ] **Cleanup de Depreciações**: Substituir `.withOpacity` por `.withValues(alpha:)` e remover `print` statements (usar `debugPrint`).
+- [ ] **Ajuste de UI na Home**: Refinar os indicadores de status na `HomeView` para os novos estados (Aguardando Docs, Revisão de Dados).
+- [ ] **Geographic Data Optimization**: Melhorar performance de carregamento de cidades/estados em dropdowns extensos.
+- [ ] **Testes de Integração**: Validar persistência de documentos no Google Drive sincronizada com o status no Supabase.
 
 ## 🚀 Versão 2.2.0 (Polishing) - UI Consistency & Global Notifications
 - [x] **Notification Sync**: Unificação definitiva do ícone de sino no AppBar, removendo duplicidades no menu inferior para um visual mais limpo.

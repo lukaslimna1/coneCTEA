@@ -31,8 +31,6 @@ class _NewRequestPageState extends State<NewRequestPage> {
 
   final List<String> _requestTypes = [
     'Primeira via',
-    'Segunda via (Extravio)',
-    'Segunda via (Vencimento)',
     'Atualização de Dados',
   ];
 
@@ -131,7 +129,7 @@ class _NewRequestPageState extends State<NewRequestPage> {
         adminNotes: '',
         driveFolderUrl:
             '', // This will hold the storage path if needed, or just leave as legacy
-        idPhotoUrl: _idPhotoUrl!,
+        documentUrl: _idPhotoUrl!,
         medicalReportUrl: _medicalReportUrl!,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
@@ -169,7 +167,7 @@ class _NewRequestPageState extends State<NewRequestPage> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: AppColors.statusGreen.withOpacity(0.1),
+                color: AppColors.statusGreen.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -202,7 +200,7 @@ class _NewRequestPageState extends State<NewRequestPage> {
               decoration: BoxDecoration(
                 color: AppColors.backgroundLight,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.black.withOpacity(0.05)),
+                border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
               ),
               child: Text(
                 protocol,
@@ -308,7 +306,7 @@ class _NewRequestPageState extends State<NewRequestPage> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -320,7 +318,7 @@ class _NewRequestPageState extends State<NewRequestPage> {
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
+              color: AppColors.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(16),
             ),
             child: const Icon(
@@ -370,7 +368,7 @@ class _NewRequestPageState extends State<NewRequestPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.black.withOpacity(0.05)),
+        border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
       ),
       child: Column(
         children: _requestTypes.map((type) {
@@ -383,7 +381,7 @@ class _NewRequestPageState extends State<NewRequestPage> {
                 border: type != _requestTypes.last
                     ? Border(
                         bottom: BorderSide(
-                          color: Colors.black.withOpacity(0.03),
+                          color: Colors.black.withValues(alpha: 0.03),
                         ),
                       )
                     : null,
@@ -423,9 +421,9 @@ class _NewRequestPageState extends State<NewRequestPage> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.05),
+        color: AppColors.primary.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.primary.withOpacity(0.1)),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.1)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -453,7 +451,7 @@ class _NewRequestPageState extends State<NewRequestPage> {
                   'Anexe os documentos abaixo. Seus arquivos serão salvos com segurança e nomeados com o protocolo e nome do beneficiário para facilitar a análise.',
                   style: GoogleFonts.inter(
                     fontSize: 13,
-                    color: AppColors.textPrimary.withOpacity(0.7),
+                    color: AppColors.textPrimary.withValues(alpha: 0.7),
                     height: 1.5,
                   ),
                 ),
@@ -513,8 +511,8 @@ class _NewRequestPageState extends State<NewRequestPage> {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: hasFile
-                ? AppColors.statusGreen.withOpacity(0.5)
-                : Colors.black.withOpacity(0.05),
+                ? AppColors.statusGreen.withValues(alpha: 0.5)
+                : Colors.black.withValues(alpha: 0.05),
             width: hasFile ? 2 : 1,
           ),
         ),
@@ -524,7 +522,7 @@ class _NewRequestPageState extends State<NewRequestPage> {
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: hasFile
-                    ? AppColors.statusGreen.withOpacity(0.1)
+                    ? AppColors.statusGreen.withValues(alpha: 0.1)
                     : AppColors.backgroundLight,
                 shape: BoxShape.circle,
               ),

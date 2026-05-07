@@ -4,6 +4,7 @@ class Member {
   final String name;
   final String cpf;
   final String city;
+  final String state;
   final String phone;
   final String emergencyContact;
   final String responsibleName;
@@ -22,6 +23,7 @@ class Member {
     required this.name,
     required this.cpf,
     required this.city,
+    required this.state,
     required this.phone,
     required this.emergencyContact,
     required this.responsibleName,
@@ -42,6 +44,7 @@ class Member {
       name: json['name'] ?? '',
       cpf: json['cpf'] ?? '',
       city: json['city'] ?? '',
+      state: json['state'] ?? '',
       phone: json['phone'] ?? '',
       emergencyContact: json['emergencyContact'] ?? json['emergency_contact'] ?? '',
       responsibleName: json['responsibleName'] ?? json['responsible_name'] ?? '',
@@ -50,7 +53,7 @@ class Member {
       cid: json['cid'] ?? '',
       documentUrl: json['documentUrl'] ?? json['document_url'] ?? '',
       medicalReportUrl: json['medicalReportUrl'] ?? json['medical_report_url'] ?? '',
-      status: json['status'] ?? 'active',
+      status: json['status'] ?? 'waiting_approval',
       createdAt: json['createdAt'] != null 
           ? DateTime.parse(json['createdAt']) 
           : (json['created_at'] != null ? DateTime.parse(json['created_at']) : DateTime.now()),
@@ -62,10 +65,12 @@ class Member {
 
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'user_id': userId,
       'name': name,
       'cpf': cpf,
       'city': city,
+      'state': state,
       'phone': phone,
       'emergency_contact': emergencyContact,
       'responsible_name': responsibleName,
@@ -78,6 +83,46 @@ class Member {
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };
+  }
+
+  Member copyWith({
+    String? id,
+    String? userId,
+    String? name,
+    String? cpf,
+    String? city,
+    String? state,
+    String? phone,
+    String? emergencyContact,
+    String? responsibleName,
+    String? dateOfBirth,
+    String? bloodType,
+    String? cid,
+    String? documentUrl,
+    String? medicalReportUrl,
+    String? status,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return Member(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      name: name ?? this.name,
+      cpf: cpf ?? this.cpf,
+      city: city ?? this.city,
+      state: state ?? this.state,
+      phone: phone ?? this.phone,
+      emergencyContact: emergencyContact ?? this.emergencyContact,
+      responsibleName: responsibleName ?? this.responsibleName,
+      dateOfBirth: dateOfBirth ?? this.dateOfBirth,
+      bloodType: bloodType ?? this.bloodType,
+      cid: cid ?? this.cid,
+      documentUrl: documentUrl ?? this.documentUrl,
+      medicalReportUrl: medicalReportUrl ?? this.medicalReportUrl,
+      status: status ?? this.status,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
   }
 }
 

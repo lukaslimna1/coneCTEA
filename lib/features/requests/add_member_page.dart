@@ -4,13 +4,20 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import '../../core/constants/colors.dart';
 import '../../services/database_service.dart';
 import '../../services/auth_service.dart';
+import '../../services/google_drive_service.dart';
 import '../../models/member.dart';
+import '../../models/card_request.dart';
+import 'package:intl/intl.dart';
 
 class AddMemberPage extends StatefulWidget {
-  const AddMemberPage({super.key});
+  final Member? member;
+  const AddMemberPage({super.key, this.member});
 
   @override
   State<AddMemberPage> createState() => _AddMemberPageState();
@@ -20,18 +27,31 @@ class _AddMemberPageState extends State<AddMemberPage> {
   final _formKey = GlobalKey<FormState>();
   final _databaseService = DatabaseService();
   final _authService = AuthService();
+  final _driveService = GoogleDriveService();
 
   final _nomeController = TextEditingController();
   final _cpfController = TextEditingController();
-  final _cidadeController = TextEditingController();
   final _telefoneController = TextEditingController();
   final _contatoEmergenciaController = TextEditingController();
   final _responsavelController = TextEditingController();
   final _nascimentoController = TextEditingController();
-  final _documentUrlController = TextEditingController();
-  final _medicalReportUrlController = TextEditingController();
   final _cidController = TextEditingController();
+  
   String? _selectedBloodType;
+  String? _selectedState;
+  String? _selectedCity;
+  
+  List<Map<String, dynamic>> _states = [];
+  List<String> _cities = [];
+  bool _isLoadingCities = false;
+
+  String? _documentUrl;
+  String? _documentFileName;
+  bool _isUploadingDoc = false;
+
+  String? _medicalReportUrl;
+  String? _medicalReportFileName;
+  bool _isUploadingReport = false;
 
   bool _isLoading = false;
 
@@ -51,22 +71,158 @@ class _AddMemberPageState extends State<AddMemberPage> {
   );
 
   @override
+  void initState() {
+    super.initState();
+    if (widget.member != null) {
+      final m = widget.member!;
+      _nomeController.text = m.name;
+      _cpfController.text = m.cpf;
+      _telefoneController.text = m.phone;
+      _contatoEmergenciaController.text = m.emergencyContact;
+      _responsavelController.text = m.responsibleName;
+      _nascimentoController.text = m.dateOfBirth;
+      _cidController.text = m.cid;
+      _selectedBloodType = m.bloodType;
+      _selectedState = m.state;
+      _selectedCity = m.city;
+      _documentUrl = m.documentUrl.isNotEmpty ? m.documentUrl : null;
+      _medicalReportUrl = m.medicalReportUrl.isNotEmpty ? m.medicalReportUrl : null;
+      if (_selectedState != null) _fetchCities(_selectedState!);
+    }
+    _fetchStates();
+  }
+
+  Future<void> _fetchStates() async {
+    try {
+      final response = await http.get(
+        Uri.parse('https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome'),
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          _states = data.map((s) => {
+            'id': s['id'],
+            'sigla': s['sigla'],
+            'nome': s['nome'],
+          }).toList();
+        });
+      }
+    } catch (e) {
+      print('Erro ao buscar estados: $e');
+    }
+  }
+
+  Future<void> _fetchCities(String stateSigla) async {
+    setState(() {
+      _isLoadingCities = true;
+      _cities = [];
+      _selectedCity = null;
+    });
+    try {
+      final response = await http.get(
+        Uri.parse('https://servicodados.ibge.gov.br/api/v1/localidades/estados/$stateSigla/municipios?orderBy=nome'),
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          _cities = data.map((c) => c['nome'].toString()).toList();
+        });
+      }
+    } catch (e) {
+      print('Erro ao buscar cidades: $e');
+    } finally {
+      setState(() => _isLoadingCities = false);
+    }
+  }
+
+  @override
   void dispose() {
     _nomeController.dispose();
     _cpfController.dispose();
-    _cidadeController.dispose();
     _telefoneController.dispose();
     _contatoEmergenciaController.dispose();
     _responsavelController.dispose();
     _nascimentoController.dispose();
-    _documentUrlController.dispose();
-    _medicalReportUrlController.dispose();
     _cidController.dispose();
     super.dispose();
   }
 
+  Future<void> _pickAndUploadFile({required bool isDocument}) async {
+    final result = await FilePicker.platform.pickFiles(
+      withData: true,
+    );
+    if (result == null || result.files.isEmpty) return;
+
+    final file = result.files.first;
+    final nome = _nomeController.text.trim();
+    final prefix = isDocument ? 'DOC' : 'LAUDO';
+    final tokenId = const Uuid().v4().substring(0, 8).toUpperCase();
+    final fileName = '${prefix}_${tokenId}_${nome.isNotEmpty ? nome.replaceAll(' ', '_') : 'SemNome'}.${file.extension}';
+
+    setState(() {
+      if (isDocument) {
+        _isUploadingDoc = true;
+      } else {
+        _isUploadingReport = true;
+      }
+    });
+
+    try {
+      final url = await _driveService.uploadFile(file: file, fileName: fileName);
+      if (url != null) {
+        setState(() {
+          if (isDocument) {
+            _documentUrl = url;
+            _documentFileName = file.name;
+          } else {
+            _medicalReportUrl = url;
+            _medicalReportFileName = file.name;
+          }
+        });
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Falha no upload. Tente novamente.'), backgroundColor: Colors.red),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro no upload: $e'), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          if (isDocument) {
+            _isUploadingDoc = false;
+          } else {
+            _isUploadingReport = false;
+          }
+        });
+      }
+    }
+  }
+
   Future<void> _handleSave() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_selectedState == null || _selectedCity == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor, selecione Estado e Cidade'), backgroundColor: Colors.red),
+      );
+      return;
+    }
+
+    // Documentos agora são opcionais no cadastro inicial
+    /* 
+    if (_documentUrl == null || _medicalReportUrl == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor, anexe a Foto e o Laudo Médico'), backgroundColor: Colors.red),
+      );
+      return;
+    }
+    */
 
     setState(() => _isLoading = true);
 
@@ -74,43 +230,83 @@ class _AddMemberPageState extends State<AddMemberPage> {
       final userId = _authService.currentUser?.id;
       if (userId == null) throw Exception('Usuário não autenticado');
 
-      DateTime? parsedBirthDate;
-      if (_nascimentoController.text.isNotEmpty) {
-        try {
-          final parts = _nascimentoController.text.split('/');
-          if (parts.length == 3) {
-            parsedBirthDate = DateTime(
-              int.parse(parts[2]),
-              int.parse(parts[1]),
-              int.parse(parts[0]),
-            );
-          }
-        } catch (_) {}
-      }
+      final isEditing = widget.member != null;
 
       final member = Member(
-        id: const Uuid().v4(),
+        id: isEditing ? widget.member!.id : const Uuid().v4(),
         userId: userId,
         name: _nomeController.text.trim(),
         cpf: _cpfController.text,
-        city: _cidadeController.text.trim(),
+        city: _selectedCity!,
+        state: _selectedState!,
         phone: _telefoneController.text,
         emergencyContact: _contatoEmergenciaController.text,
         responsibleName: _responsavelController.text.trim(),
         dateOfBirth: _nascimentoController.text,
         bloodType: _selectedBloodType ?? '',
         cid: _cidController.text.trim(),
-        documentUrl: _documentUrlController.text.trim(),
-        medicalReportUrl: _medicalReportUrlController.text.trim(),
-        status: 'active',
-        createdAt: DateTime.now(),
+        documentUrl: _documentUrl ?? '',
+        medicalReportUrl: _medicalReportUrl ?? '',
+        status: isEditing ? widget.member!.status : 'waiting_approval',
+        createdAt: isEditing ? widget.member!.createdAt : DateTime.now(),
         updatedAt: DateTime.now(),
       );
 
-      await _databaseService.addMember(member);
+      if (isEditing) {
+        await _databaseService.updateMember(member);
+        
+        // Update associated request status back to waiting_approval
+        final requests = await _databaseService.getCardRequests(userId);
+        final memberRequest = requests.where((r) => r.memberId == member.id).toList();
+        
+        if (memberRequest.isNotEmpty) {
+          final req = memberRequest.first;
+          final updatedRequest = req.copyWith(
+            status: 'waiting_approval',
+            updatedAt: DateTime.now(),
+            documentUrl: member.documentUrl,
+            medicalReportUrl: member.medicalReportUrl,
+          );
+          await _databaseService.updateCardRequest(updatedRequest);
+        }
+      } else {
+        await _databaseService.addMember(member);
+
+        // Criar a solicitação de carteirinha automaticamente
+        final dateStr = DateFormat('yyyyMMdd').format(DateTime.now());
+        final random = const Uuid().v4().substring(0, 4).toUpperCase();
+        final protocol = 'REQ-$dateStr-$random';
+
+        final request = CardRequest(
+          id: const Uuid().v4(),
+          userId: userId,
+          memberId: member.id,
+          type: 'Primeira via',
+          status: 'waiting_approval',
+          protocol: protocol,
+          adminNotes: '',
+          driveFolderUrl: '',
+          documentUrl: member.documentUrl,
+          medicalReportUrl: member.medicalReportUrl,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+
+        await _databaseService.createCardRequest(request);
+      }
 
       if (mounted) {
-        context.pop(member); // Retorna o membro criado
+        if (isEditing) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Dados atualizados com sucesso!')),
+          );
+          Navigator.pop(context);
+        } else {
+          final dateStr = DateFormat('yyyyMMdd').format(DateTime.now());
+          final random = const Uuid().v4().substring(0, 4).toUpperCase();
+          final protocol = 'REQ-$dateStr-$random';
+          _showSuccessDialog(protocol);
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -124,6 +320,99 @@ class _AddMemberPageState extends State<AddMemberPage> {
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  void _showSuccessDialog(String protocol) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: AppColors.statusGreen.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.check_rounded,
+                color: AppColors.statusGreen,
+                size: 48,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Solicitação Enviada!',
+              style: GoogleFonts.inter(
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'O dependente foi cadastrado e a solicitação de carteirinha enviada com sucesso.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: AppColors.backgroundLight,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
+              ),
+              child: Text(
+                protocol,
+                style: GoogleFonts.jetBrainsMono(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primary,
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              height: 54,
+              child: ElevatedButton(
+                onPressed: () {
+                  context.go('/home');
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 0,
+                ),
+                child: const Text(
+                  'Voltar para o Início',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  bool _isValidCPF(String cpf) {
+    String cleanCpf = cpf.replaceAll(RegExp(r'[^0-9]'), '');
+    if (cleanCpf.length != 11) return false;
+    if (RegExp(r'^(\d)\1{10}$').hasMatch(cleanCpf)) return false;
+    return true;
   }
 
   @override
@@ -181,7 +470,11 @@ class _AddMemberPageState extends State<AddMemberPage> {
                 icon: Icons.badge_outlined,
                 inputFormatters: [cpfMask],
                 keyboardType: TextInputType.number,
-                validator: (v) => v!.length < 14 ? 'CPF incompleto' : null,
+                validator: (v) {
+                  if (v == null || v.isEmpty) return 'Campo obrigatório';
+                  if (!_isValidCPF(v)) return 'CPF inválido';
+                  return null;
+                },
               ),
               const SizedBox(height: 20),
 
@@ -196,12 +489,40 @@ class _AddMemberPageState extends State<AddMemberPage> {
               ),
               const SizedBox(height: 20),
 
-              _buildInputField(
-                label: 'Cidade | Estado*',
-                controller: _cidadeController,
-                hint: 'Ex: Bauru - SP',
-                icon: Icons.location_on_outlined,
-                validator: (v) => v!.isEmpty ? 'Campo obrigatório' : null,
+              Row(
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: _buildDropdownField<String>(
+                      label: 'Estado*',
+                      value: _selectedState,
+                      items: _states.map((s) => DropdownMenuItem(
+                        value: s['sigla'] as String,
+                        child: Text(s['sigla'] as String),
+                      )).toList(),
+                      onChanged: (val) {
+                        setState(() => _selectedState = val);
+                        if (val != null) _fetchCities(val);
+                      },
+                      icon: Icons.map_outlined,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 5,
+                    child: _buildDropdownField<String>(
+                      label: 'Cidade*',
+                      value: _selectedCity,
+                      items: _cities.map((c) => DropdownMenuItem(
+                        value: c,
+                        child: Text(c, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 14)),
+                      )).toList(),
+                      onChanged: (val) => setState(() => _selectedCity = val),
+                      icon: Icons.location_on_outlined,
+                      hint: _isLoadingCities ? 'Carregando...' : 'Selecione',
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 20),
 
@@ -231,48 +552,68 @@ class _AddMemberPageState extends State<AddMemberPage> {
               ),
               const SizedBox(height: 20),
 
-              _buildInputField(
-                label: 'Link do Documento com Foto (RG/CNH)*',
-                controller: _documentUrlController,
-                hint: 'Cole o link do Google Drive',
-                icon: Icons.link_rounded,
-                validator: (v) => v!.isEmpty ? 'Campo obrigatório' : null,
+              _buildUploadField(
+                label: 'Documento com Foto (RG/CNH)',
+                fileName: _documentFileName,
+                isUploading: _isUploadingDoc,
+                isUploaded: _documentUrl != null,
+                onTap: () => _pickAndUploadFile(isDocument: true),
+                icon: Icons.badge_outlined,
               ),
               const SizedBox(height: 20),
 
-              _buildInputField(
-                label: 'Link do Laudo Médico*',
-                controller: _medicalReportUrlController,
-                hint: 'Cole o link do Google Drive',
+              _buildUploadField(
+                label: 'Laudo Médico',
+                fileName: _medicalReportFileName,
+                isUploading: _isUploadingReport,
+                isUploaded: _medicalReportUrl != null,
+                onTap: () => _pickAndUploadFile(isDocument: false),
                 icon: Icons.medical_information_outlined,
-                validator: (v) => v!.isEmpty ? 'Campo obrigatório' : null,
+              ),
+              const SizedBox(height: 12),
+
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF8E1),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFFFFE082)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.info_outline_rounded, color: Color(0xFFF9A825), size: 20),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Os documentos são opcionais agora. Podemos solicitar documentação complementar durante a análise.',
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          color: const Color(0xFF5D4037),
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 20),
 
-              Row(
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: _buildDropdownField(
-                      label: 'Tipo Sanguíneo',
-                      value: _selectedBloodType,
-                      items: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'],
-                      onChanged: (val) =>
-                          setState(() => _selectedBloodType = val),
-                      icon: Icons.bloodtype_outlined,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    flex: 3,
-                    child: _buildInputField(
-                      label: 'CID (Opcional)',
-                      controller: _cidController,
-                      hint: 'Ex: F84.0',
-                      icon: Icons.assignment_outlined,
-                    ),
-                  ),
-                ],
+              _buildDropdownField<String>(
+                label: 'Tipo Sanguíneo (Opcional)',
+                value: _selectedBloodType,
+                items: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Não sei', 'Prefiro não informar']
+                    .map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
+                onChanged: (val) =>
+                    setState(() => _selectedBloodType = val),
+                icon: Icons.bloodtype_outlined,
+              ),
+              const SizedBox(height: 20),
+
+              _buildInputField(
+                label: 'CID (Opcional)',
+                controller: _cidController,
+                hint: 'Ex: F84.0',
+                icon: Icons.assignment_outlined,
               ),
 
               const SizedBox(height: 48),
@@ -363,12 +704,13 @@ class _AddMemberPageState extends State<AddMemberPage> {
     );
   }
 
-  Widget _buildDropdownField({
+  Widget _buildDropdownField<T>({
     required String label,
-    required String? value,
-    required List<String> items,
-    required ValueChanged<String?> onChanged,
+    required T? value,
+    required List<DropdownMenuItem<T>> items,
+    required ValueChanged<T?> onChanged,
     required IconData icon,
+    String? hint,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -382,18 +724,14 @@ class _AddMemberPageState extends State<AddMemberPage> {
           ),
         ),
         const SizedBox(height: 8),
-        DropdownButtonFormField<String>(
-          initialValue: value,
-          items: items
-              .map(
-                (type) => DropdownMenuItem(
-                  value: type,
-                  child: Text(type, style: GoogleFonts.inter(fontSize: 15)),
-                ),
-              )
-              .toList(),
+        DropdownButtonFormField<T>(
+          value: value,
+          items: items,
           onChanged: onChanged,
+          isExpanded: true, // Adicionado para evitar overflow
+          icon: const Icon(Icons.keyboard_arrow_down_rounded),
           decoration: InputDecoration(
+            hintText: hint,
             prefixIcon: Icon(icon, color: AppColors.primary, size: 22),
             filled: true,
             fillColor: Colors.white,
@@ -412,6 +750,83 @@ class _AddMemberPageState extends State<AddMemberPage> {
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: AppColors.primary, width: 2),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildUploadField({
+    required String label,
+    required String? fileName,
+    required bool isUploading,
+    required bool isUploaded,
+    required VoidCallback onTap,
+    required IconData icon,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.inter(
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimary,
+            fontSize: 14,
+          ),
+        ),
+        const SizedBox(height: 8),
+        GestureDetector(
+          onTap: isUploading ? null : onTap,
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
+            decoration: BoxDecoration(
+              color: isUploaded ? AppColors.primary.withValues(alpha: 0.06) : Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isUploaded ? AppColors.primary : const Color(0xFFE2E8F0),
+                width: isUploaded ? 2 : 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  isUploaded ? Icons.check_circle_rounded : icon,
+                  color: isUploaded ? Colors.green : AppColors.primary,
+                  size: 22,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: isUploading
+                      ? Row(
+                          children: [
+                            const SizedBox(
+                              width: 16, height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                            const SizedBox(width: 10),
+                            Text('Enviando...', style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary)),
+                          ],
+                        )
+                      : Text(
+                          isUploaded ? fileName ?? 'Arquivo enviado' : 'Toque para enviar arquivo',
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            color: isUploaded ? AppColors.textPrimary : AppColors.textSecondary,
+                            fontWeight: isUploaded ? FontWeight.w600 : FontWeight.w400,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                ),
+                if (!isUploading)
+                  Icon(
+                    isUploaded ? Icons.refresh_rounded : Icons.upload_file_rounded,
+                    color: AppColors.primary,
+                    size: 20,
+                  ),
+              ],
             ),
           ),
         ),

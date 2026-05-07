@@ -9,6 +9,8 @@ import '../../models/digital_card.dart';
 import '../../models/member.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:uuid/uuid.dart';
+import '../../services/google_drive_service.dart';
+import 'dart:convert';
 
 class AdminView extends StatefulWidget {
   const AdminView({super.key});
@@ -20,6 +22,7 @@ class AdminView extends StatefulWidget {
 class _AdminViewState extends State<AdminView>
     with SingleTickerProviderStateMixin {
   final DatabaseService _databaseService = DatabaseService();
+  final GoogleDriveService _driveService = GoogleDriveService();
   late TabController _tabController;
 
   bool _isLoadingRequests = true;
@@ -179,7 +182,7 @@ class _AdminViewState extends State<AdminView>
           Icon(
             Icons.inbox_outlined,
             size: 48,
-            color: AppColors.textSecondary.withOpacity(0.5),
+            color: AppColors.textSecondary.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),
           Text(
@@ -212,7 +215,7 @@ class _AdminViewState extends State<AdminView>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.darkBlue.withOpacity(0.05),
+            color: AppColors.darkBlue.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -262,7 +265,7 @@ class _AdminViewState extends State<AdminView>
                   decoration: BoxDecoration(
                     color:
                         (isAdmin ? AppColors.primary : AppColors.textSecondary)
-                            .withOpacity(0.1),
+                            .withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
@@ -470,27 +473,62 @@ class _AdminViewState extends State<AdminView>
     Color textColor;
 
     switch (status.toLowerCase()) {
+      case 'waiting_approval':
       case 'under_review':
       case 'em análise':
-        bgColor = AppColors.alertOrange.withValues(alpha: 0.2);
-        textColor = AppColors.alertOrange;
+        bgColor = AppColors.warning.withValues(alpha: 0.2);
+        textColor = AppColors.warning;
         break;
+      case 'active':
       case 'approved':
-      case 'aprovado':
+      case 'aprovada':
+      case 'ativa':
         bgColor = AppColors.statusGreen.withValues(alpha: 0.2);
         textColor = AppColors.statusGreen;
         break;
+      case 'waiting_docs':
+        bgColor = AppColors.primary.withValues(alpha: 0.2);
+        textColor = AppColors.primary;
+        break;
+      case 'reviewing_data':
+        bgColor = Colors.orange.withValues(alpha: 0.2);
+        textColor = Colors.orange;
+        break;
       case 'rejected':
-      case 'rejeitado':
-      case 'pending':
-      case 'pendência':
+      case 'rejeitada':
         bgColor = AppColors.errorRed.withValues(alpha: 0.2);
         textColor = AppColors.errorRed;
+        break;
+      case 'suspended':
+      case 'suspensa':
+        bgColor = Colors.grey.withValues(alpha: 0.2);
+        textColor = Colors.grey.shade700;
+        break;
+      case 'expired':
+      case 'expirada':
+        bgColor = Colors.brown.withValues(alpha: 0.2);
+        textColor = Colors.brown;
+        break;
+      case 'renewing':
+      case 'aguardando renovação':
+        bgColor = Colors.teal.withValues(alpha: 0.2);
+        textColor = Colors.teal;
         break;
       default:
         bgColor = Colors.grey.withValues(alpha: 0.2);
         textColor = Colors.grey.shade800;
     }
+
+    String label = status.toUpperCase();
+    if (status == 'waiting_approval') label = 'AGUARDANDO APROVAÇÃO';
+    if (status == 'waiting_docs') label = 'AGUARDANDO DOCS';
+    if (status == 'reviewing_data') label = 'REVISAR DADOS';
+    if (status == 'active') label = 'ATIVA';
+    if (status == 'rejected') label = 'REJEITADA';
+    if (status == 'suspended') label = 'SUSPENSA';
+    if (status == 'expired') label = 'EXPIRADA';
+    if (status == 'renewing') label = 'RENOVANDO';
+
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -530,6 +568,7 @@ class _RequestDetailsSheetState extends State<_RequestDetailsSheet> {
   AppUser? _requester;
   Member? _member;
   final _notesController = TextEditingController();
+  final GoogleDriveService _driveService = GoogleDriveService();
 
   @override
   void initState() {
@@ -600,6 +639,16 @@ class _RequestDetailsSheetState extends State<_RequestDetailsSheet> {
 
         await widget.databaseService.createDigitalCard(digitalCard);
       }
+
+      // Sincronizar o status do Membro com o status da Solicitação
+      if (_member != null) {
+        final updatedMember = _member!.copyWith(
+          status: newStatus == 'approved' ? 'active' : newStatus,
+          updatedAt: DateTime.now(),
+        );
+        await widget.databaseService.updateMember(updatedMember);
+      }
+
 
       if (mounted) {
         Navigator.of(context).pop(); // close loading
@@ -677,6 +726,7 @@ class _RequestDetailsSheetState extends State<_RequestDetailsSheet> {
                       children: [
                         _buildSectionTitle('Dados da Solicitação'),
                         _buildDetailRow('Protocolo', widget.request.protocol),
+                        _buildDetailRow('Tipo', widget.request.type),
                         _buildDetailRow('Status Atual', widget.request.status),
                         _buildDetailRow(
                           'Data',
@@ -688,12 +738,16 @@ class _RequestDetailsSheetState extends State<_RequestDetailsSheet> {
                         const SizedBox(height: 8),
                         _buildDocumentLink(
                           'Documento com Foto',
-                          widget.request.idPhotoUrl,
+                          widget.request.documentUrl,
+                          Icons.badge_outlined,
+                          'document_url',
                         ),
                         const SizedBox(height: 12),
                         _buildDocumentLink(
                           'Laudo Médico',
                           widget.request.medicalReportUrl,
+                          Icons.medical_information_outlined,
+                          'medical_report_url',
                         ),
 
                         if (widget.request.driveFolderUrl.isNotEmpty) ...[
@@ -710,11 +764,12 @@ class _RequestDetailsSheetState extends State<_RequestDetailsSheet> {
                           _buildDetailRow('Nome', _member!.name),
                           _buildDetailRow('CPF', _member!.cpf),
                           _buildDetailRow('Nascimento', _member!.dateOfBirth),
+                          _buildDetailRow('Localização', '${_member!.city ?? "Não informado"} - ${_member!.state ?? ""}'),
                           _buildDetailRow('CID', _member!.cid),
                           _buildDetailRow('Tipo Sanguíneo', _member!.bloodType),
                           _buildDetailRow(
                             'Contato Emergência',
-                            _member!.emergencyContact!,
+                            _member!.emergencyContact,
                           ),
                         ] else
                           const Text('Dados do membro não encontrados.'),
@@ -758,11 +813,43 @@ class _RequestDetailsSheetState extends State<_RequestDetailsSheet> {
                           children: [
                             Expanded(
                               child: OutlinedButton(
+                                onPressed: () => _updateStatus('reviewing_data'),
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  foregroundColor: Colors.orange,
+                                  side: const BorderSide(color: Colors.orange),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                child: const Text('Revisar Dados'),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed: () => _updateStatus('waiting_docs'),
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  foregroundColor: AppColors.primary,
+                                  side: const BorderSide(color: AppColors.primary),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                child: const Text('Solicitar Docs'),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton(
                                 onPressed: () => _updateStatus('rejected'),
                                 style: OutlinedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 16,
-                                  ),
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
                                   foregroundColor: AppColors.errorRed,
                                   side: const BorderSide(
                                     color: AppColors.errorRed,
@@ -774,23 +861,19 @@ class _RequestDetailsSheetState extends State<_RequestDetailsSheet> {
                                 child: const Text('Rejeitar'),
                               ),
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: 8),
                             Expanded(
                               child: OutlinedButton(
-                                onPressed: () => _updateStatus('pending'),
+                                onPressed: () => _updateStatus('suspended'),
                                 style: OutlinedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 16,
-                                  ),
-                                  foregroundColor: AppColors.alertOrange,
-                                  side: const BorderSide(
-                                    color: AppColors.alertOrange,
-                                  ),
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  foregroundColor: Colors.grey.shade700,
+                                  side: BorderSide(color: Colors.grey.shade400),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                 ),
-                                child: const Text('Pendência'),
+                                child: const Text('Suspender'),
                               ),
                             ),
                           ],
@@ -838,82 +921,169 @@ class _RequestDetailsSheetState extends State<_RequestDetailsSheet> {
     );
   }
 
-  Widget _buildDocumentLink(String label, String url) {
-    final bool hasUrl = url.isNotEmpty;
+  Widget _buildDocumentLink(
+    String label,
+    String url,
+    IconData iconData,
+    String fieldKey,
+  ) {
+    final bool hasUrl = url.isNotEmpty && url.startsWith('http');
 
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: hasUrl
-            ? AppColors.primary.withValues(alpha: 0.05)
-            : Colors.black.withOpacity(0.02),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: hasUrl
-              ? AppColors.primary.withValues(alpha: 0.1)
-              : Colors.black.withOpacity(0.05),
+    return InkWell(
+      onTap: hasUrl
+          ? () async {
+              if (await canLaunchUrlString(url)) {
+                await launchUrlString(url);
+              }
+            }
+          : null,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: hasUrl ? Colors.white : Colors.grey.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: hasUrl
+                ? AppColors.primary.withValues(alpha: 0.2)
+                : Colors.grey.withValues(alpha: 0.2),
+          ),
+          boxShadow: hasUrl
+              ? [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : null,
         ),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            hasUrl ? Icons.description_outlined : Icons.block_flipped,
-            color: hasUrl ? AppColors.primary : AppColors.textSecondary,
-            size: 20,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: hasUrl ? AppColors.primary : AppColors.textSecondary,
-                  ),
-                ),
-                Text(
-                  hasUrl
-                      ? 'Clique para visualizar arquivo'
-                      : 'Nenhum arquivo enviado',
-                  style: GoogleFonts.inter(
-                    fontSize: 11,
-                    color: hasUrl
-                        ? AppColors.textPrimary
-                        : AppColors.textSecondary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (hasUrl)
-            IconButton(
-              icon: const Icon(
-                Icons.open_in_new,
-                color: AppColors.primary,
-                size: 20,
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: hasUrl
+                    ? AppColors.primary.withValues(alpha: 0.1)
+                    : Colors.grey.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
               ),
-              onPressed: () async {
-                if (await canLaunchUrlString(url)) {
-                  await launchUrlString(url);
-                } else {
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Não foi possível abrir o arquivo.'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
-                }
-              },
+              child: Icon(
+                iconData,
+                color: hasUrl ? AppColors.primary : Colors.grey,
+                size: 24,
+              ),
             ),
-        ],
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.darkBlue,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    hasUrl
+                        ? 'Toque para visualizar arquivo'
+                        : 'Nenhum arquivo enviado',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: hasUrl
+                          ? AppColors.primary
+                          : AppColors.textSecondary,
+                      fontWeight: hasUrl ? FontWeight.w600 : FontWeight.normal,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (hasUrl) ...[
+              IconButton(
+                icon: const Icon(Icons.delete_outline_rounded,
+                    color: Colors.redAccent, size: 22),
+                onPressed: () async {
+                  final confirm = await showDialog<bool>(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      title: const Text('Deletar Arquivo?'),
+                      content: const Text(
+                          'Isso removerá o arquivo permanentemente do Google Drive.'),
+                      actions: [
+                        TextButton(
+                            onPressed: () => Navigator.pop(ctx, false),
+                            child: const Text('Cancelar')),
+                        TextButton(
+                          onPressed: () => Navigator.pop(ctx, true),
+                          style: TextButton.styleFrom(foregroundColor: Colors.red),
+                          child: const Text('Deletar'),
+                        ),
+                      ],
+                    ),
+                  );
+
+                  if (confirm == true) {
+                    // ignore: use_build_context_synchronously
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Deletando arquivo...')),
+                    );
+
+                    final success = await _driveService.deleteFile(url);
+                    if (success) {
+                      try {
+                        // Atualizar Supabase para remover a URL
+                        await widget.databaseService.updateRequestFileUrl(
+                          widget.request.id,
+                          fieldKey,
+                          '',
+                        );
+
+                        // Recarregar os detalhes e fechar o sheet para refletir a mudança
+                        if (mounted) {
+                          widget.onStatusChanged(); // Gatilha recarregamento na AdminView
+                          Navigator.pop(context); // Fecha o sheet
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text('Arquivo deletado com sucesso!')),
+                          );
+                        }
+                      } catch (e) {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                content: Text('Erro ao atualizar banco: $e')),
+                          );
+                        }
+                      }
+                    } else {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content:
+                                  Text('Falha ao deletar arquivo no Drive.')),
+                        );
+                      }
+                    }
+                  }
+                },
+              ),
+              const Icon(
+                Icons.arrow_forward_ios,
+                color: AppColors.primary,
+                size: 16,
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
+
 
   Widget _buildDetailRow(String label, String value) {
     return Padding(

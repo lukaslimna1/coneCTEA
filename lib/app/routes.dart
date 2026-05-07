@@ -4,7 +4,6 @@ import '../features/auth/register_page.dart';
 import '../features/home/home_page.dart';
 import '../features/requests/add_member_page.dart';
 import '../features/requests/member_selection_page.dart';
-import '../features/requests/new_request_page.dart';
 import '../features/admin/admin_dashboard_page.dart';
 import '../models/member.dart';
 import '../core/notifiers/auth_notifier.dart';
@@ -55,13 +54,6 @@ class AppRoutes {
       GoRoute(
         path: '/member-selection',
         builder: (context, state) => const MemberSelectionPage(),
-      ),
-      GoRoute(
-        path: '/new-request',
-        builder: (context, state) {
-          final member = state.extra as Member;
-          return NewRequestPage(member: member);
-        },
       ),
       GoRoute(
         path: '/admin-dashboard',
