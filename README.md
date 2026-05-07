@@ -7,11 +7,14 @@ App de identificação digital, solicitações e acompanhamento individual para 
 - **Backend**: Firebase (Auth, Firestore, Hosting)
 - **Design**: Material 3 + Google Fonts (Inter)
 
-## 🚀 Versão 2.4.0 - Card Request Lifecycle & Supabase Sync (Current)
-- [x] **CardRequest Model Robustness**: Implementação de parser resiliente para datas e mapeamento unificado (snake_case/camelCase).
-- [x] **Admin Dashboard Stabilization**: Correção de escopo e chamadas de serviço no `AdminView`, permitindo aprovação de solicitações.
-- [x] **DatabaseService Integrity**: Reescrita completa do serviço de banco de dados com suporte a ordenação descendente e novos métodos de atualização.
-- [x] **UI Status Unification**: Sincronização visual de status (`waiting_approval`, `approved`, etc.) entre o mural do usuário e o painel administrativo.
+## 🚀 Versão 2.5.0 - Admin UI Overhaul & Smart Lifecycle (Current)
+- [x] **Premium Admin UI**: Redesign completo dos botões de ação com degradês, chips temáticos por status e diálogos de confirmação modernos.
+- [x] **Smart Field Locking (Lifecycle v2)**: Implementação de travas granulares (incluindo Tipo Sanguíneo) que bloqueiam campos na `AddMemberPage` com base nas pendências marcadas pelo Admin.
+- [x] **Data Sync Integrity**: Sincronização automática de status e timestamps entre `card_requests` e `members` para evitar inconsistências na Home.
+- [x] **UX Fixes**: Resolução do bug de reset de Cidade/Estado durante a edição e correção do erro de coluna `member_name` no `DatabaseService`.
+- [x] **Mandatory Justification**: Fluxo administrativo aprimorado que força o registro de justificativas via checklist interativo.
+
+## 🚀 Versão 2.4.0 - Card Request Lifecycle & Supabase Sync
 
 ## 🚀 Versão 2.3.0 - UI Polish & Structural Cleanup
 - [x] **HomeView Refactor**: Eliminação de duplicação de código e inconsistências estruturais.

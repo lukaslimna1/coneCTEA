@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/constants/colors.dart';
 import '../../services/database_service.dart';
-import '../../services/auth_service.dart';
 import '../../models/card_request.dart';
 import '../../models/app_user.dart';
 import '../../models/digital_card.dart';
@@ -10,7 +9,7 @@ import '../../models/member.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:uuid/uuid.dart';
 import '../../services/google_drive_service.dart';
-import 'dart:convert';
+import '../../models/notification_item.dart';
 
 class AdminView extends StatefulWidget {
   const AdminView({super.key});
@@ -22,7 +21,6 @@ class AdminView extends StatefulWidget {
 class _AdminViewState extends State<AdminView>
     with SingleTickerProviderStateMixin {
   final DatabaseService _databaseService = DatabaseService();
-  final GoogleDriveService _driveService = GoogleDriveService();
   late TabController _tabController;
 
   bool _isLoadingRequests = true;
@@ -327,23 +325,48 @@ class _AdminViewState extends State<AdminView>
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Confirmar Alteração'),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.security, color: AppColors.primary, size: 24),
+            ),
+            const SizedBox(width: 12),
+            const Text('Confirmar Alteração'),
+          ],
+        ),
         content: Text(
           'Deseja realmente mudar o cargo de ${user.name} para ${newRole == UserRole.admin ? "Administrador" : "Usuário"}?',
+          style: GoogleFonts.inter(color: AppColors.textSecondary),
         ),
+        actionsPadding: const EdgeInsets.all(20),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
+            child: Text(
+              'Cancelar',
+              style: GoogleFonts.inter(color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+            ),
           ),
-          TextButton(
+          const SizedBox(width: 8),
+          ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
             child: Text(
               'Confirmar',
-              style: TextStyle(
-                color: AppColors.primary,
-                fontWeight: FontWeight.bold,
-              ),
+              style: GoogleFonts.inter(fontWeight: FontWeight.bold),
             ),
           ),
         ],
@@ -351,6 +374,8 @@ class _AdminViewState extends State<AdminView>
     );
 
     if (confirmed != true) return;
+
+    if (!mounted) return;
 
     showDialog(
       context: context,
@@ -433,22 +458,41 @@ class _AdminViewState extends State<AdminView>
             ),
           ),
           const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () => _showRequestDetails(request),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+          InkWell(
+            onTap: () => _showRequestDetails(request),
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.primary,
+                    AppColors.primary.withValues(alpha: 0.8),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
                   ),
-                  child: const Text('Analisar / Ver Detalhes'),
+                ],
+              ),
+              child: Center(
+                child: Text(
+                  'Analisar / Ver Detalhes',
+                  style: GoogleFonts.inter(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    letterSpacing: 0.5,
+                  ),
                 ),
               ),
-            ],
+            ),
           ),
         ],
       ),
@@ -476,8 +520,8 @@ class _AdminViewState extends State<AdminView>
       case 'waiting_approval':
       case 'under_review':
       case 'em análise':
-        bgColor = AppColors.warning.withValues(alpha: 0.2);
-        textColor = AppColors.warning;
+        bgColor = Colors.amber.withValues(alpha: 0.2);
+        textColor = Colors.amber.shade900;
         break;
       case 'active':
       case 'approved':
@@ -487,12 +531,12 @@ class _AdminViewState extends State<AdminView>
         textColor = AppColors.statusGreen;
         break;
       case 'waiting_docs':
-        bgColor = AppColors.primary.withValues(alpha: 0.2);
-        textColor = AppColors.primary;
+        bgColor = Colors.blue.withValues(alpha: 0.2);
+        textColor = Colors.blue.shade900;
         break;
       case 'reviewing_data':
         bgColor = Colors.orange.withValues(alpha: 0.2);
-        textColor = Colors.orange;
+        textColor = Colors.orange.shade900;
         break;
       case 'rejected':
       case 'rejeitada':
@@ -501,18 +545,18 @@ class _AdminViewState extends State<AdminView>
         break;
       case 'suspended':
       case 'suspensa':
-        bgColor = Colors.grey.withValues(alpha: 0.2);
-        textColor = Colors.grey.shade700;
+        bgColor = Colors.black.withValues(alpha: 0.1);
+        textColor = Colors.black87;
         break;
       case 'expired':
       case 'expirada':
         bgColor = Colors.brown.withValues(alpha: 0.2);
-        textColor = Colors.brown;
+        textColor = Colors.brown.shade900;
         break;
       case 'renewing':
       case 'aguardando renovação':
-        bgColor = Colors.teal.withValues(alpha: 0.2);
-        textColor = Colors.teal;
+        bgColor = Colors.purple.withValues(alpha: 0.2);
+        textColor = Colors.purple.shade900;
         break;
       default:
         bgColor = Colors.grey.withValues(alpha: 0.2);
@@ -520,15 +564,36 @@ class _AdminViewState extends State<AdminView>
     }
 
     String label = status.toUpperCase();
-    if (status == 'waiting_approval') label = 'AGUARDANDO APROVAÇÃO';
-    if (status == 'waiting_docs') label = 'AGUARDANDO DOCS';
-    if (status == 'reviewing_data') label = 'REVISAR DADOS';
-    if (status == 'active') label = 'ATIVA';
-    if (status == 'rejected') label = 'REJEITADA';
-    if (status == 'suspended') label = 'SUSPENSA';
-    if (status == 'expired') label = 'EXPIRADA';
-    if (status == 'renewing') label = 'RENOVANDO';
-
+    switch (status.toLowerCase()) {
+      case 'waiting_approval':
+      case 'under_review':
+        label = 'EM ANÁLISE';
+        break;
+      case 'approved':
+      case 'active':
+        label = 'ATIVA / APROVADA';
+        break;
+      case 'rejected':
+        label = 'REJEITADA';
+        break;
+      case 'waiting_docs':
+        label = 'AGUARDANDO DOCS';
+        break;
+      case 'reviewing_data':
+        label = 'REVISAR DADOS';
+        break;
+      case 'suspended':
+        label = 'SUSPENSA';
+        break;
+      case 'expired':
+      case 'expirada':
+        label = 'EXPIRADA';
+        break;
+      case 'renewing':
+      case 'aguardando renovação':
+        label = 'AGUARDANDO RENOVAÇÃO';
+        break;
+    }
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -537,7 +602,7 @@ class _AdminViewState extends State<AdminView>
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
-        status.toUpperCase(),
+        label,
         style: GoogleFonts.inter(
           fontSize: 10,
           fontWeight: FontWeight.bold,
@@ -594,22 +659,22 @@ class _RequestDetailsSheetState extends State<_RequestDetailsSheet> {
     }
   }
 
-  Future<void> _updateStatus(String newStatus) async {
-    Navigator.of(context).pop();
-
+  Future<void> _updateStatus(String newStatus, String notes) async {
+    // Show loading
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(
+      builder: (loadingContext) => const Center(
         child: CircularProgressIndicator(color: AppColors.primary),
       ),
     );
 
     try {
+      debugPrint('Updating request ${widget.request.id} to $newStatus');
       await widget.databaseService.updateCardRequestStatus(
         widget.request.id,
         newStatus,
-        adminNotes: _notesController.text.trim(),
+        adminNotes: notes.trim(),
       );
 
       if (newStatus == 'approved' && _member != null) {
@@ -631,7 +696,7 @@ class _RequestDetailsSheetState extends State<_RequestDetailsSheet> {
             'bloodType': _member!.bloodType,
             'cid': _member!.cid,
           },
-          backData: {'emergencyContact': _member!.emergencyContact ?? ''},
+          backData: {'emergencyContact': _member!.emergencyContact},
           qrValidationUrl: 'https://conectea.app/validate/$cardNumber',
           createdAt: now,
           updatedAt: now,
@@ -649,9 +714,29 @@ class _RequestDetailsSheetState extends State<_RequestDetailsSheet> {
         await widget.databaseService.updateMember(updatedMember);
       }
 
+      // Criar Notificação para o Usuário
+      final String notificationTitle = _getNotificationTitle(newStatus);
+      final String notificationMessage = _getNotificationMessage(newStatus, notes);
+      
+      final notification = NotificationItem(
+        id: '',
+        userId: widget.request.userId,
+        memberId: widget.request.memberId,
+        title: notificationTitle,
+        message: notificationMessage,
+        type: 'card_status_update',
+        isRead: false,
+        actionLabel: 'Ver Carteirinha',
+        actionRoute: '/home',
+        createdAt: DateTime.now(),
+      );
+
+      await widget.databaseService.createNotification(notification);
 
       if (mounted) {
-        Navigator.of(context).pop(); // close loading
+        Navigator.of(context).pop(); // Fecha o carregamento
+        Navigator.of(context).pop(); // Fecha a aba de detalhes
+        
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Status atualizado com sucesso!'),
@@ -726,8 +811,13 @@ class _RequestDetailsSheetState extends State<_RequestDetailsSheet> {
                       children: [
                         _buildSectionTitle('Dados da Solicitação'),
                         _buildDetailRow('Protocolo', widget.request.protocol),
-                        _buildDetailRow('Tipo', widget.request.type),
-                        _buildDetailRow('Status Atual', widget.request.status),
+                        _buildDetailRow(
+                          'Tipo', 
+                          (widget.request.type == 'new_card' || widget.request.type == 'Primeira via' || widget.request.type == 'Emissão Digital') 
+                              ? 'Emissão Digital' 
+                              : widget.request.type
+                        ),
+                        _buildDetailRow('Status Atual', _getStatusDisplay(widget.request.status)),
                         _buildDetailRow(
                           'Data',
                           '${widget.request.createdAt.day}/${widget.request.createdAt.month}/${widget.request.createdAt.year}',
@@ -764,7 +854,7 @@ class _RequestDetailsSheetState extends State<_RequestDetailsSheet> {
                           _buildDetailRow('Nome', _member!.name),
                           _buildDetailRow('CPF', _member!.cpf),
                           _buildDetailRow('Nascimento', _member!.dateOfBirth),
-                          _buildDetailRow('Localização', '${_member!.city ?? "Não informado"} - ${_member!.state ?? ""}'),
+                          _buildDetailRow('Localização', '${_member!.city} - ${_member!.state}'),
                           _buildDetailRow('CID', _member!.cid),
                           _buildDetailRow('Tipo Sanguíneo', _member!.bloodType),
                           _buildDetailRow(
@@ -809,94 +899,7 @@ class _RequestDetailsSheetState extends State<_RequestDetailsSheet> {
                         ),
 
                         const SizedBox(height: 32),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: OutlinedButton(
-                                onPressed: () => _updateStatus('reviewing_data'),
-                                style: OutlinedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
-                                  foregroundColor: Colors.orange,
-                                  side: const BorderSide(color: Colors.orange),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                                child: const Text('Revisar Dados'),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: OutlinedButton(
-                                onPressed: () => _updateStatus('waiting_docs'),
-                                style: OutlinedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
-                                  foregroundColor: AppColors.primary,
-                                  side: const BorderSide(color: AppColors.primary),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                                child: const Text('Solicitar Docs'),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: OutlinedButton(
-                                onPressed: () => _updateStatus('rejected'),
-                                style: OutlinedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
-                                  foregroundColor: AppColors.errorRed,
-                                  side: const BorderSide(
-                                    color: AppColors.errorRed,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                                child: const Text('Rejeitar'),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: OutlinedButton(
-                                onPressed: () => _updateStatus('suspended'),
-                                style: OutlinedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
-                                  foregroundColor: Colors.grey.shade700,
-                                  side: BorderSide(color: Colors.grey.shade400),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                                child: const Text('Suspender'),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: () => _updateStatus('approved'),
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              backgroundColor: AppColors.statusGreen,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            child: const Text(
-                              'Aprovar e Emitir Carteirinha',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ),
+                        _buildStatusSection(),
                         const SizedBox(height: 40),
                       ],
                     ),
@@ -905,6 +908,73 @@ class _RequestDetailsSheetState extends State<_RequestDetailsSheet> {
         ],
       ),
     );
+  }
+
+  String _getNotificationTitle(String status) {
+    switch (status.toLowerCase()) {
+      case 'approved':
+      case 'active':
+        return '🎉 Carteirinha Aprovada!';
+      case 'rejected':
+      case 'rejeitada':
+        return '❌ Solicitação Reprovada';
+      case 'suspended':
+      case 'suspensa':
+        return '⚠️ Carteirinha Suspensa';
+      case 'waiting_docs':
+        return '📄 Documentos Pendentes';
+      case 'reviewing_data':
+        return '✏️ Revisão de Dados Necessária';
+      case 'expired':
+        return '📅 Carteirinha Vencida';
+      default:
+        return 'Atualização na sua solicitação';
+    }
+  }
+
+  String _getNotificationMessage(String status, String notes) {
+    switch (status.toLowerCase()) {
+      case 'approved':
+      case 'active':
+        return 'Sua carteirinha digital foi emitida e já está disponível para uso!';
+      case 'rejected':
+      case 'rejeitada':
+        return 'Sua solicitação foi reprovada. Motivo: $notes';
+      case 'suspended':
+      case 'suspensa':
+        return 'Sua carteirinha foi suspensa temporariamente. Motivo: $notes';
+      case 'waiting_docs':
+        return 'Precisamos que você envie alguns documentos para continuar. Veja as observações.';
+      case 'reviewing_data':
+        return 'Alguns dados precisam ser corrigidos. Por favor, verifique sua solicitação.';
+      default:
+        return 'Houve uma mudança no status da sua carteirinha. Clique para ver detalhes.';
+    }
+  }
+
+  String _getStatusDisplay(String status) {
+    switch (status.toLowerCase()) {
+      case 'waiting_approval':
+      case 'under_review':
+        return 'Aguardando aprovação';
+      case 'approved':
+      case 'active':
+        return 'Carteirinha Ativa';
+      case 'rejected':
+        return 'Reprovada';
+      case 'waiting_docs':
+        return 'Aguardando documentação';
+      case 'reviewing_data':
+        return 'Solicitando revisão de dados';
+      case 'suspended':
+        return 'Suspensa';
+      case 'expired':
+        return 'Vencida';
+      case 'renewing':
+        return 'Aguardando renovação';
+      default:
+        return status;
+    }
   }
 
   Widget _buildSectionTitle(String title) {
@@ -929,38 +999,15 @@ class _RequestDetailsSheetState extends State<_RequestDetailsSheet> {
   ) {
     final bool hasUrl = url.isNotEmpty && url.startsWith('http');
 
-    return InkWell(
-      onTap: hasUrl
-          ? () async {
-              if (await canLaunchUrlString(url)) {
-                await launchUrlString(url);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: InkWell(
+        onTap: hasUrl
+            ? () async {
+                if (await canLaunchUrlString(url)) {
+                  await launchUrlString(url);
+                }
               }
-            }
-          : null,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: hasUrl ? Colors.white : Colors.grey.withValues(alpha: 0.05),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: hasUrl
-                ? AppColors.primary.withValues(alpha: 0.2)
-                : Colors.grey.withValues(alpha: 0.2),
-          ),
-          boxShadow: hasUrl
-              ? [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ]
-              : null,
-        ),
-        child: Row(
-          children: [
-            Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: hasUrl
@@ -1084,6 +1131,279 @@ class _RequestDetailsSheetState extends State<_RequestDetailsSheet> {
     );
   }
 
+
+  Widget _buildStatusSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Alterar Status',
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: AppColors.darkBlue,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            _statusChip('waiting_approval', '🟡 Aguardando Approval'),
+            _statusChip('waiting_docs', '🔵 Docs Pendentes'),
+            _statusChip('reviewing_data', '🟠 Revisar Dados'),
+            _statusChip('active', '🟢 Ativar'),
+            _statusChip('rejected', '🔴 Reprovar'),
+            _statusChip('suspended', '⚫ Suspender'),
+            _statusChip('expired', '🟤 Vencida'),
+            _statusChip('renewing', '🟣 Renovação'),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _statusChip(String status, String label) {
+    final bool isCurrent = widget.request.status == status;
+    
+    Color color;
+    switch (status) {
+      case 'waiting_approval': color = Colors.amber; break;
+      case 'waiting_docs': color = Colors.blue; break;
+      case 'reviewing_data': color = Colors.orange; break;
+      case 'active': color = Colors.green; break;
+      case 'rejected': color = Colors.red; break;
+      case 'suspended': color = Colors.grey[800]!; break;
+      case 'expired': color = Colors.brown; break;
+      case 'renewing': color = Colors.purple; break;
+      default: color = AppColors.primary;
+    }
+
+    return GestureDetector(
+      onTap: () {
+        if (!isCurrent) {
+          _confirmStatusUpdate(status, label);
+        }
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: isCurrent ? color : Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isCurrent ? color : color.withValues(alpha: 0.3),
+            width: 1.5,
+          ),
+          boxShadow: isCurrent ? [
+            BoxShadow(
+              color: color.withValues(alpha: 0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            )
+          ] : [],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (isCurrent) ...[
+              const Icon(Icons.check_circle, size: 14, color: Colors.white),
+              const SizedBox(width: 6),
+            ],
+            Text(
+              label,
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                fontWeight: isCurrent ? FontWeight.w800 : FontWeight.w600,
+                color: isCurrent ? Colors.white : color,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _confirmStatusUpdate(String status, String label) async {
+    final notesController = TextEditingController();
+    
+    Color color;
+    switch (status) {
+      case 'waiting_approval': color = Colors.amber; break;
+      case 'waiting_docs': color = Colors.blue; break;
+      case 'reviewing_data': color = Colors.orange; break;
+      case 'active': color = Colors.green; break;
+      case 'rejected': color = Colors.red; break;
+      case 'suspended': color = Colors.grey[800]!; break;
+      case 'expired': color = Colors.brown; break;
+      case 'renewing': color = Colors.purple; break;
+      default: color = AppColors.primary;
+    }
+
+    List<String> options = [];
+    Map<String, bool> selectedOptions = {};
+
+    if (status == 'reviewing_data') {
+      options = ['Nome Completo', 'CPF', 'Tipo Sanguíneo', 'Endereço/Cidade', 'Telefone', 'Contato de Emergência', 'Responsável'];
+    } else if (status == 'waiting_docs') {
+      options = ['Documento de Identidade (RG/CNH)', 'CPF', 'RG', 'CNH', 'Documento do Responsável', 'Comprovante', 'Laudo Médico (CID)'];
+    }
+    
+    for (var opt in options) {
+      selectedOptions[opt] = false;
+    }
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.info_outline, color: color, size: 24),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Confirmar: $label',
+                  style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          content: SizedBox(
+            width: 450,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Justificativa para o usuário:',
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.darkBlue,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: notesController,
+                    maxLines: 4,
+                    style: GoogleFonts.inter(fontSize: 14),
+                    decoration: InputDecoration(
+                      hintText: 'Descreva aqui o motivo da alteração...',
+                      filled: true,
+                      fillColor: Colors.grey[50],
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey[200]!),
+                      ),
+                    ),
+                  ),
+                  if (options.isNotEmpty) ...[
+                    const SizedBox(height: 24),
+                    Text(
+                      status == 'reviewing_data' ? '📋 Campos para correção:' : '📄 Documentos solicitados:',
+                      style: GoogleFonts.inter(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.grey[50],
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey[200]!),
+                      ),
+                      child: Column(
+                        children: options.map((opt) => CheckboxListTile(
+                          title: Text(opt, style: GoogleFonts.inter(fontSize: 13)),
+                          value: selectedOptions[opt],
+                          dense: true,
+                          activeColor: AppColors.primary,
+                          controlAffinity: ListTileControlAffinity.leading,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                          onChanged: (val) {
+                            setDialogState(() => selectedOptions[opt] = val ?? false);
+                            
+                            String newNotes = "Pendências encontradas:\n";
+                            selectedOptions.forEach((key, isSelected) {
+                              if (isSelected) newNotes += "- Pendência: $key\n";
+                            });
+                            notesController.text = newNotes;
+                          },
+                        )).toList(),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          actionsPadding: const EdgeInsets.all(20),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(
+                'Cancelar',
+                style: GoogleFonts.inter(color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+              ),
+            ),
+            const SizedBox(width: 8),
+            ElevatedButton(
+              onPressed: () {
+                if (notesController.text.trim().isEmpty) {
+                  ScaffoldMessenger.of(ctx).showSnackBar(
+                    const SnackBar(content: Text('Justificativa obrigatória')),
+                  );
+                  return;
+                }
+                Navigator.pop(ctx, true);
+              },
+              child: const Text('Confirmar'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (confirm == true) {
+      try {
+        await widget.databaseService.updateCardStatus(
+          widget.request.id,
+          status,
+          notesController.text.trim(),
+        );
+        if (mounted) {
+          widget.onStatusChanged();
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Status atualizado com sucesso!')),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Erro ao atualizar: $e')),
+          );
+        }
+      }
+    }
+  }
 
   Widget _buildDetailRow(String label, String value) {
     return Padding(

@@ -315,7 +315,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     borderRadius: BorderRadius.circular(28),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: Colors.black.withValues(alpha: 0.05),
                         blurRadius: 30,
                         offset: const Offset(0, 10),
                       ),
@@ -826,7 +826,7 @@ class _RegisterPageState extends State<RegisterPage> {
         const SizedBox(height: 8),
         DropdownButtonFormField<T>(
           isExpanded: true,
-          value: value,
+          initialValue: value,
           items: items,
           onChanged: onChanged,
           validator: validator,

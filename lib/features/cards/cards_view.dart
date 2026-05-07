@@ -192,7 +192,7 @@ class _CardsViewState extends State<CardsView> {
             Icon(
               Icons.pending_actions_rounded,
               size: 80,
-              color: AppColors.alertOrange.withOpacity(0.5),
+              color: AppColors.alertOrange.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 24),
             Text(

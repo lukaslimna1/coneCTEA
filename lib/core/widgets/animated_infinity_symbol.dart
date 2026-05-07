@@ -96,7 +96,7 @@ class InfinityPainter extends CustomPainter {
 
     // Sombra suave para o traço
     final shadowPaint = Paint()
-      ..color = colors[5].withOpacity(0.2) // Sombra roxa suave
+      ..color = colors[5].withValues(alpha: 0.2) // Sombra roxa suave
       ..style = PaintingStyle.stroke
       ..strokeWidth = 14.0
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);

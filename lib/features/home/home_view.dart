@@ -28,6 +28,7 @@ class _HomeViewState extends State<HomeView> {
   List<Member> _members = [];
   List<CardRequest> _requests = [];
   CardRequest? _ongoingRequest;
+  Stream<List<CardRequest>>? _requestsStream;
   bool _isLoading = true;
   int _selectedMemberIndex = 0;
 
@@ -35,6 +36,34 @@ class _HomeViewState extends State<HomeView> {
   void initState() {
     super.initState();
     _loadData();
+  }
+
+  Future<void> _requestRenewal(String requestId) async {
+    setState(() => _isLoading = true);
+    try {
+      await _databaseService.updateCardRequestStatus(
+        requestId, 
+        'renewing', 
+        adminNotes: 'Pedido de renovação iniciado pelo usuário.'
+      );
+      await _loadData();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Pedido de renovação enviado com sucesso!'),
+            backgroundColor: Colors.purple,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao solicitar renovação: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   Future<void> _loadData() async {
@@ -53,6 +82,7 @@ class _HomeViewState extends State<HomeView> {
 
         final members = await _databaseService.getMembers(userId);
         final requests = await _databaseService.getCardRequests(userId);
+        _requestsStream = _databaseService.cardRequestsStream(userId);
         
         if (mounted) {
           setState(() {
@@ -113,7 +143,16 @@ class _HomeViewState extends State<HomeView> {
               const SizedBox(height: 36),
               _buildQuickAccessGrid(),
               const SizedBox(height: 36),
-              _buildOngoingRequest(),
+              StreamBuilder<List<CardRequest>>(
+                stream: _requestsStream,
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    _requests = snapshot.data!;
+                    _ongoingRequest = _requests.isNotEmpty ? _requests.first : null;
+                  }
+                  return _buildOngoingRequest();
+                },
+              ),
               const SizedBox(height: 36),
               _buildOtherServices(),
               const SizedBox(height: 40),
@@ -331,7 +370,34 @@ class _HomeViewState extends State<HomeView> {
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                member.status,
+                                () {
+                                  switch (member.status.toLowerCase()) {
+                                    case 'active':
+                                    case 'ativa':
+                                      return 'Ativa';
+                                    case 'waiting_approval':
+                                    case 'under_review':
+                                    case 'analise':
+                                      return 'Em Análise';
+                                    case 'waiting_docs':
+                                      return 'Aguardando Docs';
+                                    case 'reviewing_data':
+                                      return 'Revisar Dados';
+                                    case 'rejected':
+                                    case 'rejeitada':
+                                      return 'Reprovada';
+                                    case 'suspended':
+                                    case 'suspensa':
+                                      return 'Suspensa';
+                                    case 'expired':
+                                    case 'vencida':
+                                      return 'Vencida';
+                                    case 'renewing':
+                                      return 'Em Renovação';
+                                    default:
+                                      return 'Em Análise';
+                                  }
+                                }(),
                                 style: GoogleFonts.inter(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w600,
@@ -443,21 +509,13 @@ class _HomeViewState extends State<HomeView> {
     final lastUpdate = memberRequest?.updatedAt ?? member.updatedAt;
     final isExpired = rawStatus == 'active' && DateTime.now().difference(lastUpdate).inDays >= 365;
     final effectiveStatus = isExpired ? 'expired' : rawStatus;
-    final status = effectiveStatus; // Define local status variable for use in widgets
+    final status = effectiveStatus;
 
     switch (effectiveStatus) {
-      case 'active':
-      case 'ativa':
-        statusDisplay = 'CARTEIRINHA ATIVA';
-        statusColor = AppColors.statusGreen;
-        statusIcon = Icons.verified_user_rounded;
-        isActive = true;
-        break;
       case 'waiting_approval':
       case 'under_review':
       case 'analise':
         statusDisplay = 'EM ANÁLISE';
-        statusColor = const Color(0xFFF9A825); // Yellow
         statusIcon = Icons.history_rounded;
         break;
       case 'waiting_docs':
@@ -483,8 +541,8 @@ class _HomeViewState extends State<HomeView> {
       case 'suspended':
       case 'suspensa':
         statusDisplay = 'SUSPENSA';
-        statusColor = Colors.black;
-        statusIcon = Icons.block_flipped;
+        statusColor = Colors.black87;
+        statusIcon = Icons.block_rounded;
         showJustification = true;
         break;
       case 'expired':
@@ -494,7 +552,8 @@ class _HomeViewState extends State<HomeView> {
         statusIcon = Icons.event_busy_rounded;
         break;
       case 'renewing':
-        statusDisplay = 'EM RENOVAÇÃO';
+      case 'renovacao':
+        statusDisplay = 'RENOVAÇÃO';
         statusColor = Colors.purple;
         statusIcon = Icons.autorenew_rounded;
         break;
@@ -589,6 +648,24 @@ class _HomeViewState extends State<HomeView> {
                             color: statusColor,
                           ),
                         ),
+                        if (memberRequest?.protocol != null && memberRequest!.protocol.isNotEmpty) ...[
+                          const SizedBox(height: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppColors.textSecondary.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              memberRequest.protocol,
+                              style: GoogleFonts.inter(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ),
+                        ],
                         const Divider(height: 20, color: AppColors.borderLight),
                         Text(
                           'Vencimento',
@@ -610,44 +687,71 @@ class _HomeViewState extends State<HomeView> {
             ),
             
             if (showJustification && adminNotes.isNotEmpty) ...[
-              const SizedBox(height: 20),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: statusColor.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: statusColor.withValues(alpha: 0.2)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.info_outline_rounded, color: statusColor, size: 18),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Justificativa da Equipe:',
-                          style: GoogleFonts.inter(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: statusColor,
-                          ),
-                        ),
-                      ],
+              const SizedBox(height: 16),
+              if (effectiveStatus == 'rejected' || effectiveStatus == 'suspended')
+                SizedBox(
+                  width: double.infinity,
+                  child: TextButton.icon(
+                    onPressed: () => _showJustificationDialog(
+                      statusDisplay, 
+                      statusColor, 
+                      adminNotes, 
+                      isRejected: effectiveStatus == 'rejected'
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      adminNotes,
+                    icon: Icon(Icons.help_outline_rounded, size: 18, color: statusColor),
+                    label: Text(
+                      "Ver motivo da ${effectiveStatus == 'rejected' ? 'reprovação' : 'suspensão'}",
                       style: GoogleFonts.inter(
                         fontSize: 13,
-                        color: AppColors.textPrimary,
-                        height: 1.5,
+                        fontWeight: FontWeight.w700,
+                        color: statusColor,
                       ),
                     ),
-                  ],
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      backgroundColor: statusColor.withValues(alpha: 0.08),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    ),
+                  ),
+                )
+              else
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: statusColor.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: statusColor.withValues(alpha: 0.2)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.info_outline_rounded, color: statusColor, size: 18),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Justificativa da Equipe:',
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: statusColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        adminNotes,
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          color: AppColors.textPrimary,
+                          height: 1.5,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
             ],
 
             const SizedBox(height: 24),
@@ -697,14 +801,23 @@ class _HomeViewState extends State<HomeView> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => AddMemberPage(member: member),
+                          builder: (context) => AddMemberPage(
+                            member: member,
+                            request: memberRequest,
+                          ),
                         ),
                       ).then((_) => _loadData());
+                    } else if (status == 'expired' || status == 'suspended') {
+                      if (memberRequest != null) {
+                        _requestRenewal(memberRequest.id);
+                      }
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: isActive ? AppColors.primary : (status == 'waiting_docs' || status == 'reviewing_data' ? AppColors.warning : AppColors.borderLight),
-                    foregroundColor: isActive || status == 'waiting_docs' || status == 'reviewing_data' ? Colors.white : AppColors.textSecondary,
+                    backgroundColor: isActive ? AppColors.primary : 
+                                   (status == 'waiting_docs' || status == 'reviewing_data' ? AppColors.warning : 
+                                   (status == 'expired' || status == 'suspended' ? Colors.purple : AppColors.borderLight)),
+                    foregroundColor: isActive || status == 'waiting_docs' || status == 'reviewing_data' || status == 'expired' || status == 'suspended' ? Colors.white : AppColors.textSecondary,
                     elevation: isActive ? 4 : 0,
                     shadowColor: AppColors.primary.withValues(alpha: 0.3),
                     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -715,14 +828,16 @@ class _HomeViewState extends State<HomeView> {
                     children: [
                       Icon(
                         isActive ? Icons.qr_code_scanner_rounded : 
-                        (status == 'waiting_docs' || status == 'reviewing_data' ? Icons.edit_document : Icons.lock_outline_rounded), 
+                        (status == 'expired' || status == 'suspended' ? Icons.autorenew_rounded :
+                        (status == 'waiting_docs' || status == 'reviewing_data' ? Icons.edit_document : Icons.lock_outline_rounded)), 
                         size: 20
                       ),
                       const SizedBox(width: 10),
                       Text(
                         isActive ? 'Abrir Carteira Digital' : 
+                        (status == 'expired' || status == 'suspended' ? 'Solicitar Renovação' :
                         (status == 'waiting_docs' ? 'Enviar Documentos' : 
-                        (status == 'reviewing_data' ? 'Revisar Dados' : 'Aguardando Aprovação')),
+                        (status == 'reviewing_data' ? 'Revisar Dados' : 'Aguardando Aprovação'))),
                         style: GoogleFonts.inter(fontWeight: FontWeight.w800, fontSize: 15),
                       ),
                     ],
@@ -1037,18 +1152,37 @@ class _HomeViewState extends State<HomeView> {
   Widget _buildOngoingRequest() {
     if (_ongoingRequest == null) return const SizedBox.shrink();
 
-    final status = _ongoingRequest!.status.toUpperCase();
-    final bool isApproved = status == 'APROVADO' || status == 'APPROVED';
-    
+    final String rawStatus = _ongoingRequest!.status.toLowerCase();
+    String statusDisplay = 'EM ANÁLISE';
     Color statusColor = AppColors.alertOrange;
     IconData statusIcon = Icons.history_edu_rounded;
+    bool isApproved = false;
 
-    if (isApproved) {
-      statusColor = AppColors.statusGreen;
-      statusIcon = Icons.check_circle_outline_rounded;
-    } else if (status == 'REJEITADO' || status == 'REJECTED') {
-      statusColor = Colors.redAccent;
-      statusIcon = Icons.error_outline_rounded;
+    switch (rawStatus) {
+      case 'approved':
+      case 'aprovado':
+        statusDisplay = 'APROVADO';
+        statusColor = AppColors.statusGreen;
+        statusIcon = Icons.check_circle_outline_rounded;
+        isApproved = true;
+        break;
+      case 'rejected':
+      case 'rejeitado':
+        statusDisplay = 'REPROVADA';
+        statusColor = Colors.redAccent;
+        statusIcon = Icons.error_outline_rounded;
+        break;
+      case 'waiting_approval':
+      case 'under_review':
+      case 'analise':
+        statusDisplay = 'EM ANÁLISE';
+        statusColor = AppColors.alertOrange;
+        statusIcon = Icons.history_edu_rounded;
+        break;
+      default:
+        statusDisplay = 'EM ANÁLISE';
+        statusColor = AppColors.alertOrange;
+        statusIcon = Icons.history_edu_rounded;
     }
 
     return Padding(
@@ -1115,7 +1249,9 @@ class _HomeViewState extends State<HomeView> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            _ongoingRequest!.type == 'new_card' ? 'Nova Carteira Digital' : 'Atualização de Cadastro',
+                            _ongoingRequest!.type == 'new_card' || _ongoingRequest!.type == 'Emissão Digital' 
+                                ? 'Emissão de Carteirinha' 
+                                : 'Atualização de Cadastro',
                             style: GoogleFonts.inter(
                               fontSize: 16,
                               fontWeight: FontWeight.w800,
@@ -1157,7 +1293,7 @@ class _HomeViewState extends State<HomeView> {
                         ],
                       ),
                       child: Text(
-                        status,
+                        statusDisplay,
                         style: GoogleFonts.inter(
                           fontSize: 10,
                           fontWeight: FontWeight.w900,
@@ -1291,6 +1427,66 @@ class _HomeViewState extends State<HomeView> {
           ),
         ),
       ],
+    );
+  }
+
+  void _showJustificationDialog(String status, Color color, String notes, {bool isRejected = false}) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.info_outline_rounded, color: color),
+            const SizedBox(width: 8),
+            Text('Motivo: $status', style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: color)),
+          ],
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              notes,
+              style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary, height: 1.5),
+            ),
+            if (isRejected) ...[
+              const SizedBox(height: 16),
+              const Divider(),
+              const SizedBox(height: 12),
+              Text(
+                'Caso não concorde com esta decisão, entre em contato com o nosso suporte para mais informações.',
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  color: AppColors.textSecondary,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ],
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Entendi'),
+          ),
+          if (isRejected)
+            ElevatedButton(
+              onPressed: () async {
+                const whatsappUrl = "https://wa.me/5511999999999"; // Substituir pelo número real
+                if (await canLaunchUrlString(whatsappUrl)) {
+                  await launchUrlString(whatsappUrl, mode: LaunchMode.externalApplication);
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: color,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: const Text('Falar com Suporte'),
+            ),
+        ],
+      ),
     );
   }
 

@@ -90,9 +90,6 @@ class _MemberSelectionPageState extends State<MemberSelectionPage> {
                   
                   const SizedBox(height: 20),
                   _buildAddButton(),
-                  
-                  const SizedBox(height: 48),
-                  _buildContinueButton(),
                 ],
               ),
             ),
@@ -259,50 +256,5 @@ class _MemberSelectionPageState extends State<MemberSelectionPage> {
     );
   }
 
-  Widget _buildContinueButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: 58,
-      child: ElevatedButton(
-        onPressed: _selectedMember == null
-            ? null
-            : () async {
-                final status = _selectedMember!.status.toLowerCase();
-                if (status == 'active' || status == 'ativa' || status == 'under_review' || status == 'analise') {
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: const Text('Solicitação em andamento'),
-                      content: Text('Já existe uma solicitação ativa ou em análise para ${_selectedMember!.name}.'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text('OK'),
-                        ),
-                      ],
-                    ),
-                  );
-                } else {
-                  // Se por algum motivo o membro não tiver solicitação (caso de dados antigos)
-                  // Mas o ideal é que o AddMemberPage já crie.
-                  // Para o MVP, se ele chegar aqui e não estiver ativa/analise, podemos direcionar ou apenas avisar.
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Este membro não possui documentos válidos anexados.')),
-                  );
-                }
-              },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          elevation: 0,
-          disabledBackgroundColor: Colors.black.withValues(alpha: 0.05),
-        ),
-        child: Text(
-          'Verificar Status',
-          style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w800),
-        ),
-      ),
-    );
-  }
 }
+

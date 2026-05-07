@@ -17,6 +17,7 @@ class _NotificationsViewState extends State<NotificationsView> {
   final DatabaseService _databaseService = DatabaseService();
   final AuthService _authService = AuthService();
   List<NotificationItem> _notifications = [];
+  Stream<List<NotificationItem>>? _notificationsStream;
   bool _isLoading = true;
 
   @override
@@ -29,6 +30,7 @@ class _NotificationsViewState extends State<NotificationsView> {
     setState(() => _isLoading = true);
     final userId = _authService.currentUser?.id;
     if (userId != null) {
+      _notificationsStream = _databaseService.notificationsStream(userId);
       final notifications = await _databaseService.getNotifications(userId);
       setState(() {
         _notifications = notifications;
@@ -60,21 +62,33 @@ class _NotificationsViewState extends State<NotificationsView> {
             ),
           ),
           Expanded(
-            child: _isLoading 
-              ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
-              : _notifications.isEmpty 
-                ? _buildEmptyState()
-                : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                    physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-                    itemCount: _notifications.length,
-                    itemBuilder: (context, index) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: _buildNotificationItem(_notifications[index]),
-                      );
-                    },
-                  ),
+            child: StreamBuilder<List<NotificationItem>>(
+              stream: _notificationsStream,
+              initialData: _notifications,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting && _notifications.isEmpty) {
+                  return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+                }
+                
+                final notifications = snapshot.data ?? [];
+                
+                if (notifications.isEmpty) {
+                  return _buildEmptyState();
+                }
+
+                return ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+                  itemCount: notifications.length,
+                  itemBuilder: (context, index) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: _buildNotificationItem(notifications[index]),
+                    );
+                  },
+                );
+              },
+            ),
           ),
         ],
       ),
@@ -86,7 +100,7 @@ class _NotificationsViewState extends State<NotificationsView> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.notifications_off_outlined, size: 80, color: AppColors.textSecondary.withOpacity(0.2)),
+          Icon(Icons.notifications_off_outlined, size: 80, color: AppColors.textSecondary.withValues(alpha: 0.2)),
           const SizedBox(height: 16),
           Text(
             'Tudo limpo por aqui!',
@@ -102,7 +116,7 @@ class _NotificationsViewState extends State<NotificationsView> {
             textAlign: TextAlign.center,
             style: GoogleFonts.inter(
               fontSize: 14,
-              color: AppColors.textSecondary.withOpacity(0.7),
+              color: AppColors.textSecondary.withValues(alpha: 0.7),
             ),
           ),
         ],
@@ -121,12 +135,12 @@ class _NotificationsViewState extends State<NotificationsView> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 15,
             offset: const Offset(0, 6),
           ),
         ],
-        border: !item.isRead ? Border.all(color: AppColors.primary.withOpacity(0.1), width: 1) : null,
+        border: !item.isRead ? Border.all(color: AppColors.primary.withValues(alpha: 0.1), width: 1) : null,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -134,7 +148,7 @@ class _NotificationsViewState extends State<NotificationsView> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: ui.color.withOpacity(0.1),
+              color: ui.color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Icon(ui.icon, color: ui.color, size: 22),
@@ -183,7 +197,7 @@ class _NotificationsViewState extends State<NotificationsView> {
                   style: GoogleFonts.inter(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textSecondary.withOpacity(0.6),
+                    color: AppColors.textSecondary.withValues(alpha: 0.6),
                   ),
                 ),
               ],

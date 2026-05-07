@@ -17,13 +17,15 @@ import 'package:intl/intl.dart';
 
 class AddMemberPage extends StatefulWidget {
   final Member? member;
-  const AddMemberPage({super.key, this.member});
+  final CardRequest? request;
+  const AddMemberPage({super.key, this.member, this.request});
 
   @override
   State<AddMemberPage> createState() => _AddMemberPageState();
 }
 
 class _AddMemberPageState extends State<AddMemberPage> {
+  // ... existing controllers ...
   final _formKey = GlobalKey<FormState>();
   final _databaseService = DatabaseService();
   final _authService = AuthService();
@@ -54,6 +56,17 @@ class _AddMemberPageState extends State<AddMemberPage> {
   bool _isUploadingReport = false;
 
   bool _isLoading = false;
+
+  bool _isFieldEnabled(String fieldName) {
+    if (widget.request == null) return true;
+    if (widget.request!.status == 'reviewing_data' || 
+        widget.request!.status == 'waiting_docs') {
+      final notes = widget.request!.adminNotes ?? '';
+      if (!notes.contains('Pendência:')) return false;
+      return notes.toLowerCase().contains(fieldName.toLowerCase());
+    }
+    return false;
+  }
 
   final cpfMask = MaskTextInputFormatter(
     mask: '###.###.###-##',
@@ -87,7 +100,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
       _selectedCity = m.city;
       _documentUrl = m.documentUrl.isNotEmpty ? m.documentUrl : null;
       _medicalReportUrl = m.medicalReportUrl.isNotEmpty ? m.medicalReportUrl : null;
-      if (_selectedState != null) _fetchCities(_selectedState!);
+      if (_selectedState != null) _fetchCities(_selectedState!, resetCity: false);
     }
     _fetchStates();
   }
@@ -108,15 +121,17 @@ class _AddMemberPageState extends State<AddMemberPage> {
         });
       }
     } catch (e) {
-      print('Erro ao buscar estados: $e');
+      debugPrint('Erro ao buscar estados: $e');
     }
   }
 
-  Future<void> _fetchCities(String stateSigla) async {
+  Future<void> _fetchCities(String stateSigla, {bool resetCity = true}) async {
     setState(() {
       _isLoadingCities = true;
       _cities = [];
-      _selectedCity = null;
+      if (resetCity) {
+        _selectedCity = null;
+      }
     });
     try {
       final response = await http.get(
@@ -129,7 +144,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
         });
       }
     } catch (e) {
-      print('Erro ao buscar cidades: $e');
+      debugPrint('Erro ao buscar cidades: $e');
     } finally {
       setState(() => _isLoadingCities = false);
     }
@@ -252,6 +267,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
         updatedAt: DateTime.now(),
       );
 
+      String generatedProtocol = '';
       if (isEditing) {
         await _databaseService.updateMember(member);
         
@@ -275,15 +291,15 @@ class _AddMemberPageState extends State<AddMemberPage> {
         // Criar a solicitação de carteirinha automaticamente
         final dateStr = DateFormat('yyyyMMdd').format(DateTime.now());
         final random = const Uuid().v4().substring(0, 4).toUpperCase();
-        final protocol = 'REQ-$dateStr-$random';
+        generatedProtocol = 'REQ-$dateStr-$random';
 
         final request = CardRequest(
           id: const Uuid().v4(),
           userId: userId,
           memberId: member.id,
-          type: 'Primeira via',
+          type: 'Emissão Digital',
           status: 'waiting_approval',
-          protocol: protocol,
+          protocol: generatedProtocol,
           adminNotes: '',
           driveFolderUrl: '',
           documentUrl: member.documentUrl,
@@ -302,10 +318,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
           );
           Navigator.pop(context);
         } else {
-          final dateStr = DateFormat('yyyyMMdd').format(DateTime.now());
-          final random = const Uuid().v4().substring(0, 4).toUpperCase();
-          final protocol = 'REQ-$dateStr-$random';
-          _showSuccessDialog(protocol);
+          _showSuccessDialog(generatedProtocol);
         }
       }
     } catch (e) {
@@ -444,6 +457,44 @@ class _AddMemberPageState extends State<AddMemberPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (widget.request != null && (widget.request!.status == 'reviewing_data' || widget.request!.status == 'waiting_docs'))
+                Container(
+                  margin: const EdgeInsets.only(bottom: 24),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.orange[50],
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.orange[200]!),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.warning_amber_rounded, color: Colors.orange[800]),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Ajuste solicitado pelo Administrador',
+                            style: GoogleFonts.inter(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.orange[900],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        widget.request!.adminNotes,
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          color: Colors.orange[900],
+                          height: 1.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
               Text(
                 'Cadastre quem receberá a carteirinha. Pode ser você mesmo ou um dependente.',
                 style: GoogleFonts.inter(
@@ -460,6 +511,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                 hint: 'Digite o nome completo',
                 icon: Icons.person_outline,
                 validator: (v) => v!.isEmpty ? 'Campo obrigatório' : null,
+                enabled: _isFieldEnabled('Nome Completo'),
               ),
               const SizedBox(height: 20),
 
@@ -475,6 +527,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                   if (!_isValidCPF(v)) return 'CPF inválido';
                   return null;
                 },
+                enabled: _isFieldEnabled('CPF'),
               ),
               const SizedBox(height: 20),
 
@@ -486,6 +539,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                 inputFormatters: [dateMask],
                 keyboardType: TextInputType.datetime,
                 validator: (v) => v!.length < 10 ? 'Data incompleta' : null,
+                enabled: _isFieldEnabled('Nome Completo'),
               ),
               const SizedBox(height: 20),
 
@@ -505,6 +559,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                         if (val != null) _fetchCities(val);
                       },
                       icon: Icons.map_outlined,
+                      enabled: _isFieldEnabled('Endereço/Cidade'),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -520,6 +575,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                       onChanged: (val) => setState(() => _selectedCity = val),
                       icon: Icons.location_on_outlined,
                       hint: _isLoadingCities ? 'Carregando...' : 'Selecione',
+                      enabled: _isFieldEnabled('Endereço/Cidade'),
                     ),
                   ),
                 ],
@@ -533,6 +589,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                 icon: Icons.phone_outlined,
                 inputFormatters: [phoneMask],
                 keyboardType: TextInputType.phone,
+                enabled: _isFieldEnabled('Telefone'),
               ),
               const SizedBox(height: 20),
 
@@ -541,6 +598,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                 controller: _contatoEmergenciaController,
                 hint: 'Nome e Telefone',
                 icon: Icons.emergency_outlined,
+                enabled: _isFieldEnabled('Contato de Emergência'),
               ),
               const SizedBox(height: 20),
 
@@ -549,6 +607,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                 controller: _responsavelController,
                 hint: 'Nome e Telefone (se menor)',
                 icon: Icons.family_restroom_outlined,
+                enabled: _isFieldEnabled('Responsável'),
               ),
               const SizedBox(height: 20),
 
@@ -559,6 +618,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                 isUploaded: _documentUrl != null,
                 onTap: () => _pickAndUploadFile(isDocument: true),
                 icon: Icons.badge_outlined,
+                enabled: _isFieldEnabled('Documento de Identidade (RG/CNH)'),
               ),
               const SizedBox(height: 20),
 
@@ -569,6 +629,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                 isUploaded: _medicalReportUrl != null,
                 onTap: () => _pickAndUploadFile(isDocument: false),
                 icon: Icons.medical_information_outlined,
+                enabled: _isFieldEnabled('Laudo Médico (CID)'),
               ),
               const SizedBox(height: 12),
 
@@ -606,6 +667,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                 onChanged: (val) =>
                     setState(() => _selectedBloodType = val),
                 icon: Icons.bloodtype_outlined,
+                enabled: _isFieldEnabled('Tipo Sanguíneo'),
               ),
               const SizedBox(height: 20),
 
@@ -614,6 +676,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                 controller: _cidController,
                 hint: 'Ex: F84.0',
                 icon: Icons.assignment_outlined,
+                enabled: _isFieldEnabled('Laudo Médico (CID)'),
               ),
 
               const SizedBox(height: 48),
@@ -658,6 +721,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
     String? Function(String?)? validator,
     List<TextInputFormatter>? inputFormatters,
     TextInputType? keyboardType,
+    bool enabled = true,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -676,12 +740,16 @@ class _AddMemberPageState extends State<AddMemberPage> {
           validator: validator,
           inputFormatters: inputFormatters,
           keyboardType: keyboardType,
-          style: GoogleFonts.inter(fontSize: 15),
+          enabled: enabled,
+          style: GoogleFonts.inter(
+            fontSize: 15,
+            color: enabled ? AppColors.textPrimary : AppColors.textSecondary,
+          ),
           decoration: InputDecoration(
             hintText: hint,
-            prefixIcon: Icon(icon, color: AppColors.primary, size: 22),
+            prefixIcon: Icon(icon, color: enabled ? AppColors.primary : AppColors.textSecondary.withValues(alpha: 0.5), size: 22),
             filled: true,
-            fillColor: Colors.white,
+            fillColor: enabled ? Colors.white : Colors.black.withValues(alpha: 0.03),
             contentPadding: const EdgeInsets.symmetric(
               vertical: 16,
               horizontal: 16,
@@ -711,6 +779,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
     required ValueChanged<T?> onChanged,
     required IconData icon,
     String? hint,
+    bool enabled = true,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -719,22 +788,22 @@ class _AddMemberPageState extends State<AddMemberPage> {
           label,
           style: GoogleFonts.inter(
             fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
+            color: enabled ? AppColors.textPrimary : AppColors.textSecondary.withValues(alpha: 0.7),
             fontSize: 14,
           ),
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<T>(
           value: value,
-          items: items,
-          onChanged: onChanged,
-          isExpanded: true, // Adicionado para evitar overflow
+          items: enabled ? items : [],
+          onChanged: enabled ? onChanged : null,
+          isExpanded: true,
           icon: const Icon(Icons.keyboard_arrow_down_rounded),
           decoration: InputDecoration(
             hintText: hint,
-            prefixIcon: Icon(icon, color: AppColors.primary, size: 22),
+            prefixIcon: Icon(icon, color: enabled ? AppColors.primary : AppColors.textSecondary.withValues(alpha: 0.5), size: 22),
             filled: true,
-            fillColor: Colors.white,
+            fillColor: enabled ? Colors.white : Colors.black.withValues(alpha: 0.03),
             contentPadding: const EdgeInsets.symmetric(
               vertical: 16,
               horizontal: 16,
@@ -742,6 +811,10 @@ class _AddMemberPageState extends State<AddMemberPage> {
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+            ),
+            disabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: const Color(0xFFE2E8F0).withValues(alpha: 0.5)),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -764,6 +837,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
     required bool isUploaded,
     required VoidCallback onTap,
     required IconData icon,
+    bool enabled = true,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -772,21 +846,25 @@ class _AddMemberPageState extends State<AddMemberPage> {
           label,
           style: GoogleFonts.inter(
             fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
+            color: enabled ? AppColors.textPrimary : AppColors.textSecondary.withValues(alpha: 0.7),
             fontSize: 14,
           ),
         ),
         const SizedBox(height: 8),
         GestureDetector(
-          onTap: isUploading ? null : onTap,
+          onTap: (isUploading || !enabled) ? null : onTap,
           child: Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
             decoration: BoxDecoration(
-              color: isUploaded ? AppColors.primary.withValues(alpha: 0.06) : Colors.white,
+              color: isUploaded 
+                  ? AppColors.primary.withValues(alpha: 0.06) 
+                  : (enabled ? Colors.white : Colors.black.withValues(alpha: 0.03)),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: isUploaded ? AppColors.primary : const Color(0xFFE2E8F0),
+                color: isUploaded 
+                    ? AppColors.primary 
+                    : (enabled ? const Color(0xFFE2E8F0) : const Color(0xFFE2E8F0).withValues(alpha: 0.5)),
                 width: isUploaded ? 2 : 1,
               ),
             ),
@@ -794,7 +872,9 @@ class _AddMemberPageState extends State<AddMemberPage> {
               children: [
                 Icon(
                   isUploaded ? Icons.check_circle_rounded : icon,
-                  color: isUploaded ? Colors.green : AppColors.primary,
+                  color: isUploaded 
+                      ? Colors.green 
+                      : (enabled ? AppColors.primary : AppColors.textSecondary.withValues(alpha: 0.5)),
                   size: 22,
                 ),
                 const SizedBox(width: 12),
@@ -811,7 +891,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                           ],
                         )
                       : Text(
-                          isUploaded ? fileName ?? 'Arquivo enviado' : 'Toque para enviar arquivo',
+                          isUploaded ? fileName ?? 'Arquivo enviado' : (enabled ? 'Toque para enviar arquivo' : 'Campo bloqueado'),
                           style: GoogleFonts.inter(
                             fontSize: 14,
                             color: isUploaded ? AppColors.textPrimary : AppColors.textSecondary,
@@ -820,7 +900,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                           overflow: TextOverflow.ellipsis,
                         ),
                 ),
-                if (!isUploading)
+                if (!isUploading && enabled)
                   Icon(
                     isUploaded ? Icons.refresh_rounded : Icons.upload_file_rounded,
                     color: AppColors.primary,

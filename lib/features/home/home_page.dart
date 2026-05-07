@@ -11,6 +11,7 @@ import '../requests/requests_view.dart';
 import '../notifications/notifications_view.dart';
 import '../account/account_view.dart';
 import '../admin/admin_view.dart';
+import '../../models/notification_item.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -25,6 +26,7 @@ class _HomePageState extends State<HomePage> {
   final DatabaseService _databaseService = DatabaseService();
   AppUser? _user;
   int _unreadCount = 0;
+  Stream<List<NotificationItem>>? _notificationsStream;
 
   @override
   void initState() {
@@ -44,10 +46,21 @@ class _HomePageState extends State<HomePage> {
       }
 
       final notifications = await _databaseService.getNotifications(userId);
+      _notificationsStream = _databaseService.notificationsStream(userId);
+
       if (mounted) {
         setState(() {
           _user = user;
           _unreadCount = notifications.where((n) => !n.isRead).length;
+        });
+
+        // Listen to notifications stream to update unread count
+        _notificationsStream!.listen((list) {
+          if (mounted) {
+            setState(() {
+              _unreadCount = list.where((n) => !n.isRead).length;
+            });
+          }
         });
       }
     }
@@ -122,7 +135,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildBottomNav() {
-    final currentUserEmail = _authService.currentUser?.email;
     final isAdmin = _user?.role == UserRole.admin;
     
     return Container(

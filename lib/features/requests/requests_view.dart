@@ -277,8 +277,10 @@ class _RequestsViewState extends State<RequestsView> {
   }
 
   _StatusUI _getStatusUI(String status) {
-    switch (status) {
+    switch (status.toLowerCase()) {
+      case 'waiting_approval':
       case 'under_review':
+      case 'analise':
         return _StatusUI('Em análise', AppColors.alertOrange, 0.4);
       case 'awaiting_docs':
         return _StatusUI('Docs pendentes', AppColors.errorRed, 0.2);
@@ -315,7 +317,8 @@ class _RequestsViewState extends State<RequestsView> {
     switch (type) {
       case 'Primeira via':
       case 'new_card':
-        return 'Emissão de Carteirinha CIPTEA';
+      case 'Emissão Digital':
+        return 'Emissão de Carteirinha';
       case 'Atualização de Dados':
       case 'update_data':
         return 'Atualização Cadastral';

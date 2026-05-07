@@ -5,7 +5,6 @@ import '../features/home/home_page.dart';
 import '../features/requests/add_member_page.dart';
 import '../features/requests/member_selection_page.dart';
 import '../features/admin/admin_dashboard_page.dart';
-import '../models/member.dart';
 import '../core/notifiers/auth_notifier.dart';
 
 class AppRoutes {

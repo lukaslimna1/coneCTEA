@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 
 class GoogleDriveService {
   static const String _gasUrl =
@@ -31,14 +32,14 @@ class GoogleDriveService {
       final postResponse = await postRequest.close();
       final statusCode = postResponse.statusCode;
 
-      print('GAS POST status: $statusCode');
+      debugPrint('GAS POST status: $statusCode');
 
       // Passo 2: GAS retorna 302 — faz GET na URL de destino para ler a resposta
       if (statusCode == 302 || statusCode == 301) {
         final location = postResponse.headers.value('location');
         await postResponse.drain(); // descarta o body do redirect
 
-        print('GAS redirect para: $location');
+        debugPrint('GAS redirect para: $location');
 
         if (location != null && location.isNotEmpty) {
           final getResponse = await httpClient.getUrl(Uri.parse(location))
@@ -50,15 +51,15 @@ class GoogleDriveService {
           final responseBody = await getResponse.transform(utf8.decoder).join();
           httpClient.close();
 
-          print('GAS GET status: ${getResponse.statusCode}');
-          print('GAS GET response: $responseBody');
+          debugPrint('GAS GET status: ${getResponse.statusCode}');
+          debugPrint('GAS GET response: $responseBody');
 
           if (getResponse.statusCode == 200) {
             final data = jsonDecode(responseBody);
             if (data['status'] == 'success') {
               return data['url'] as String?;
             } else {
-              print('GAS erro: ${data['message']}');
+              debugPrint('GAS erro: ${data['message']}');
               return null;
             }
           }
@@ -72,22 +73,22 @@ class GoogleDriveService {
       final responseBody = await postResponse.transform(utf8.decoder).join();
       httpClient.close();
 
-      print('GAS response: $responseBody');
+      debugPrint('GAS response: $responseBody');
 
       if (statusCode == 200) {
         final data = jsonDecode(responseBody);
         if (data['status'] == 'success') {
           return data['url'] as String?;
         } else {
-          print('GAS erro: ${data['message']}');
+          debugPrint('GAS erro: ${data['message']}');
           return null;
         }
       }
 
-      print('HTTP erro inesperado: $statusCode');
+      debugPrint('HTTP erro inesperado: $statusCode');
       return null;
     } catch (e) {
-      print('Erro no upload para Google Drive: $e');
+      debugPrint('Erro no upload para Google Drive: $e');
       return null;
     }
   }
@@ -100,7 +101,7 @@ class GoogleDriveService {
       final match = regExp.firstMatch(fileUrl);
       
       if (match == null) {
-        print('Não foi possível extrair o ID do arquivo da URL: $fileUrl');
+        debugPrint('Não foi possível extrair o ID do arquivo da URL: $fileUrl');
         return false;
       }
       
@@ -115,7 +116,7 @@ class GoogleDriveService {
       final responseBody = await response.transform(utf8.decoder).join();
       httpClient.close();
 
-      print('GAS Delete Response: $responseBody');
+      debugPrint('GAS Delete Response: $responseBody');
       
       if (response.statusCode == 200) {
         final data = jsonDecode(responseBody);
@@ -124,7 +125,7 @@ class GoogleDriveService {
       
       return false;
     } catch (e) {
-      print('Erro ao deletar arquivo no Google Drive: $e');
+      debugPrint('Erro ao deletar arquivo no Google Drive: $e');
       return false;
     }
   }

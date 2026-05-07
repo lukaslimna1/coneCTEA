@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/app_user.dart';
 import '../models/member.dart';
@@ -91,6 +92,15 @@ class DatabaseService {
     await _supabase.from('card_requests').upsert(request.toJson());
   }
 
+  Stream<List<CardRequest>> cardRequestsStream(String userId) {
+    return _supabase
+        .from('card_requests')
+        .stream(primaryKey: ['id'])
+        .eq('user_id', userId)
+        .order('created_at', ascending: false)
+        .map((data) => data.map((json) => CardRequest.fromJson(json)).toList());
+  }
+
   // --- Admin ---
   Future<List<CardRequest>> getAllCardRequests() async {
     try {
@@ -99,8 +109,17 @@ class DatabaseService {
           .select()
           .order('created_at', ascending: false);
       
-      return data.map((json) => CardRequest.fromJson(json)).toList();
+      debugPrint('Admin Fetched Card Requests: \${data.length} items');
+      return data.map((json) {
+        try {
+          return CardRequest.fromJson(json);
+        } catch (e) {
+          debugPrint('Error parsing CardRequest: $e \\n JSON: $json');
+          rethrow;
+        }
+      }).toList();
     } catch (e) {
+      debugPrint('Error in getAllCardRequests: $e');
       return [];
     }
   }
@@ -174,6 +193,88 @@ class DatabaseService {
       return data.map((json) => NotificationItem.fromJson(json)).toList();
     } catch (e) {
       return [];
+    }
+  }
+
+  Future<void> createNotification(NotificationItem notification) async {
+    await _supabase.from('notifications').insert(notification.toJson());
+  }
+
+  Stream<List<NotificationItem>> notificationsStream(String userId) {
+    return _supabase
+        .from('notifications')
+        .stream(primaryKey: ['id'])
+        .eq('user_id', userId)
+        .order('created_at', ascending: false)
+        .map((data) => data.map((json) => NotificationItem.fromJson(json)).toList());
+  }
+
+  Future<void> updateCardStatus(String requestId, String status, String notes) async {
+    final now = DateTime.now().toIso8601String();
+
+    // 1. Atualizar o status da solicitação
+    await _supabase.from('card_requests').update({
+      'status': status,
+      'admin_notes': notes,
+      'updated_at': now,
+    }).eq('id', requestId);
+
+    // 2. Buscar dados da solicitação e do membro
+    final requestData = await _supabase
+        .from('card_requests')
+        .select('user_id, member_id')
+        .eq('id', requestId)
+        .single();
+    
+    final String userId = requestData['user_id'];
+    final String memberId = requestData['member_id'];
+
+    // Buscar o nome do membro na tabela de membros
+    final memberData = await _supabase
+        .from('members')
+        .select('name')
+        .eq('id', memberId)
+        .single();
+    
+    final String memberName = memberData['name'];
+
+    // 3. Sincronizar status com o Membro
+    await _supabase.from('members').update({
+      'status': status,
+      'updated_at': now,
+    }).eq('id', memberId);
+
+    // 4. Criar notificação in-app
+    String message = 'O status da carteirinha de $memberName mudou para: ${_getStatusDisplay(status)}';
+    if (notes.isNotEmpty && !notes.contains('Pendência:')) {
+      message += '\nMotivo: ${notes.length > 50 ? notes.substring(0, 47) + "..." : notes}';
+    }
+
+    await createNotification(NotificationItem(
+      id: '', // UUID gerado pelo banco
+      userId: userId,
+      memberId: memberId,
+      title: 'Atualização de Carteirinha',
+      message: message,
+      type: 'status_change',
+      createdAt: DateTime.now(),
+      isRead: false,
+      actionLabel: 'Ver Detalhes',
+      actionRoute: '/home',
+    ));
+  }
+
+  String _getStatusDisplay(String status) {
+    switch (status) {
+      case 'waiting_approval': return '🟡 Aguardando Aprovação';
+      case 'waiting_docs': return '🔵 Aguardando Documentação';
+      case 'reviewing_data': return '🟠 Revisão de Dados';
+      case 'active': return '🟢 Ativa';
+      case 'rejected': return '🔴 Reprovada';
+      case 'suspended': return '⚫ Suspensa';
+      case 'expired': return '🟤 Vencida';
+      case 'renewing': return '🟣 Aguardando Renovação';
+      default: return status;
     }
   }
 }
