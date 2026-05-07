@@ -44,10 +44,9 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# Firebase sensitive files (DO NOT commit)
-google-services.json
-GoogleService-Info.plist
-lib/core/firebase_options.dart
+# Supabase / Environment sensitive files (DO NOT commit)
+.env
+.env.*
 
 # Temp analysis files
 analysis.txt
