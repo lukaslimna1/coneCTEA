@@ -25,6 +25,7 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
 
   bool _isLoadingUsers = true;
 
+  AppUser? _currentUser;
   List<AppUser> _allUsers = [];
   String _userSearchQuery = '';
   
@@ -35,7 +36,7 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _loadAllUsers();
+    _loadInitialData();
   }
 
   @override
@@ -44,7 +45,20 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
     super.dispose();
   }
 
+  Future<void> _loadInitialData() async {
+    await _loadCurrentUser();
+    await _loadAllUsers();
+  }
 
+  Future<void> _loadCurrentUser() async {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user != null) {
+      final profile = await _databaseService.getUserProfile(user.id);
+      if (mounted) {
+        setState(() => _currentUser = profile);
+      }
+    }
+  }
 
   Future<void> _loadAllUsers() async {
     if (!mounted) return;
@@ -407,7 +421,8 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
                 final user = _filteredUsers[index];
                 return AdminUserCard(
                   user: user,
-                  onToggleRole: () => _changeUserRole(user, user.role == UserRole.admin ? UserRole.user : UserRole.admin),
+                  currentUserRole: _currentUser?.role,
+                  onToggleRole: (newRole) => _changeUserRole(user, newRole),
                 );
               },
             ),
@@ -548,7 +563,7 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
           ],
         ),
         content: Text(
-          'Deseja realmente mudar o cargo de ${user.name} para ${newRole == UserRole.admin ? "Administrador" : "Usuário"}?',
+          'Deseja realmente mudar o cargo de ${user.name} para ${newRole.name}?',
           style: GoogleFonts.inter(color: AppColors.textSecondary, fontWeight: FontWeight.w500),
           textAlign: TextAlign.center,
         ),

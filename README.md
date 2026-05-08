@@ -22,7 +22,13 @@ Nossa missão é transformar a burocracia em acolhimento, garantindo que cada fa
 
 A evolução do ConeCTEA é marcada por um compromisso contínuo com a excelência técnica e a sensibilidade humana.
 
-### 🔐 Fase 6: Hardening de Segurança (v2.9.0 - Atual)
+### 🛡️ Fase 7: Sistema de Roles & RBAC Multinível (v3.0.0 - Atual)
+*   **Cargos Diferenciados**: Implementação de cargos `ADM`, `ADM Master` e `ADM DEV`.
+*   **Gestão Hierárquica**: Somente Master e DEV podem atribuir cargos administrativos.
+*   **Segurança a Nível de Banco (RLS)**: Proteção direta no PostgreSQL para impedir alterações não autorizadas de permissões.
+*   **Acesso Total DEV**: Capacidade de edição manual de perfis para manutenção emergencial via App.
+
+### 🔐 Fase 6: Hardening de Segurança (v2.9.0)
 *   **Segurança no Cadastro**: Validação em tempo real de unicidade para E-mail e CPF, evitando duplicidade e inconsistência de dados.
 *   **Algoritmo de CPF**: Validação matemática de CPF integrada no formulário de registro.
 *   **Gate de Solicitação**: Bloqueio inteligente de solicitações de carteirinha para perfis incompletos, garantindo a qualidade da base de dados.

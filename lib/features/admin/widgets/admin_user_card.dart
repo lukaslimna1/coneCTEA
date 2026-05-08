@@ -5,20 +5,31 @@ import '../../../models/app_user.dart';
 
 class AdminUserCard extends StatelessWidget {
   final AppUser user;
-  final VoidCallback onToggleRole;
+  final UserRole? currentUserRole;
+  final Function(UserRole) onToggleRole;
 
   const AdminUserCard({
     super.key,
     required this.user,
+    required this.currentUserRole,
     required this.onToggleRole,
   });
 
   @override
   Widget build(BuildContext context) {
-    final bool isAdmin = user.role == UserRole.admin;
+    final bool isAdmin = user.role.isAdmin;
     final initials = user.name.isNotEmpty 
         ? user.name.trim().split(' ').map((e) => e.isNotEmpty ? e[0] : '').take(2).join('').toUpperCase()
         : '?';
+
+    // Cores por cargo
+    Color roleColor;
+    switch (user.role) {
+      case UserRole.admin: roleColor = AppColors.primary; break;
+      case UserRole.adminMaster: roleColor = AppColors.statusOrange; break;
+      case UserRole.adminDev: roleColor = Colors.purple; break;
+      default: roleColor = AppColors.textSecondary;
+    }
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -26,7 +37,7 @@ class AdminUserCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: isAdmin ? AppColors.primary.withValues(alpha: 0.3) : AppColors.borderLight),
+        border: Border.all(color: isAdmin ? roleColor.withValues(alpha: 0.3) : AppColors.borderLight),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.02),
@@ -41,14 +52,14 @@ class AdminUserCard extends StatelessWidget {
             width: 50,
             height: 50,
             decoration: BoxDecoration(
-              color: isAdmin ? AppColors.primary.withValues(alpha: 0.1) : AppColors.purpleLight,
+              color: roleColor.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Center(
               child: Text(
                 initials,
                 style: GoogleFonts.inter(
-                  color: AppColors.primary,
+                  color: roleColor,
                   fontWeight: FontWeight.w800,
                   fontSize: 18,
                 ),
@@ -78,11 +89,11 @@ class AdminUserCard extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: AppColors.primary,
+                          color: roleColor,
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
-                          'ADMIN',
+                          user.role.name.toUpperCase(),
                           style: GoogleFonts.inter(
                             fontSize: 8,
                             color: Colors.white,
@@ -104,36 +115,40 @@ class AdminUserCard extends StatelessWidget {
               ],
             ),
           ),
-          PopupMenuButton<UserRole>(
-            icon: Icon(Icons.more_vert_rounded, color: Colors.grey[400]),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            onSelected: (newRole) {
-              // We check if it's different in the calling method, 
-              // but here we just pass the action.
-              onToggleRole();
-            },
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: UserRole.user,
-                child: Row(
-                  children: [
-                    Icon(Icons.person_outline_rounded, size: 20, color: !isAdmin ? AppColors.primary : AppColors.textSecondary),
-                    const SizedBox(width: 12),
-                    Text('Mudar para Usuário', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600)),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: UserRole.admin,
-                child: Row(
-                  children: [
-                    Icon(Icons.admin_panel_settings_outlined, size: 20, color: isAdmin ? AppColors.primary : AppColors.textSecondary),
-                    const SizedBox(width: 12),
-                    Text('Mudar para Admin', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600)),
-                  ],
-                ),
-              ),
-            ],
+          if (currentUserRole?.canManageRoles ?? false)
+            PopupMenuButton<UserRole>(
+              icon: Icon(Icons.more_vert_rounded, color: Colors.grey[400]),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              onSelected: onToggleRole,
+              itemBuilder: (context) => [
+                _buildMenuItem(UserRole.user, 'Usuário', Icons.person_outline_rounded, user.role),
+                _buildMenuItem(UserRole.admin, 'Administrador', Icons.admin_panel_settings_outlined, user.role),
+                if (currentUserRole == UserRole.adminDev) ...[
+                  _buildMenuItem(UserRole.adminMaster, 'ADM Master', Icons.star_outline_rounded, user.role),
+                  _buildMenuItem(UserRole.adminDev, 'ADM DEV', Icons.code_rounded, user.role),
+                ],
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+
+  PopupMenuItem<UserRole> _buildMenuItem(UserRole value, String label, IconData icon, UserRole current) {
+    final bool isSelected = value == current;
+    return PopupMenuItem(
+      value: value,
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: isSelected ? AppColors.primary : AppColors.textSecondary),
+          const SizedBox(width: 12),
+          Text(
+            label, 
+            style: GoogleFonts.inter(
+              fontSize: 13, 
+              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+              color: isSelected ? AppColors.primary : AppColors.darkBlue,
+            )
           ),
         ],
       ),

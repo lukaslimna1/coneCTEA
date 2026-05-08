@@ -502,8 +502,13 @@ class DatabaseService {
 
   Future<void> updateUserProfileRole(String userId, UserRole role) async {
     await _supabase.from('profiles').update({
-      'role': role == UserRole.admin ? 'admin' : 'user'
+      'role': role.dbValue
     }).eq('id', userId);
+  }
+
+  /// Permite ao ADM DEV atualizar qualquer campo de qualquer perfil
+  Future<void> updateAnyUserProfile(String userId, Map<String, dynamic> data) async {
+    await _supabase.from('profiles').update(data).eq('id', userId);
   }
 
   /// Stream com JOIN manual de memberName (Supabase stream não suporta joins nativos)

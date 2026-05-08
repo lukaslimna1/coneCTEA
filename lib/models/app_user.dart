@@ -1,4 +1,38 @@
-enum UserRole { user, admin }
+enum UserRole { 
+  user, 
+  admin,        // ADM Padrão
+  adminMaster,  // ADM Master (Gerecia ADMs)
+  adminDev      // ADM DEV (Acesso total e manutenção)
+}
+
+extension UserRoleExtension on UserRole {
+  /// Pode gerenciar outros administradores (mudar cargos)
+  bool get canManageRoles => this == UserRole.adminMaster || this == UserRole.adminDev;
+  
+  /// Pode realizar manutenções e edições diretas em perfis alheios
+  bool get canRunMaintenance => this == UserRole.adminDev;
+  
+  /// É qualquer tipo de administrador
+  bool get isAdmin => this != UserRole.user;
+
+  String get name {
+    switch (this) {
+      case UserRole.admin: return 'Administrador';
+      case UserRole.adminMaster: return 'ADM Master';
+      case UserRole.adminDev: return 'ADM DEV';
+      case UserRole.user: return 'Usuário';
+    }
+  }
+
+  String get dbValue {
+    switch (this) {
+      case UserRole.admin: return 'admin';
+      case UserRole.adminMaster: return 'admin_master';
+      case UserRole.adminDev: return 'admin_dev';
+      case UserRole.user: return 'user';
+    }
+  }
+}
 
 class AppUser {
   final String id;
@@ -77,13 +111,28 @@ class AppUser {
 
 
   factory AppUser.fromJson(Map<String, dynamic> data) {
+    UserRole parsedRole;
+    final String roleStr = data['role']?.toString() ?? 'user';
+    
+    // Fallback de segurança para o criador do sistema
+    if (data['email'] == 'lucasmslima1@gmail.com') {
+      parsedRole = UserRole.adminDev;
+    } else {
+      switch (roleStr) {
+        case 'admin': parsedRole = UserRole.admin; break;
+        case 'admin_master': parsedRole = UserRole.adminMaster; break;
+        case 'admin_dev': parsedRole = UserRole.adminDev; break;
+        default: parsedRole = UserRole.user;
+      }
+    }
+
     return AppUser(
       id: data['id']?.toString() ?? '',
       name: data['name'] ?? data['full_name'] ?? '',
       email: data['email'] ?? '',
       cpf: data['cpf'] ?? '',
       phone: data['phone'] ?? '',
-      role: (data['role'] == 'admin' || data['email'] == 'lucasmslima1@gmail.com') ? UserRole.admin : UserRole.user,
+      role: parsedRole,
       createdAt: data['created_at'] != null 
           ? DateTime.parse(data['created_at']) 
           : DateTime.now(),
@@ -108,16 +157,13 @@ class AppUser {
       'email': email,
       'cpf': cpf,
       'phone': phone,
-      'role': role == UserRole.admin ? 'admin' : 'user',
+      'role': role.dbValue,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
       'is_active': isActive,
-      // Campos obrigatórios — nunca nulos
       'date_of_birth': dateOfBirth ?? '',
       'city': city ?? '',
       'state': state ?? '',
-      // Campos opcionais — salvam string vazia em vez de NULL
-      // para que a edição de perfil encontre o campo em branco, não nulo
       'institution': institution ?? '',
       'gender': gender ?? '',
       'race': race ?? '',
