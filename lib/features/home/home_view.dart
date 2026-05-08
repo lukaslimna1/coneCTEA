@@ -128,8 +128,8 @@ class _HomeViewState extends State<HomeView> {
     // Campos mínimos para solicitar carteirinha
     return _user!.cpf.isNotEmpty && 
            _user!.phone.isNotEmpty && 
-           _user!.city.isNotEmpty && 
-           _user!.state.isNotEmpty;
+           (_user!.city?.isNotEmpty ?? false) && 
+           (_user!.state?.isNotEmpty ?? false);
   }
 
   void _handleRequestCard() {
