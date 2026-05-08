@@ -26,9 +26,9 @@ class FullScreenCardPage extends StatefulWidget {
 
 class _FullScreenCardPageState extends State<FullScreenCardPage> with SingleTickerProviderStateMixin {
   late int _selectedMemberIndex;
-  bool _showBack = false;
   late AnimationController _animationController;
   late Animation<double> _animation;
+  bool _isBackVisible = false;
 
   @override
   void initState() {
@@ -53,13 +53,13 @@ class _FullScreenCardPageState extends State<FullScreenCardPage> with SingleTick
   }
 
   void _flipCard() {
-    if (_showBack) {
+    if (_isBackVisible) {
       _animationController.reverse();
     } else {
       _animationController.forward();
     }
     setState(() {
-      _showBack = !_showBack;
+      _isBackVisible = !_isBackVisible;
     });
   }
 
@@ -72,7 +72,21 @@ class _FullScreenCardPageState extends State<FullScreenCardPage> with SingleTick
       backgroundColor: AppColors.darkBlue,
       body: Stack(
         children: [
-          // Subtle Grid Background
+          // Background Gradient & Grid
+          Positioned.fill(
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: RadialGradient(
+                  center: Alignment.center,
+                  radius: 1.5,
+                  colors: [
+                    Color(0xFF003366),
+                    AppColors.darkBlue,
+                  ],
+                ),
+              ),
+            ),
+          ),
           Positioned.fill(
             child: Opacity(
               opacity: 0.05,
@@ -86,49 +100,48 @@ class _FullScreenCardPageState extends State<FullScreenCardPage> with SingleTick
             child: Column(
               children: [
                 _buildHeader(),
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
                 _buildMemberSelector(),
                 
                 const Spacer(),
                 
-                // Animated Flipping Card
-                Center(
-                  child: Hero(
-                    tag: 'card_${member.id}',
-                    child: Material(
-                      type: MaterialType.transparency,
-                      child: AnimatedBuilder(
-                        animation: _animation,
-                        builder: (context, child) {
-                          // The angle goes from 0 to pi.
-                          final angle = _animation.value * pi;
-                          
-                          // We need to render the back if angle is > pi/2
-                          bool isBackVisible = angle >= pi / 2;
-                          
-                          return Transform(
-                            transform: Matrix4.identity()
-                              ..setEntry(3, 2, 0.001) // perspective
-                              ..rotateY(angle),
-                            alignment: Alignment.center,
-                            child: isBackVisible
-                                // When showing the back, we must flip it again so it's not mirrored
-                                ? Transform(
-                                    transform: Matrix4.identity()..rotateY(pi),
-                                    alignment: Alignment.center,
-                                    child: DigitalCardWidget(
+                // Card Container with Padding
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Center(
+                    child: Hero(
+                      tag: 'card_${member.id}',
+                      child: Material(
+                        type: MaterialType.transparency,
+                        child: AnimatedBuilder(
+                          animation: _animation,
+                          builder: (context, child) {
+                            final angle = _animation.value * pi;
+                            final showBack = angle >= pi / 2;
+                            
+                            return Transform(
+                              transform: Matrix4.identity()
+                                ..setEntry(3, 2, 0.001)
+                                ..rotateY(angle),
+                              alignment: Alignment.center,
+                              child: showBack
+                                  ? Transform(
+                                      transform: Matrix4.identity()..rotateY(pi),
+                                      alignment: Alignment.center,
+                                      child: DigitalCardWidget(
+                                        card: card,
+                                        member: member,
+                                        showBack: true,
+                                      ),
+                                    )
+                                  : DigitalCardWidget(
                                       card: card,
                                       member: member,
-                                      showBack: true,
+                                      showBack: false,
                                     ),
-                                  )
-                                : DigitalCardWidget(
-                                    card: card,
-                                    member: member,
-                                    showBack: false,
-                                  ),
-                          );
-                        },
+                            );
+                          },
+                        ),
                       ),
                     ),
                   ),
@@ -136,20 +149,8 @@ class _FullScreenCardPageState extends State<FullScreenCardPage> with SingleTick
                 
                 const Spacer(),
                 
-                // Controls
                 _buildControls(),
-                const SizedBox(height: 32),
-                
-                Text(
-                  'GIRE PARA VISIBILIDADE TOTAL',
-                  style: GoogleFonts.inter(
-                    color: Colors.white.withValues(alpha: 0.5),
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 2,
-                  ),
-                ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 48),
               ],
             ),
           ),
@@ -172,19 +173,11 @@ class _FullScreenCardPageState extends State<FullScreenCardPage> with SingleTick
             tag: 'app_logo_mini',
             child: SvgPicture.asset(
               'assets/images/logo_horizontal.svg',
-              height: 30,
+              height: 24,
               colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.share_rounded, color: Colors.white, size: 24),
-            onPressed: () {
-              // Share logic placeholder
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Compartilhamento em breve')),
-              );
-            },
-          ),
+          const SizedBox(width: 48), // Spacer for balance
         ],
       ),
     );
@@ -193,67 +186,47 @@ class _FullScreenCardPageState extends State<FullScreenCardPage> with SingleTick
   Widget _buildMemberSelector() {
     if (widget.members.length <= 1) return const SizedBox.shrink();
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: widget.members.asMap().entries.map((entry) {
-          final index = entry.key;
-          final member = entry.value;
+    return SizedBox(
+      height: 45,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        itemCount: widget.members.length,
+        itemBuilder: (context, index) {
+          final member = widget.members[index];
           final isSelected = index == _selectedMemberIndex;
           
-          final parts = member.name.split(' ');
-          final initials = parts.length > 1 
-              ? '${parts[0][0]}${parts[1][0]}' 
-              : parts[0][0];
-
           return GestureDetector(
             onTap: () {
               if (!isSelected) {
                 setState(() {
                   _selectedMemberIndex = index;
-                  if (_showBack) {
-                    _flipCard(); // reset to front when switching
-                  }
+                  if (_isBackVisible) _flipCard();
                 });
               }
             },
             child: Container(
               margin: const EdgeInsets.only(right: 12),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               decoration: BoxDecoration(
-                color: isSelected ? AppColors.primary.withValues(alpha: 0.2) : Colors.transparent,
-                borderRadius: BorderRadius.circular(20),
+                color: isSelected ? AppColors.primary : Colors.white.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(25),
                 border: Border.all(
-                  color: isSelected ? AppColors.primary : Colors.white.withValues(alpha: 0.2),
+                  color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.2),
                   width: 1.5,
                 ),
               ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: isSelected ? AppColors.statusGreen : Colors.transparent,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    '${initials.toUpperCase()} ${parts[0]}',
-                    style: GoogleFonts.inter(
-                      color: Colors.white,
-                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
+              child: Text(
+                member.name.split(' ')[0],
+                style: GoogleFonts.inter(
+                  color: Colors.white,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  fontSize: 14,
+                ),
               ),
             ),
           );
-        }).toList(),
+        },
       ),
     );
   }
@@ -264,55 +237,36 @@ class _FullScreenCardPageState extends State<FullScreenCardPage> with SingleTick
         ElevatedButton.icon(
           onPressed: _flipCard,
           icon: Icon(
-            _showBack ? Icons.flip_to_front_rounded : Icons.flip_to_back_rounded,
+            _isBackVisible ? Icons.flip_to_front_rounded : Icons.flip_to_back_rounded,
             color: AppColors.primary,
           ),
           label: Text(
-            _showBack ? 'Ver Frente' : 'Ver Verso',
+            _isBackVisible ? 'VER FRENTE' : 'VER VERSO',
             style: GoogleFonts.inter(
               color: AppColors.primary,
               fontWeight: FontWeight.w800,
+              letterSpacing: 1,
             ),
           ),
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+            foregroundColor: AppColors.primary,
+            padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(30),
+              borderRadius: BorderRadius.circular(35),
             ),
+            elevation: 8,
+            shadowColor: Colors.black.withValues(alpha: 0.3),
           ),
         ),
-        const SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _buildIndicator('Frente', !_showBack),
-            const SizedBox(width: 16),
-            _buildIndicator('Verso', _showBack),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildIndicator(String label, bool isActive) {
-    return Row(
-      children: [
-        Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(
-            color: isActive ? AppColors.statusGreen : Colors.white.withValues(alpha: 0.2),
-            shape: BoxShape.circle,
-          ),
-        ),
-        const SizedBox(width: 6),
+        const SizedBox(height: 24),
         Text(
-          isActive ? '$label ativo' : '$label inativo',
+          'TOQUE PARA GIRAR E VER DETALHES',
           style: GoogleFonts.inter(
-            color: isActive ? Colors.white : Colors.white.withValues(alpha: 0.5),
-            fontSize: 12,
-            fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+            color: Colors.white.withValues(alpha: 0.5),
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 2,
           ),
         ),
       ],
@@ -325,7 +279,7 @@ class _GridPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
       ..color = Colors.white
-      ..strokeWidth = 1.0;
+      ..strokeWidth = 0.5;
 
     const spacing = 40.0;
 

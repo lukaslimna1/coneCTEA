@@ -5,9 +5,16 @@ import '../models/member.dart';
 import '../models/card_request.dart';
 import '../models/digital_card.dart';
 import '../models/notification_item.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class DatabaseService {
   final _supabase = Supabase.instance.client;
+  
+  static const String _oneSignalAppId = 'e4ccd512-3add-465f-8195-eaf6f3ce86aa';
+  static const String _oneSignalApiKey = 'os_v2_app_4tgnker23vdf7amv5l3phtugvj2l3jszbhsee3uozfztqqk2x4uqup3csmnf45hekhpcjzib2lgmcz66jewor5otyeb7madrswumtki';
+  static const String _validationUrlPrefix = 'https://conectea.app/validar/';
+
 
   // --- Profile ---
   Future<AppUser?> getUserProfile(String userId) async {
@@ -44,6 +51,15 @@ class DatabaseService {
     }
   }
 
+  Stream<List<Member>> membersStream(String userId) {
+    return _supabase
+        .from('members')
+        .stream(primaryKey: ['id'])
+        .eq('user_id', userId)
+        .order('created_at', ascending: false)
+        .map((data) => data.map((json) => Member.fromJson(json)).toList());
+  }
+
   Future<void> addMember(Member member) async {
     final data = member.toJson();
     await _supabase.from('members').upsert(data);
@@ -54,7 +70,43 @@ class DatabaseService {
     await _supabase.from('members').update(data).eq('id', member.id);
   }
 
+  Future<Member?> getMember(String memberId) async {
+    try {
+      final data = await _supabase
+          .from('members')
+          .select()
+          .eq('id', memberId)
+          .maybeSingle();
+      if (data == null) return null;
+      return Member.fromJson(data);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<DigitalCard?> getCardByNumber(String cardNumber) async {
+    try {
+      debugPrint('DatabaseService: Searching for card_number = "$cardNumber"');
+      final data = await _supabase
+          .from('digital_cards')
+          .select('*, members(*)')
+          .ilike('card_number', cardNumber.trim())
+          .maybeSingle();
+      
+      if (data == null) {
+        debugPrint('DatabaseService: No card found for "$cardNumber"');
+        return null;
+      }
+      debugPrint('DatabaseService: Card found! ID: ${data['id']}');
+      return DigitalCard.fromJson(data);
+    } catch (e) {
+      debugPrint('DatabaseService Error: $e');
+      return null;
+    }
+  }
+
   // --- Digital Cards ---
+
   Future<List<DigitalCard>> getDigitalCards(String userId) async {
     try {
       final List<dynamic> data = await _supabase
@@ -69,8 +121,69 @@ class DatabaseService {
     }
   }
 
+  Stream<List<DigitalCard>> digitalCardsStream(String userId) {
+    return _supabase
+        .from('digital_cards')
+        .stream(primaryKey: ['id'])
+        .eq('user_id', userId)
+        .order('created_at', ascending: false)
+        .map((data) => data.map((json) => DigitalCard.fromJson(json)).toList());
+  }
+
   Future<void> createDigitalCard(DigitalCard card) async {
-    await _supabase.from('digital_cards').upsert(card.toJson());
+    final json = card.toJson();
+    // Remove id vazio para que o Supabase gere automaticamente um UUID
+    if ((json['id'] as String?)?.isEmpty ?? true) json.remove('id');
+    await _supabase.from('digital_cards').upsert(json);
+  }
+
+  /// Cria ou reativa a carteirinha digital ao aprovar uma solicitação.
+  /// isActive é derivado de status=='active' no Dart — não depende da coluna is_active.
+  Future<void> ensureDigitalCard({
+    required String memberId,
+    required String userId,
+    required String requestId,
+    required Member member,
+  }) async {
+    final now = DateTime.now();
+    final validUntil = DateTime(now.year + 1, now.month, now.day);
+
+    // Verificar se já existe uma carteirinha para este membro
+    final existing = await _supabase
+        .from('digital_cards')
+        .select('id')
+        .eq('member_id', memberId)
+        .maybeSingle();
+
+    if (existing != null) {
+      // Reativar e renovar a validade
+      await _supabase.from('digital_cards').update({
+        'status': 'active',
+        'valid_until': validUntil.toIso8601String(),
+        'updated_at': now.toIso8601String(),
+      }).eq('member_id', memberId);
+    } else {
+      // Criar nova carteirinha
+      final cardNumber = 'TEA-ID-${now.millisecondsSinceEpoch.toRadixString(16).toUpperCase().substring(0, 8)}';
+      await _supabase.from('digital_cards').insert({
+        'member_id': memberId,
+        'user_id': userId,
+        'card_number': cardNumber,
+        'status': 'active',
+        'valid_until': validUntil.toIso8601String(),
+        'issued_at': now.toIso8601String(),
+        'front_data': {
+          'name': member.name,
+          'cpf': member.cpf,
+          'bloodType': member.bloodType ?? '',
+          'cid': member.cid ?? '',
+        },
+        'back_data': {'emergencyContact': member.emergencyContact ?? ''},
+        'qr_validation_url': cardNumber,
+        'created_at': now.toIso8601String(),
+        'updated_at': now.toIso8601String(),
+      });
+    }
   }
 
   // --- Card Requests ---
@@ -88,8 +201,44 @@ class DatabaseService {
     }
   }
 
+  Future<void> _notifyAdmins(String title, String message, String type, {String memberId = ''}) async {
+    try {
+      final admins = await _supabase.from('profiles').select('id').eq('role', 'admin');
+      for (var admin in admins) {
+        await createNotification(NotificationItem(
+          id: '',
+          userId: admin['id'],
+          memberId: memberId,
+          title: title,
+          message: message,
+          type: type,
+          createdAt: DateTime.now(),
+          isRead: false,
+          actionLabel: 'Analisar',
+          actionRoute: '/admin',
+        ));
+      }
+    } catch (e) {
+      debugPrint('Error notifying admins: $e');
+    }
+  }
+
   Future<void> createCardRequest(CardRequest request) async {
     await _supabase.from('card_requests').upsert(request.toJson());
+    
+    // Tentar pegar o nome do membro
+    String memberName = 'Beneficiário';
+    try {
+      final memberData = await _supabase.from('members').select('name').eq('id', request.memberId).single();
+      memberName = memberData['name'];
+    } catch (_) {}
+
+    await _notifyAdmins(
+      'Nova Solicitação Recebida',
+      'Uma nova solicitação foi enviada para $memberName (Protocolo: ${request.protocol}).',
+      'new_request',
+      memberId: request.memberId,
+    );
   }
 
   Stream<List<CardRequest>> cardRequestsStream(String userId) {
@@ -106,10 +255,10 @@ class DatabaseService {
     try {
       final List<dynamic> data = await _supabase
           .from('card_requests')
-          .select()
+          .select('*, members(name)')
           .order('created_at', ascending: false);
       
-      debugPrint('Admin Fetched Card Requests: \${data.length} items');
+      debugPrint('Admin Fetched Card Requests: ${data.length} items');
       return data.map((json) {
         try {
           return CardRequest.fromJson(json);
@@ -124,20 +273,185 @@ class DatabaseService {
     }
   }
 
-  Future<void> updateCardRequestStatus(String requestId, String status, {String? adminNotes}) async {
-    final Map<String, dynamic> updates = {
+  Future<void> updateCardRequestStatus(String requestId, String status, {String? adminNotes, DateTime? expiresAt}) async {
+    final now = DateTime.now().toIso8601String();
+    final String notes = adminNotes ?? '';
+
+    // 1. Atualizar o status da solicitação
+    final updateData = <String, dynamic>{
       'status': status,
-      'updated_at': DateTime.now().toIso8601String(),
+      'admin_notes': notes,
+      'updated_at': now,
     };
-    if (adminNotes != null) {
-      updates['admin_notes'] = adminNotes;
+
+    if (expiresAt != null) {
+      updateData['expires_at'] = expiresAt.toIso8601String();
     }
-    await _supabase.from('card_requests').update(updates).eq('id', requestId);
+
+    await _supabase.from('card_requests').update(updateData).eq('id', requestId);
+
+    // 2. Buscar dados da solicitação e do membro
+    final requestData = await _supabase
+        .from('card_requests')
+        .select('user_id, member_id')
+        .eq('id', requestId)
+        .single();
+    
+    final String userId = requestData['user_id'];
+    final String memberId = requestData['member_id'];
+
+    // Buscar dados do membro na tabela de membros
+    final memberData = await _supabase
+        .from('members')
+        .select()
+        .eq('id', memberId)
+        .single();
+    
+    final Member member = Member.fromJson(memberData);
+
+    // 3. Sincronizar status com o Membro
+    // Se status for active ou approved, o membro fica ativo. Caso contrário, segue o status.
+    final String memberStatus = (status == 'active' || status == 'approved') ? 'active' : status;
+    await _supabase.from('members').update({
+      'status': memberStatus,
+      'updated_at': now,
+    }).eq('id', memberId);
+
+    // 4. Se o status for 'active' (Aprovado), garantir a existência da carteirinha digital
+    if (status == 'active' || status == 'approved') {
+      await ensureDigitalCard(
+        memberId: memberId,
+        userId: userId,
+        requestId: requestId,
+        member: member,
+      );
+    } else {
+      // Se mudar para qualquer outro status (suspenso, reprovado, etc), mudar status da carteirinha
+      try {
+        await _supabase.from('digital_cards').update({
+          'status': status,
+          'updated_at': now,
+        }).eq('member_id', memberId);
+      } catch (_) {
+        // Carteirinha pode não existir ainda
+      }
+    }
+
+    // 5. Criar notificação in-app
+    String title = 'Atualização de Carteirinha';
+    String message = 'O status da carteirinha de ${member.name} mudou para: ${_getStatusDisplay(status)}';
+    
+    switch (status.toLowerCase()) {
+      case 'approved': 
+      case 'active': 
+        title = '🎉 Carteirinha Aprovada!';
+        message = 'A carteirinha digital de ${member.name} foi emitida e já está disponível para uso!';
+        break;
+      case 'rejected': 
+      case 'rejeitada': 
+        title = '❌ Solicitação Reprovada';
+        message = 'A solicitação de ${member.name} foi reprovada.';
+        if (notes.isNotEmpty) message += ' Motivo: $notes';
+        break;
+      case 'suspended': 
+      case 'suspensa': 
+        title = '⚠️ Carteirinha Suspensa';
+        message = 'A carteirinha de ${member.name} foi suspensa temporariamente.';
+        if (notes.isNotEmpty) message += ' Motivo: $notes';
+        break;
+      case 'waiting_docs': 
+        title = '📄 Documentos Pendentes';
+        message = 'Precisamos que você envie alguns documentos para continuar a solicitação de ${member.name}.';
+        if (notes.isNotEmpty) message += '\nObservações: $notes';
+        break;
+      case 'reviewing_data': 
+        title = '✏️ Revisão de Dados Necessária';
+        message = 'Alguns dados da solicitação de ${member.name} precisam ser corrigidos.';
+        if (notes.isNotEmpty) message += '\nPendências: $notes';
+        break;
+      case 'expired': 
+        title = '📅 Carteirinha Vencida';
+        message = 'A carteirinha de ${member.name} está vencida.';
+        break;
+      default:
+        if (notes.isNotEmpty && !notes.contains('Pendência:')) {
+          message += '\nMotivo: ${notes.length > 50 ? notes.substring(0, 47) + "..." : notes}';
+        }
+    }
+
+    // 5. Criar notificação in-app para o usuário
+    await createNotification(NotificationItem(
+      id: '',
+      userId: userId,
+      memberId: memberId,
+      title: title,
+      message: message,
+      type: 'status_update',
+      createdAt: DateTime.now(),
+      isRead: false,
+      actionLabel: 'Ver',
+      actionRoute: '/requests',
+    ));
+
+    // 6. Disparar Push Notification via OneSignal
+    await _sendPushNotification(
+      userId: userId,
+      title: title,
+      message: message,
+    );
   }
 
   Future<void> updateCardRequest(CardRequest request) async {
     final data = request.toJson();
     await _supabase.from('card_requests').update(data).eq('id', request.id);
+
+    // Se o usuário reenviou os dados ou documentos, o status volta para waiting_approval
+    if (request.status == 'waiting_approval' || request.status == 'renewing') {
+      String memberName = 'Beneficiário';
+      try {
+        final memberData = await _supabase.from('members').select('name').eq('id', request.memberId).single();
+        memberName = memberData['name'];
+      } catch (_) {}
+
+      await _notifyAdmins(
+        'Solicitação Atualizada',
+        'O usuário reenviou os dados/documentos para $memberName (Protocolo: ${request.protocol}).',
+        'request_updated',
+        memberId: request.memberId,
+      );
+    }
+  }
+
+  Future<void> _sendPushNotification({
+    required String userId,
+    required String title,
+    required String message,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('https://onesignal.com/api/v1/notifications'),
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Authorization': 'Basic $_oneSignalApiKey',
+        },
+        body: jsonEncode({
+          'app_id': _oneSignalAppId,
+          'include_external_user_ids': [userId],
+          'headings': {'en': title, 'pt': title},
+          'contents': {'en': message, 'pt': message},
+          'ios_badgeType': 'Increase',
+          'ios_badgeCount': 1,
+        }),
+      );
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        debugPrint('OneSignal API Error: ${response.body}');
+      } else {
+        debugPrint('Push Notification sent successfully to $userId');
+      }
+    } catch (e) {
+      debugPrint('Error sending push notification: $e');
+    }
   }
 
   Future<void> updateRequestFileUrl(String requestId, String field, String url) async {
@@ -164,6 +478,44 @@ class DatabaseService {
     await _supabase.from('profiles').update({
       'role': role == UserRole.admin ? 'admin' : 'user'
     }).eq('id', userId);
+  }
+
+  /// Stream com JOIN manual de memberName (Supabase stream não suporta joins nativos)
+  Stream<List<CardRequest>> getAllCardRequestsStream() {
+    return _supabase
+        .from('card_requests')
+        .stream(primaryKey: ['id'])
+        .order('created_at', ascending: false)
+        .asyncMap((data) async {
+          final requests = <CardRequest>[];
+          for (final json in data) {
+            try {
+              final memberId = json['member_id']?.toString() ?? '';
+              Map<String, dynamic> enriched = Map<String, dynamic>.from(json);
+              
+              // Sempre buscar o nome se não estiver presente ou estiver vazio
+              if (memberId.isNotEmpty && (enriched['memberName'] == null || enriched['memberName'].toString().isEmpty)) {
+                try {
+                  final memberData = await _supabase
+                      .from('members')
+                      .select('name')
+                      .eq('id', memberId)
+                      .maybeSingle();
+                  
+                  if (memberData != null) {
+                    enriched['memberName'] = memberData['name'];
+                  }
+                } catch (e) {
+                  debugPrint('Error fetching member name for stream: $e');
+                }
+              }
+              requests.add(CardRequest.fromJson(enriched));
+            } catch (e) {
+              debugPrint('Error parsing request in stream: $e');
+            }
+          }
+          return requests;
+        });
   }
 
   Future<Member?> getMemberById(String memberId) async {
@@ -197,7 +549,12 @@ class DatabaseService {
   }
 
   Future<void> createNotification(NotificationItem notification) async {
-    await _supabase.from('notifications').insert(notification.toJson());
+    try {
+      await _supabase.from('notifications').insert(notification.toJson());
+      debugPrint('Notification created successfully for user ${notification.userId}');
+    } catch (e) {
+      debugPrint('Error creating notification: $e');
+    }
   }
 
   Stream<List<NotificationItem>> notificationsStream(String userId) {
@@ -209,59 +566,26 @@ class DatabaseService {
         .map((data) => data.map((json) => NotificationItem.fromJson(json)).toList());
   }
 
-  Future<void> updateCardStatus(String requestId, String status, String notes) async {
-    final now = DateTime.now().toIso8601String();
+  Future<void> markNotificationAsRead(String notificationId) async {
+    await _supabase
+        .from('notifications')
+        .update({'is_read': true})
+        .eq('id', notificationId);
+  }
 
-    // 1. Atualizar o status da solicitação
-    await _supabase.from('card_requests').update({
-      'status': status,
-      'admin_notes': notes,
-      'updated_at': now,
-    }).eq('id', requestId);
+  Future<void> markAllNotificationsAsRead(String userId) async {
+    await _supabase
+        .from('notifications')
+        .update({'is_read': true})
+        .eq('user_id', userId)
+        .eq('is_read', false);
+  }
 
-    // 2. Buscar dados da solicitação e do membro
-    final requestData = await _supabase
-        .from('card_requests')
-        .select('user_id, member_id')
-        .eq('id', requestId)
-        .single();
-    
-    final String userId = requestData['user_id'];
-    final String memberId = requestData['member_id'];
-
-    // Buscar o nome do membro na tabela de membros
-    final memberData = await _supabase
-        .from('members')
-        .select('name')
-        .eq('id', memberId)
-        .single();
-    
-    final String memberName = memberData['name'];
-
-    // 3. Sincronizar status com o Membro
-    await _supabase.from('members').update({
-      'status': status,
-      'updated_at': now,
-    }).eq('id', memberId);
-
-    // 4. Criar notificação in-app
-    String message = 'O status da carteirinha de $memberName mudou para: ${_getStatusDisplay(status)}';
-    if (notes.isNotEmpty && !notes.contains('Pendência:')) {
-      message += '\nMotivo: ${notes.length > 50 ? notes.substring(0, 47) + "..." : notes}';
-    }
-
-    await createNotification(NotificationItem(
-      id: '', // UUID gerado pelo banco
-      userId: userId,
-      memberId: memberId,
-      title: 'Atualização de Carteirinha',
-      message: message,
-      type: 'status_change',
-      createdAt: DateTime.now(),
-      isRead: false,
-      actionLabel: 'Ver Detalhes',
-      actionRoute: '/home',
-    ));
+  Future<void> clearAllNotifications(String userId) async {
+    await _supabase
+        .from('notifications')
+        .delete()
+        .eq('user_id', userId);
   }
 
   String _getStatusDisplay(String status) {

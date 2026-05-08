@@ -5,107 +5,190 @@ import '../../services/database_service.dart';
 import '../../services/auth_service.dart';
 import '../../models/card_request.dart';
 import 'package:intl/intl.dart';
+import 'add_member_page.dart';
 
-class RequestsView extends StatefulWidget {
+class RequestsView extends StatelessWidget {
   const RequestsView({super.key});
 
   @override
-  State<RequestsView> createState() => _RequestsViewState();
-}
-
-class _RequestsViewState extends State<RequestsView> {
-  final DatabaseService _databaseService = DatabaseService();
-  final AuthService _authService = AuthService();
-  List<CardRequest> _requests = [];
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadRequests();
-  }
-
-  Future<void> _loadRequests() async {
-    setState(() => _isLoading = true);
-    final userId = _authService.currentUser?.id;
-    if (userId != null) {
-      final requests = await _databaseService.getCardRequests(userId);
-      setState(() {
-        _requests = requests;
-        _isLoading = false;
-      });
-    } else {
-      setState(() => _isLoading = false);
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
-      onRefresh: _loadRequests,
-      color: AppColors.primary,
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Mural de Solicitações',
+    final authService = AuthService();
+    final databaseService = DatabaseService();
+    final userId = authService.currentUser?.id;
+
+    if (userId == null) {
+      return const Center(child: Text('Por favor, faça login'));
+    }
+
+    return StreamBuilder<List<CardRequest>>(
+      stream: databaseService.cardRequestsStream(userId),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(color: AppColors.primary),
+          );
+        }
+
+        final requests = snapshot.data ?? [];
+        
+        // Sorting: ongoing first, then by date
+        requests.sort((a, b) {
+          final aIsOngoing = _isOngoing(a.status);
+          final bIsOngoing = _isOngoing(b.status);
+          if (aIsOngoing && !bIsOngoing) return -1;
+          if (!aIsOngoing && bIsOngoing) return 1;
+          return b.createdAt.compareTo(a.createdAt);
+        });
+
+        final ongoing = requests.where((r) => _isOngoing(r.status)).toList();
+        final history = requests.where((r) => !_isOngoing(r.status)).toList();
+
+        return RefreshIndicator(
+          onRefresh: () async {},
+          color: AppColors.primary,
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+            slivers: [
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Minhas Solicitações',
+                        style: GoogleFonts.inter(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.textPrimary,
+                          letterSpacing: -1,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Acompanhe o status e histórico de seus pedidos.',
+                        style: GoogleFonts.inter(
+                          fontSize: 15,
+                          color: AppColors.textSecondary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              
+              if (ongoing.isNotEmpty) ...[
+                SliverToBoxAdapter(
+                  child: _buildSectionHeader('🚀 Em andamento', ongoing.length),
+                ),
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) => Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: _buildRequestCard(context, ongoing[index]),
+                      ),
+                      childCount: ongoing.length,
+                    ),
+                  ),
+                ),
+              ],
+
+              if (history.isNotEmpty) ...[
+                SliverToBoxAdapter(
+                  child: _buildSectionHeader('📜 Histórico', history.length),
+                ),
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _buildRequestCard(context, history[index], isHistory: true),
+                      ),
+                      childCount: history.length,
+                    ),
+                  ),
+                ),
+              ],
+
+              if (requests.isEmpty)
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: _buildEmptyState(context),
+                ),
+              
+              const SliverToBoxAdapter(child: SizedBox(height: 100)),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  bool _isOngoing(String status) {
+    final s = status.toLowerCase();
+    return s != 'active' && s != 'rejected' && s != 'suspended' && s != 'expired';
+  }
+
+  Widget _buildSectionHeader(String title, int count) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+      child: Row(
+        children: [
+          Text(
+            title,
+            style: GoogleFonts.inter(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              count.toString(),
               style: GoogleFonts.inter(
-                fontSize: 28,
+                fontSize: 12,
                 fontWeight: FontWeight.w800,
-                color: AppColors.textPrimary,
-                letterSpacing: -1,
+                color: AppColors.primary,
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              'Acompanhe o andamento dos seus pedidos e serviços.',
-              style: GoogleFonts.inter(
-                fontSize: 15,
-                color: AppColors.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 32),
-            
-            if (_isLoading)
-              const Center(child: Padding(
-                padding: EdgeInsets.only(top: 40),
-                child: CircularProgressIndicator(color: AppColors.primary),
-              ))
-            else if (_requests.isEmpty)
-              _buildEmptyState()
-            else
-              ..._buildRequestList(),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(BuildContext context) {
     return Center(
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const SizedBox(height: 60),
-          Icon(Icons.assignment_late_outlined, size: 80, color: AppColors.textSecondary.withValues(alpha: 0.2)),
+          Icon(Icons.assignment_rounded, size: 80, color: AppColors.textSecondary.withValues(alpha: 0.1)),
           const SizedBox(height: 16),
           Text(
-            'Nenhuma solicitação encontrada',
+            'Nenhuma solicitação',
             style: GoogleFonts.inter(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
               color: AppColors.textSecondary,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Suas solicitações de carteirinha e suporte\naparecerão aqui.',
+            'Seus pedidos aparecerão aqui.',
             textAlign: TextAlign.center,
             style: GoogleFonts.inter(
               fontSize: 14,
-              color: AppColors.textSecondary.withValues(alpha: 0.7),
+              color: AppColors.textSecondary.withValues(alpha: 0.6),
             ),
           ),
         ],
@@ -113,165 +196,211 @@ class _RequestsViewState extends State<RequestsView> {
     );
   }
 
-  List<Widget> _buildRequestList() {
-    final processing = _requests.where((r) => r.status != 'completed' && r.status != 'rejected' && r.status != 'resolved').toList();
-    final completed = _requests.where((r) => r.status == 'completed' || r.status == 'rejected' || r.status == 'resolved').toList();
-
-    List<Widget> items = [];
-
-    if (processing.isNotEmpty) {
-      items.add(_buildSectionTitle('⏳ Em processamento'));
-      items.add(const SizedBox(height: 16));
-      items.addAll(processing.map((r) => Padding(
-        padding: const EdgeInsets.only(bottom: 12),
-        child: _buildRequestCard(r),
-      )));
-    }
-
-    if (completed.isNotEmpty) {
-      if (items.isNotEmpty) items.add(const SizedBox(height: 32));
-      items.add(_buildSectionTitle('✅ Concluídos'));
-      items.add(const SizedBox(height: 16));
-      items.addAll(completed.map((r) => Padding(
-        padding: const EdgeInsets.only(bottom: 12),
-        child: _buildRequestCard(r),
-      )));
-    }
-
-    return items;
-  }
-
-  Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: GoogleFonts.inter(
-        fontSize: 18,
-        fontWeight: FontWeight.w700,
-        color: AppColors.textPrimary,
-      ),
-    );
-  }
-
-  Widget _buildRequestCard(CardRequest request) {
+  Widget _buildRequestCard(BuildContext context, CardRequest request, {bool isHistory = false}) {
+    final databaseService = DatabaseService();
     final ui = _getStatusUI(request.status);
     final dateFormatted = DateFormat('dd/MM/yyyy').format(request.createdAt);
-    final prefix = request.status == 'completed' || request.status == 'resolved' ? 'Finalizado em' : 'Solicitado em';
-
+    
     return Container(
-      padding: const EdgeInsets.all(20),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.05)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 20,
+            blurRadius: 15,
             offset: const Offset(0, 8),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () async {
+            if (request.status == 'reviewing_data' || request.status == 'waiting_docs') {
+              final member = await databaseService.getMember(request.memberId);
+              if (member != null && context.mounted) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AddMemberPage(
+                      member: member,
+                      request: request,
+                    ),
+                  ),
+                );
+              }
+            }
+          },
+          child: Column(
             children: [
+              // Header Gradient Strip
               Container(
-                padding: const EdgeInsets.all(10),
+                height: 4,
+                width: double.infinity,
                 decoration: BoxDecoration(
-                  color: ui.color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(14),
+                  gradient: LinearGradient(
+                    colors: [ui.color.withValues(alpha: 0.8), ui.color],
+                  ),
                 ),
-                child: Icon(_getTypeIcon(request.type), color: ui.color, size: 22),
               ),
-              const SizedBox(width: 16),
-              Expanded(
+              Padding(
+                padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      _getTypeLabel(request.type),
-                      style: GoogleFonts.inter(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: AppColors.textPrimary,
-                      ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: ui.color.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Icon(_getTypeIcon(request.type), color: ui.color, size: 24),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _getTypeLabel(request.type),
+                                style: GoogleFonts.inter(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 16,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Protocolo: ${request.protocol}',
+                                style: GoogleFonts.inter(
+                                  fontSize: 12,
+                                  color: AppColors.textSecondary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        _buildStatusBadge(ui),
+                      ],
                     ),
-                    Text(
-                      'Protocolo: ${request.protocol}',
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
-                        fontWeight: FontWeight.w500,
+                    const SizedBox(height: 20),
+                    if (!isHistory) ...[
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Status atual',
+                            style: GoogleFonts.inter(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          Text(
+                            '${(ui.progress * 100).toInt()}%',
+                            style: GoogleFonts.inter(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w900,
+                              color: ui.color,
+                            ),
+                          ),
+                        ],
                       ),
+                      const SizedBox(height: 10),
+                      Stack(
+                        children: [
+                          Container(
+                            height: 8,
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: AppColors.backgroundLight,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          AnimatedContainer(
+                            duration: const Duration(milliseconds: 500),
+                            height: 8,
+                            width: (MediaQuery.of(context).size.width - 88) * ui.progress,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [ui.color.withValues(alpha: 0.6), ui.color],
+                              ),
+                              borderRadius: BorderRadius.circular(10),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: ui.color.withValues(alpha: 0.3),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                    ],
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.calendar_today_rounded, size: 12, color: AppColors.textSecondary),
+                            const SizedBox(width: 6),
+                            Text(
+                              dateFormatted,
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                color: AppColors.textSecondary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (request.status == 'reviewing_data' || request.status == 'waiting_docs')
+                          Text(
+                            'TOQUE PARA CORRIGIR',
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w900,
+                              color: ui.color,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                      ],
                     ),
                   ],
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: ui.color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(100),
-                ),
-                child: Text(
-                  ui.label,
-                  style: GoogleFonts.inter(
-                    color: ui.color,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
             ],
           ),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Progresso',
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              Text(
-                '${(ui.progress * 100).toInt()}%',
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: ui.color,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: LinearProgressIndicator(
-              value: ui.progress,
-              backgroundColor: AppColors.backgroundLight,
-              valueColor: AlwaysStoppedAnimation<Color>(ui.color),
-              minHeight: 8,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              const Icon(Icons.access_time_rounded, size: 14, color: AppColors.textSecondary),
-              const SizedBox(width: 6),
-              Text(
-                '$prefix $dateFormatted',
-                style: GoogleFonts.inter(
-                  fontSize: 12,
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatusBadge(_StatusUI ui) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: ui.color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: ui.color.withValues(alpha: 0.2)),
+      ),
+      child: Text(
+        ui.label.toUpperCase(),
+        style: GoogleFonts.inter(
+          color: ui.color,
+          fontSize: 10,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 0.5,
+        ),
       ),
     );
   }
@@ -279,32 +408,31 @@ class _RequestsViewState extends State<RequestsView> {
   _StatusUI _getStatusUI(String status) {
     switch (status.toLowerCase()) {
       case 'waiting_approval':
-      case 'under_review':
-      case 'analise':
-        return _StatusUI('Em análise', AppColors.alertOrange, 0.4);
-      case 'awaiting_docs':
-        return _StatusUI('Docs pendentes', AppColors.errorRed, 0.2);
-      case 'approved':
-        return _StatusUI('Aprovado', AppColors.statusGreen, 0.7);
-      case 'printed':
-        return _StatusUI('Impressa', AppColors.statusGreen, 0.9);
-      case 'completed':
-      case 'resolved':
-        return _StatusUI('Concluído', AppColors.statusGreen, 1.0);
+        return _StatusUI('Em análise', AppColors.alertOrange, 0.25);
+      case 'reviewing_data':
+        return _StatusUI('Revisar Dados', AppColors.alertOrange, 0.45);
+      case 'waiting_docs':
+        return _StatusUI('Docs Pendentes', const Color(0xFFEF4444), 0.35);
+      case 'active':
+        return _StatusUI('Emitida', AppColors.statusGreen, 1.0);
       case 'rejected':
-        return _StatusUI('Recusado', AppColors.errorRed, 1.0);
+        return _StatusUI('Reprovada', const Color(0xFFEF4444), 1.0);
+      case 'suspended':
+        return _StatusUI('Suspensa', Colors.grey, 1.0);
+      case 'expired':
+        return _StatusUI('Expirada', Colors.grey, 1.0);
       default:
-        return _StatusUI('Em processamento', AppColors.primary, 0.5);
+        return _StatusUI('Processando', AppColors.primary, 0.1);
     }
   }
 
   IconData _getTypeIcon(String type) {
-    switch (type) {
-      case 'Primeira via':
+    switch (type.toLowerCase()) {
       case 'new_card':
+      case 'emissão digital':
         return Icons.badge_rounded;
-      case 'Atualização de Dados':
       case 'update_data':
+      case 'atualização de cadastro':
         return Icons.edit_note_rounded;
       case 'support':
         return Icons.support_agent_rounded;
@@ -314,18 +442,18 @@ class _RequestsViewState extends State<RequestsView> {
   }
 
   String _getTypeLabel(String type) {
-    switch (type) {
-      case 'Primeira via':
+    switch (type.toLowerCase()) {
       case 'new_card':
-      case 'Emissão Digital':
+      case 'emissão digital':
+      case 'primeira via':
         return 'Emissão de Carteirinha';
-      case 'Atualização de Dados':
       case 'update_data':
+      case 'atualização de cadastro':
         return 'Atualização Cadastral';
       case 'support':
         return 'Solicitação de Suporte';
       default:
-        return 'Solicitação Geral';
+        return 'Solicitação';
     }
   }
 }

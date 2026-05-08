@@ -34,4 +34,11 @@ class AppColors {
   // Bordas e Sombras
   static const Color borderLight = Color(0xFFE5E7EB);
   static const Color shadowColor = Color(0xFF0B1F4D);
+
+  // Novas cores de Botões ADM (Ciclo de Vida)
+  static const Color adminPositive = Color(0xFF10B981);
+  static const Color adminAnalysis = Color(0xFFF59E0B);
+  static const Color adminRequest = Color(0xFF3B82F6);
+  static const Color adminDanger = Color(0xFFEF4444);
+  static const Color adminBlock = Color(0xFF1F2937);
 }

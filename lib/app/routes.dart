@@ -5,22 +5,26 @@ import '../features/home/home_page.dart';
 import '../features/requests/add_member_page.dart';
 import '../features/requests/member_selection_page.dart';
 import '../features/admin/admin_dashboard_page.dart';
+import '../features/splash/splash_screen.dart';
 import '../core/notifiers/auth_notifier.dart';
 
 class AppRoutes {
   static final authNotifier = AuthNotifier();
 
   static final router = GoRouter(
-    initialLocation: '/login',
+    initialLocation: '/splash',
     refreshListenable: authNotifier,
     redirect: (context, state) {
       final isAuthenticated = authNotifier.isAuthenticated;
-      final isLoggingIn = state.matchedLocation == '/login';
-      final isRegistering = state.matchedLocation == '/register';
+      final location = state.matchedLocation;
 
-      if (authNotifier.suppressRedirect) {
-        return null;
-      }
+      // Splash nunca é redirecionada — ela mesma decide para onde ir
+      if (location == '/splash') return null;
+
+      if (authNotifier.suppressRedirect) return null;
+
+      final isLoggingIn = location == '/login';
+      final isRegistering = location == '/register';
 
       if (!isAuthenticated) {
         if (isLoggingIn || isRegistering) return null;
@@ -34,6 +38,10 @@ class AppRoutes {
       return null;
     },
     routes: [
+      GoRoute(
+        path: '/splash',
+        builder: (context, state) => const SplashScreen(),
+      ),
       GoRoute(
         path: '/login',
         builder: (context, state) => const LoginPage(),

@@ -27,6 +27,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final _nomeController = TextEditingController();
   final _emailController = TextEditingController();
   final _telefoneController = TextEditingController();
+  final _cpfController = TextEditingController();
   final _dataNascimentoController = TextEditingController();
 
   // Localização
@@ -64,6 +65,11 @@ class _RegisterPageState extends State<RegisterPage> {
 
   final dateMask = MaskTextInputFormatter(
     mask: '##/##/####',
+    filter: {"#": RegExp(r'[0-9]')},
+  );
+
+  final cpfMask = MaskTextInputFormatter(
+    mask: '###.###.###-##',
     filter: {"#": RegExp(r'[0-9]')},
   );
 
@@ -120,6 +126,7 @@ class _RegisterPageState extends State<RegisterPage> {
     _nomeController.dispose();
     _emailController.dispose();
     _telefoneController.dispose();
+    _cpfController.dispose();
     _dataNascimentoController.dispose();
     _nomeInstituicaoController.dispose();
     _nomeSocialController.dispose();
@@ -163,11 +170,23 @@ class _RegisterPageState extends State<RegisterPage> {
     try {
       final authService = AuthService();
       final databaseService = DatabaseService();
+      final userData = {
+        'name': _nomeController.text.trim(),
+        'cpf': _cpfController.text.replaceAll(RegExp(r'[^0-9]'), ''),
+        'phone': _telefoneController.text,
+        'date_of_birth': _dataNascimentoController.text,
+        'city': _selectedCity ?? '',
+        'state': _selectedState ?? '',
+        'institution': _indicacaoInstituicao == 'Sim' ? _nomeInstituicaoController.text : '',
+        'gender': _sexoSelecionado ?? '',
+        'race': _racaSelecionada ?? '',
+        'social_name': _nomeSocialController.text,
+      };
 
       final credential = await authService.signUpWithEmailPassword(
         _emailController.text.trim(),
         _passwordController.text,
-        name: _nomeController.text.trim(),
+        data: userData,
       );
 
       if (credential.user != null) {
@@ -175,29 +194,33 @@ class _RegisterPageState extends State<RegisterPage> {
           id: credential.user!.id,
           name: _nomeController.text.trim(),
           email: _emailController.text.trim(),
-          cpf: '',
+          cpf: _cpfController.text.replaceAll(RegExp(r'[^0-9]'), ''),
           phone: _telefoneController.text,
           role: UserRole.user,
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
           isActive: true,
           dateOfBirth: _dataNascimentoController.text,
-          city: _selectedCity,
-          state: _selectedState,
+          city: _selectedCity ?? '',
+          state: _selectedState ?? '',
           institution: _indicacaoInstituicao == 'Sim'
               ? _nomeInstituicaoController.text
-              : null,
-          gender: _sexoSelecionado,
-          race: _racaSelecionada,
+              : '',
+          gender: _sexoSelecionado ?? '',
+          race: _racaSelecionada ?? '',
           socialName: _nomeSocialController.text,
         );
 
         try {
+          // Tenta salvar no banco. Se falhar por RLS (ex: e-mail não confirmado),
+          // pelo menos os dados básicos estão no user_metadata do Auth.
           await databaseService.createUserProfile(newUser);
         } catch (dbError) {
           debugPrint('Erro ao salvar perfil no DB: $dbError');
+          // Não lançamos erro aqui para não travar o fluxo se o usuário 
+          // ainda não puder escrever no banco (ex: política de RLS restrita)
         }
-
+        
         await authService.signOut();
 
         if (mounted) {
@@ -339,6 +362,18 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                         const SizedBox(height: 16),
 
+                        _buildInputField(
+                          label: 'CPF*',
+                          controller: _cpfController,
+                          hint: '000.000.000-00',
+                          icon: Icons.badge_outlined,
+                          inputFormatters: [cpfMask],
+                          keyboardType: TextInputType.number,
+                          validator: (v) =>
+                              v!.length < 14 ? 'CPF inválido' : null,
+                        ),
+                        const SizedBox(height: 16),
+
                         Wrap(
                           spacing: 12,
                           runSpacing: 16,
@@ -396,30 +431,24 @@ class _RegisterPageState extends State<RegisterPage> {
                           children: [
                             Expanded(
                               flex: 2,
-                              child: _buildDropdownField<String>(
+                              child: _buildSearchableDropdown(
                                 label: 'Estado*',
                                 value: _selectedState,
-                                items: _states.map((s) => DropdownMenuItem(
-                                  value: s['sigla'] as String,
-                                  child: Text(s['sigla'] as String),
-                                )).toList(),
+                                items: _states.map((s) => s['sigla'] as String).toList(),
                                 icon: Icons.map_outlined,
                                 onChanged: (v) {
                                   setState(() => _selectedState = v);
-                                  if (v != null) _fetchCities(v);
+                                  _fetchCities(v);
                                 },
                               ),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
                               flex: 4,
-                              child: _buildDropdownField<String>(
+                              child: _buildSearchableDropdown(
                                 label: 'Cidade*',
                                 value: _selectedCity,
-                                items: _cities.map((c) => DropdownMenuItem(
-                                  value: c,
-                                  child: Text(c, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 14)),
-                                )).toList(),
+                                items: _cities,
                                 icon: Icons.location_on_outlined,
                                 hint: _isLoadingCities ? 'Buscando...' : 'Selecione',
                                 onChanged: (v) => setState(() => _selectedCity = v),
@@ -799,6 +828,81 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
           ),
         ],
+      ],
+    );
+  }
+
+  
+  Widget _buildSearchableDropdown({
+    required String label,
+    required String? value,
+    required List<String> items,
+    required IconData icon,
+    required Function(String) onChanged,
+    String? hint,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.inter(
+            fontWeight: FontWeight.w700,
+            color: AppColors.darkBlue,
+            fontSize: 13,
+          ),
+        ),
+        const SizedBox(height: 8),
+        SearchAnchor(
+          builder: (context, controller) {
+            return InkWell(
+              onTap: () => controller.openView(),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(icon, color: AppColors.primary, size: 22),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        value ?? hint ?? 'Selecione',
+                        style: GoogleFonts.inter(
+                          fontSize: 15,
+                          color: value == null ? AppColors.textSecondary : AppColors.textPrimary,
+                        ),
+                      ),
+                    ),
+                    const Icon(Icons.arrow_drop_down, color: AppColors.textSecondary),
+                  ],
+                ),
+              ),
+            );
+          },
+          viewHintText: 'Digite para buscar...',
+          viewLeading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.pop(context),
+          ),
+          suggestionsBuilder: (context, controller) {
+            final keyword = controller.text.toLowerCase();
+            final filtered = items
+                .where((item) => item.toLowerCase().contains(keyword))
+                .toList();
+
+            return filtered.map((item) => ListTile(
+              title: Text(item),
+              onTap: () {
+                controller.closeView(item);
+                onChanged(item);
+              },
+            ));
+          },
+        ),
       ],
     );
   }

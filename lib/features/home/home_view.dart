@@ -7,9 +7,13 @@ import 'package:conectea/services/auth_service.dart';
 import 'package:conectea/models/app_user.dart';
 import 'package:conectea/models/member.dart';
 import 'package:conectea/models/card_request.dart';
+import 'package:conectea/models/digital_card.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import 'dart:math' as math;
 import '../requests/add_member_page.dart';
+import '../cards/widgets/digital_card_widget.dart';
+import '../admin/scanner_view.dart';
 
 class HomeView extends StatefulWidget {
   final Function(int) onNavigate;
@@ -27,8 +31,7 @@ class _HomeViewState extends State<HomeView> {
   AppUser? _user;
   List<Member> _members = [];
   List<CardRequest> _requests = [];
-  CardRequest? _ongoingRequest;
-  Stream<List<CardRequest>>? _requestsStream;
+  List<DigitalCard> _digitalCards = [];
   bool _isLoading = true;
   int _selectedMemberIndex = 0;
 
@@ -73,23 +76,10 @@ class _HomeViewState extends State<HomeView> {
     try {
       final userId = _authService.currentUser?.id;
       if (userId != null) {
-        var user = await _databaseService.getUserProfile(userId);
-        
-        if (user == null) {
-          if (mounted) setState(() => _isLoading = false);
-          return;
-        }
-
-        final members = await _databaseService.getMembers(userId);
-        final requests = await _databaseService.getCardRequests(userId);
-        _requestsStream = _databaseService.cardRequestsStream(userId);
-        
+        final user = await _databaseService.getUserProfile(userId);
         if (mounted) {
           setState(() {
             _user = user;
-            _members = members;
-            _requests = requests;
-            _ongoingRequest = requests.isNotEmpty ? requests.first : null;
             _isLoading = false;
           });
         }
@@ -110,59 +100,89 @@ class _HomeViewState extends State<HomeView> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator(color: AppColors.primary));
-    }
+    final userId = _authService.currentUser?.id;
+    if (userId == null) return const Center(child: Text('Por favor, faça login'));
 
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9), // Slate 100
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            const Color(0xFFF1F5F9), // Slate 100
-            const Color(0xFFCBD5E1), // Slate 300 - Darkened further for maximum card pop
-          ],
-        ),
-      ),
-      child: RefreshIndicator(
-        onRefresh: _loadData,
-        color: AppColors.primary,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-          padding: const EdgeInsets.symmetric(vertical: 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildGreeting(),
-              const SizedBox(height: 32),
-              _buildMembersSection(),
-              const SizedBox(height: 36),
-              _buildCarteirinhaSection(),
-              const SizedBox(height: 36),
-              _buildQuickAccessGrid(),
-              const SizedBox(height: 36),
-              StreamBuilder<List<CardRequest>>(
-                stream: _requestsStream,
-                builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    _requests = snapshot.data!;
-                    _ongoingRequest = _requests.isNotEmpty ? _requests.first : null;
-                  }
-                  return _buildOngoingRequest();
-                },
+    return StreamBuilder<List<Member>>(
+      stream: _databaseService.membersStream(userId),
+      builder: (context, memberSnapshot) {
+        if (memberSnapshot.connectionState == ConnectionState.waiting && _isLoading) {
+          return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+        }
+        
+        final members = memberSnapshot.data ?? [];
+        _members = members; // Update local state for selection
+
+        return StreamBuilder<List<CardRequest>>(
+          stream: _databaseService.cardRequestsStream(userId),
+          builder: (context, requestSnapshot) {
+            final requests = requestSnapshot.data ?? [];
+            _requests = requests;
+
+            return StreamBuilder<List<DigitalCard>>(
+              stream: _databaseService.digitalCardsStream(userId),
+              builder: (context, cardSnapshot) {
+                final cards = cardSnapshot.data ?? [];
+                _digitalCards = cards;
+
+                return Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F5F9), // Slate 100
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    const Color(0xFFF1F5F9), // Slate 100
+                    const Color(0xFFCBD5E1), // Slate 300
+                  ],
+                ),
               ),
-              const SizedBox(height: 36),
-              _buildOtherServices(),
-              const SizedBox(height: 40),
-              _buildInstitutionalBanner(),
-              const SizedBox(height: 48),
-            ],
-          ),
-        ),
-      ),
+              child: RefreshIndicator(
+                onRefresh: _loadData,
+                color: AppColors.primary,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+                  padding: const EdgeInsets.symmetric(vertical: 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildGreeting(),
+                      const SizedBox(height: 32),
+                      _buildMembersSection(),
+                      const SizedBox(height: 36),
+                      _buildCarteirinhaSection(),
+                      const SizedBox(height: 36),
+                      _buildQuickAccessGrid(),
+                      const SizedBox(height: 36),
+                      _buildOngoingRequestSection(requests),
+                      const SizedBox(height: 36),
+                      _buildOtherServices(),
+                      const SizedBox(height: 40),
+                      _buildInstitutionalBanner(),
+                      const SizedBox(height: 48),
+                    ],
+                  ),
+                ),
+              ),
+                );
+              },
+            );
+          },
+        );
+      },
     );
+  }
+
+  Widget _buildOngoingRequestSection(List<CardRequest> requests) {
+    // Filter out approved/active requests as they are already displayed in the main card section
+    final ongoingRequests = requests.where((r) {
+      final s = r.status.toLowerCase();
+      return s != 'active' && s != 'ativa' && s != 'approved' && s != 'aprovada';
+    }).toList();
+
+    if (ongoingRequests.isEmpty) return const SizedBox.shrink();
+    
+    return _buildOngoingRequest(ongoingRequests.first);
   }
 
   Widget _buildGreeting() {
@@ -203,6 +223,29 @@ class _HomeViewState extends State<HomeView> {
                   ),
                 ),
               ],
+            ),
+          ),
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ScannerView()),
+              );
+            },
+            icon: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: const Icon(Icons.qr_code_scanner, color: AppColors.primary),
             ),
           ),
         ],
@@ -512,28 +555,38 @@ class _HomeViewState extends State<HomeView> {
     final status = effectiveStatus;
 
     switch (effectiveStatus) {
+      case 'active':
+      case 'ativa':
+      case 'approved':
+      case 'aprovada':
+        statusDisplay = 'ATIVA';
+        statusColor = AppColors.statusGreen;
+        statusIcon = Icons.check_circle_rounded;
+        isActive = true;
+        break;
       case 'waiting_approval':
       case 'under_review':
       case 'analise':
         statusDisplay = 'EM ANÁLISE';
+        statusColor = AppColors.alertOrange;
         statusIcon = Icons.history_rounded;
         break;
       case 'waiting_docs':
         statusDisplay = 'AGUARDANDO DOCS';
-        statusColor = Colors.blue;
+        statusColor = AppColors.cardBlue;
         statusIcon = Icons.file_present_rounded;
         showJustification = true;
         break;
       case 'reviewing_data':
         statusDisplay = 'REVISAR DADOS';
-        statusColor = Colors.orange;
+        statusColor = AppColors.alertOrange;
         statusIcon = Icons.edit_note_rounded;
         showJustification = true;
         break;
       case 'rejected':
       case 'rejeitada':
         statusDisplay = 'REPROVADA';
-        statusColor = Colors.red;
+        statusColor = AppColors.errorRed;
         statusIcon = Icons.error_outline_rounded;
         showJustification = true;
         isRejected = true;
@@ -541,7 +594,7 @@ class _HomeViewState extends State<HomeView> {
       case 'suspended':
       case 'suspensa':
         statusDisplay = 'SUSPENSA';
-        statusColor = Colors.black87;
+        statusColor = AppColors.adminBlock;
         statusIcon = Icons.block_rounded;
         showJustification = true;
         break;
@@ -554,12 +607,12 @@ class _HomeViewState extends State<HomeView> {
       case 'renewing':
       case 'renovacao':
         statusDisplay = 'RENOVAÇÃO';
-        statusColor = Colors.purple;
+        statusColor = AppColors.primary;
         statusIcon = Icons.autorenew_rounded;
         break;
       default:
         statusDisplay = 'EM ANÁLISE';
-        statusColor = const Color(0xFFF9A825);
+        statusColor = AppColors.alertOrange;
         statusIcon = Icons.pending_actions_rounded;
     }
 
@@ -590,29 +643,10 @@ class _HomeViewState extends State<HomeView> {
                 Expanded(
                   flex: 3,
                   child: SizedBox(
-                    height: 120,
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        // Back Card
-                        Positioned(
-                          right: 0,
-                          top: 15,
-                          child: Transform.rotate(
-                            angle: 0.1,
-                            child: _buildMiniCard(isVerso: true, member: member),
-                          ),
-                        ),
-                        // Front Card
-                        Positioned(
-                          left: 0,
-                          top: 0,
-                          child: Transform.rotate(
-                            angle: -0.05,
-                            child: _buildMiniCard(isVerso: false, member: member),
-                          ),
-                        ),
-                      ],
+                    height: 130,
+                    child: _Animated3DCardGroup(
+                      frontCard: _buildMiniCard(isVerso: false, member: member),
+                      backCard: _buildMiniCard(isVerso: true, member: member),
                     ),
                   ),
                 ),
@@ -648,31 +682,46 @@ class _HomeViewState extends State<HomeView> {
                             color: statusColor,
                           ),
                         ),
-                        if (memberRequest?.protocol != null && memberRequest!.protocol.isNotEmpty) ...[
-                          const SizedBox(height: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: AppColors.textSecondary.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              memberRequest.protocol,
-                              style: GoogleFonts.inter(
-                                fontSize: 9,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.textSecondary,
+                        () {
+                          String? displayId;
+                          if (isActive) {
+                            try {
+                              final card = _digitalCards.firstWhere((DigitalCard c) => c.memberId == member.id);
+                              displayId = card.cardNumber;
+                            } catch (_) {}
+                          }
+                          displayId ??= memberRequest?.protocol;
+
+                          if (displayId == null || displayId.isEmpty) return const SizedBox.shrink();
+
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 6),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: AppColors.textSecondary.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                displayId,
+                                style: GoogleFonts.inter(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.textSecondary,
+                                ),
                               ),
                             ),
-                          ),
-                        ],
+                          );
+                        }(),
                         const Divider(height: 20, color: AppColors.borderLight),
                         Text(
                           'Vencimento',
                           style: GoogleFonts.inter(fontSize: 10, color: AppColors.textSecondary),
                         ),
                         Text(
-                          isActive ? DateFormat('dd/MM/yyyy').format(lastUpdate.add(const Duration(days: 365))) : '--/--/----',
+                          (memberRequest?.expiresAt != null) 
+                            ? DateFormat('dd/MM/yyyy').format(memberRequest!.expiresAt!) 
+                            : (isActive ? DateFormat('dd/MM/yyyy').format(lastUpdate.add(const Duration(days: 365))) : '--/--/----'),
                           style: GoogleFonts.inter(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
@@ -851,74 +900,40 @@ class _HomeViewState extends State<HomeView> {
   }
 
   Widget _buildMiniCard({required bool isVerso, Member? member}) {
-    final String name = member?.name ?? (_user?.socialName ?? _user?.name ?? 'Membro');
-    final String cpf = member?.cpf ?? '***.***.***-**';
+    if (member == null) {
+      // Create a dummy member
+      member = Member(
+        id: 'dummy',
+        userId: 'dummy',
+        name: _user?.socialName ?? _user?.name ?? 'Membro',
+        dateOfBirth: '2000-01-01',
+        cpf: '***.***.***-**',
+        phone: '',
+        bloodType: '',
+        emergencyContact: '',
+        responsibleName: '',
+        cid: '',
+        documentUrl: '',
+        medicalReportUrl: '',
+        city: '',
+        state: '',
+        status: 'active',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+    }
     
-    return Container(
-      width: 150,
-      height: 95,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: isVerso 
-              ? [AppColors.darkBlue, AppColors.darkBlue.withValues(alpha: 0.85)] 
-              : [AppColors.primary, AppColors.primary.withValues(alpha: 0.85)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+    return SizedBox(
+      width: 170,
+      child: RepaintBoundary(
+        child: IgnorePointer(
+          child: DigitalCardWidget(
+            member: member!,
+            showBack: isVerso,
+            card: null,
+            isStatic: true,
+          ),
         ),
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            right: -15,
-            bottom: -15,
-            child: Icon(
-              Icons.all_inclusive_rounded, 
-              color: Colors.white.withValues(alpha: 0.08), 
-              size: 70
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Icon(Icons.all_inclusive_rounded, color: Colors.white, size: 12),
-                    const SizedBox(width: 4),
-                    Text(
-                      'ConeCTEA',
-                      style: GoogleFonts.inter(color: Colors.white, fontSize: 8, fontWeight: FontWeight.w900),
-                    ),
-                  ],
-                ),
-                const Spacer(),
-                if (!isVerso) ...[
-                  Text(
-                    name.split(' ').first.toUpperCase(),
-                    style: GoogleFonts.inter(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w800),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  Text(
-                    'CPF: $cpf',
-                    style: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.7), fontSize: 7, fontWeight: FontWeight.w500),
-                  ),
-                ] else ...[
-                  const Icon(Icons.qr_code_2_rounded, color: Colors.white, size: 28),
-                ],
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -1149,40 +1164,64 @@ class _HomeViewState extends State<HomeView> {
   }
 
 
-  Widget _buildOngoingRequest() {
-    if (_ongoingRequest == null) return const SizedBox.shrink();
+  Widget _buildOngoingRequest(CardRequest? request) {
+    if (request == null) return const SizedBox.shrink();
 
-    final String rawStatus = _ongoingRequest!.status.toLowerCase();
+    final String rawStatus = request.status.toLowerCase();
     String statusDisplay = 'EM ANÁLISE';
     Color statusColor = AppColors.alertOrange;
     IconData statusIcon = Icons.history_edu_rounded;
     bool isApproved = false;
 
     switch (rawStatus) {
+      case 'active':
+      case 'ativa':
       case 'approved':
-      case 'aprovado':
-        statusDisplay = 'APROVADO';
+      case 'aprovada':
+        statusDisplay = 'ATIVA';
         statusColor = AppColors.statusGreen;
-        statusIcon = Icons.check_circle_outline_rounded;
+        statusIcon = Icons.check_circle_rounded;
         isApproved = true;
-        break;
-      case 'rejected':
-      case 'rejeitado':
-        statusDisplay = 'REPROVADA';
-        statusColor = Colors.redAccent;
-        statusIcon = Icons.error_outline_rounded;
         break;
       case 'waiting_approval':
       case 'under_review':
       case 'analise':
         statusDisplay = 'EM ANÁLISE';
         statusColor = AppColors.alertOrange;
-        statusIcon = Icons.history_edu_rounded;
+        statusIcon = Icons.history_rounded;
+        break;
+      case 'waiting_docs':
+        statusDisplay = 'AGUARDANDO DOCS';
+        statusColor = AppColors.cardBlue;
+        statusIcon = Icons.file_present_rounded;
+        break;
+      case 'reviewing_data':
+        statusDisplay = 'REVISAR DADOS';
+        statusColor = AppColors.alertOrange;
+        statusIcon = Icons.edit_note_rounded;
+        break;
+      case 'rejected':
+      case 'rejeitada':
+        statusDisplay = 'REPROVADA';
+        statusColor = AppColors.errorRed;
+        statusIcon = Icons.error_outline_rounded;
+        break;
+      case 'suspended':
+      case 'suspensa':
+        statusDisplay = 'SUSPENSA';
+        statusColor = AppColors.adminBlock;
+        statusIcon = Icons.block_rounded;
+        break;
+      case 'expired':
+      case 'vencida':
+        statusDisplay = 'VENCIDA';
+        statusColor = Colors.brown;
+        statusIcon = Icons.event_busy_rounded;
         break;
       default:
         statusDisplay = 'EM ANÁLISE';
         statusColor = AppColors.alertOrange;
-        statusIcon = Icons.history_edu_rounded;
+        statusIcon = Icons.pending_actions_rounded;
     }
 
     return Padding(
@@ -1249,7 +1288,7 @@ class _HomeViewState extends State<HomeView> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            _ongoingRequest!.type == 'new_card' || _ongoingRequest!.type == 'Emissão Digital' 
+                            request.type == 'new_card' || request.type == 'Emissão Digital' 
                                 ? 'Emissão de Carteirinha' 
                                 : 'Atualização de Cadastro',
                             style: GoogleFonts.inter(
@@ -1267,7 +1306,7 @@ class _HomeViewState extends State<HomeView> {
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
-                              'Protocolo: #${_ongoingRequest!.protocol}',
+                              'Protocolo: #${request.protocol}',
                               style: GoogleFonts.inter(
                                 fontSize: 11,
                                 color: AppColors.textSecondary,
@@ -1313,6 +1352,7 @@ class _HomeViewState extends State<HomeView> {
                 const SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Expanded(
                       child: Column(
@@ -1367,6 +1407,35 @@ class _HomeViewState extends State<HomeView> {
               ],
             ),
           ),
+          if (request.expiresAt != null && (request.status == 'waiting_docs' || request.status == 'reviewing_data'))
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.errorRed.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.errorRed.withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.warning_amber_rounded, color: AppColors.errorRed, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Você tem até o dia ${request.expiresAt!.day.toString().padLeft(2, '0')}/${request.expiresAt!.month.toString().padLeft(2, '0')}/${request.expiresAt!.year} para concluir ou sua solicitação será reprovada.',
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          color: AppColors.errorRed,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -1635,6 +1704,97 @@ class _HomeViewState extends State<HomeView> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _Animated3DCardGroup extends StatefulWidget {
+  final Widget frontCard;
+  final Widget backCard;
+
+  const _Animated3DCardGroup({required this.frontCard, required this.backCard});
+
+  @override
+  State<_Animated3DCardGroup> createState() => _Animated3DCardGroupState();
+}
+
+class _Animated3DCardGroupState extends State<_Animated3DCardGroup> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 1800))
+      ..forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        // Efeito de entrada suave — sem loop infinito (evita artefatos no Chrome)
+        final double progress = Curves.easeOutCubic.transform(_controller.value);
+        final double hoverOffset = (1.0 - progress) * 12;
+        final double tiltX = (1.0 - progress) * 0.05;
+        final double tiltY = (1.0 - progress) * 0.05;
+
+        return Stack(
+          alignment: Alignment.center,
+          clipBehavior: Clip.none,
+          children: [
+            // Back card (verso)
+            Positioned(
+              left: 12 + (tiltY * 20), // Reduced independent movement
+              bottom: -4 + hoverOffset,
+              child: Transform(
+                transform: Matrix4.identity()
+                  ..setEntry(3, 2, 0.001)
+                  ..rotateX(-0.08)
+                  ..rotateY(0.15)
+                  ..rotateZ(-0.04 + tiltX * 0.5),
+                alignment: Alignment.center,
+                child: Opacity(
+                  opacity: 0.7,
+                  child: widget.backCard,
+                ),
+              ),
+            ),
+            // Front card (frente)
+            Positioned(
+              right: 12 - (tiltY * 20), // Reduced independent movement
+              top: -4 - hoverOffset,
+              child: Transform(
+                transform: Matrix4.identity()
+                  ..setEntry(3, 2, 0.001)
+                  ..rotateX(0.04)
+                  ..rotateY(-0.08)
+                  ..rotateZ(0.04 + tiltY * 0.5),
+                alignment: Alignment.center,
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.25),
+                        blurRadius: 12,
+                        offset: const Offset(4, 8),
+                      ),
+                    ],
+                  ),
+                  child: widget.frontCard,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

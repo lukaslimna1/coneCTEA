@@ -62,7 +62,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
     if (widget.request!.status == 'reviewing_data' || 
         widget.request!.status == 'waiting_docs') {
       final notes = widget.request!.adminNotes ?? '';
-      if (!notes.contains('Pendência:')) return false;
+      if (!notes.contains('Pendência:')) return true; // Unlock all if admin didn't use checkboxes
       return notes.toLowerCase().contains(fieldName.toLowerCase());
     }
     return false;
@@ -539,7 +539,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                 inputFormatters: [dateMask],
                 keyboardType: TextInputType.datetime,
                 validator: (v) => v!.length < 10 ? 'Data incompleta' : null,
-                enabled: _isFieldEnabled('Nome Completo'),
+                enabled: _isFieldEnabled('Data de Nascimento'),
               ),
               const SizedBox(height: 20),
 
@@ -547,35 +547,29 @@ class _AddMemberPageState extends State<AddMemberPage> {
                 children: [
                   Expanded(
                     flex: 2,
-                    child: _buildDropdownField<String>(
+                    child: _buildSearchableDropdown(
                       label: 'Estado*',
                       value: _selectedState,
-                      items: _states.map((s) => DropdownMenuItem(
-                        value: s['sigla'] as String,
-                        child: Text(s['sigla'] as String),
-                      )).toList(),
+                      items: _states.map((s) => s['sigla'] as String).toList(),
                       onChanged: (val) {
                         setState(() => _selectedState = val);
-                        if (val != null) _fetchCities(val);
+                        _fetchCities(val);
                       },
                       icon: Icons.map_outlined,
-                      enabled: _isFieldEnabled('Endereço/Cidade'),
+                      enabled: _isFieldEnabled('Estado'),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     flex: 5,
-                    child: _buildDropdownField<String>(
+                    child: _buildSearchableDropdown(
                       label: 'Cidade*',
                       value: _selectedCity,
-                      items: _cities.map((c) => DropdownMenuItem(
-                        value: c,
-                        child: Text(c, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 14)),
-                      )).toList(),
+                      items: _cities,
                       onChanged: (val) => setState(() => _selectedCity = val),
                       icon: Icons.location_on_outlined,
                       hint: _isLoadingCities ? 'Carregando...' : 'Selecione',
-                      enabled: _isFieldEnabled('Endereço/Cidade'),
+                      enabled: _isFieldEnabled('Cidade'),
                     ),
                   ),
                 ],
@@ -772,6 +766,82 @@ class _AddMemberPageState extends State<AddMemberPage> {
     );
   }
 
+  
+  Widget _buildSearchableDropdown({
+    required String label,
+    required String? value,
+    required List<String> items,
+    required IconData icon,
+    required Function(String) onChanged,
+    bool enabled = true,
+    String? hint,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.inter(
+            fontWeight: FontWeight.w700,
+            color: AppColors.darkBlue,
+            fontSize: 13,
+          ),
+        ),
+        const SizedBox(height: 8),
+        SearchAnchor(
+          builder: (context, controller) {
+            return InkWell(
+              onTap: enabled ? () => controller.openView() : null,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                decoration: BoxDecoration(
+                  color: enabled ? Colors.white : Colors.grey[100],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(icon, color: enabled ? AppColors.primary : Colors.grey, size: 22),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        value ?? hint ?? 'Selecione',
+                        style: GoogleFonts.inter(
+                          fontSize: 15,
+                          color: value == null ? AppColors.textSecondary : AppColors.textPrimary,
+                        ),
+                      ),
+                    ),
+                    const Icon(Icons.arrow_drop_down, color: AppColors.textSecondary),
+                  ],
+                ),
+              ),
+            );
+          },
+          viewHintText: 'Digite para buscar...',
+          viewLeading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.pop(context),
+          ),
+          suggestionsBuilder: (context, controller) {
+            final keyword = controller.text.toLowerCase();
+            final filtered = items
+                .where((item) => item.toLowerCase().contains(keyword))
+                .toList();
+
+            return filtered.map((item) => ListTile(
+              title: Text(item),
+              onTap: () {
+                controller.closeView(item);
+                onChanged(item);
+              },
+            ));
+          },
+        ),
+      ],
+    );
+  }
+
   Widget _buildDropdownField<T>({
     required String label,
     required T? value,
@@ -795,7 +865,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
         const SizedBox(height: 8),
         DropdownButtonFormField<T>(
           value: value,
-          items: enabled ? items : [],
+          items: items,
           onChanged: enabled ? onChanged : null,
           isExpanded: true,
           icon: const Icon(Icons.keyboard_arrow_down_rounded),

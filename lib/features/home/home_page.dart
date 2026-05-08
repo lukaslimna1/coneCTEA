@@ -243,8 +243,8 @@ class _HomePageState extends State<HomePage> {
                 right: -2,
                 top: -2,
                 child: Container(
-                  width: 24,
-                  height: 24,
+                  width: 20,
+                  height: 20,
                   decoration: BoxDecoration(
                     color: AppColors.errorRed,
                     shape: BoxShape.circle,
@@ -252,10 +252,10 @@ class _HomePageState extends State<HomePage> {
                   ),
                   child: Center(
                     child: Text(
-                      '$_unreadCount',
+                      _unreadCount > 9 ? '9+' : '$_unreadCount',
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 11,
+                        fontSize: 9,
                         fontWeight: FontWeight.bold,
                       ),
                     ),

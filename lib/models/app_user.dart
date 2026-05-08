@@ -52,13 +52,13 @@ class AppUser {
           ? DateTime.parse(data['updated_at']) 
           : DateTime.now(),
       isActive: data['is_active'] ?? true,
-      dateOfBirth: data['date_of_birth'],
-      city: data['city'],
-      state: data['state'],
-      institution: data['institution'],
-      gender: data['gender'],
-      race: data['race'],
-      socialName: data['social_name'],
+      dateOfBirth: data['date_of_birth'] ?? '',
+      city: data['city'] ?? '',
+      state: data['state'] ?? '',
+      institution: data['institution'] ?? '',
+      gender: data['gender'] ?? '',
+      race: data['race'] ?? '',
+      socialName: data['social_name'] ?? '',
     );
   }
 
@@ -73,13 +73,16 @@ class AppUser {
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
       'is_active': isActive,
-      'date_of_birth': dateOfBirth,
-      'city': city,
-      'state': state,
-      'institution': institution,
-      'gender': gender,
-      'race': race,
-      'social_name': socialName,
+      // Campos obrigatórios — nunca nulos
+      'date_of_birth': dateOfBirth ?? '',
+      'city': city ?? '',
+      'state': state ?? '',
+      // Campos opcionais — salvam string vazia em vez de NULL
+      // para que a edição de perfil encontre o campo em branco, não nulo
+      'institution': institution ?? '',
+      'gender': gender ?? '',
+      'race': race ?? '',
+      'social_name': socialName ?? '',
     };
   }
 }

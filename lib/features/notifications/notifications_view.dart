@@ -24,6 +24,21 @@ class _NotificationsViewState extends State<NotificationsView> {
   void initState() {
     super.initState();
     _loadNotifications();
+    _markAllAsRead();
+  }
+
+  Future<void> _markAllAsRead() async {
+    final userId = _authService.currentUser?.id;
+    if (userId != null) {
+      await _databaseService.markAllNotificationsAsRead(userId);
+    }
+  }
+
+  Future<void> _clearNotifications() async {
+    final userId = _authService.currentUser?.id;
+    if (userId != null) {
+      await _databaseService.clearAllNotifications(userId);
+    }
   }
 
   Future<void> _loadNotifications() async {
@@ -51,14 +66,70 @@ class _NotificationsViewState extends State<NotificationsView> {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
-            child: Text(
-              'Notificações',
-              style: GoogleFonts.inter(
-                fontSize: 28,
-                fontWeight: FontWeight.w800,
-                color: AppColors.textPrimary,
-                letterSpacing: -1,
-              ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Notificações',
+                  style: GoogleFonts.inter(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textPrimary,
+                    letterSpacing: -1,
+                  ),
+                ),
+                if (_notifications.isNotEmpty)
+                  TextButton.icon(
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Limpar notificações?'),
+                          content: const Text('Iso removerá permanentemente todas as suas notificações.'),
+                          actions: [
+                            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+                            TextButton(
+                    onPressed: () async {
+                      final navigator = Navigator.of(context);
+                      final scaffold = ScaffoldMessenger.of(context);
+                      
+                      try {
+                        await _clearNotifications();
+                        if (mounted) {
+                          scaffold.showSnackBar(
+                            const SnackBar(
+                              content: Text('Notificações removidas com sucesso!'),
+                              backgroundColor: AppColors.statusGreen,
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        if (mounted) {
+                          scaffold.showSnackBar(
+                            SnackBar(
+                              content: Text('Erro ao limpar notificações: $e'),
+                              backgroundColor: AppColors.errorRed,
+                            ),
+                          );
+                        }
+                      }
+                      navigator.pop();
+                    },
+                              style: TextButton.styleFrom(foregroundColor: AppColors.errorRed),
+                              child: const Text('Limpar Tudo'),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.clear_all_rounded, size: 20),
+                    label: const Text('Limpar'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.textSecondary,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                    ),
+                  ),
+              ],
             ),
           ),
           Expanded(
@@ -72,6 +143,15 @@ class _NotificationsViewState extends State<NotificationsView> {
                 
                 final notifications = snapshot.data ?? [];
                 
+                // Update local list to show/hide clear button correctly
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted && _notifications.length != notifications.length) {
+                    setState(() {
+                      _notifications = notifications;
+                    });
+                  }
+                });
+
                 if (notifications.isEmpty) {
                   return _buildEmptyState();
                 }

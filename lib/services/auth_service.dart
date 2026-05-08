@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 class AuthService {
   final SupabaseClient _supabase = Supabase.instance.client;
@@ -12,24 +13,30 @@ class AuthService {
   // Login com E-mail e Senha
   Future<AuthResponse> signInWithEmailPassword(String email, String password) async {
     try {
-      return await _supabase.auth.signInWithPassword(
+      final response = await _supabase.auth.signInWithPassword(
         email: email,
         password: password,
       );
+      if (response.user != null) {
+        OneSignal.login(response.user!.id);
+      }
+      return response;
     } catch (e) {
       rethrow;
     }
   }
 
   // Cadastro com E-mail e Senha
-  Future<AuthResponse> signUpWithEmailPassword(String email, String password, {String? name}) async {
+  Future<AuthResponse> signUpWithEmailPassword(String email, String password, {Map<String, dynamic>? data}) async {
     try {
       final response = await _supabase.auth.signUp(
         email: email,
         password: password,
-        data: name != null ? {'name': name} : null,
+        data: data ?? {},
       );
-      
+      if (response.user != null) {
+        OneSignal.login(response.user!.id);
+      }
       return response;
     } catch (e) {
       rethrow;
@@ -38,6 +45,7 @@ class AuthService {
 
   // Logout
   Future<void> signOut() async {
+    OneSignal.logout();
     await _supabase.auth.signOut();
   }
 

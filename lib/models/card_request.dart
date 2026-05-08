@@ -9,8 +9,10 @@ class CardRequest {
   final String driveFolderUrl;
   final String documentUrl;
   final String medicalReportUrl;
+  final String memberName;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final DateTime? expiresAt;
 
   CardRequest({
     required this.id,
@@ -23,8 +25,10 @@ class CardRequest {
     required this.driveFolderUrl,
     required this.documentUrl,
     required this.medicalReportUrl,
+    this.memberName = '',
     required this.createdAt,
     required this.updatedAt,
+    this.expiresAt,
   });
 
   factory CardRequest.fromJson(Map<String, dynamic> data) {
@@ -52,8 +56,10 @@ class CardRequest {
       driveFolderUrl: data['drive_folder_url'] ?? data['driveFolderUrl'] ?? '',
       documentUrl: data['document_url'] ?? data['documentUrl'] ?? data['id_photo_url'] ?? data['idPhotoUrl'] ?? '',
       medicalReportUrl: data['medical_report_url'] ?? data['medicalReportUrl'] ?? '',
+      memberName: data['members']?['name'] ?? data['memberName'] ?? '',
       createdAt: parseDate(data['created_at'] ?? data['createdAt']),
       updatedAt: parseDate(data['updated_at'] ?? data['updatedAt']),
+      expiresAt: data['expires_at'] != null ? parseDate(data['expires_at']) : null,
     );
   }
 
@@ -71,6 +77,7 @@ class CardRequest {
       'medical_report_url': medicalReportUrl,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
+      'expires_at': expiresAt?.toIso8601String(),
     };
   }
 
@@ -87,6 +94,7 @@ class CardRequest {
     String? medicalReportUrl,
     DateTime? createdAt,
     DateTime? updatedAt,
+    DateTime? expiresAt,
   }) {
     return CardRequest(
       id: id ?? this.id,
@@ -101,6 +109,7 @@ class CardRequest {
       medicalReportUrl: medicalReportUrl ?? this.medicalReportUrl,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      expiresAt: expiresAt ?? this.expiresAt,
     );
   }
 }

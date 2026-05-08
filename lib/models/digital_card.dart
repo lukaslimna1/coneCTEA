@@ -9,6 +9,7 @@ class DigitalCard {
   final Map<String, dynamic> frontData;
   final Map<String, dynamic> backData;
   final String qrValidationUrl;
+  final bool isActive;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -23,6 +24,7 @@ class DigitalCard {
     required this.frontData,
     required this.backData,
     required this.qrValidationUrl,
+    required this.isActive,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -43,6 +45,8 @@ class DigitalCard {
       frontData: data['frontData'] ?? data['front_data'] ?? {},
       backData: data['backData'] ?? data['back_data'] ?? {},
       qrValidationUrl: data['qrValidationUrl'] ?? data['qr_validation_url'] ?? '',
+      // isActive: usa is_active se existir, senão deriva de status
+      isActive: data['is_active'] as bool? ?? (data['status'] == 'active'),
       createdAt: data['createdAt'] != null 
           ? DateTime.parse(data['createdAt']) 
           : (data['created_at'] != null ? DateTime.parse(data['created_at']) : DateTime.now()),
@@ -64,6 +68,7 @@ class DigitalCard {
       'front_data': frontData,
       'back_data': backData,
       'qr_validation_url': qrValidationUrl,
+      // Não inclui 'is_active' — derivado de status=='active' no banco
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };
