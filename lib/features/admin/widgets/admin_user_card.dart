@@ -2,17 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/colors.dart';
 import '../../../models/app_user.dart';
+import '../../../core/widgets/user_role_badge.dart';
 
 class AdminUserCard extends StatelessWidget {
   final AppUser user;
   final UserRole? currentUserRole;
   final Function(UserRole) onToggleRole;
+  final VoidCallback? onEditProfile;
 
   const AdminUserCard({
     super.key,
     required this.user,
     required this.currentUserRole,
     required this.onToggleRole,
+    this.onEditProfile,
   });
 
   @override
@@ -84,24 +87,6 @@ class AdminUserCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    if (isAdmin) ...[
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: roleColor,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          user.role.name.toUpperCase(),
-                          style: GoogleFonts.inter(
-                            fontSize: 8,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                      ),
-                    ],
                   ],
                 ),
                 Text(
@@ -116,11 +101,24 @@ class AdminUserCard extends StatelessWidget {
             ),
           ),
           if (currentUserRole?.canManageRoles ?? false)
-            PopupMenuButton<UserRole>(
+            PopupMenuButton<String>(
               icon: Icon(Icons.more_vert_rounded, color: Colors.grey[400]),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              onSelected: onToggleRole,
+              onSelected: (value) {
+                if (value == 'edit') {
+                  onEditProfile?.call();
+                } else {
+                  // Converte string de volta para UserRole
+                  final role = UserRole.values.firstWhere((e) => e.dbValue == value);
+                  onToggleRole(role);
+                }
+              },
               itemBuilder: (context) => [
+                if (currentUserRole?.canRunMaintenance ?? false)
+                  _buildMenuAction('edit', 'Editar Cadastro', Icons.edit_note_rounded),
+                
+                const PopupMenuDivider(),
+                
                 _buildMenuItem(UserRole.user, 'Usuário', Icons.person_outline_rounded, user.role),
                 _buildMenuItem(UserRole.admin, 'Administrador', Icons.admin_panel_settings_outlined, user.role),
                 if (currentUserRole == UserRole.adminDev) ...[
@@ -134,10 +132,30 @@ class AdminUserCard extends StatelessWidget {
     );
   }
 
-  PopupMenuItem<UserRole> _buildMenuItem(UserRole value, String label, IconData icon, UserRole current) {
-    final bool isSelected = value == current;
+  PopupMenuItem<String> _buildMenuAction(String value, String label, IconData icon) {
     return PopupMenuItem(
       value: value,
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: AppColors.primary),
+          const SizedBox(width: 12),
+          Text(
+            label, 
+            style: GoogleFonts.inter(
+              fontSize: 13, 
+              fontWeight: FontWeight.w700,
+              color: AppColors.primary,
+            )
+          ),
+        ],
+      ),
+    );
+  }
+
+  PopupMenuItem<String> _buildMenuItem(UserRole value, String label, IconData icon, UserRole current) {
+    final bool isSelected = value == current;
+    return PopupMenuItem(
+      value: value.dbValue,
       child: Row(
         children: [
           Icon(icon, size: 20, color: isSelected ? AppColors.primary : AppColors.textSecondary),

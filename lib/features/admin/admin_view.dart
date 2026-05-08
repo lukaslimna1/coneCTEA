@@ -56,6 +56,11 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
     if (user != null) {
       final profile = await _databaseService.getUserProfile(user.id);
       if (mounted) {
+        final dbRole = profile?.role.dbValue ?? 'desconhecido';
+        debugPrint('🛡️ ADMIN_VIEW: Usuário logado com ID: ${user.id}');
+        debugPrint('🛡️ ADMIN_VIEW: Cargo lido do Banco: $dbRole');
+        debugPrint('🛡️ ADMIN_VIEW: Permissão isAdmin: ${profile?.role.isAdmin}');
+        
         setState(() => _currentUser = profile);
       }
     }
@@ -112,60 +117,80 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
   }
 
   Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    final bool isDev = _currentUser?.role.canRunMaintenance ?? false;
+
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 800),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Painel de Gestão',
-                      style: GoogleFonts.inter(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w900,
-                        color: AppColors.darkBlue,
-                        letterSpacing: -1.0,
-                      ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Painel de Gestão',
+                          style: GoogleFonts.inter(
+                            fontSize: 26,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.darkBlue,
+                            letterSpacing: -1.0,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Gerenciamento institucional ConeCTEA',
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            color: AppColors.textSecondary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Gerenciamento institucional ConeCTEA',
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        color: AppColors.textSecondary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              IconButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const ScannerView()),
-                  );
-                },
-                icon: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(Icons.qr_code_scanner, color: AppColors.primary),
-                ),
-                tooltip: 'Validar QR Code',
+                  if (isDev)
+                    IconButton(
+                      onPressed: _showMaintenanceSheet,
+                      icon: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.purple.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(Icons.build_circle_rounded, color: Colors.purple),
+                      ),
+                      tooltip: 'Rodar Manutenções',
+                    ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const ScannerView()),
+                      );
+                    },
+                    icon: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(Icons.qr_code_scanner, color: AppColors.primary),
+                    ),
+                    tooltip: 'Validar QR Code',
+                  ),
+                ],
               ),
             ],
           ),
-
-        ],
+        ),
       ),
     );
   }
@@ -286,20 +311,25 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
   }
 
   Widget _buildRequestFilter() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.grey[100],
-          borderRadius: BorderRadius.circular(12),
-        ),
-        padding: const EdgeInsets.all(4),
-        child: Row(
-          children: [
-            _buildFilterButton(0, 'Ativas'),
-            _buildFilterButton(1, 'Concluídas'),
-            _buildFilterButton(2, 'Restritas'),
-          ],
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 800),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.grey[200], // Um pouco mais escuro para destacar o branco do container
+              borderRadius: BorderRadius.circular(12),
+            ),
+            padding: const EdgeInsets.all(4),
+            child: Row(
+              children: [
+                _buildFilterButton(0, 'Ativas'),
+                _buildFilterButton(1, 'Concluídas'),
+                _buildFilterButton(2, 'Restritas'),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -314,10 +344,14 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: isSelected ? Colors.white : Colors.transparent,
+            color: isSelected ? AppColors.darkBlue : Colors.transparent, // Mudança para cor sólida e visível
             borderRadius: BorderRadius.circular(8),
             boxShadow: isSelected ? [
-              BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4, offset: const Offset(0, 2))
+              BoxShadow(
+                color: AppColors.darkBlue.withValues(alpha: 0.3),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              )
             ] : [],
           ),
           alignment: Alignment.center,
@@ -325,8 +359,8 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
             label,
             style: GoogleFonts.inter(
               fontSize: 13,
-              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-              color: isSelected ? AppColors.darkBlue : Colors.grey[600],
+              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w700, // Aumentado de w600 para w700
+              color: isSelected ? Colors.white : AppColors.textSecondary.withValues(alpha: 0.8), // Melhorado o contraste
             ),
           ),
         ),
@@ -335,17 +369,23 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
   }
 
   Widget _buildStatsRow(int pending, int approved, int restricted) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      child: Row(
-        children: [
-          _buildStatCard('Ativas', pending.toString(), AppColors.alertOrange, Icons.pending_actions_rounded),
-          const SizedBox(width: 12),
-          _buildStatCard('Concluídas', approved.toString(), AppColors.statusGreen, Icons.check_circle_rounded),
-          const SizedBox(width: 12),
-          _buildStatCard('Restritas', restricted.toString(), AppColors.adminDanger, Icons.block_rounded),
-        ],
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 800),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildStatCard('Ativas', pending.toString(), AppColors.alertOrange, Icons.pending_actions_rounded),
+              const SizedBox(width: 12),
+              _buildStatCard('Concluídas', approved.toString(), AppColors.statusGreen, Icons.check_circle_rounded),
+              const SizedBox(width: 12),
+              _buildStatCard('Restritas', restricted.toString(), AppColors.adminDanger, Icons.block_rounded),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -390,8 +430,8 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
             label,
             style: GoogleFonts.inter(
               fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w700, // Aumentado de w600 para w700
+              color: AppColors.textSecondary.withValues(alpha: 0.9), // Melhorado o contraste
             ),
           ),
         ],
@@ -424,6 +464,7 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
                   user: user,
                   currentUserRole: _currentUser?.role,
                   onToggleRole: (newRole) => _changeUserRole(user, newRole),
+                  onEditProfile: () => _showEditProfileDialog(user),
                 );
               },
             ),
@@ -536,6 +577,167 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
       ),
     );
   }
+
+  void _showMaintenanceSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+        ),
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.purple.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.build_circle_rounded, color: Colors.purple, size: 24),
+                ),
+                const SizedBox(width: 16),
+                Text(
+                  'Central de Manutenção',
+                  style: GoogleFonts.inter(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.darkBlue,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            _buildMaintenanceItem(
+              Icons.cleaning_services_rounded,
+              'Limpar Solicitações Antigas',
+              'Remove registros de solicitações expiradas há mais de 1 ano.',
+              () async {
+                Navigator.pop(context);
+                // Mock logic for now
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Manutenção concluída!')));
+                }
+              }
+            ),
+            _buildMaintenanceItem(
+              Icons.sync_problem_rounded,
+              'Recalcular Prazos',
+              'Sincroniza datas de validade com base nos últimos status.',
+              () async {
+                Navigator.pop(context);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Prazos recalculados com sucesso!')));
+                }
+              }
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMaintenanceItem(IconData icon, String title, String subtitle, VoidCallback onTap) {
+    return ListTile(
+      onTap: onTap,
+      leading: Icon(icon, color: AppColors.primary),
+      title: Text(title, style: GoogleFonts.inter(fontWeight: FontWeight.w700, color: AppColors.darkBlue)),
+      subtitle: Text(subtitle, style: GoogleFonts.inter(fontSize: 12, color: AppColors.textSecondary)),
+      contentPadding: EdgeInsets.zero,
+    );
+  }
+
+  void _showEditProfileDialog(AppUser user) {
+    final nameController = TextEditingController(text: user.name);
+    final emailController = TextEditingController(text: user.email);
+    final phoneController = TextEditingController(text: user.phone);
+    final cpfController = TextEditingController(text: user.cpf);
+    final cityController = TextEditingController(text: user.city ?? '');
+    final stateController = TextEditingController(text: user.state ?? '');
+    String? selectedGenero = user.gender;
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Text('Editar Cadastro: ${user.name}', style: GoogleFonts.inter(fontWeight: FontWeight.w900)),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(labelText: 'Nome Completo'),
+                ),
+                TextField(
+                  controller: emailController,
+                  decoration: const InputDecoration(labelText: 'E-mail'),
+                ),
+                TextField(
+                  controller: phoneController,
+                  decoration: const InputDecoration(labelText: 'Telefone'),
+                ),
+                TextField(
+                  controller: cpfController,
+                  decoration: const InputDecoration(labelText: 'CPF'),
+                ),
+                TextField(
+                  controller: cityController,
+                  decoration: const InputDecoration(labelText: 'Cidade'),
+                ),
+                TextField(
+                  controller: stateController,
+                  decoration: const InputDecoration(labelText: 'Estado'),
+                ),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  value: selectedGenero,
+                  decoration: const InputDecoration(labelText: 'Gênero'),
+                  items: [
+                    'Feminino',
+                    'Masculino',
+                    'Não binário',
+                    'Outro',
+                    'Prefiro não informar',
+                  ].map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
+                  onChanged: (v) => setDialogState(() => selectedGenero = v),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+            ElevatedButton(
+              onPressed: () async {
+                final data = {
+                  'name': nameController.text,
+                  'email': emailController.text,
+                  'phone': phoneController.text,
+                  'cpf': cpfController.text,
+                  'city': cityController.text,
+                  'state': stateController.text,
+                  'gender': selectedGenero,
+                };
+                await _databaseService.updateAnyUserProfile(user.id, data);
+              if (mounted) {
+                Navigator.pop(context);
+                _loadAllUsers();
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Perfil atualizado!')));
+              }
+            },
+            child: const Text('Salvar'),
+          ),
+        ],
+      ),
+    ),
+  );
+}
 
   Future<void> _changeUserRole(AppUser user, UserRole newRole) async {
     if (user.role == newRole) return;

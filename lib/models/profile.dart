@@ -1,4 +1,37 @@
-enum UserRole { common, admin }
+enum UserRole {
+  user,
+  admin,
+  adminMaster,
+  adminDev;
+
+  static UserRole fromString(String? role) {
+    switch (role) {
+      case 'admin':
+        return UserRole.admin;
+      case 'admin_master':
+        return UserRole.adminMaster;
+      case 'admin_dev':
+        return UserRole.adminDev;
+      case 'user':
+      default:
+        return UserRole.user;
+    }
+  }
+
+  String toDbString() {
+    switch (this) {
+      case UserRole.admin:
+        return 'admin';
+      case UserRole.adminMaster:
+        return 'admin_master';
+      case UserRole.adminDev:
+        return 'admin_dev';
+      case UserRole.user:
+      default:
+        return 'user';
+    }
+  }
+}
 
 class Profile {
   final String id;
@@ -6,6 +39,7 @@ class Profile {
   final String fullName;
   final UserRole role;
   final String? phone;
+  final String? cpf;
   final String? photoUrl;
 
   Profile({
@@ -14,6 +48,7 @@ class Profile {
     required this.fullName,
     required this.role,
     this.phone,
+    this.cpf,
     this.photoUrl,
   });
 
@@ -22,8 +57,9 @@ class Profile {
       id: json['id'],
       email: json['email'],
       fullName: json['full_name'],
-      role: json['role'] == 'admin' ? UserRole.admin : UserRole.common,
+      role: UserRole.fromString(json['role']),
       phone: json['phone'],
+      cpf: json['cpf'],
       photoUrl: json['photo_url'],
     );
   }
@@ -33,8 +69,9 @@ class Profile {
       'id': id,
       'email': email,
       'full_name': fullName,
-      'role': role == UserRole.admin ? 'admin' : 'common',
+      'role': role.toDbString(),
       'phone': phone,
+      'cpf': cpf,
       'photo_url': photoUrl,
     };
   }

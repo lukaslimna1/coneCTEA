@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 import '../../core/constants/colors.dart';
 import '../../services/auth_service.dart';
+import './security_view.dart';
 
 class AccountView extends StatelessWidget {
   const AccountView({super.key});
@@ -17,14 +19,36 @@ class AccountView extends StatelessWidget {
           const SizedBox(height: 20),
           _buildProfileHeader(user?.email ?? 'Usuário'),
           const SizedBox(height: 32),
-          _buildMenuSection([
-            _MenuItem(icon: Icons.person_outline_rounded, title: 'Dados Pessoais'),
-            _MenuItem(icon: Icons.security_rounded, title: 'Segurança'),
-            _MenuItem(icon: Icons.help_outline_rounded, title: 'Ajuda e Suporte'),
-            _MenuItem(icon: Icons.info_outline_rounded, title: 'Sobre o Aplicativo'),
+          _buildMenuSection(context, [
+            _MenuItem(
+              icon: Icons.person_outline_rounded,
+              title: 'Dados Pessoais',
+              onTap: (ctx) {},
+            ),
+            _MenuItem(
+              icon: Icons.security_rounded,
+              title: 'Segurança',
+              onTap: (ctx) => Navigator.push(
+                ctx,
+                MaterialPageRoute(builder: (context) => const SecurityView()),
+              ),
+            ),
+            _MenuItem(
+              icon: Icons.help_outline_rounded,
+              title: 'Ajuda e Suporte',
+              onTap: (ctx) {},
+            ),
+            _MenuItem(
+              icon: Icons.info_outline_rounded,
+              title: 'Sobre o Aplicativo',
+              onTap: (ctx) {},
+            ),
           ]),
           const SizedBox(height: 32),
           _buildLogoutButton(context, authService),
+          const SizedBox(height: 32),
+          _buildSocialSection(),
+          const SizedBox(height: 20),
         ],
       ),
     );
@@ -67,7 +91,7 @@ class AccountView extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuSection(List<_MenuItem> items) {
+  Widget _buildMenuSection(BuildContext context, List<_MenuItem> items) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -81,12 +105,12 @@ class AccountView extends StatelessWidget {
         ],
       ),
       child: Column(
-        children: items.map((item) => _buildMenuTile(item)).toList(),
+        children: items.map((item) => _buildMenuTile(context, item)).toList(),
       ),
     );
   }
 
-  Widget _buildMenuTile(_MenuItem item) {
+  Widget _buildMenuTile(BuildContext context, _MenuItem item) {
     return ListTile(
       leading: Icon(item.icon, color: AppColors.textPrimary),
       title: Text(
@@ -97,7 +121,7 @@ class AccountView extends StatelessWidget {
         ),
       ),
       trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
-      onTap: () {},
+      onTap: () => item.onTap?.call(context),
     );
   }
 
@@ -126,11 +150,87 @@ class AccountView extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildSocialSection() {
+    return Column(
+      children: [
+        const Text(
+          'Acompanhe nossa comunidade',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textSecondary,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _SocialButton(
+              icon: Icons.camera_alt_rounded,
+              label: 'Instagram',
+              color: const Color(0xFFE4405F),
+              onTap: () => launchUrlString(
+                'https://www.instagram.com/familiateabauru/',
+                mode: LaunchMode.externalApplication,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _SocialButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _SocialButton({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withValues(alpha: 0.2)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: color, size: 20),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _MenuItem {
   final IconData icon;
   final String title;
+  final Function(BuildContext)? onTap;
 
-  _MenuItem({required this.icon, required this.title});
+  _MenuItem({required this.icon, required this.title, this.onTap});
 }

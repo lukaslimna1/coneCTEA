@@ -9,12 +9,15 @@ import 'package:sensors_plus/sensors_plus.dart';
 import '../../../models/digital_card.dart';
 import '../../../models/member.dart';
 
-class DigitalCardWidget extends StatelessWidget {
+class DigitalCardWidget extends StatefulWidget {
   final DigitalCard? card;
   final Member member;
   final bool showBack;
   final bool enableParallax;
   final bool enableEntryAnimation;
+  final bool isStatic;
+  final bool? showCpf;
+  final VoidCallback? onToggleCpf;
 
   const DigitalCardWidget({
     super.key,
@@ -24,13 +27,29 @@ class DigitalCardWidget extends StatelessWidget {
     this.enableParallax = true,
     this.enableEntryAnimation = true,
     this.isStatic = false,
+    this.showCpf,
+    this.onToggleCpf,
   });
 
-  final bool isStatic;
+  @override
+  State<DigitalCardWidget> createState() => _DigitalCardWidgetState();
+}
 
+class _DigitalCardWidgetState extends State<DigitalCardWidget> {
+  bool _internalShowCpf = false;
+
+  bool get _effectiveShowCpf => widget.showCpf ?? _internalShowCpf;
+  
+  void _handleToggleCpf() {
+    if (widget.onToggleCpf != null) {
+      widget.onToggleCpf?.call();
+    } else {
+      setState(() => _internalShowCpf = !_internalShowCpf);
+    }
+  }
   @override
   Widget build(BuildContext context) {
-    if (isStatic) {
+    if (widget.isStatic) {
       return AspectRatio(
         aspectRatio: 1.58,
         child: Container(
@@ -51,9 +70,14 @@ class DigitalCardWidget extends StatelessWidget {
             child: SizedBox(
               width: 450,
               height: 450 / 1.58,
-              child: showBack
-                  ? _BackCard(member: member, card: card)
-                  : _FrontCard(member: member, card: card),
+              child: widget.showBack
+                  ? _BackCard(
+                      member: widget.member, 
+                      card: widget.card,
+                      showCpf: _effectiveShowCpf,
+                      onToggleCpf: _handleToggleCpf,
+                    )
+                  : _FrontCard(member: widget.member, card: widget.card),
             ),
           ),
         ),
@@ -63,8 +87,8 @@ class DigitalCardWidget extends StatelessWidget {
     return AspectRatio(
       aspectRatio: 1.58, // Standard credit card aspect ratio
       child: _SensorsCardWrapper(
-        enabled: enableParallax,
-        enableEntryAnimation: enableEntryAnimation,
+        enabled: widget.enableParallax,
+        enableEntryAnimation: widget.enableEntryAnimation,
         child: Container(
           decoration: BoxDecoration(
             color: Colors.white,
@@ -85,9 +109,14 @@ class DigitalCardWidget extends StatelessWidget {
                 child: SizedBox(
                   width: 450, // Premium width
                   height: 450 / 1.58,
-                  child: showBack
-                      ? _BackCard(member: member, card: card)
-                      : _FrontCard(member: member, card: card),
+                  child: widget.showBack
+                      ? _BackCard(
+                          member: widget.member, 
+                          card: widget.card,
+                          showCpf: _effectiveShowCpf,
+                          onToggleCpf: _handleToggleCpf,
+                        )
+                      : _FrontCard(member: widget.member, card: widget.card),
                 ),
               );
             },
@@ -278,28 +307,32 @@ class _CardBackgroundState extends State<_CardBackground> with SingleTickerProvi
           Positioned(
             right: 0,
             bottom: -50,
-            child: Opacity(
-              opacity: 0.03,
-              child: SvgPicture.asset(
-                'assets/images/logo_horizontal.svg', 
-                height: 300,
+            child: IgnorePointer(
+              child: Opacity(
+                opacity: 0.03,
+                child: SvgPicture.asset(
+                  'assets/images/logo_horizontal.svg', 
+                  height: 300,
+                ),
               ),
             ),
           ),
           
         // Animated Geometric Fluid Design
         Positioned.fill(
-          child: AnimatedBuilder(
-            animation: _waveController,
-            builder: (context, child) {
-              final progress = Curves.easeOutQuart.transform(_waveController.value);
-              return CustomPaint(
-                painter: _GeometricFluidPainter(
-                  isFront: widget.isFront,
-                  animationProgress: progress,
-                ),
-              );
-            },
+          child: IgnorePointer(
+            child: AnimatedBuilder(
+              animation: _waveController,
+              builder: (context, child) {
+                final progress = Curves.easeOutQuart.transform(_waveController.value);
+                return CustomPaint(
+                  painter: _GeometricFluidPainter(
+                    isFront: widget.isFront,
+                    animationProgress: progress,
+                  ),
+                );
+              },
+            ),
           ),
         ),
 
@@ -308,13 +341,15 @@ class _CardBackgroundState extends State<_CardBackground> with SingleTickerProvi
 
         // Premium Border highlight
         Positioned.fill(
-          child: Container(
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.5),
-                width: 1.5,
+          child: IgnorePointer(
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.5),
+                  width: 1.5,
+                ),
+                borderRadius: BorderRadius.circular(20),
               ),
-              borderRadius: BorderRadius.circular(20),
             ),
           ),
         ),
@@ -730,7 +765,15 @@ class _FrontCard extends StatelessWidget {
 class _BackCard extends StatelessWidget {
   final Member member;
   final DigitalCard? card;
-  const _BackCard({required this.member, this.card});
+  final bool showCpf;
+  final VoidCallback onToggleCpf;
+  
+  const _BackCard({
+    required this.member, 
+    this.card,
+    required this.showCpf,
+    required this.onToggleCpf,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -771,9 +814,27 @@ class _BackCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   
-                  _buildBackItem('CPF', _fmtCpf(member.cpf)),
+                  InkWell(
+                    onTap: onToggleCpf,
+                    borderRadius: BorderRadius.circular(8),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4.0),
+                      child: _buildBackItem(
+                        'CPF', 
+                        showCpf ? _fmtCpf(member.cpf) : '***.***.***-**',
+                        trailing: Padding(
+                          padding: const EdgeInsets.only(left: 8.0),
+                          child: Icon(
+                            showCpf ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+                            size: 18,
+                            color: const Color(0xFF1E3A8A),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                   
-                  if (member.cid != null && member.cid!.isNotEmpty)
+                  if (member.cid?.isNotEmpty ?? false)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 6.0),
                       child: Container(
@@ -901,7 +962,7 @@ class _BackCard extends StatelessWidget {
     );
   }
 
-  Widget _buildBackItem(String label, String value) {
+  Widget _buildBackItem(String label, String value, {Widget? trailing}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6.0),
       child: Column(
@@ -917,15 +978,22 @@ class _BackCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 2),
-          Text(
-            value,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.inter(
-              color: Colors.black,
-              fontSize: 14,
-              fontWeight: FontWeight.w900,
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.inter(
+                    color: Colors.black,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              if (trailing != null) trailing,
+            ],
           ),
         ],
       ),

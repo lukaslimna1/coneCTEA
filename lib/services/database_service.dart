@@ -17,6 +17,22 @@ class DatabaseService {
 
 
   // --- Profile ---
+  Future<String?> getEmailByCpf(String cpf) async {
+    try {
+      final cleanCpf = cpf.replaceAll(RegExp(r'[^0-9]'), '');
+      final data = await _supabase
+          .from('profiles')
+          .select('email')
+          .eq('cpf', cleanCpf)
+          .maybeSingle();
+      
+      return data?['email']?.toString();
+    } catch (e) {
+      debugPrint('Error getting email by CPF: $e');
+      return null;
+    }
+  }
+
   Future<AppUser?> getUserProfile(String userId) async {
     try {
       final data = await _supabase
@@ -242,7 +258,8 @@ class DatabaseService {
 
   Future<void> _notifyAdmins(String title, String message, String type, {String memberId = ''}) async {
     try {
-      final admins = await _supabase.from('profiles').select('id').eq('role', 'admin');
+      final admins = await _supabase.from('profiles').select('id').inFilter('role', ['admin', 'admin_master', 'admin_dev']);
+      debugPrint('🔔 NOTIFY_ADMINS: Encontrados ${admins.length} administradores para notificar.');
       for (var admin in admins) {
         await createNotification(NotificationItem(
           id: '',
@@ -595,7 +612,7 @@ class DatabaseService {
   Future<void> createNotification(NotificationItem notification) async {
     try {
       await _supabase.from('notifications').insert(notification.toJson());
-      debugPrint('Notification created successfully for user ${notification.userId}');
+      debugPrint('✅ NOTIFICATION_CREATED: Sucesso para o usuário ${notification.userId} (Título: ${notification.title})');
     } catch (e) {
       debugPrint('Error creating notification: $e');
     }

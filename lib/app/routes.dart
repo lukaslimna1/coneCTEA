@@ -24,11 +24,12 @@ class AppRoutes {
 
       if (authNotifier.suppressRedirect) return null;
 
-      final isLoggingIn = location == '/login';
-      final isRegistering = location == '/register';
+      final isLoggingIn = location.startsWith('/login');
+      final isRegistering = location.startsWith('/register');
+      final isForgotPassword = location.startsWith('/forgot-password');
 
       if (!isAuthenticated) {
-        if (isLoggingIn || isRegistering || location == '/forgot-password') return null;
+        if (isLoggingIn || isRegistering || isForgotPassword) return null;
         return '/login';
       }
 

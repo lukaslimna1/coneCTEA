@@ -23,13 +23,42 @@ class AdminSectionTitle extends StatelessWidget {
   }
 }
 
-class AdminDetailRow extends StatelessWidget {
+class AdminDetailRow extends StatefulWidget {
   final String label;
   final String value;
-  const AdminDetailRow({super.key, required this.label, required this.value});
+  final bool isSensitive;
+
+  const AdminDetailRow({
+    super.key, 
+    required this.label, 
+    required this.value,
+    this.isSensitive = false,
+  });
+
+  @override
+  State<AdminDetailRow> createState() => _AdminDetailRowState();
+}
+
+class _AdminDetailRowState extends State<AdminDetailRow> {
+  bool _showValue = false;
 
   @override
   Widget build(BuildContext context) {
+    String displayedValue = widget.value;
+    if (widget.isSensitive && !_showValue) {
+      // Mascaramento simples: 123.***.***-45
+      if (widget.value.length >= 11) {
+        final digits = widget.value.replaceAll(RegExp(r'\D'), '');
+        if (digits.length == 11) {
+          displayedValue = '${digits.substring(0, 3)}.***.***-${digits.substring(9)}';
+        } else {
+          displayedValue = '***.***.***-**';
+        }
+      } else {
+        displayedValue = '********';
+      }
+    }
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
@@ -38,7 +67,7 @@ class AdminDetailRow extends StatelessWidget {
           SizedBox(
             width: 140,
             child: Text(
-              '$label:',
+              '${widget.label}:',
               style: GoogleFonts.inter(
                 fontSize: 14,
                 color: AppColors.textSecondary,
@@ -47,13 +76,30 @@ class AdminDetailRow extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: Text(
-              value,
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                color: AppColors.darkBlue,
-                fontWeight: FontWeight.w600,
-              ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    displayedValue,
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      color: AppColors.darkBlue,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                if (widget.isSensitive)
+                  IconButton(
+                    icon: Icon(
+                      _showValue ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+                      size: 18,
+                      color: AppColors.primary,
+                    ),
+                    onPressed: () => setState(() => _showValue = !_showValue),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+              ],
             ),
           ),
         ],

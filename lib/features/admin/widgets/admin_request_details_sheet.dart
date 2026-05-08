@@ -475,7 +475,7 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
                         const AdminSectionTitle(title: 'Membro (Beneficiário)'),
                         if (_member != null) ...[
                           AdminDetailRow(label: 'Nome', value: _member!.name),
-                          AdminDetailRow(label: 'CPF', value: _member!.cpf),
+                          AdminDetailRow(label: 'CPF', value: _member!.cpf, isSensitive: true),
                           AdminDetailRow(label: 'Nascimento', value: _member!.dateOfBirth),
                           AdminDetailRow(label: 'Localização', value: '${_member!.city} - ${_member!.state}'),
                           AdminDetailRow(label: 'CID', value: _member!.cid),

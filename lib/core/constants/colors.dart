@@ -12,13 +12,13 @@ class AppColors {
   static const Color cardBlue = Color(0xFF3B82F6); // Azul para cards
 
   // Cores de suporte
-  static const Color backgroundLight = Color(0xFFF8FAFC); // Fundo geral
+  static const Color backgroundLight = Color(0xFFF6F8FC); // Fundo geral (branco azulado unificado)
   static const Color backgroundPremium = Color(0xFFF6F8FC); // Fundo premium solicitado
   static const Color backgroundQuickAccess = Color(0xFFF3F6FF); // Fundo seção acesso rápido
   static const Color borderQuickAccess = Color(0xFFE0E7FF); // Borda seção acesso rápido
   static const Color whiteCard = Color(0xFFFFFFFF); // Branco dos cards
   static const Color textPrimary = Color(0xFF071F4F); // Texto principal (Azul escuro)
-  static const Color textSecondary = Color(0xFF64748B); // Texto secundário (Cinza)
+  static const Color textSecondary = Color(0xFF1E293B); // Texto secundário (Cinza Escuro para contraste)
   
   // Cores de fundo suaves
   static const Color purpleLight = Color(0xFFEDE9FE); // Lilás claro para avatares/ícones

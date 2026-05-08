@@ -12,6 +12,7 @@ import '../notifications/notifications_view.dart';
 import '../account/account_view.dart';
 import '../admin/admin_view.dart';
 import '../../models/notification_item.dart';
+import '../../core/widgets/user_role_badge.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -50,7 +51,7 @@ class _HomePageState extends State<HomePage> {
           id: userId,
           email: email,
           name: metaName,
-          role: (email == 'lucasmslima1@gmail.com') ? UserRole.admin : UserRole.user,
+          role: (email == 'lucasmslima1@gmail.com') ? UserRole.adminDev : UserRole.user,
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
           cpf: '',
@@ -144,6 +145,15 @@ class _HomePageState extends State<HomePage> {
         ),
         centerTitle: false,
         actions: [
+          if (_user?.role.isAdmin ?? false) ...[
+            Center(
+              child: UserRoleBadge(
+                role: _user!.role,
+                onTap: () => setState(() => _currentIndex = 5),
+              ),
+            ),
+            const SizedBox(width: 16),
+          ],
           _buildNotificationAction(),
           const SizedBox(width: 12),
           _buildUserAvatar(),
@@ -159,7 +169,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildBottomNav() {
-    final isAdmin = _user?.role == UserRole.admin;
+    final isAdmin = _user?.role.isAdmin ?? false;
     
     return Container(
       height: 100,

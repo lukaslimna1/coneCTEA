@@ -128,7 +128,11 @@ class AppUser {
 
     return AppUser(
       id: data['id']?.toString() ?? '',
-      name: data['name'] ?? data['full_name'] ?? '',
+      name: (data['name']?.toString().isNotEmpty == true)
+          ? data['name']
+          : (data['full_name']?.toString().isNotEmpty == true 
+              ? data['full_name'] 
+              : 'Usuário'),
       email: data['email'] ?? '',
       cpf: data['cpf'] ?? '',
       phone: data['phone'] ?? '',

@@ -10,10 +10,11 @@ import 'package:conectea/models/card_request.dart';
 import 'package:conectea/models/digital_card.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher_string.dart';
-import 'dart:math' as math;
 import '../requests/add_member_page.dart';
 import '../cards/widgets/digital_card_widget.dart';
 import '../admin/scanner_view.dart';
+import '../legal/terms_of_use_page.dart';
+import '../account/security_view.dart';
 
 class HomeView extends StatefulWidget {
   final Function(int) onNavigate;
@@ -33,6 +34,7 @@ class _HomeViewState extends State<HomeView> {
   List<CardRequest> _requests = [];
   List<DigitalCard> _digitalCards = [];
   bool _isLoading = true;
+  DateTime? _lastResetRequest;
   int _selectedMemberIndex = 0;
 
   @override
@@ -42,7 +44,19 @@ class _HomeViewState extends State<HomeView> {
   }
 
   Future<void> _requestRenewal(String requestId) async {
+    if (_lastResetRequest != null && DateTime.now().difference(_lastResetRequest!).inMinutes < 1) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Aguarde um momento antes de solicitar novamente.'),
+            backgroundColor: AppColors.alertOrange,
+          ),
+        );
+      }
+      return;
+    }
     setState(() => _isLoading = true);
+    _lastResetRequest = DateTime.now();
     try {
       await _databaseService.updateCardRequestStatus(
         requestId, 
@@ -54,7 +68,7 @@ class _HomeViewState extends State<HomeView> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Pedido de renovação enviado com sucesso!'),
-            backgroundColor: Colors.purple,
+            backgroundColor: AppColors.primary,
           ),
         );
       }
@@ -76,11 +90,9 @@ class _HomeViewState extends State<HomeView> {
     try {
       final userId = _authService.currentUser?.id;
       if (userId != null) {
-        debugPrint('HomeView: Loading profile for $userId');
         var user = await _databaseService.getUserProfile(userId);
         
         if (user == null) {
-          debugPrint('HomeView: Profile null in DB, checking metadata...');
           final email = _authService.currentUser?.email ?? '';
           final metaName = _authService.currentUser?.userMetadata?['name'] 
               ?? _authService.currentUser?.userMetadata?['full_name']
@@ -98,7 +110,6 @@ class _HomeViewState extends State<HomeView> {
             isActive: true,
           );
         } else if (user.name.trim().isEmpty || user.name == 'Usuário') {
-          debugPrint('HomeView: Profile name empty or default, checking metadata...');
           final metaName = _authService.currentUser?.userMetadata?['name'] 
               ?? _authService.currentUser?.userMetadata?['full_name'];
           if (metaName != null && metaName.toString().trim().isNotEmpty) {
@@ -106,8 +117,6 @@ class _HomeViewState extends State<HomeView> {
           }
         }
         
-        debugPrint('HomeView: User loaded: ${user.name}');
-
         if (mounted) {
           setState(() {
             _user = user;
@@ -118,14 +127,12 @@ class _HomeViewState extends State<HomeView> {
         if (mounted) setState(() => _isLoading = false);
       }
     } catch (e) {
-      debugPrint('Error loading home data: $e');
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
   bool get _isProfileComplete {
     if (_user == null) return false;
-    // Campos mínimos para solicitar carteirinha
     return _user!.cpf.isNotEmpty && 
            _user!.phone.isNotEmpty && 
            (_user!.city?.isNotEmpty ?? false) && 
@@ -140,7 +147,7 @@ class _HomeViewState extends State<HomeView> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
           title: const Text('🎉 Quase lá!'),
           content: const Text(
-            'Para solicitar sua carteirinha, seu perfil precisa estar completo com CPF, Telefone e Endereço.\n\nPor favor, entre em contato com o suporte ou aguarde a atualização do sistema para editar seus dados.',
+            'Para solicitar sua carteirinha, seu perfil precisa estar completo com CPF, Telefone, Cidade e Estado.',
             textAlign: TextAlign.center,
           ),
           actions: [
@@ -164,7 +171,6 @@ class _HomeViewState extends State<HomeView> {
   }
 
   String get _displayName {
-    // 1. Try loaded _user name
     if (_user != null) {
       final String name = (_user!.socialName != null && _user!.socialName!.isNotEmpty)
           ? _user!.socialName!
@@ -175,7 +181,6 @@ class _HomeViewState extends State<HomeView> {
       }
     }
 
-    // 2. Fallback to Auth Metadata
     final metaName = _authService.currentUser?.userMetadata?['name'] 
         ?? _authService.currentUser?.userMetadata?['full_name'];
     
@@ -183,7 +188,6 @@ class _HomeViewState extends State<HomeView> {
       return metaName.toString().trim().split(' ').first;
     }
 
-    // 3. Fallback to Email prefix
     final email = _authService.currentUser?.email;
     if (email != null && email.contains('@')) {
       return email.split('@')[0];
@@ -205,7 +209,7 @@ class _HomeViewState extends State<HomeView> {
         }
         
         final members = memberSnapshot.data ?? [];
-        _members = members; // Update local state for selection
+        _members = members; 
 
         return StreamBuilder<List<CardRequest>>(
           stream: _databaseService.cardRequestsStream(userId),
@@ -220,14 +224,14 @@ class _HomeViewState extends State<HomeView> {
                 _digitalCards = cards;
 
                 return Container(
-              decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9), // Slate 100
+              decoration: const BoxDecoration(
+                color: Color(0xFFF1F5F9), 
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    const Color(0xFFF1F5F9), // Slate 100
-                    const Color(0xFFCBD5E1), // Slate 300
+                    Color(0xFFF1F5F9), 
+                    Color(0xFFCBD5E1), 
                   ],
                 ),
               ),
@@ -246,11 +250,11 @@ class _HomeViewState extends State<HomeView> {
                       const SizedBox(height: 36),
                       _buildCarteirinhaSection(),
                       const SizedBox(height: 36),
-                      _buildQuickAccessGrid(),
+                      _buildBlock1(),
                       const SizedBox(height: 36),
-                      _buildOngoingRequestSection(requests),
+                      _buildBlock2(),
                       const SizedBox(height: 36),
-                      _buildOtherServices(),
+                      _buildBlock3(),
                       const SizedBox(height: 40),
                       _buildInstitutionalBanner(),
                       const SizedBox(height: 48),
@@ -268,7 +272,6 @@ class _HomeViewState extends State<HomeView> {
   }
 
   Widget _buildOngoingRequestSection(List<CardRequest> requests) {
-    // Filter out approved/active requests as they are already displayed in the main card section
     final ongoingRequests = requests.where((r) {
       final s = r.status.toLowerCase();
       return s != 'active' && s != 'ativa' && s != 'approved' && s != 'aprovada';
@@ -280,8 +283,6 @@ class _HomeViewState extends State<HomeView> {
   }
 
   Widget _buildGreeting() {
-    final isAdmin = _user?.role == UserRole.admin;
-
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
@@ -291,29 +292,21 @@ class _HomeViewState extends State<HomeView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Text(
-                      'Olá, $_displayName!',
-                      style: GoogleFonts.inter(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.textPrimary,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
-                    if (isAdmin) ...[
-                      const SizedBox(width: 8),
-                      _buildAdminBadge(),
-                    ],
-                  ],
+                Text(
+                  'Olá, $_displayName!',
+                  style: GoogleFonts.inter(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textPrimary,
+                    letterSpacing: -0.5,
+                  ),
                 ),
                 Text(
                   'Que bom te ver por aqui.',
                   style: GoogleFonts.inter(
                     fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w600, // Aumentado de w500 para w600
+                    color: AppColors.textSecondary.withValues(alpha: 0.9), // Mais opaco para melhor contraste
                   ),
                 ),
               ],
@@ -343,36 +336,6 @@ class _HomeViewState extends State<HomeView> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildAdminBadge() {
-    return GestureDetector(
-      onTap: () => context.push('/admin-dashboard'),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: AppColors.primary.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(100),
-          border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.shield_rounded, color: AppColors.primary, size: 14),
-            const SizedBox(width: 6),
-            Text(
-              'ADMIN',
-              style: GoogleFonts.inter(
-                fontSize: 10,
-                fontWeight: FontWeight.w900,
-                color: AppColors.primary,
-                letterSpacing: 0.5,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -430,7 +393,7 @@ class _HomeViewState extends State<HomeView> {
             children: List.generate(_members.length, (index) {
               final isSelected = index == _selectedMemberIndex;
               final member = _members[index];
-              final initials = member.name.trim().split(' ').map((e) => e.isNotEmpty ? e[0] : '').take(2).join('').toUpperCase();
+              final initials = member.initials;
 
               return GestureDetector(
                 onTap: () => setState(() => _selectedMemberIndex = index),
@@ -624,7 +587,6 @@ class _HomeViewState extends State<HomeView> {
     }
 
     final member = _members[_selectedMemberIndex];
-    // Encontrar a solicitação vinculada ao membro
     CardRequest? memberRequest;
     try {
       memberRequest = _requests.firstWhere((r) => r.memberId == member.id);
@@ -634,15 +596,13 @@ class _HomeViewState extends State<HomeView> {
 
     final String rawStatus = memberRequest?.status.toLowerCase() ?? member.status.toLowerCase();
     
-    // Status translation and logic
     String statusDisplay = 'EM ANÁLISE';
-    Color statusColor = const Color(0xFFF9A825); // Yellow
+    Color statusColor = const Color(0xFFF9A825);
     IconData statusIcon = Icons.history_rounded;
     bool isActive = false;
     bool showJustification = false;
     bool isRejected = false;
 
-    // Check for automatic expiration (365 days after last update if active)
     final lastUpdate = memberRequest?.updatedAt ?? member.updatedAt;
     final isExpired = rawStatus == 'active' && DateTime.now().difference(lastUpdate).inDays >= 365;
     final effectiveStatus = isExpired ? 'expired' : rawStatus;
@@ -733,7 +693,6 @@ class _HomeViewState extends State<HomeView> {
           children: [
             Row(
               children: [
-                // Stacked Cards Preview
                 Expanded(
                   flex: 3,
                   child: SizedBox(
@@ -745,7 +704,6 @@ class _HomeViewState extends State<HomeView> {
                   ),
                 ),
                 const SizedBox(width: 16),
-                // Status Card
                 Expanded(
                   flex: 2,
                   child: Container(
@@ -904,7 +862,7 @@ class _HomeViewState extends State<HomeView> {
                 width: double.infinity,
                 child: OutlinedButton(
                   onPressed: () async {
-                    const whatsappUrl = "https://wa.me/5511999999999"; // TODO: Substituir pelo número real do suporte
+                    const whatsappUrl = "https://wa.me/5514997728448"; 
                     if (await canLaunchUrlString(whatsappUrl)) {
                       await launchUrlString(whatsappUrl, mode: LaunchMode.externalApplication);
                     } else {
@@ -994,9 +952,7 @@ class _HomeViewState extends State<HomeView> {
   }
 
   Widget _buildMiniCard({required bool isVerso, Member? member}) {
-    if (member == null) {
-      // Create a dummy member
-      member = Member(
+    member ??= Member(
         id: 'dummy',
         userId: 'dummy',
         name: _user?.socialName ?? _user?.name ?? 'Membro',
@@ -1015,14 +971,13 @@ class _HomeViewState extends State<HomeView> {
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
-    }
     
     return SizedBox(
       width: 170,
       child: RepaintBoundary(
         child: IgnorePointer(
           child: DigitalCardWidget(
-            member: member!,
+            member: member,
             showBack: isVerso,
             card: null,
             isStatic: true,
@@ -1032,7 +987,125 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
-  Widget _buildQuickAccessGrid() {
+  Widget _buildBlock1() {
+    return _buildCarouselSection(
+      title: 'Acesso Rápido',
+      items: [
+        _buildQuickCard(
+          icon: Icons.badge_outlined,
+          title: 'Ver carteirinha',
+          subtitle: 'Acesse seu documento',
+          color: AppColors.primary,
+          onTap: () {
+            if (_members.isNotEmpty && 
+                (_members[_selectedMemberIndex].status.toLowerCase() == 'ativa' || 
+                 _members[_selectedMemberIndex].status.toLowerCase() == 'active')) {
+              widget.onNavigate(1);
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Carteirinha ainda não disponível.')),
+              );
+            }
+          },
+        ),
+        _buildQuickCard(
+          icon: Icons.add_card_outlined,
+          title: 'Solicitar',
+          subtitle: 'Nova via ou atualização',
+          color: AppColors.teal,
+          onTap: _handleRequestCard,
+        ),
+        _buildQuickCard(
+          icon: Icons.assignment_outlined,
+          title: 'Meu mural',
+          subtitle: 'Status das solicitações',
+          color: AppColors.alertOrange,
+          onTap: () => widget.onNavigate(2),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBlock2() {
+    return _buildCarouselSection(
+      title: 'Outros Serviços',
+      items: [
+        _buildQuickCard(
+          icon: Icons.construction_rounded,
+          title: 'Em breve',
+          subtitle: 'Novas ferramentas vindo aí',
+          color: Colors.blueGrey, // Cor mais legível que cinza puro
+          onTap: () {},
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBlock3() {
+    return _buildCarouselSection(
+      title: 'Informações',
+      items: [
+        _buildQuickCard(
+          icon: Icons.security_rounded,
+          title: 'Segurança',
+          subtitle: 'Sua conta protegida',
+          color: const Color(0xFF4F46E5), // Indigo
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => SecurityView()),
+          ),
+        ),
+        _buildQuickCard(
+          icon: Icons.help_outline_rounded,
+          title: 'Suporte',
+          subtitle: 'Fale conosco no WhatsApp',
+          color: AppColors.statusGreen,
+          onTap: () async {
+            const whatsappUrl = "https://wa.me/5514997728448";
+            if (await canLaunchUrlString(whatsappUrl)) {
+              await launchUrlString(whatsappUrl, mode: LaunchMode.externalApplication);
+            }
+          },
+        ),
+        _buildQuickCard(
+          icon: Icons.info_outline_rounded,
+          title: 'Sobre',
+          subtitle: 'Conheça o projeto',
+          color: const Color(0xFFF59E0B), // Amber para destacar no branco
+          onTap: () {
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                title: Text(
+                  'Sobre o ConeCTEA',
+                  style: GoogleFonts.inter(fontWeight: FontWeight.w900, color: AppColors.darkBlue),
+                ),
+                content: Text(
+                  'O ConeCTEA é uma iniciativa da Família TEA Bauru para facilitar a identificação e o suporte a pessoas com autismo e suas famílias.\n\nVersão 1.0.0',
+                  style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary, height: 1.5),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(
+                      'Fechar',
+                      style: GoogleFonts.inter(fontWeight: FontWeight.w700, color: AppColors.primary),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCarouselSection({
+    required String title,
+    required List<Widget> items,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1042,85 +1115,40 @@ class _HomeViewState extends State<HomeView> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Acesso rápido',
+                title,
                 style: GoogleFonts.inter(
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
                   color: AppColors.textPrimary,
                 ),
               ),
-              Row(
-                children: [
-                  Text(
-                    'Deslize',
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textSecondary.withValues(alpha: 0.7),
+              if (items.length > 1)
+                Row(
+                  children: [
+                    Text(
+                      'Deslize',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700, // Aumentado de w600 para w700
+                        color: AppColors.textSecondary.withValues(alpha: 0.9),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 4),
-                  const Icon(Icons.swipe_left_rounded, color: AppColors.textSecondary, size: 16),
-                ],
-              ),
+                    const SizedBox(width: 4),
+                    const Icon(Icons.swipe_left_rounded, color: AppColors.textSecondary, size: 16),
+                  ],
+                ),
             ],
           ),
         ),
         const SizedBox(height: 20),
         SizedBox(
-          height: 230, // Aumentado para acomodar cards maiores e evitar cortes no Pixel 4 e outros dispositivos
+          height: 230,
           child: ListView(
             scrollDirection: Axis.horizontal,
             physics: const BouncingScrollPhysics(),
             padding: const EdgeInsets.symmetric(horizontal: 24),
             clipBehavior: Clip.none,
-            children: [
-              _buildQuickCard(
-                icon: Icons.badge_outlined,
-                title: 'Ver carteirinha',
-                subtitle: 'Acesse sua carteirinha digital',
-                color: AppColors.primary,
-                onTap: () {
-                  if (_members.isNotEmpty && 
-                      (_members[_selectedMemberIndex].status.toLowerCase() == 'ativa' || 
-                       _members[_selectedMemberIndex].status.toLowerCase() == 'active')) {
-                    widget.onNavigate(1);
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          _members.isEmpty 
-                              ? 'Você ainda não possui uma carteirinha.' 
-                              : 'Sua carteirinha ainda não está ativa.',
-                        ),
-                        backgroundColor: AppColors.alertOrange,
-                      ),
-                    );
-                  }
-                },
-              ),
-              _buildQuickCard(
-                icon: Icons.add_card_outlined,
-                title: 'Solicitar',
-                subtitle: 'Nova via ou atualização',
-                color: AppColors.teal,
-                onTap: _handleRequestCard,
-              ),
-              _buildQuickCard(
-                icon: Icons.assignment_outlined,
-                title: 'Meu mural',
-                subtitle: 'Status das solicitações',
-                color: AppColors.alertOrange,
-                onTap: () => widget.onNavigate(2),
-              ),
-              _buildQuickCard(
-                icon: Icons.notifications_none_rounded,
-                title: 'Notificações',
-                subtitle: 'Avisos e atualizações',
-                color: AppColors.cardBlue,
-                onTap: () => widget.onNavigate(3),
-              ),
-            ],
+            children: items,
           ),
         ),
       ],
@@ -1135,27 +1163,23 @@ class _HomeViewState extends State<HomeView> {
     required VoidCallback onTap,
   }) {
     return Padding(
-      padding: const EdgeInsets.only(right: 16),
+      padding: const EdgeInsets.only(right: 16, bottom: 8), // Padding inferior para sombra não cortar
       child: Container(
-        width: 165, // Aumentado para melhor legibilidade e presença visual
+        width: 165,
+        height: 210, // Altura fixa para garantir alinhamento perfeito
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(32),
           border: Border.all(
-            color: AppColors.borderLight.withValues(alpha: 1.0), // Mais visível
+            color: AppColors.borderLight.withValues(alpha: 0.8),
             width: 1.5,
           ),
           boxShadow: [
             BoxShadow(
-              color: color.withValues(alpha: 0.15),
-              blurRadius: 24,
-              offset: const Offset(0, 12),
-              spreadRadius: -4,
-            ),
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              color: color.withValues(alpha: 0.12),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+              spreadRadius: -2,
             ),
           ],
         ),
@@ -1168,61 +1192,63 @@ class _HomeViewState extends State<HomeView> {
             highlightColor: color.withValues(alpha: 0.05),
             child: Stack(
               children: [
-                // Ícone de fundo decorativo refinado
                 Positioned(
-                  right: -15,
-                  top: -15,
+                  right: -10,
+                  top: -10,
                   child: Icon(
                     icon,
-                    color: color.withValues(alpha: 0.03),
-                    size: 100,
+                    color: color.withValues(alpha: 0.04),
+                    size: 80,
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                  padding: const EdgeInsets.all(16),
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center, // Centralização vertical garantida
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(14), // Reduzido ligeiramente
+                        padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: color.withValues(alpha: 0.1),
+                          color: color.withValues(alpha: 0.12),
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(icon, color: color, size: 30), // Reduzido ligeiramente
+                        child: Icon(icon, color: color, size: 28),
                       ),
-                      const SizedBox(height: 16), // Reduzido de 20 para 16
+                      const SizedBox(height: 14),
                       Text(
                         title,
                         textAlign: TextAlign.center,
                         style: GoogleFonts.inter(
                           fontSize: 15,
                           fontWeight: FontWeight.w900,
-                          color: AppColors.textPrimary,
+                          color: AppColors.darkBlue, // Título em azul escuro para melhor contraste
                           height: 1.1,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 6), // Reduzido de 8 para 6
-                      Text(
-                        subtitle,
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.inter(
-                          fontSize: 11,
-                          color: AppColors.textSecondary,
-                          fontWeight: FontWeight.w600,
-                          height: 1.3,
+                      const SizedBox(height: 6),
+                      SizedBox(
+                        height: 32,
+                        child: Text(
+                          subtitle,
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.inter(
+                            fontSize: 11,
+                            color: AppColors.textSecondary.withValues(alpha: 0.9), // Cinza institucional escuro
+                            fontWeight: FontWeight.w700, // Peso extra para legibilidade
+                            height: 1.2,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 12), // Reduzido de 16 para 12
-                      // Indicador visual de clique (Botão estilizado)
+                      const Spacer(),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5), // Mais compacto
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
-                          color: color.withValues(alpha: 0.08),
+                          color: color.withValues(alpha: 0.25), // Aumentado de 0.15 para 0.25 para contraste
                           borderRadius: BorderRadius.circular(100),
                         ),
                         child: Row(
@@ -1256,7 +1282,6 @@ class _HomeViewState extends State<HomeView> {
       ),
     );
   }
-
 
   Widget _buildOngoingRequest(CardRequest? request) {
     if (request == null) return const SizedBox.shrink();
@@ -1340,12 +1365,12 @@ class _HomeViewState extends State<HomeView> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(32),
-              gradient: LinearGradient(
+              gradient: const LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
                   Colors.white,
-                  const Color(0xFFF8FAFC),
+                  Color(0xFFF8FAFC),
                 ],
               ),
               border: Border.all(color: statusColor.withValues(alpha: 0.4), width: 1.5),
@@ -1535,63 +1560,163 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
-  Widget _buildOtherServices() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Text(
-            'Outros serviços',
-          style: GoogleFonts.inter(
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-            color: AppColors.textPrimary,
-          ),
+  void _showInformationBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
         ),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Informações',
+              style: GoogleFonts.inter(
+                fontSize: 20,
+                fontWeight: FontWeight.w900,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 24),
+            _buildInfoTile(
+              icon: Icons.notifications_none_rounded,
+              title: 'Notificações',
+              subtitle: 'Avisos e atualizações importantes',
+              onTap: () {
+                Navigator.pop(context);
+                widget.onNavigate(3);
+              },
+            ),
+            const SizedBox(height: 12),
+            _buildInfoTile(
+              icon: Icons.gavel_rounded,
+              title: 'Termos de Uso',
+              subtitle: 'Nossas regras e políticas',
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const TermsOfUsePage()),
+                );
+              },
+            ),
+            const SizedBox(height: 24),
+          ],
         ),
-        const SizedBox(height: 16),
-        SizedBox(
-          height: 110,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            clipBehavior: Clip.none,
-            children: [
-              _buildServiceCard(
-                icon: Icons.person_outline_rounded,
-                title: 'Meus dados',
-                subtitle: 'Atualize seu perfil',
-                onTap: () => widget.onNavigate(4),
-              ),
-              _buildServiceCard(
-                icon: Icons.help_outline_rounded,
-                title: 'Suporte',
-                subtitle: 'Precisa de ajuda?',
-                onTap: () {
-                  // Link para suporte (ex: WhatsApp ou página de suporte)
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Suporte em breve!')),
-                  );
-                },
-              ),
-              _buildServiceCard(
-                icon: Icons.info_outline_rounded,
-                title: 'Sobre',
-                subtitle: 'Nossa missão',
-                onTap: () {
-                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Página Sobre em breve!')),
-                  );
-                },
-              ),
-            ],
-          ),
-        ),
-      ],
+      ),
     );
   }
+
+  Widget _buildInfoTile({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      onTap: onTap,
+      leading: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: AppColors.primary.withValues(alpha: 0.1),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(icon, color: AppColors.primary),
+      ),
+      title: Text(title, style: GoogleFonts.inter(fontWeight: FontWeight.w800, fontSize: 16)),
+      subtitle: Text(subtitle, style: GoogleFonts.inter(fontSize: 13, color: AppColors.textSecondary)),
+      trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    );
+  }
+
+  Widget _buildSupportAndAboutSection() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildSmallActionCard(
+              icon: Icons.help_outline_rounded,
+              title: 'Suporte',
+              onTap: () async {
+                const whatsappUrl = "https://wa.me/5514997728448";
+                if (await canLaunchUrlString(whatsappUrl)) {
+                  await launchUrlString(whatsappUrl, mode: LaunchMode.externalApplication);
+                }
+              },
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: _buildSmallActionCard(
+              icon: Icons.info_outline_rounded,
+              title: 'Sobre',
+              onTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Página Sobre em breve!')),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSmallActionCard({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.borderLight.withValues(alpha: 0.8)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: AppColors.primary, size: 20),
+            const SizedBox(width: 8),
+            Text(
+              title,
+              style: GoogleFonts.inter(
+                fontWeight: FontWeight.w700,
+                fontSize: 14,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
 
   void _showJustificationDialog(String status, Color color, String notes, {bool isRejected = false}) {
     showDialog(
@@ -1636,7 +1761,7 @@ class _HomeViewState extends State<HomeView> {
           if (isRejected)
             ElevatedButton(
               onPressed: () async {
-                const whatsappUrl = "https://wa.me/5511999999999"; // Substituir pelo número real
+                const whatsappUrl = "https://wa.me/5514997728448";
                 if (await canLaunchUrlString(whatsappUrl)) {
                   await launchUrlString(whatsappUrl, mode: LaunchMode.externalApplication);
                 }
@@ -1662,7 +1787,7 @@ class _HomeViewState extends State<HomeView> {
     return Padding(
       padding: const EdgeInsets.only(right: 12),
       child: Container(
-        width: 200, // Card mais largo para o carousel de serviços
+        width: 200,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(24),
@@ -1742,57 +1867,113 @@ class _HomeViewState extends State<HomeView> {
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: BorderRadius.circular(32),
           gradient: const LinearGradient(
             colors: [
               AppColors.primary,
-              AppColors.darkBlue,
+              Color(0xFF833AB4), // Instagram-like purple
+              Color(0xFFE1306C), // Instagram-like pink
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFE1306C).withValues(alpha: 0.3),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(32),
+          child: Stack(
             children: [
-              Text(
-                'Inclusão que conecta.\nDireitos que transformam.',
-                style: GoogleFonts.inter(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.white,
-                  height: 1.1,
+              Positioned(
+                right: -40,
+                top: -20,
+                child: Icon(
+                  Icons.camera_alt_rounded,
+                  size: 200,
+                  color: Colors.white.withValues(alpha: 0.1),
                 ),
               ),
-              const SizedBox(height: 8),
-              Text(
-                'ConeCTEA: conectando famílias, direitos\ne oportunidades.',
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  color: Colors.white.withValues(alpha: 0.9),
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Conheça mais sobre o ConeCTEA em nosso site oficial.'),
-                      backgroundColor: AppColors.primary,
+              Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(100),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.star_rounded, color: Colors.white, size: 14),
+                          const SizedBox(width: 4),
+                          Text(
+                            'COMUNIDADE',
+                            style: GoogleFonts.inter(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                              letterSpacing: 1,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: AppColors.primary,
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Inclusão que conecta.\nDireitos que transformam.',
+                      style: GoogleFonts.inter(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                        height: 1.1,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Siga a @familiateabauru no Instagram e fique por dentro de todas as novidades e direitos das famílias TEA.',
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        color: Colors.white.withValues(alpha: 0.95),
+                        fontWeight: FontWeight.w600,
+                        height: 1.4,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: () => launchUrlString('https://www.instagram.com/familiateabauru/', mode: LaunchMode.externalApplication),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: const Color(0xFFE1306C),
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.camera_alt_outlined, size: 20),
+                          const SizedBox(width: 10),
+                          Text(
+                            'Siga nosso Instagram',
+                            style: GoogleFonts.inter(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                child: Text('Saiba mais', style: GoogleFonts.inter(fontWeight: FontWeight.w800)),
               ),
             ],
           ),
@@ -1833,7 +2014,6 @@ class _Animated3DCardGroupState extends State<_Animated3DCardGroup> with SingleT
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
-        // Efeito de entrada suave — sem loop infinito (evita artefatos no Chrome)
         final double progress = Curves.easeOutCubic.transform(_controller.value);
         final double hoverOffset = (1.0 - progress) * 12;
         final double tiltX = (1.0 - progress) * 0.05;
@@ -1843,9 +2023,8 @@ class _Animated3DCardGroupState extends State<_Animated3DCardGroup> with SingleT
           alignment: Alignment.center,
           clipBehavior: Clip.none,
           children: [
-            // Back card (verso)
             Positioned(
-              left: 12 + (tiltY * 20), // Reduced independent movement
+              left: 12 + (tiltY * 20),
               bottom: -4 + hoverOffset,
               child: Transform(
                 transform: Matrix4.identity()
@@ -1860,9 +2039,8 @@ class _Animated3DCardGroupState extends State<_Animated3DCardGroup> with SingleT
                 ),
               ),
             ),
-            // Front card (frente)
             Positioned(
-              right: 12 - (tiltY * 20), // Reduced independent movement
+              right: 12 - (tiltY * 20),
               top: -4 - hoverOffset,
               child: Transform(
                 transform: Matrix4.identity()

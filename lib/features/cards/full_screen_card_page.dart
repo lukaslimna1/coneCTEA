@@ -29,6 +29,7 @@ class _FullScreenCardPageState extends State<FullScreenCardPage> with SingleTick
   late AnimationController _animationController;
   late Animation<double> _animation;
   bool _isBackVisible = false;
+  bool _showCpf = false;
 
   @override
   void initState() {
@@ -116,28 +117,36 @@ class _FullScreenCardPageState extends State<FullScreenCardPage> with SingleTick
                         child: AnimatedBuilder(
                           animation: _animation,
                           builder: (context, child) {
-                            final angle = _animation.value * pi;
-                            final showBack = angle >= pi / 2;
+                            final value = _animation.value;
+                            final isBack = value > 0.5;
                             
                             return Transform(
                               transform: Matrix4.identity()
                                 ..setEntry(3, 2, 0.001)
-                                ..rotateY(angle),
+                                ..rotateY(value * pi),
                               alignment: Alignment.center,
-                              child: showBack
+                              child: isBack
                                   ? Transform(
                                       transform: Matrix4.identity()..rotateY(pi),
                                       alignment: Alignment.center,
                                       child: DigitalCardWidget(
-                                        card: card,
                                         member: member,
+                                        card: card,
                                         showBack: true,
+                                        enableParallax: false,
+                                        enableEntryAnimation: false,
+                                        showCpf: _showCpf,
+                                        onToggleCpf: () => setState(() => _showCpf = !_showCpf),
                                       ),
                                     )
                                   : DigitalCardWidget(
-                                      card: card,
                                       member: member,
+                                      card: card,
                                       showBack: false,
+                                      enableParallax: false,
+                                      enableEntryAnimation: false,
+                                      showCpf: _showCpf,
+                                      onToggleCpf: () => setState(() => _showCpf = !_showCpf),
                                     ),
                             );
                           },

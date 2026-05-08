@@ -41,7 +41,11 @@ class Member {
     return Member(
       id: json['id']?.toString() ?? '',
       userId: json['userId'] ?? json['user_id'] ?? '',
-      name: json['name'] ?? '',
+      name: (json['name']?.toString().isNotEmpty == true)
+          ? json['name']
+          : (json['full_name']?.toString().isNotEmpty == true 
+              ? json['full_name'] 
+              : ''),
       cpf: json['cpf'] ?? '',
       city: json['city'] ?? '',
       state: json['state'] ?? '',

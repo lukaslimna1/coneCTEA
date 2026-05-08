@@ -42,17 +42,15 @@ class _NotificationsViewState extends State<NotificationsView> {
   }
 
   Future<void> _loadNotifications() async {
-    setState(() => _isLoading = true);
     final userId = _authService.currentUser?.id;
     if (userId != null) {
       _notificationsStream = _databaseService.notificationsStream(userId);
       final notifications = await _databaseService.getNotifications(userId);
-      setState(() {
-        _notifications = notifications;
-        _isLoading = false;
-      });
-    } else {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() {
+          _notifications = notifications;
+        });
+      }
     }
   }
 

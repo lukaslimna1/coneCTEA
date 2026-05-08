@@ -42,7 +42,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final _nomeInstituicaoController = TextEditingController();
 
   // Complementares
-  String? _sexoSelecionado;
+  String? _generoSelecionado;
   String? _racaSelecionada;
   final _nomeSocialController = TextEditingController();
 
@@ -53,6 +53,7 @@ class _RegisterPageState extends State<RegisterPage> {
   // Termos
   bool _concordaTermos = false;
   bool _autorizaDados = false;
+  bool _autorizaSaude = false;
 
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
@@ -147,18 +148,21 @@ class _RegisterPageState extends State<RegisterPage> {
 
     if (!_concordaTermos) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Você precisa concordar com os Termos de Uso.'),
-        ),
+        const SnackBar(content: Text('Você precisa concordar com os Termos de Uso e Privacidade.')),
       );
       return;
     }
 
     if (!_autorizaDados) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Você precisa autorizar o tratamento de dados.'),
-        ),
+        const SnackBar(content: Text('Você precisa autorizar o tratamento de dados pessoais.')),
+      );
+      return;
+    }
+
+    if (!_autorizaSaude) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Você precisa autorizar o tratamento de dados de saúde.')),
       );
       return;
     }
@@ -204,7 +208,7 @@ class _RegisterPageState extends State<RegisterPage> {
         'city': _selectedCity ?? '',
         'state': _selectedState ?? '',
         'institution': _indicacaoInstituicao == 'Sim' ? _nomeInstituicaoController.text : '',
-        'gender': _sexoSelecionado ?? '',
+        'gender': _generoSelecionado ?? '',
         'race': _racaSelecionada ?? '',
         'social_name': _nomeSocialController.text,
       };
@@ -232,7 +236,7 @@ class _RegisterPageState extends State<RegisterPage> {
           institution: _indicacaoInstituicao == 'Sim'
               ? _nomeInstituicaoController.text
               : '',
-          gender: _sexoSelecionado ?? '',
+          gender: _generoSelecionado ?? '',
           race: _racaSelecionada ?? '',
           socialName: _nomeSocialController.text,
         );
@@ -257,9 +261,11 @@ class _RegisterPageState extends State<RegisterPage> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(24),
               ),
-              title: const Text('🎉 Conta Criada!'),
+              title: const Text('📧 Verifique seu e-mail'),
               content: const Text(
-                'Sua conta foi criada com sucesso.\n\nPor segurança, você será redirecionado para a tela de login para acessar o sistema.',
+                'Cadastro realizado com sucesso! 🚀\n\n'
+                'Enviamos um e-mail de confirmação para você. '
+                'Por favor, verifique sua caixa de entrada (e a pasta de Spam) e clique no link de validação para ativar sua conta antes de fazer o login.',
                 textAlign: TextAlign.center,
               ),
               actions: [
@@ -498,16 +504,19 @@ class _RegisterPageState extends State<RegisterPage> {
                           obscure: _obscurePassword,
                           validator: (v) =>
                               v!.length < 6 ? 'Mínimo 6 caracteres' : null,
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _obscurePassword
-                                  ? Icons.visibility_off_outlined
-                                  : Icons.visibility_outlined,
-                              color: AppColors.textSecondary,
-                              size: 20,
-                            ),
-                            onPressed: () => setState(
-                              () => _obscurePassword = !_obscurePassword,
+                          suffixIcon: StatefulBuilder(
+                            builder: (context, setEyeState) => IconButton(
+                              icon: Icon(
+                                _obscurePassword
+                                    ? Icons.visibility_off_outlined
+                                    : Icons.visibility_outlined,
+                                color: AppColors.textSecondary,
+                                size: 20,
+                              ),
+                              onPressed: () {
+                                setEyeState(() => _obscurePassword = !_obscurePassword);
+                                setState(() {});
+                              },
                             ),
                           ),
                         ),
@@ -522,17 +531,19 @@ class _RegisterPageState extends State<RegisterPage> {
                           validator: (v) => v != _passwordController.text
                               ? 'Senhas não conferem'
                               : null,
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _obscureConfirmPassword
-                                  ? Icons.visibility_off_outlined
-                                  : Icons.visibility_outlined,
-                              color: AppColors.textSecondary,
-                              size: 20,
-                            ),
-                            onPressed: () => setState(
-                              () => _obscureConfirmPassword =
-                                  !_obscureConfirmPassword,
+                          suffixIcon: StatefulBuilder(
+                            builder: (context, setEyeState) => IconButton(
+                              icon: Icon(
+                                _obscureConfirmPassword
+                                    ? Icons.visibility_off_outlined
+                                    : Icons.visibility_outlined,
+                                color: AppColors.textSecondary,
+                                size: 20,
+                              ),
+                              onPressed: () {
+                                setEyeState(() => _obscureConfirmPassword = !_obscureConfirmPassword);
+                                setState(() {});
+                              },
                             ),
                           ),
                         ),
@@ -586,19 +597,18 @@ class _RegisterPageState extends State<RegisterPage> {
                                 children: [
                                   Expanded(
                                     child: _buildDropdownField<String>(
-                                      label: 'Sexo',
-                                      value: _sexoSelecionado,
+                                      label: 'Gênero',
+                                      value: _generoSelecionado,
                                       items: const [
                                         'Feminino',
                                         'Masculino',
-                                        'Não-binário',
-                                        'Intersexo',
-                                        'Prefiro não informar',
+                                        'Não binário',
                                         'Outro',
+                                        'Prefiro não informar',
                                       ].map((t) => DropdownMenuItem(value: t, child: Text(t, style: const TextStyle(fontSize: 12)))).toList(),
                                       icon: Icons.wc_outlined,
                                       onChanged: (v) =>
-                                          setState(() => _sexoSelecionado = v),
+                                          setState(() => _generoSelecionado = v),
                                     ),
                                   ),
                                   const SizedBox(width: 12),
@@ -630,25 +640,38 @@ class _RegisterPageState extends State<RegisterPage> {
 
                         _buildTermsCheckbox(
                           value: _concordaTermos,
-                          onChanged: (v) =>
-                              setState(() => _concordaTermos = v!),
+                          onChanged: (v) => setState(() => _concordaTermos = v!),
                           text: Text.rich(
                             TextSpan(
                               text: 'Li e concordo com os ',
                               children: [
-                                TextSpan(
-                                  text: 'Termos de Uso',
-                                  style: TextStyle(
-                                    color: AppColors.primary,
-                                    fontWeight: FontWeight.w700,
+                                WidgetSpan(
+                                  alignment: PlaceholderAlignment.middle,
+                                  child: GestureDetector(
+                                    onTap: _showTermsOfUse,
+                                    child: Text(
+                                      'Termos de Uso',
+                                      style: TextStyle(
+                                        color: AppColors.primary,
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 13,
+                                      ),
+                                    ),
                                   ),
                                 ),
                                 const TextSpan(text: ' e '),
-                                TextSpan(
-                                  text: 'Política de Privacidade',
-                                  style: TextStyle(
-                                    color: AppColors.primary,
-                                    fontWeight: FontWeight.w700,
+                                WidgetSpan(
+                                  alignment: PlaceholderAlignment.middle,
+                                  child: GestureDetector(
+                                    onTap: _showPrivacyPolicy,
+                                    child: Text(
+                                      'Política de Privacidade',
+                                      style: TextStyle(
+                                        color: AppColors.primary,
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 13,
+                                      ),
+                                    ),
                                   ),
                                 ),
                                 const TextSpan(text: '.'),
@@ -656,7 +679,20 @@ class _RegisterPageState extends State<RegisterPage> {
                             ),
                             style: GoogleFonts.inter(
                               fontSize: 13,
+                              fontWeight: FontWeight.w500,
                               color: AppColors.textPrimary,
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 48, top: 4, right: 16),
+                          child: Text(
+                            'O tratamento de dados pessoais no ConeCTEA segue a Lei Geral de Proteção de Dados (LGPD). Consulte nossa Política de Privacidade para mais detalhes.',
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textSecondary.withValues(alpha: 0.7),
+                              height: 1.4,
                             ),
                           ),
                         ),
@@ -666,6 +702,18 @@ class _RegisterPageState extends State<RegisterPage> {
                           onChanged: (v) => setState(() => _autorizaDados = v!),
                           text: Text(
                             'Autorizo o tratamento de meus dados pessoais para as finalidades do aplicativo.',
+                            style: GoogleFonts.inter(
+                              fontSize: 13,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        _buildTermsCheckbox(
+                          value: _autorizaSaude,
+                          onChanged: (v) => setState(() => _autorizaSaude = v!),
+                          text: Text(
+                            'Autorizo o tratamento de meus dados de saúde e laudos médicos para fins de identificação.',
                             style: GoogleFonts.inter(
                               fontSize: 13,
                               color: AppColors.textPrimary,
@@ -1038,6 +1086,132 @@ class _RegisterPageState extends State<RegisterPage> {
         ),
         const SizedBox(width: 12),
         Expanded(child: text),
+      ],
+    );
+  }
+
+  void _showTermsOfUse() {
+    showDialog(
+      context: context,
+      builder: (context) => _buildScrollableDialog(
+        title: 'Termos de Uso',
+        content: '''
+📄 TERMOS DE USO - ConeCTEA
+Versão: 1.0
+Instituição responsável: Família TEA Bauru
+Contato oficial: https://www.instagram.com/familiateabauru
+Cidade/Estado: Bauru — SP
+
+1. Sobre estes Termos
+Estes Termos de Uso estabelecem as regras para acesso e utilização do aplicativo ConeCTEA, incluindo suas funcionalidades, serviços, informações, solicitações, carteirinha digital, área do usuário e área administrativa.
+Ao criar uma conta, acessar ou utilizar o aplicativo, o usuário declara que leu, compreendeu e concorda com estes Termos de Uso, bem como com a Política de Privacidade do ConeCTEA.
+
+2. Sobre o ConeCTEA
+O ConeCTEA é um aplicativo desenvolvido para facilitar o acesso à carteirinha digital, organizar solicitações, permitir acompanhamento de status, centralizar informações importantes e melhorar a comunicação entre usuários, responsáveis e a Família TEA Bauru.
+
+3. Responsabilidades do Usuário
+- Fornecer informações verídicas e atualizadas.
+- Manter a segurança de sua senha de acesso.
+- Utilizar o aplicativo de forma ética e respeitosa.
+- Não utilizar robôs ou scripts para automatizar processos.
+
+4. Privacidade e Proteção de Dados
+O tratamento de dados pessoais no ConeCTEA segue a Lei Geral de Proteção de Dados (LGPD). Consulte nossa Política de Privacidade para mais detalhes.
+
+5. Limitação de Responsabilidade
+A Família TEA Bauru não se responsabiliza por danos decorrentes do uso indevido do aplicativo ou por problemas técnicos fora de seu controle.
+
+6. Alterações nos Termos
+Estes termos podem ser atualizados periodicamente. O uso continuado do aplicativo após alterações constitui aceitação dos novos termos.
+
+7. Contato
+Para dúvidas ou suporte, entre em contato via Instagram: @familiateabauru
+''',
+      ),
+    );
+  }
+
+  void _showPrivacyPolicy() {
+    showDialog(
+      context: context,
+      builder: (context) => _buildScrollableDialog(
+        title: 'Política de Privacidade',
+        content: '''
+🛡️ POLÍTICA DE PRIVACIDADE — ConeCTEA
+Versão: 1.0
+Instituição responsável: Família TEA Bauru
+
+Esta Política de Privacidade explica como o aplicativo ConeCTEA coleta, utiliza, armazena, protege e trata os dados pessoais dos usuários.
+
+1. Sobre esta Política
+O objetivo deste documento é garantir transparência sobre o uso das informações cadastradas, especialmente relacionadas à conta, solicitação de carteirinha, acompanhamento de status e comunicação com a instituição.
+
+2. Coleta de Dados
+O ConeCTEA coleta dados necessários para cadastro, autenticação e emissão da carteirinha digital, incluindo: nome completo, e-mail, telefone, cidade, estado, data de nascimento e informações de representação (para crianças e adolescentes).
+
+3. Uso dos Dados
+Seus dados são utilizados exclusivamente para:
+- Criar e gerenciar sua conta.
+- Solicitação e emissão da carteirinha digital.
+- Acompanhamento de status e validação.
+- Comunicação institucional e suporte.
+- Geração de estatísticas internas para melhoria do atendimento.
+
+4. Proteção e Segurança
+Adotamos medidas administrativas e tecnológicas para proteger seus dados contra acessos não autorizados. O app prioriza uma estrutura leve e não armazena diretamente documentos pesados ou laudos sensíveis.
+
+5. Seus Direitos (LGPD)
+Você tem direito a confirmar o tratamento, acessar, corrigir ou solicitar a exclusão de seus dados a qualquer momento através dos canais oficiais.
+
+Ao criar uma conta, acessar ou utilizar o aplicativo, o usuário declara estar ciente da Política de Privacidade do ConeCTEA.
+''',
+      ),
+    );
+  }
+
+  Widget _buildScrollableDialog({required String title, required String content}) {
+    return AlertDialog(
+      backgroundColor: Colors.white,
+      surfaceTintColor: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+      title: Text(
+        title, 
+        style: GoogleFonts.inter(
+          fontWeight: FontWeight.w900,
+          color: AppColors.darkBlue,
+          letterSpacing: -0.5,
+        ),
+      ),
+      content: SizedBox(
+        width: double.maxFinite,
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Text(
+            content,
+            style: GoogleFonts.inter(
+              fontSize: 14, 
+              height: 1.6,
+              color: AppColors.textPrimary.withValues(alpha: 0.8),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+      ),
+      actions: [
+        Padding(
+          padding: const EdgeInsets.only(right: 8, bottom: 8),
+          child: TextButton(
+            onPressed: () => Navigator.pop(context),
+            style: TextButton.styleFrom(
+              foregroundColor: AppColors.primary,
+              textStyle: GoogleFonts.inter(
+                fontWeight: FontWeight.w800,
+                fontSize: 14,
+              ),
+            ),
+            child: const Text('Compreendido'),
+          ),
+        ),
       ],
     );
   }

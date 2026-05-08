@@ -24,7 +24,7 @@ AS $$
     SELECT 1
     FROM public.profiles
     WHERE id = auth.uid()
-      AND role = 'admin'
+      AND role IN ('admin', 'admin_master', 'admin_dev')
   );
 $$;
 

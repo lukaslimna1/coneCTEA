@@ -3,10 +3,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import '../../core/constants/colors.dart';
 import '../../services/auth_service.dart';
 import '../../services/database_service.dart';
 import '../../models/app_user.dart';
+import 'forgot_email_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -19,6 +21,12 @@ class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _authService = AuthService();
+  final _databaseService = DatabaseService();
+
+  final _cpfMask = MaskTextInputFormatter(
+    mask: '###.###.###-##',
+    filter: {"#": RegExp(r'[0-9]')},
+  );
   
   bool _obscurePassword = true;
   bool _isLoading = false;
@@ -87,6 +95,7 @@ class _LoginPageState extends State<LoginPage> {
       }
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -244,37 +253,50 @@ class _LoginPageState extends State<LoginPage> {
                         decoration: InputDecoration(
                           hintText: 'Digite sua senha',
                           prefixIcon: const Icon(Icons.lock_outline, color: AppColors.primary),
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                              color: AppColors.textSecondary,
+                          suffixIcon: StatefulBuilder(
+                            builder: (context, setEyeState) => IconButton(
+                              icon: Icon(
+                                _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                                color: AppColors.textSecondary,
+                              ),
+                              onPressed: () {
+                                setEyeState(() {
+                                  _obscurePassword = !_obscurePassword;
+                                });
+                                setState(() {}); // Still call parent setState to update TextField's obscureText
+                              },
                             ),
-                            onPressed: () {
-                              setState(() {
-                                _obscurePassword = !_obscurePassword;
-                              });
-                            },
                           ),
                         ),
                       ),
 
-                      // Link para recuperação de senha
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: () => context.push('/forgot-password'),
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                          ),
-                          child: Text(
-                            'Esqueci minha senha',
-                            style: GoogleFonts.inter(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14,
+                      // Links de recuperação
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          TextButton(
+                            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ForgotEmailPage())),
+                            child: Text(
+                              'Esqueci meu e-mail',
+                              style: GoogleFonts.inter(
+                                color: AppColors.textSecondary,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                              ),
                             ),
                           ),
-                        ),
+                          TextButton(
+                            onPressed: () => context.push('/forgot-password'),
+                            child: Text(
+                              'Esqueci minha senha',
+                              style: GoogleFonts.inter(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 8), // Reduzido de 16
 
