@@ -10,7 +10,7 @@
   <img src="https://img.shields.io/badge/Flutter-3.22+-02569B?logo=flutter" alt="Flutter">
   <img src="https://img.shields.io/badge/Dart-3.4+-0175C2?logo=dart" alt="Dart">
   <img src="https://img.shields.io/badge/Supabase-PostgreSQL-3FCF8E?logo=supabase" alt="Supabase">
-  <img src="https://img.shields.io/badge/Versão-3.0.0-7C3AED" alt="Versão">
+  <img src="https://img.shields.io/badge/Versão-3.2.0-7C3AED" alt="Versão">
   <img src="https://img.shields.io/badge/LGPD-Compliant-10B981" alt="LGPD">
 </p>
 
@@ -40,7 +40,13 @@ O **ConeCTEA** é o hub tecnológico da **Família TEA Bauru** — uma iniciativ
 
 ## 🛤️ Histórico de Versões
 
-### 🎨 v3.1.0 — UI/UX Premium & Conformidade Legal *(atual)*
+### 💎 v3.2.0 — UX Refinement & Profile Governance *(atual)*
+- **Home UI Refresh**: Card digital com animação de flutuação premium e foco na "Carteirinha Ativa" como destaque principal.
+- **Governança de Perfil**: Campos bloqueados por padrão com "Modo de Edição" protegido por confirmação.
+- **Segurança Crítica**: CPF e E-mail permanentemente bloqueados para edição direta, com atalho para suporte via WhatsApp.
+- **Micro-interações**: Feedback visual aprimorado e transições suaves entre estados de visualização/edição.
+
+### 🎨 v3.1.0 — UI/UX Premium & Conformidade Legal
 - **Design System Unificado**: Background `#F6F8FC` (branco azulado) aplicado em todas as telas
 - **Acessibilidade**: Contraste de texto elevado para legibilidade máxima (WCAG AA)
 - **Alinhamento**: Cards de acesso rápido sempre alinhados à esquerda com scroll horizontal consistente
@@ -165,5 +171,5 @@ Este projeto é mantido em colaboração com a **Família TEA Bauru**. Para cont
 <p align="center">
   Desenvolvido com 💙 para a <strong>Família TEA Bauru</strong>
   <br>
-  <sub>ConeCTEA v3.1.0 — 2026</sub>
+  <sub>ConeCTEA v3.2.0 — 2026</sub>
 </p>

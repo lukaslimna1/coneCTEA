@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher_string.dart';
 import '../../core/constants/colors.dart';
 import '../../services/auth_service.dart';
 import './security_view.dart';
+import './edit_profile_view.dart';
 
 class AccountView extends StatelessWidget {
   const AccountView({super.key});
@@ -23,7 +24,10 @@ class AccountView extends StatelessWidget {
             _MenuItem(
               icon: Icons.person_outline_rounded,
               title: 'Dados Pessoais',
-              onTap: (ctx) {},
+              onTap: (ctx) => Navigator.push(
+                ctx,
+                MaterialPageRoute(builder: (context) => const EditProfileView()),
+              ),
             ),
             _MenuItem(
               icon: Icons.security_rounded,

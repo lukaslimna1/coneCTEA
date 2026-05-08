@@ -697,8 +697,15 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
-                  value: selectedGenero,
+                  value: const [
+                    'Feminino',
+                    'Masculino',
+                    'Não binário',
+                    'Outro',
+                    'Prefiro não informar',
+                  ].contains(selectedGenero) ? selectedGenero : null,
                   decoration: const InputDecoration(labelText: 'Gênero'),
+                  hint: const Text('Selecione o gênero'),
                   items: [
                     'Feminino',
                     'Masculino',

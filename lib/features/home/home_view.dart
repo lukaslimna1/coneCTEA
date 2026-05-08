@@ -13,6 +13,7 @@ import 'package:url_launcher/url_launcher_string.dart';
 import '../requests/add_member_page.dart';
 import '../cards/widgets/digital_card_widget.dart';
 import '../admin/scanner_view.dart';
+import '../account/edit_profile_view.dart';
 import '../legal/terms_of_use_page.dart';
 import '../account/security_view.dart';
 
@@ -153,13 +154,32 @@ class _HomeViewState extends State<HomeView> {
           actions: [
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => Navigator.pop(context),
+              child: ElevatedButton.icon(
+                onPressed: () async {
+                  Navigator.pop(context);
+                  final result = await Navigator.push(
+                    this.context,
+                    MaterialPageRoute(builder: (_) => const EditProfileView()),
+                  );
+                  if (result == true) {
+                    _loadData();
+                  }
+                },
+                icon: const Icon(Icons.edit_rounded, size: 18),
+                label: const Text('Completar Dados', style: TextStyle(color: Colors.white)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: const Text('Entendi', style: TextStyle(color: Colors.white)),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Center(
+              child: TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('Voltar', style: TextStyle(color: AppColors.textSecondary)),
               ),
             ),
           ],
@@ -691,101 +711,78 @@ class _HomeViewState extends State<HomeView> {
         padding: const EdgeInsets.all(24),
         child: Column(
           children: [
-            Row(
-              children: [
-                Expanded(
-                  flex: 3,
-                  child: SizedBox(
-                    height: 130,
-                    child: _Animated3DCardGroup(
-                      frontCard: _buildMiniCard(isVerso: false, member: member),
-                      backCard: _buildMiniCard(isVerso: true, member: member),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  flex: 2,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+            // === Carteirinha: Frente em Destaque ===
+            TweenAnimationBuilder<double>(
+              tween: Tween<double>(begin: 0, end: 10),
+              duration: const Duration(seconds: 2),
+              curve: Curves.easeInOutSine,
+              builder: (context, value, child) {
+                return Transform.translate(
+                  offset: Offset(0, value),
+                  child: child,
+                );
+              },
+              onEnd: () {
+                // This won't work for infinite loop easily in TweenAnimationBuilder without state.
+                // But we can use a simpler approach if we want it infinite.
+              },
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  // Frente da carteirinha — destaque total
+                  Container(
+                    width: double.infinity,
                     decoration: BoxDecoration(
-                      color: AppColors.backgroundLight,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          statusIcon, 
-                          color: statusColor, 
-                          size: 24,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Carteirinha',
-                          style: GoogleFonts.inter(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
-                        ),
-                        Text(
-                          statusDisplay,
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.inter(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w900,
-                            color: statusColor,
-                          ),
-                        ),
-                        () {
-                          String? displayId;
-                          if (isActive) {
-                            try {
-                              final card = _digitalCards.firstWhere((DigitalCard c) => c.memberId == member.id);
-                              displayId = card.cardNumber;
-                            } catch (_) {}
-                          }
-                          displayId ??= memberRequest?.protocol;
-
-                          if (displayId == null || displayId.isEmpty) return const SizedBox.shrink();
-
-                          return Padding(
-                            padding: const EdgeInsets.only(top: 6),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: AppColors.textSecondary.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Text(
-                                displayId,
-                                style: GoogleFonts.inter(
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.textSecondary,
-                                ),
-                              ),
-                            ),
-                          );
-                        }(),
-                        const Divider(height: 20, color: AppColors.borderLight),
-                        Text(
-                          'Vencimento',
-                          style: GoogleFonts.inter(fontSize: 10, color: AppColors.textSecondary),
-                        ),
-                        Text(
-                          (memberRequest?.expiresAt != null) 
-                            ? DateFormat('dd/MM/yyyy').format(memberRequest!.expiresAt!) 
-                            : (isActive ? DateFormat('dd/MM/yyyy').format(lastUpdate.add(const Duration(days: 365))) : '--/--/----'),
-                          style: GoogleFonts.inter(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.textPrimary,
-                          ),
+                      borderRadius: BorderRadius.circular(18),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withValues(alpha: 0.18),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
                         ),
                       ],
                     ),
+                    child: _buildMiniCard(isVerso: false, member: member),
                   ),
-                ),
-              ],
+                  // Status badge flutuando no canto superior direito
+                  Positioned(
+                    top: -8,
+                    right: -8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: statusColor.withValues(alpha: 0.4), width: 1.5),
+                        boxShadow: [
+                          BoxShadow(
+                            color: statusColor.withValues(alpha: 0.2),
+                            blurRadius: 10,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(statusIcon, color: statusColor, size: 14),
+                          const SizedBox(width: 5),
+                          Text(
+                            statusDisplay,
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w900,
+                              color: statusColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
+
             
             if (showJustification && adminNotes.isNotEmpty) ...[
               const SizedBox(height: 16),
@@ -972,16 +969,13 @@ class _HomeViewState extends State<HomeView> {
         updatedAt: DateTime.now(),
       );
     
-    return SizedBox(
-      width: 170,
-      child: RepaintBoundary(
-        child: IgnorePointer(
-          child: DigitalCardWidget(
-            member: member,
-            showBack: isVerso,
-            card: null,
-            isStatic: true,
-          ),
+    return RepaintBoundary(
+      child: IgnorePointer(
+        child: DigitalCardWidget(
+          member: member,
+          showBack: isVerso,
+          card: null,
+          isStatic: true,
         ),
       ),
     );
@@ -1983,90 +1977,5 @@ class _HomeViewState extends State<HomeView> {
   }
 }
 
-class _Animated3DCardGroup extends StatefulWidget {
-  final Widget frontCard;
-  final Widget backCard;
 
-  const _Animated3DCardGroup({required this.frontCard, required this.backCard});
 
-  @override
-  State<_Animated3DCardGroup> createState() => _Animated3DCardGroupState();
-}
-
-class _Animated3DCardGroupState extends State<_Animated3DCardGroup> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 1800))
-      ..forward();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        final double progress = Curves.easeOutCubic.transform(_controller.value);
-        final double hoverOffset = (1.0 - progress) * 12;
-        final double tiltX = (1.0 - progress) * 0.05;
-        final double tiltY = (1.0 - progress) * 0.05;
-
-        return Stack(
-          alignment: Alignment.center,
-          clipBehavior: Clip.none,
-          children: [
-            Positioned(
-              left: 12 + (tiltY * 20),
-              bottom: -4 + hoverOffset,
-              child: Transform(
-                transform: Matrix4.identity()
-                  ..setEntry(3, 2, 0.001)
-                  ..rotateX(-0.08)
-                  ..rotateY(0.15)
-                  ..rotateZ(-0.04 + tiltX * 0.5),
-                alignment: Alignment.center,
-                child: Opacity(
-                  opacity: 0.7,
-                  child: widget.backCard,
-                ),
-              ),
-            ),
-            Positioned(
-              right: 12 - (tiltY * 20),
-              top: -4 - hoverOffset,
-              child: Transform(
-                transform: Matrix4.identity()
-                  ..setEntry(3, 2, 0.001)
-                  ..rotateX(0.04)
-                  ..rotateY(-0.08)
-                  ..rotateZ(0.04 + tiltY * 0.5),
-                alignment: Alignment.center,
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.25),
-                        blurRadius: 12,
-                        offset: const Offset(4, 8),
-                      ),
-                    ],
-                  ),
-                  child: widget.frontCard,
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-}

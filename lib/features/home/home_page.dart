@@ -119,46 +119,70 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       backgroundColor: AppColors.backgroundPremium,
-      appBar: AppBar(
-        backgroundColor: AppColors.backgroundPremium,
-        elevation: 0,
-        toolbarHeight: 80, // Slightly reduced for better balance
-        title: Padding(
-          padding: const EdgeInsets.only(left: 8),
-          child: Hero(
-            tag: 'app_logo_mini',
-            child: SvgPicture.asset(
-              'assets/images/logo_horizontal.svg',
-              width: 150,
-              height: 40,
-              fit: BoxFit.contain,
-              placeholderBuilder: (context) => Text(
-                'ConeCTEA',
-                style: GoogleFonts.inter(
-                  color: AppColors.darkBlue,
-                  fontWeight: FontWeight.w900,
-                  fontSize: 24,
-                ),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(80),
+        child: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFF071022), // quase preto-azul
+                Color(0xFF0D1B3E), // azul institucional profundo
+                Color(0xFF111830), // tom escuro base
+              ],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Color(0x33000000),
+                blurRadius: 16,
+                offset: Offset(0, 4),
+              ),
+            ],
+          ),
+          child: SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              child: Row(
+                children: [
+                  // Logo com tag Hero para animação de transição
+                  Hero(
+                    tag: 'app_logo_mini',
+                    child: SvgPicture.asset(
+                      'assets/images/logo_horizontal.svg',
+                      width: 150,
+                      height: 40,
+                      fit: BoxFit.contain,
+                      placeholderBuilder: (context) => Text(
+                        'ConeCTEA',
+                        style: GoogleFonts.inter(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 24,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const Spacer(),
+                  // Badge Admin (se aplicável)
+                  if (_user?.role.isAdmin ?? false) ...[
+                    UserRoleBadge(
+                      role: _user!.role,
+                      onTap: () => setState(() => _currentIndex = 5),
+                    ),
+                    const SizedBox(width: 14),
+                  ],
+                  // Sino de notificações
+                  _buildNotificationAction(),
+                  const SizedBox(width: 14),
+                  // Avatar
+                  _buildUserAvatar(),
+                ],
               ),
             ),
           ),
         ),
-        centerTitle: false,
-        actions: [
-          if (_user?.role.isAdmin ?? false) ...[
-            Center(
-              child: UserRoleBadge(
-                role: _user!.role,
-                onTap: () => setState(() => _currentIndex = 5),
-              ),
-            ),
-            const SizedBox(width: 16),
-          ],
-          _buildNotificationAction(),
-          const SizedBox(width: 12),
-          _buildUserAvatar(),
-          const SizedBox(width: 24),
-        ],
       ),
       body: IndexedStack(
         index: _currentIndex,
@@ -265,60 +289,91 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildNotificationAction() {
-    return Center(
-      child: GestureDetector(
-        onTap: () => setState(() => _currentIndex = 3),
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            const Icon(Icons.notifications_none_rounded, color: AppColors.textSecondary, size: 32),
-            if (_unreadCount > 0)
-              Positioned(
-                right: -2,
-                top: -2,
-                child: Container(
-                  width: 20,
-                  height: 20,
-                  decoration: BoxDecoration(
-                    color: AppColors.errorRed,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2),
-                  ),
-                  child: Center(
-                    child: Text(
-                      _unreadCount > 9 ? '9+' : '$_unreadCount',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 9,
-                        fontWeight: FontWeight.bold,
-                      ),
+    return GestureDetector(
+      onTap: () => setState(() => _currentIndex = 3),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.10),
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.15),
+                width: 1,
+              ),
+            ),
+            child: const Icon(
+              Icons.notifications_none_rounded,
+              color: Colors.white,
+              size: 22,
+            ),
+          ),
+          if (_unreadCount > 0)
+            Positioned(
+              right: -2,
+              top: -2,
+              child: Container(
+                width: 18,
+                height: 18,
+                decoration: BoxDecoration(
+                  color: AppColors.errorRed,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: const Color(0xFF0D1B3E), width: 2),
+                ),
+                child: Center(
+                  child: Text(
+                    _unreadCount > 9 ? '9+' : '$_unreadCount',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 8,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
               ),
-          ],
-        ),
+            ),
+        ],
       ),
     );
   }
 
   Widget _buildUserAvatar() {
-    return Center(
-      child: Container(
-        width: 64,
-        height: 64,
-        decoration: const BoxDecoration(
-          color: AppColors.purpleLight,
-          shape: BoxShape.circle,
+    return Container(
+      width: 44,
+      height: 44,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF7C3AED), // roxo ConeCTEA
+            Color(0xFF14B8A6), // teal ConeCTEA
+          ],
         ),
-        child: Center(
-          child: Text(
-            _initials,
-            style: GoogleFonts.inter(
-              color: AppColors.primary,
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-            ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF7C3AED).withValues(alpha: 0.45),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.25),
+          width: 2,
+        ),
+      ),
+      child: Center(
+        child: Text(
+          _initials,
+          style: GoogleFonts.inter(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 0.5,
           ),
         ),
       ),

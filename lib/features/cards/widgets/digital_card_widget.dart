@@ -284,41 +284,47 @@ class _CardBackgroundState extends State<_CardBackground> with SingleTickerProvi
 
   @override
   Widget build(BuildContext context) {
-    // Premium fluid gradients matching the provided images
-    final waveColors = widget.isFront 
-        ? const [
-            Color(0xFF06B6D4), // Cyan 500
-            Color(0xFF0284C7), // Light Blue
-            Color(0xFF2563EB), // Vibrant Blue
-            Color(0xFF1E3A8A), // Deep Navy
-          ] 
-        : const [
-            Color(0xFFE0F2FE), // Very light blue
-            Color(0xFFBAE6FD), // Light cyan
-          ]; // Extremely subtle lighter blue for back
-
     return Stack(
       children: [
-        // Background color
-        Container(color: Colors.white),
+        // Fundo escuro gradiente (azul-noite institucional)
+        Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: widget.isFront
+                  ? const [
+                      Color(0xFF060E1F),
+                      Color(0xFF0B1733),
+                      Color(0xFF0D1B3E),
+                    ]
+                  : const [
+                      Color(0xFF080F20),
+                      Color(0xFF0A1530),
+                      Color(0xFF0D1B3E),
+                    ],
+            ),
+          ),
+        ),
 
-        // Watermark on the back (Puzzle head icon if available, or logo)
+        // Watermark logo no verso (visível em branco sobre escuro)
         if (!widget.isFront)
           Positioned(
-            right: 0,
-            bottom: -50,
+            right: -20,
+            bottom: -40,
             child: IgnorePointer(
               child: Opacity(
-                opacity: 0.03,
+                opacity: 0.06,
                 child: SvgPicture.asset(
-                  'assets/images/logo_horizontal.svg', 
-                  height: 300,
+                  'assets/images/logo_horizontal.svg',
+                  height: 280,
+                  colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
                 ),
               ),
             ),
           ),
-          
-        // Animated Geometric Fluid Design
+
+        // Formas geométricas fluidas animadas
         Positioned.fill(
           child: IgnorePointer(
             child: AnimatedBuilder(
@@ -336,16 +342,16 @@ class _CardBackgroundState extends State<_CardBackground> with SingleTickerProvi
           ),
         ),
 
-        // Main Content
+        // Conteúdo principal
         widget.child,
 
-        // Premium Border highlight
+        // Borda premium brilhante
         Positioned.fill(
           child: IgnorePointer(
             child: Container(
               decoration: BoxDecoration(
                 border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.5),
+                  color: Colors.white.withValues(alpha: 0.12),
                   width: 1.5,
                 ),
                 borderRadius: BorderRadius.circular(20),
@@ -376,102 +382,90 @@ class _GeometricFluidPainter extends CustomPainter {
 
     final shift = (1.0 - animationProgress) * 50;
 
-    // Premium Logo Gradient Colors
-    const premiumColors = [
-      Color(0xFFA143FF), // 0% Roxo vibrante
-      Color(0xFF9B46FF), // 20% Roxo violeta
-      Color(0xFF8155FF), // 35% Violeta azulado
-      Color(0xFF527FF2), // 50% Azul médio
-      Color(0xFF1BB3DB), // 60% Azul ciano
-      Color(0xFF00D7D3), // 70% Turquesa
-      Color(0xFF00D8D0), // 100% Ciano/verde água
-    ];
-    const premiumStops = [0.0, 0.2, 0.35, 0.5, 0.6, 0.7, 1.0];
-
-    final paintPremium = Paint()
+    // Gradiente roxo neon → ciano (identidade ConeCTEA)
+    final paintNeon = Paint()
       ..shader = const LinearGradient(
-        colors: premiumColors,
-        stops: premiumStops,
+        colors: [
+          Color(0xFFA143FF), // Roxo neon
+          Color(0xFF8155FF), // Violeta
+          Color(0xFF00D8D0), // Ciano/teal
+        ],
+        stops: [0.0, 0.5, 1.0],
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
       ..style = PaintingStyle.fill;
 
-    // A darker, elegant variant for contrast
-    final paintNavyAccent = Paint()
-      ..shader = const LinearGradient(
-        colors: [Color(0xFF1A1F71), Color(0xFF071F4F)],
-        begin: Alignment.bottomLeft,
-        end: Alignment.topRight,
-      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
+    // Azul profundo semi-transparente para contraste
+    final paintDeep = Paint()
+      ..color = const Color(0x44000D2A)
       ..style = PaintingStyle.fill;
 
-    // Top-Right Fluid Geometric Shape
-    final pathTop = Path();
-    pathTop.moveTo(size.width * 0.45 + shift, 0);
-    pathTop.lineTo(size.width * 0.65, size.height * 0.15); 
-    pathTop.quadraticBezierTo(size.width * 0.85, size.height * 0.25, size.width, size.height * 0.2 - shift); 
-    pathTop.lineTo(size.width, 0);
-    pathTop.close();
-    canvas.drawPath(pathTop, paintNavyAccent);
+    // Forma topo-direita
+    final pathTop = Path()
+      ..moveTo(size.width * 0.45 + shift, 0)
+      ..lineTo(size.width * 0.65, size.height * 0.15)
+      ..quadraticBezierTo(size.width * 0.85, size.height * 0.25, size.width, size.height * 0.2 - shift)
+      ..lineTo(size.width, 0)
+      ..close();
+    canvas.drawPath(pathTop, paintDeep);
 
-    final pathTopPremium = Path();
-    pathTopPremium.moveTo(size.width * 0.6 + shift, 0);
-    pathTopPremium.lineTo(size.width * 0.75, size.height * 0.1);
-    pathTopPremium.quadraticBezierTo(size.width * 0.9, size.height * 0.15, size.width, size.height * 0.1 - shift);
-    pathTopPremium.lineTo(size.width, 0);
-    pathTopPremium.close();
-    canvas.drawPath(pathTopPremium, paintPremium);
+    final pathTopNeon = Path()
+      ..moveTo(size.width * 0.6 + shift, 0)
+      ..lineTo(size.width * 0.75, size.height * 0.1)
+      ..quadraticBezierTo(size.width * 0.9, size.height * 0.15, size.width, size.height * 0.1 - shift)
+      ..lineTo(size.width, 0)
+      ..close();
+    canvas.drawPath(pathTopNeon, paintNeon);
 
-    // Bottom-Right Large Overlapping Fluid Geometric Shapes
-    final pathBotNavy = Path();
-    pathBotNavy.moveTo(size.width * 0.25 - shift, size.height);
-    pathBotNavy.lineTo(size.width * 0.65, size.height * 0.55);
-    pathBotNavy.quadraticBezierTo(size.width * 0.9, size.height * 0.45, size.width, size.height * 0.35 + shift);
-    pathBotNavy.lineTo(size.width, size.height);
-    pathBotNavy.close();
-    canvas.drawPath(pathBotNavy, paintNavyAccent);
+    // Forma baixo-direita
+    final pathBotDeep = Path()
+      ..moveTo(size.width * 0.25 - shift, size.height)
+      ..lineTo(size.width * 0.65, size.height * 0.55)
+      ..quadraticBezierTo(size.width * 0.9, size.height * 0.45, size.width, size.height * 0.35 + shift)
+      ..lineTo(size.width, size.height)
+      ..close();
+    canvas.drawPath(pathBotDeep, paintDeep);
 
-    final pathBotPremium = Path();
-    pathBotPremium.moveTo(size.width * 0.45 - shift, size.height);
-    pathBotPremium.lineTo(size.width * 0.75, size.height * 0.65);
-    pathBotPremium.quadraticBezierTo(size.width * 0.95, size.height * 0.6, size.width, size.height * 0.5 + shift);
-    pathBotPremium.lineTo(size.width, size.height);
-    pathBotPremium.close();
-    canvas.drawPath(pathBotPremium, paintPremium);
+    final pathBotNeon = Path()
+      ..moveTo(size.width * 0.45 - shift, size.height)
+      ..lineTo(size.width * 0.75, size.height * 0.65)
+      ..quadraticBezierTo(size.width * 0.95, size.height * 0.6, size.width, size.height * 0.5 + shift)
+      ..lineTo(size.width, size.height)
+      ..close();
+    canvas.drawPath(pathBotNeon, paintNeon);
 
-    // Abstract Modern Floating Circles
+    // Pontos decorativos flutuantes
     if (animationProgress > 0.1) {
-      final dotProgress = (animationProgress - 0.1) / 0.9;
-      final paintDotCyan = Paint()..color = const Color(0xFF00D7D3);
-      final paintDotPurple = Paint()..color = const Color(0xFFA143FF);
-      
-      canvas.drawCircle(Offset(size.width * 0.85, size.height * 0.3), 6.0 * dotProgress, paintDotCyan);
-      canvas.drawCircle(Offset(size.width * 0.92, size.height * 0.22), 3.0 * dotProgress, paintDotPurple);
-      canvas.drawCircle(Offset(size.width * 0.45, size.height * 0.92), 2.0 * dotProgress, paintDotCyan);
+      final dp = (animationProgress - 0.1) / 0.9;
+      canvas.drawCircle(Offset(size.width * 0.85, size.height * 0.3), 6.0 * dp,
+          Paint()..color = const Color(0xFF00D8D0).withValues(alpha: 0.8));
+      canvas.drawCircle(Offset(size.width * 0.92, size.height * 0.22), 3.5 * dp,
+          Paint()..color = const Color(0xFFA143FF).withValues(alpha: 0.9));
+      canvas.drawCircle(Offset(size.width * 0.45, size.height * 0.92), 2.5 * dp,
+          Paint()..color = const Color(0xFF00D8D0).withValues(alpha: 0.7));
     }
   }
 
   void _drawBackShapes(Canvas canvas, Size size) {
-    // Subtle fluid wave for the back
     final shift = (1.0 - animationProgress) * 30;
-    
-    final paintLightCyan = Paint()
+
+    // Linha neon no fundo do verso
+    final paintCyan = Paint()
       ..shader = const LinearGradient(
-        colors: [Color(0xFFF8FAFC), Color(0xFFE0F2FE)],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
+        colors: [Color(0x007C3AED), Color(0x8814B8A6), Color(0x007C3AED)],
+        begin: Alignment.centerLeft,
+        end: Alignment.centerRight,
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
       ..style = PaintingStyle.fill;
 
-    final path = Path();
-    path.moveTo(0, size.height);
-    path.lineTo(0, size.height * 0.85 + shift);
-    path.quadraticBezierTo(size.width * 0.5, size.height * 0.75 + shift, size.width, size.height * 0.9 + shift);
-    path.lineTo(size.width, size.height);
-    path.close();
-    
-    canvas.drawPath(path, paintLightCyan);
+    final path = Path()
+      ..moveTo(0, size.height)
+      ..lineTo(0, size.height * 0.85 + shift)
+      ..quadraticBezierTo(size.width * 0.5, size.height * 0.75 + shift, size.width, size.height * 0.9 + shift)
+      ..lineTo(size.width, size.height)
+      ..close();
+    canvas.drawPath(path, paintCyan);
   }
 
   @override
@@ -516,7 +510,7 @@ class _FrontCard extends StatelessWidget {
                   placeholderBuilder: (context) => Text(
                     'ConeCTEA',
                     style: GoogleFonts.outfit(
-                      color: const Color(0xFF1A1F71),
+                      color: Colors.white,
                       fontSize: 24,
                       fontWeight: FontWeight.w900,
                     ),
@@ -527,23 +521,17 @@ class _FrontCard extends StatelessWidget {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Validity Pill
+                    // Validity Pill — roxo neon translúcido
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1E3A8A), // Deep Navy
+                        color: const Color(0xFF7C3AED).withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF1E3A8A).withValues(alpha: 0.2),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
+                        border: Border.all(color: const Color(0xFFA143FF).withValues(alpha: 0.5)),
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.calendar_month_rounded, color: Colors.white, size: 10),
+                          const Icon(Icons.calendar_month_rounded, color: Color(0xFFA143FF), size: 10),
                           const SizedBox(width: 4),
                           Text(
                             validStr,
@@ -557,30 +545,23 @@ class _FrontCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 6),
-                    // Status Pill
+                    // Status Pill — ciano neon translúcido
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: const Color(0xFF00D8D0).withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF0D9488).withValues(alpha: 0.15),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                        border: Border.all(color: const Color(0xFF0D9488).withValues(alpha: 0.3)),
+                        border: Border.all(color: const Color(0xFF00D8D0).withValues(alpha: 0.5)),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.verified_rounded, color: Color(0xFF0D9488), size: 10),
+                          const Icon(Icons.verified_rounded, color: Color(0xFF00D8D0), size: 10),
                           const SizedBox(width: 4),
                           Text(
                             'ATIVA',
                             style: GoogleFonts.inter(
-                              color: const Color(0xFF0D9488),
+                              color: const Color(0xFF00D8D0),
                               fontSize: 8,
                               fontWeight: FontWeight.w900,
                             ),
@@ -598,7 +579,7 @@ class _FrontCard extends StatelessWidget {
             Text(
               'CARTEIRINHA DE IDENTIFICAÇÃO',
               style: GoogleFonts.inter(
-                color: Colors.black,
+                color: Colors.white,
                 fontSize: 15,
                 fontWeight: FontWeight.w900,
                 letterSpacing: 0.5,
@@ -608,9 +589,9 @@ class _FrontCard extends StatelessWidget {
             Text(
               'PESSOA COM TRANSTORNO DO ESPECTRO AUTISTA',
               style: GoogleFonts.inter(
-                color: const Color(0xFF1E293B), // Stronger than 334155
+                color: Colors.white.withValues(alpha: 0.65),
                 fontSize: 8,
-                fontWeight: FontWeight.w900, // bolder
+                fontWeight: FontWeight.w900,
                 letterSpacing: 0.5,
               ),
             ),
@@ -628,24 +609,24 @@ class _FrontCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: const LinearGradient(
-                      colors: [Color(0xFFE0F2FE), Color(0xFFF3E8FF)],
+                      colors: [Color(0xFF7C3AED), Color(0xFF14B8A6)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF8155FF).withValues(alpha: 0.15),
-                        blurRadius: 15,
-                        offset: const Offset(0, 5),
+                        color: const Color(0xFF7C3AED).withValues(alpha: 0.5),
+                        blurRadius: 20,
+                        offset: const Offset(0, 6),
                       ),
                     ],
-                    border: Border.all(color: Colors.white, width: 3),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 3),
                   ),
                   alignment: Alignment.center,
                   child: Text(
                     member.initials,
                     style: GoogleFonts.outfit(
-                      color: const Color(0xFF1A1F71), // Deep navy
+                      color: Colors.white,
                       fontSize: 32,
                       fontWeight: FontWeight.w900,
                     ),
@@ -662,7 +643,7 @@ class _FrontCard extends StatelessWidget {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.outfit(
-                          color: Colors.black,
+                          color: Colors.white,
                           fontSize: 20,
                           fontWeight: FontWeight.w900,
                           height: 1.1,
@@ -672,7 +653,7 @@ class _FrontCard extends StatelessWidget {
                       Text(
                         birthStr,
                         style: GoogleFonts.inter(
-                          color: Colors.black,
+                          color: Colors.white.withValues(alpha: 0.85),
                           fontSize: 14,
                           fontWeight: FontWeight.w900,
                         ),
@@ -684,7 +665,7 @@ class _FrontCard extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.inter(
-                            color: const Color(0xFF0F172A),
+                            color: Colors.white.withValues(alpha: 0.7),
                             fontSize: 12,
                             fontWeight: FontWeight.w800,
                           ),
@@ -694,7 +675,7 @@ class _FrontCard extends StatelessWidget {
                         Text(
                           'Tipo Sanguíneo: ${member.bloodType}',
                           style: GoogleFonts.inter(
-                            color: const Color(0xFFDC2626), // Vermelho destaque
+                            color: const Color(0xFFFF6B6B), // Vermelho claro sobre escuro
                             fontSize: 12,
                             fontWeight: FontWeight.w800,
                           ),
@@ -716,25 +697,18 @@ class _FrontCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.9),
+                    color: Colors.white.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.tag_rounded, color: Color(0xFF1E293B), size: 10),
+                      Icon(Icons.tag_rounded, color: const Color(0xFF00D8D0), size: 10),
                       const SizedBox(width: 4),
                       Text(
                         'TOKEN: ',
                         style: GoogleFonts.inter(
-                          color: const Color(0xFF1E293B),
+                          color: Colors.white.withValues(alpha: 0.6),
                           fontSize: 8,
                           fontWeight: FontWeight.w900,
                         ),
@@ -742,7 +716,7 @@ class _FrontCard extends StatelessWidget {
                       Text(
                         validationToken,
                         style: GoogleFonts.inter(
-                          color: Colors.black,
+                          color: Colors.white,
                           fontSize: 10,
                           fontWeight: FontWeight.w900,
                         ),
@@ -797,7 +771,7 @@ class _BackCard extends StatelessWidget {
                   Text(
                     'INFORMAÇÕES ADICIONAIS',
                     style: GoogleFonts.outfit(
-                      color: const Color(0xFF1A1F71),
+                      color: const Color(0xFF00D8D0), // Ciano neon
                       fontSize: 14,
                       fontWeight: FontWeight.w900,
                       letterSpacing: 0.5,
@@ -808,7 +782,7 @@ class _BackCard extends StatelessWidget {
                     width: 30,
                     height: 2,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0D9488), // Cyan
+                      color: const Color(0xFFA143FF), // Roxo neon
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -827,7 +801,7 @@ class _BackCard extends StatelessWidget {
                           child: Icon(
                             showCpf ? Icons.visibility_off_rounded : Icons.visibility_rounded,
                             size: 18,
-                            color: const Color(0xFF1E3A8A),
+                            color: const Color(0xFF00D8D0),
                           ),
                         ),
                       ),
@@ -840,14 +814,14 @@ class _BackCard extends StatelessWidget {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFEFF6FF),
-                          border: Border.all(color: const Color(0xFFBFDBFE)),
+                          color: const Color(0xFF7C3AED).withValues(alpha: 0.25),
+                          border: Border.all(color: const Color(0xFFA143FF).withValues(alpha: 0.5)),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
                           'CID: ${member.cid}',
                           style: GoogleFonts.inter(
-                            color: const Color(0xFF1D4ED8),
+                            color: const Color(0xFFA143FF),
                             fontSize: 10,
                             fontWeight: FontWeight.w700,
                           ),
@@ -864,7 +838,7 @@ class _BackCard extends StatelessWidget {
                   Text(
                     'Este documento é pessoal e intransferível.\nA autenticidade pode ser verificada via QR Code.\nVálido em todo território nacional.',
                     style: GoogleFonts.inter(
-                      color: const Color(0xFF0F172A),
+                      color: Colors.white.withValues(alpha: 0.55),
                       fontSize: 7,
                       fontWeight: FontWeight.w800,
                       height: 1.2,
@@ -889,12 +863,12 @@ class _BackCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05),
-                          blurRadius: 15,
+                          color: const Color(0xFF7C3AED).withValues(alpha: 0.3),
+                          blurRadius: 20,
                           offset: const Offset(0, 5),
                         ),
                       ],
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
                     ),
                     child: QrImageView(
                       data: qrData,
@@ -916,14 +890,13 @@ class _BackCard extends StatelessWidget {
                     'VALIDAR AUTENTICIDADE',
                     textAlign: TextAlign.center,
                     style: GoogleFonts.inter(
-                      color: const Color(0xFF1A1F71),
+                      color: Colors.white.withValues(alpha: 0.6),
                       fontSize: 8,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 0.5,
                     ),
                   ),
                   const SizedBox(height: 4),
-                  // ConeCTEA Logo Text Colored
                   RichText(
                     text: TextSpan(
                       style: GoogleFonts.outfit(
@@ -931,15 +904,15 @@ class _BackCard extends StatelessWidget {
                         fontWeight: FontWeight.w900,
                       ),
                       children: const [
-                        TextSpan(text: 'Cone', style: TextStyle(color: Color(0xFF7C3AED))), // Purple
-                        TextSpan(text: 'CTEA', style: TextStyle(color: Color(0xFF0D9488))), // Cyan
+                        TextSpan(text: 'Cone', style: TextStyle(color: Color(0xFFA143FF))),
+                        TextSpan(text: 'CTEA', style: TextStyle(color: Color(0xFF00D8D0))),
                       ],
                     ),
                   ),
                   Text(
                     'Família TEA Bauru',
                     style: GoogleFonts.inter(
-                      color: const Color(0xFF1E293B),
+                      color: Colors.white.withValues(alpha: 0.7),
                       fontSize: 10,
                       fontWeight: FontWeight.w800,
                     ),
@@ -948,7 +921,7 @@ class _BackCard extends StatelessWidget {
                   Text(
                     '#TODOSPELOAUTISMO',
                     style: GoogleFonts.inter(
-                      color: const Color(0xFF1A1F71),
+                      color: const Color(0xFF00D8D0),
                       fontSize: 8,
                       fontWeight: FontWeight.w900,
                     ),
@@ -971,7 +944,7 @@ class _BackCard extends StatelessWidget {
           Text(
             label,
             style: GoogleFonts.inter(
-              color: const Color(0xFF1E293B),
+              color: Colors.white.withValues(alpha: 0.5),
               fontSize: 10,
               fontWeight: FontWeight.w900,
               letterSpacing: 0.5,
@@ -986,7 +959,7 @@ class _BackCard extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.inter(
-                    color: Colors.black,
+                    color: Colors.white,
                     fontSize: 14,
                     fontWeight: FontWeight.w900,
                   ),
