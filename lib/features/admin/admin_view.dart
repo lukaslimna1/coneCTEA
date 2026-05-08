@@ -535,7 +535,7 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
+                color: AppColors.primary.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.security_rounded, color: AppColors.primary, size: 32),

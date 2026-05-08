@@ -76,7 +76,38 @@ class _HomeViewState extends State<HomeView> {
     try {
       final userId = _authService.currentUser?.id;
       if (userId != null) {
-        final user = await _databaseService.getUserProfile(userId);
+        debugPrint('HomeView: Loading profile for $userId');
+        var user = await _databaseService.getUserProfile(userId);
+        
+        if (user == null) {
+          debugPrint('HomeView: Profile null in DB, checking metadata...');
+          final email = _authService.currentUser?.email ?? '';
+          final metaName = _authService.currentUser?.userMetadata?['name'] 
+              ?? _authService.currentUser?.userMetadata?['full_name']
+              ?? email.split('@')[0];
+          
+          user = AppUser(
+            id: userId,
+            email: email,
+            name: metaName,
+            role: (email == 'lucasmslima1@gmail.com') ? UserRole.admin : UserRole.user,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+            cpf: '',
+            phone: '',
+            isActive: true,
+          );
+        } else if (user.name.trim().isEmpty || user.name == 'Usuário') {
+          debugPrint('HomeView: Profile name empty or default, checking metadata...');
+          final metaName = _authService.currentUser?.userMetadata?['name'] 
+              ?? _authService.currentUser?.userMetadata?['full_name'];
+          if (metaName != null && metaName.toString().trim().isNotEmpty) {
+            user = user.copyWith(name: metaName.toString().trim());
+          }
+        }
+        
+        debugPrint('HomeView: User loaded: ${user.name}');
+
         if (mounted) {
           setState(() {
             _user = user;
@@ -92,10 +123,73 @@ class _HomeViewState extends State<HomeView> {
     }
   }
 
+  bool get _isProfileComplete {
+    if (_user == null) return false;
+    // Campos mínimos para solicitar carteirinha
+    return _user!.cpf.isNotEmpty && 
+           _user!.phone.isNotEmpty && 
+           _user!.city.isNotEmpty && 
+           _user!.state.isNotEmpty;
+  }
+
+  void _handleRequestCard() {
+    if (!_isProfileComplete) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          title: const Text('🎉 Quase lá!'),
+          content: const Text(
+            'Para solicitar sua carteirinha, seu perfil precisa estar completo com CPF, Telefone e Endereço.\n\nPor favor, entre em contato com o suporte ou aguarde a atualização do sistema para editar seus dados.',
+            textAlign: TextAlign.center,
+          ),
+          actions: [
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: const Text('Entendi', style: TextStyle(color: Colors.white)),
+              ),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+    context.push('/member-selection');
+  }
+
   String get _displayName {
-    if (_user == null) return 'Usuário';
-    final name = _user!.socialName ?? _user!.name;
-    return name.split(' ').first;
+    // 1. Try loaded _user name
+    if (_user != null) {
+      final String name = (_user!.socialName != null && _user!.socialName!.isNotEmpty)
+          ? _user!.socialName!
+          : _user!.name;
+      
+      if (name.trim().isNotEmpty && name != 'Usuário') {
+        return name.trim().split(' ').first;
+      }
+    }
+
+    // 2. Fallback to Auth Metadata
+    final metaName = _authService.currentUser?.userMetadata?['name'] 
+        ?? _authService.currentUser?.userMetadata?['full_name'];
+    
+    if (metaName != null && metaName.toString().trim().isNotEmpty) {
+      return metaName.toString().trim().split(' ').first;
+    }
+
+    // 3. Fallback to Email prefix
+    final email = _authService.currentUser?.email;
+    if (email != null && email.contains('@')) {
+      return email.split('@')[0];
+    }
+
+    return 'Usuário';
   }
 
   @override
@@ -502,7 +596,7 @@ class _HomeViewState extends State<HomeView> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () => context.push('/member-selection'),
+                onPressed: _handleRequestCard,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
@@ -1010,7 +1104,7 @@ class _HomeViewState extends State<HomeView> {
                 title: 'Solicitar',
                 subtitle: 'Nova via ou atualização',
                 color: AppColors.teal,
-                onTap: () => context.push('/member-selection'),
+                onTap: _handleRequestCard,
               ),
               _buildQuickCard(
                 icon: Icons.assignment_outlined,

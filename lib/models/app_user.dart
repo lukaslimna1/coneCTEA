@@ -37,10 +37,49 @@ class AppUser {
     this.socialName,
   });
 
+  AppUser copyWith({
+    String? id,
+    String? name,
+    String? email,
+    String? cpf,
+    String? phone,
+    UserRole? role,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    bool? isActive,
+    String? dateOfBirth,
+    String? city,
+    String? state,
+    String? institution,
+    String? gender,
+    String? race,
+    String? socialName,
+  }) {
+    return AppUser(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      email: email ?? this.email,
+      cpf: cpf ?? this.cpf,
+      phone: phone ?? this.phone,
+      role: role ?? this.role,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      isActive: isActive ?? this.isActive,
+      dateOfBirth: dateOfBirth ?? this.dateOfBirth,
+      city: city ?? this.city,
+      state: state ?? this.state,
+      institution: institution ?? this.institution,
+      gender: gender ?? this.gender,
+      race: race ?? this.race,
+      socialName: socialName ?? this.socialName,
+    );
+  }
+
+
   factory AppUser.fromJson(Map<String, dynamic> data) {
     return AppUser(
       id: data['id']?.toString() ?? '',
-      name: data['name'] ?? '',
+      name: data['name'] ?? data['full_name'] ?? '',
       email: data['email'] ?? '',
       cpf: data['cpf'] ?? '',
       phone: data['phone'] ?? '',
@@ -58,7 +97,7 @@ class AppUser {
       institution: data['institution'] ?? '',
       gender: data['gender'] ?? '',
       race: data['race'] ?? '',
-      socialName: data['social_name'] ?? '',
+      socialName: data['social_name'],
     );
   }
 

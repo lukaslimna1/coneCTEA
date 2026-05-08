@@ -36,6 +36,32 @@ class DatabaseService {
     await _supabase.from('profiles').upsert(user.toJson());
   }
 
+  Future<bool> isEmailRegistered(String email) async {
+    try {
+      final response = await _supabase
+          .from('profiles')
+          .select('id')
+          .eq('email', email)
+          .maybeSingle();
+      return response != null;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<bool> isCpfRegistered(String cpf) async {
+    try {
+      final response = await _supabase
+          .from('profiles')
+          .select('id')
+          .eq('cpf', cpf)
+          .maybeSingle();
+      return response != null;
+    } catch (e) {
+      return false;
+    }
+  }
+
   // --- Members ---
   Future<List<Member>> getMembers(String userId) async {
     try {

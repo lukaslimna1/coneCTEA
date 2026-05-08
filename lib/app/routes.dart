@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 import '../features/auth/login_page.dart';
 import '../features/auth/register_page.dart';
+import '../features/auth/forgot_password_page.dart';
 import '../features/home/home_page.dart';
 import '../features/requests/add_member_page.dart';
 import '../features/requests/member_selection_page.dart';
@@ -61,6 +62,10 @@ class AppRoutes {
       GoRoute(
         path: '/member-selection',
         builder: (context, state) => const MemberSelectionPage(),
+      ),
+      GoRoute(
+        path: '/forgot-password',
+        builder: (context, state) => const ForgotPasswordPage(),
       ),
       GoRoute(
         path: '/admin-dashboard',

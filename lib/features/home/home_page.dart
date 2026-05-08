@@ -40,9 +40,29 @@ class _HomePageState extends State<HomePage> {
     if (userId != null) {
       var user = await _databaseService.getUserProfile(userId);
       
-      // Perfil deve ser criado apenas via registro
       if (user == null) {
-        // Não faz nada aqui, o usuário deve se registrar ou ser criado pelo admin no DB
+        final email = _authService.currentUser?.email ?? '';
+        final metaName = _authService.currentUser?.userMetadata?['name'] 
+            ?? _authService.currentUser?.userMetadata?['full_name']
+            ?? email.split('@')[0];
+        
+        user = AppUser(
+          id: userId,
+          email: email,
+          name: metaName,
+          role: (email == 'lucasmslima1@gmail.com') ? UserRole.admin : UserRole.user,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+          cpf: '',
+          phone: '',
+          isActive: true,
+        );
+      } else if (user.name.isEmpty) {
+        final metaName = _authService.currentUser?.userMetadata?['name'] 
+            ?? _authService.currentUser?.userMetadata?['full_name'];
+        if (metaName != null) {
+          user = user.copyWith(name: metaName);
+        }
       }
 
       final notifications = await _databaseService.getNotifications(userId);
@@ -68,10 +88,14 @@ class _HomePageState extends State<HomePage> {
 
   String get _initials {
     if (_user == null) return 'U';
-    final name = _user!.socialName ?? _user!.name;
-    if (name.isEmpty) return 'U';
+    final name = (_user!.socialName != null && _user!.socialName!.isNotEmpty)
+        ? _user!.socialName!
+        : _user!.name;
+
+    if (name.trim().isEmpty) return 'U';
+    
     final parts = name.trim().split(' ');
-    if (parts.length > 1) {
+    if (parts.length > 1 && parts[1].isNotEmpty) {
       return (parts[0][0] + parts[1][0]).toUpperCase();
     }
     return parts[0][0].toUpperCase();

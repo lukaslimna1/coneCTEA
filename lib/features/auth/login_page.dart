@@ -262,7 +262,7 @@ class _LoginPageState extends State<LoginPage> {
                       Align(
                         alignment: Alignment.centerRight,
                         child: TextButton(
-                          onPressed: () {},
+                          onPressed: () => context.push('/forgot-password'),
                           style: TextButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 8),
                           ),

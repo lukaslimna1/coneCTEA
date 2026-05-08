@@ -168,8 +168,34 @@ class _RegisterPageState extends State<RegisterPage> {
     AppRoutes.authNotifier.setSuppressRedirect(true);
 
     try {
-      final authService = AuthService();
       final databaseService = DatabaseService();
+      
+      // Check if email already exists
+      final emailExists = await databaseService.isEmailRegistered(_emailController.text.trim());
+      if (emailExists) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Este e-mail já está cadastrado.'), backgroundColor: Colors.red),
+          );
+        }
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      // Check if CPF already exists
+      final cleanCpf = _cpfController.text.replaceAll(RegExp(r'[^0-9]'), '');
+      final cpfExists = await databaseService.isCpfRegistered(cleanCpf);
+      if (cpfExists) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Este CPF já está cadastrado.'), backgroundColor: Colors.red),
+          );
+        }
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      final authService = AuthService();
       final userData = {
         'name': _nomeController.text.trim(),
         'cpf': _cpfController.text.replaceAll(RegExp(r'[^0-9]'), ''),
@@ -369,8 +395,11 @@ class _RegisterPageState extends State<RegisterPage> {
                           icon: Icons.badge_outlined,
                           inputFormatters: [cpfMask],
                           keyboardType: TextInputType.number,
-                          validator: (v) =>
-                              v!.length < 14 ? 'CPF inválido' : null,
+                          validator: (v) {
+                            if (v == null || v.isEmpty) return 'Campo obrigatório';
+                            if (!_isValidCPF(v)) return 'CPF inválido';
+                            return null;
+                          },
                         ),
                         const SizedBox(height: 16),
 
@@ -749,6 +778,32 @@ class _RegisterPageState extends State<RegisterPage> {
         ),
       ),
     );
+  }
+
+  bool _isValidCPF(String cpf) {
+    cpf = cpf.replaceAll(RegExp(r'[^0-9]'), '');
+    if (cpf.length != 11) return false;
+    if (RegExp(r'^(\d)\1{10}$').hasMatch(cpf)) return false;
+
+    List<int> digits = cpf.split('').map((e) => int.parse(e)).toList();
+
+    int sum = 0;
+    for (int i = 0; i < 9; i++) {
+      sum += digits[i] * (10 - i);
+    }
+    int firstDigit = (sum * 10) % 11;
+    if (firstDigit == 10) firstDigit = 0;
+    if (firstDigit != digits[9]) return false;
+
+    sum = 0;
+    for (int i = 0; i < 10; i++) {
+      sum += digits[i] * (11 - i);
+    }
+    int secondDigit = (sum * 10) % 11;
+    if (secondDigit == 10) secondDigit = 0;
+    if (secondDigit != digits[10]) return false;
+
+    return true;
   }
 
   Widget _buildSectionTitle(String title) {
