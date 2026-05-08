@@ -51,6 +51,9 @@ class AuthService {
 
   // Password Reset
   Future<void> sendPasswordResetEmail(String email) async {
-    await _supabase.auth.resetPasswordForEmail(email);
+    await _supabase.auth.resetPasswordForEmail(
+      email,
+      redirectTo: 'io.supabase.conectea://login-callback',
+    );
   }
 }

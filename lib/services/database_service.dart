@@ -62,6 +62,19 @@ class DatabaseService {
     }
   }
 
+  Future<bool> isMemberCpfRegistered(String cpf) async {
+    try {
+      final response = await _supabase
+          .from('members')
+          .select('id')
+          .eq('cpf', cpf)
+          .maybeSingle();
+      return response != null;
+    } catch (e) {
+      return false;
+    }
+  }
+
   // --- Members ---
   Future<List<Member>> getMembers(String userId) async {
     try {

@@ -28,7 +28,7 @@ class AppRoutes {
       final isRegistering = location == '/register';
 
       if (!isAuthenticated) {
-        if (isLoggingIn || isRegistering) return null;
+        if (isLoggingIn || isRegistering || location == '/forgot-password') return null;
         return '/login';
       }
 

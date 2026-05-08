@@ -246,6 +246,24 @@ class _AddMemberPageState extends State<AddMemberPage> {
       if (userId == null) throw Exception('Usuário não autenticado');
 
       final isEditing = widget.member != null;
+      final cleanCpf = _cpfController.text.replaceAll(RegExp(r'[^0-9]'), '');
+
+      // Check for duplicate CPF only when creating new or changing CPF
+      if (!isEditing || (isEditing && widget.member!.cpf.replaceAll(RegExp(r'[^0-9]'), '') != cleanCpf)) {
+        final cpfExists = await _databaseService.isMemberCpfRegistered(cleanCpf);
+        if (cpfExists) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Este CPF já possui uma carteirinha cadastrada ou solicitação em andamento.'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+          setState(() => _isLoading = false);
+          return;
+        }
+      }
 
       final member = Member(
         id: isEditing ? widget.member!.id : const Uuid().v4(),
