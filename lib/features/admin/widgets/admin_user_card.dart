@@ -26,7 +26,7 @@ class AdminUserCard extends StatelessWidget {
     Color roleColor;
     switch (user.role) {
       case UserRole.admin: roleColor = AppColors.primary; break;
-      case UserRole.adminMaster: roleColor = AppColors.statusOrange; break;
+      case UserRole.adminMaster: roleColor = AppColors.alertOrange; break;
       case UserRole.adminDev: roleColor = Colors.purple; break;
       default: roleColor = AppColors.textSecondary;
     }
