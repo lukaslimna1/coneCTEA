@@ -114,16 +114,12 @@ class AppUser {
     UserRole parsedRole;
     final String roleStr = data['role']?.toString() ?? 'user';
     
-    // Fallback de segurança para o criador do sistema
-    if (data['email'] == 'lucasmslima1@gmail.com') {
-      parsedRole = UserRole.adminDev;
-    } else {
-      switch (roleStr) {
-        case 'admin': parsedRole = UserRole.admin; break;
-        case 'admin_master': parsedRole = UserRole.adminMaster; break;
-        case 'admin_dev': parsedRole = UserRole.adminDev; break;
-        default: parsedRole = UserRole.user;
-      }
+    // A permissão administrativa deve vir sempre do banco, nunca de fallback local por e-mail.
+    switch (roleStr) {
+      case 'admin': parsedRole = UserRole.admin; break;
+      case 'admin_master': parsedRole = UserRole.adminMaster; break;
+      case 'admin_dev': parsedRole = UserRole.adminDev; break;
+      default: parsedRole = UserRole.user;
     }
 
     return AppUser(

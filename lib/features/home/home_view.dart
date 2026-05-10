@@ -107,9 +107,7 @@ class _HomeViewState extends State<HomeView> {
             id: userId,
             email: email,
             name: metaName,
-            role: (email == 'lucasmslima1@gmail.com')
-                ? UserRole.admin
-                : UserRole.user,
+            role: UserRole.user, // Fallback local seguro
             createdAt: DateTime.now(),
             updatedAt: DateTime.now(),
             cpf: '',

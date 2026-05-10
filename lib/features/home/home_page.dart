@@ -54,9 +54,7 @@ class _HomePageState extends State<HomePage> {
           id: userId,
           email: email,
           name: metaName,
-          role: (email == 'lucasmslima1@gmail.com')
-              ? UserRole.adminDev
-              : UserRole.user,
+          role: UserRole.user, // Fallback local seguro
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
           cpf: '',
