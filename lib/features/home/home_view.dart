@@ -1749,9 +1749,9 @@ class _HomeViewState extends State<HomeView> {
             borderRadius: BorderRadius.circular(24),
             gradient: const LinearGradient(
               colors: [
-                Color(0xFF102A4C),
-                Color(0xFF0B1D3A),
-                Color(0xFF061226),
+                Color(0xFF0B1D3A), // Fundo azul profundo
+                Color(0xFF060D1A), // Centro quase preto
+                Color(0xFF0A192F), // Tom escuro navy
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -1762,13 +1762,13 @@ class _HomeViewState extends State<HomeView> {
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.28),
-                blurRadius: 24,
-                offset: const Offset(0, 10),
+                color: Colors.black.withValues(alpha: 0.35),
+                blurRadius: 28,
+                offset: const Offset(0, 12),
               ),
               BoxShadow(
-                color: accentColor.withValues(alpha: 0.08),
-                blurRadius: 18,
+                color: accentColor.withValues(alpha: 0.12),
+                blurRadius: 20,
                 offset: const Offset(0, 4),
               ),
             ],
@@ -1778,66 +1778,119 @@ class _HomeViewState extends State<HomeView> {
               // Camada de vidro sutil
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.035),
+                  color: Colors.white.withValues(alpha: 0.03),
                 ),
               ),
 
-              // ILUSTRAÇÃO DE FUNDO (Sutil)
+              // --- ILUSTRAÇÃO VIVA (Lado Direito) ---
+
+              // 1. Glow de Fundo (Acento Roxo)
               Positioned(
-                right: -20,
+                right: -50,
                 top: -20,
-                child: Opacity(
-                  opacity: 0.08,
-                  child: Icon(
-                    PhosphorIcons.planet(PhosphorIconsStyle.fill),
-                    size: 120,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              Positioned(
-                right: 40,
-                bottom: -10,
-                child: Opacity(
-                  opacity: 0.06,
-                  child: Icon(
-                    PhosphorIcons.rocketLaunch(PhosphorIconsStyle.fill),
-                    size: 80,
-                    color: accentColor,
-                  ),
-                ),
-              ),
-              // Dots decorativos
-              Positioned(
-                left: width * 0.4,
-                top: 40,
-                child: Opacity(
-                  opacity: 0.12,
-                  child: Container(
-                    width: 4,
-                    height: 4,
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
+                child: Container(
+                  width: 220,
+                  height: 220,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        accentColor.withValues(alpha: 0.18),
+                        accentColor.withValues(alpha: 0),
+                      ],
                     ),
                   ),
                 ),
               ),
+
+              // 2. Glow de Fundo (Acento Ciano)
               Positioned(
-                left: width * 0.5,
-                top: 60,
-                child: Opacity(
-                  opacity: 0.08,
-                  child: Container(
-                    width: 3,
-                    height: 3,
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
+                right: 20,
+                bottom: -40,
+                child: Container(
+                  width: 180,
+                  height: 180,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        const Color(0xFF22D3EE).withValues(alpha: 0.15),
+                        const Color(0xFF22D3EE).withValues(alpha: 0),
+                      ],
                     ),
                   ),
                 ),
               ),
+
+              // 3. Estrelas/Dots (Profundidade)
+              ...List.generate(6, (index) {
+                final positions = [
+                  const Offset(0.45, 0.25),
+                  const Offset(0.55, 0.45),
+                  const Offset(0.40, 0.60),
+                  const Offset(0.65, 0.20),
+                  const Offset(0.75, 0.50),
+                  const Offset(0.85, 0.30),
+                ];
+                final sizes = [3.0, 2.0, 4.0, 2.5, 3.5, 2.0];
+                final opacities = [0.15, 0.10, 0.20, 0.12, 0.18, 0.10];
+                
+                return Positioned(
+                  left: width * positions[index].dx,
+                  top: 170 * positions[index].dy,
+                  child: Container(
+                    width: sizes[index],
+                    height: sizes[index],
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: opacities[index]),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        if (sizes[index] > 3)
+                          BoxShadow(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            blurRadius: 4,
+                          ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+
+              // 4. PNG Illustration (O Foguete Premium)
+              Positioned(
+                right: -10,
+                bottom: -15,
+                child: Opacity(
+                  opacity: 0.65, // Opacidade controlada para integrar ao dark mode
+                  child: Image.asset(
+                    'assets/images/coming_soon.png',
+                    width: 165,
+                    height: 165,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
+
+              // 5. Brilho extra sobre a imagem
+              Positioned(
+                right: 30,
+                bottom: 30,
+                child: Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF22D3EE).withValues(alpha: 0.08),
+                        blurRadius: 25,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // --- CONTEÚDO E ESTRUTURA ---
 
               // Borda superior colorida
               Positioned(
@@ -1858,137 +1911,125 @@ class _HomeViewState extends State<HomeView> {
                 ),
               ),
 
-              // Conteúdo
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Moldura do ícone (Dark Glass)
+                        // Moldura do ícone (Dark Glass Fumé)
                         Container(
-                          width: 56,
-                          height: 56,
+                          width: 46,
+                          height: 46,
                           decoration: BoxDecoration(
                             color: const Color(0xFF020617).withValues(alpha: 0.90),
-                            borderRadius: BorderRadius.circular(17),
+                            borderRadius: BorderRadius.circular(14),
                             border: Border.all(
-                              color: accentColor.withValues(alpha: 0.45),
-                              width: 1,
+                              color: accentColor.withValues(alpha: 0.25),
+                              width: 1.5,
                             ),
-                          ),
-                          child: Stack(
-                            children: [
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: accentColor.withValues(alpha: 0.12),
-                                  borderRadius: BorderRadius.circular(17),
-                                ),
-                              ),
-                              Center(
-                                child: Icon(
-                                  PhosphorIcons.wrench(PhosphorIconsStyle.light),
-                                  color: const Color(0xFFF8FAFC),
-                                  size: 26,
-                                ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: accentColor.withValues(alpha: 0.15),
+                                blurRadius: 10,
+                                spreadRadius: -2,
                               ),
                             ],
                           ),
+                          child: Icon(
+                            PhosphorIcons.sparkle(PhosphorIconsStyle.fill),
+                            color: accentColor,
+                            size: 24,
+                          ),
                         ),
-                        const SizedBox(width: 14),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
                                     'Em breve',
-                                    style: GoogleFonts.outfit(
-                                      fontSize: 17,
+                                    style: TextStyle(
+                                      color: Colors.white.withValues(alpha: 0.95),
+                                      fontSize: 20,
                                       fontWeight: FontWeight.w800,
-                                      color: const Color(0xFFF8FAFC),
-                                      height: 1.08,
+                                      letterSpacing: -0.5,
                                     ),
                                   ),
-                                  // Badge "EM BREVE" discreto
+                                  const SizedBox(width: 8),
                                   Container(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 8, vertical: 2),
+                                      horizontal: 6,
+                                      vertical: 2,
+                                    ),
                                     decoration: BoxDecoration(
-                                      color: accentColor.withValues(alpha: 0.18),
-                                      borderRadius: BorderRadius.circular(999),
+                                      color: accentColor.withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(6),
                                       border: Border.all(
-                                        color: accentColor.withValues(alpha: 0.35),
-                                        width: 1,
+                                        color: accentColor.withValues(alpha: 0.3),
+                                        width: 0.5,
                                       ),
                                     ),
                                     child: Text(
-                                      'EM BREVE',
-                                      style: GoogleFonts.inter(
-                                        fontSize: 9.5,
-                                        fontWeight: FontWeight.w800,
-                                        color: const Color(0xFFC4B5FD),
-                                        letterSpacing: 0.3,
+                                      'NOVO',
+                                      style: TextStyle(
+                                        color: accentColor,
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 0.5,
                                       ),
                                     ),
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 5),
+                              const SizedBox(height: 2),
                               Text(
-                                'Novas ferramentas vindo aí.',
-                                style: GoogleFonts.inter(
+                                'Novas ferramentas\nchegando para você.',
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.55),
                                   fontSize: 13,
+                                  height: 1.3,
                                   fontWeight: FontWeight.w500,
-                                  color: const Color(0xFFB8C2D6),
-                                  height: 1.26,
                                 ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
                               ),
                             ],
                           ),
                         ),
                       ],
                     ),
-
-                    // CTA
+                    const Spacer(),
+                    // CTA Estilo Rodapé (Mesmo padrão)
                     Container(
-                      height: 42,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      width: double.infinity,
+                      height: 40,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF0F234B).withValues(alpha: 0.68),
-                        borderRadius: BorderRadius.circular(15),
+                        color: const Color(0xFF020617).withValues(alpha: 0.6),
+                        borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: accentColor.withValues(alpha: 0.65),
+                          color: Colors.white.withValues(alpha: 0.08),
                           width: 1,
                         ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: accentColor.withValues(alpha: 0.10),
-                            blurRadius: 10,
-                          ),
-                        ],
                       ),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
                             'Aguardar',
-                            style: GoogleFonts.inter(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w800,
-                              color: const Color(0xFFC4B5FD),
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.8),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
-                          const Icon(
-                            Icons.arrow_forward_rounded,
-                            color: Color(0xFFC4B5FD),
-                            size: 17,
+                          const Spacer(),
+                          Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            color: Colors.white.withValues(alpha: 0.4),
+                            size: 12,
                           ),
                         ],
                       ),
