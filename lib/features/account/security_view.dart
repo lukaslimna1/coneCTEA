@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:conectea/core/constants/colors.dart';
 import 'package:conectea/services/auth_service.dart';
-import 'package:conectea/widgets/premium_hero.dart';
+import 'package:conectea/core/widgets/premium/premium_hero.dart';
 import 'package:conectea/features/account/terms_view.dart';
 import 'package:conectea/features/account/privacy_policy_view.dart';
 import 'package:conectea/features/account/consents_view.dart';
