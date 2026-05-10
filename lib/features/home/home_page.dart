@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-// removed unused google_fonts import
 
 import '../../core/constants/colors.dart';
 import '../../core/widgets/premium/app_top_header.dart';
@@ -87,15 +86,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final List<Widget> pages = [
-      HomeView(onNavigate: (index) => setState(() => _currentIndex = index)),
-      const CardsView(),
-      const RequestsView(),
-      const NotificationsView(),
-      AccountView(user: _user),
-      const AdminView(),
-    ];
-
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
@@ -111,7 +101,7 @@ class _HomePageState extends State<HomePage> {
       body: AppBackground(
         child: Padding(
           padding: const EdgeInsets.only(bottom: 90),
-          child: IndexedStack(index: _currentIndex, children: pages),
+          child: _getCurrentPage(),
         ),
       ),
       bottomNavigationBar: PremiumBottomNavBar(
@@ -153,15 +143,36 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Widget _getCurrentPage() {
+    switch (_currentIndex) {
+      case 0:
+        return HomeView(onNavigate: (index) => setState(() => _currentIndex = index));
+      case 1:
+        return const CardsView();
+      case 2:
+        return const RequestsView();
+      case 3:
+        return const NotificationsView();
+      case 4:
+        return AccountView(user: _user);
+      case 5:
+        return const AdminView();
+      default:
+        return HomeView(onNavigate: (index) => setState(() => _currentIndex = index));
+    }
+  }
+
   int _getNavIndex() {
     final isAdmin = _user?.role.isAdmin ?? false;
     if (_currentIndex == 0) return 0;
     if (_currentIndex == 1) return 1;
     if (_currentIndex == 2) return 2;
-    if (_currentIndex == 5 && isAdmin)
+    if (_currentIndex == 5 && isAdmin) {
       return 3; // AdminView is 4th item if admin
-    if (_currentIndex == 4)
+    }
+    if (_currentIndex == 4) {
       return isAdmin ? 4 : 3; // AccountView is 5th if admin, else 4th
+    }
     return 0; // Default to home for notifications (3) or others
   }
 

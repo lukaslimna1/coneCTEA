@@ -16,26 +16,26 @@ class PremiumCard extends StatelessWidget {
   final bool hasBorder;
   final bool hasGradient;
   final List<BoxShadow>? shadow;
-   final VoidCallback? onTap;
-   final Border? borderOverride;
- 
-   const PremiumCard({
-     super.key,
-     required this.child,
-     this.title,
-     this.subtitle,
-     this.padding,
-     this.margin,
-     this.radius,
-     this.width,
-     this.height,
-     this.backgroundColor,
-     this.hasBorder = true,
-     this.hasGradient = false,
-     this.shadow,
-     this.onTap,
-     this.borderOverride,
-   });
+  final VoidCallback? onTap;
+  final Border? borderOverride;
+
+  const PremiumCard({
+    super.key,
+    required this.child,
+    this.title,
+    this.subtitle,
+    this.padding,
+    this.margin,
+    this.radius,
+    this.width,
+    this.height,
+    this.backgroundColor,
+    this.hasBorder = true,
+    this.hasGradient = false,
+    this.shadow,
+    this.onTap,
+    this.borderOverride,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +52,9 @@ class PremiumCard extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               subtitle!,
-              style: AppTextStyles.bodySmall.copyWith(color: AppColors.cardSubtitle),
+              style: AppTextStyles.bodySmall.copyWith(
+                color: AppColors.cardSubtitle,
+              ),
             ),
           ],
           const SizedBox(height: AppSpacing.md),
@@ -68,22 +70,28 @@ class PremiumCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: backgroundColor ?? AppColors.cardBackground,
         borderRadius: BorderRadius.circular(radius ?? AppRadius.lg),
-        border: borderOverride ?? (hasBorder
-            ? Border.all(color: Colors.white.withValues(alpha: 0.08))
-            : null),
-        boxShadow: shadow ?? [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          ),
-        ],
+        border:
+            borderOverride ??
+            (hasBorder
+                ? Border.all(color: Colors.white.withValues(alpha: 0.08))
+                : null),
+        boxShadow:
+            shadow ??
+            [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.3),
+                blurRadius: 12,
+                offset: const Offset(0, 6),
+              ),
+            ],
         gradient: hasGradient ? AppColors.premiumCardGradient : null,
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(radius ?? AppRadius.lg),
         child: Stack(
+          fit: height != null ? StackFit.expand : StackFit.loose,
           children: [
+            // Background Decoration (only if we have constraints or size)
             if (hasGradient)
               Positioned(
                 top: -30,
@@ -102,6 +110,7 @@ class PremiumCard extends StatelessWidget {
                   ),
                 ),
               ),
+            // Content
             Material(
               color: Colors.transparent,
               child: InkWell(

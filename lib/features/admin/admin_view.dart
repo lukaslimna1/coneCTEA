@@ -285,7 +285,9 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
           return _buildShimmerList();
         }
 
-        final requests = snapshot.data ?? [];
+        // Filter out nulls and handle safety
+        final List<CardRequest> requests = (snapshot.data ?? []).whereType<CardRequest>().toList();
+        
         if (requests.isEmpty) {
           return _buildEmptyState('Nenhuma solicitação encontrada', Icons.inbox_rounded);
         }
@@ -293,14 +295,16 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
         // Sort: pendentes primeiro, depois por data
         final sortedRequests = List<CardRequest>.from(requests)
           ..sort((a, b) {
-            if (a.status == 'waiting_approval' && b.status != 'waiting_approval') return -1;
-            if (a.status != 'waiting_approval' && b.status == 'waiting_approval') return 1;
+            final aStatus = a.status ?? '';
+            final bStatus = b.status ?? '';
+            if (aStatus == 'waiting_approval' && bStatus != 'waiting_approval') return -1;
+            if (aStatus != 'waiting_approval' && bStatus == 'waiting_approval') return 1;
             return b.createdAt.compareTo(a.createdAt);
           });
 
-        final pendingCount = requests.where((r) => ['waiting_approval', 'reviewing_data', 'waiting_docs', 'renewing'].contains(r.status)).length;
-        final approvedCount = requests.where((r) => ['active', 'approved'].contains(r.status)).length;
-        final restrictedCount = requests.where((r) => ['rejected', 'suspended', 'expired'].contains(r.status)).length;
+        final pendingCount = requests.where((r) => ['waiting_approval', 'reviewing_data', 'waiting_docs', 'renewing'].contains(r.status ?? '')).length;
+        final approvedCount = requests.where((r) => ['active', 'approved'].contains(r.status ?? '')).length;
+        final restrictedCount = requests.where((r) => ['rejected', 'suspended', 'expired'].contains(r.status ?? '')).length;
 
         // Filtrar a lista com base no _requestFilterIndex
         final filteredRequests = sortedRequests.where((r) {
