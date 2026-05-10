@@ -1228,14 +1228,20 @@ class _HomeViewState extends State<HomeView> {
   }
 
   Widget _buildBlock1() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final cardWidth = (screenWidth * 0.72).clamp(280.0, 305.0);
+
     return _buildCarouselSection(
       title: 'Acesso Rápido',
+      height: 168,
       items: [
-        _buildQuickCard(
-          icon: PhosphorIconsBold.identificationCard,
+        _buildQuickAccessCard(
+          width: cardWidth,
+          icon: PhosphorIcons.identificationCard(PhosphorIconsStyle.light),
           title: 'Ver carteirinha',
           subtitle: 'Acesse sua carteirinha digital.',
-          color: const Color(0xFF8B5CF6),
+          ctaLabel: 'Abrir',
+          accentColor: const Color(0xFF8B5CF6),
           onTap: () {
             if (_members.isNotEmpty &&
                 _selectedMemberIndex < _members.length &&
@@ -1253,18 +1259,22 @@ class _HomeViewState extends State<HomeView> {
             }
           },
         ),
-        _buildQuickCard(
-          icon: PhosphorIconsBold.filePlus,
+        _buildQuickAccessCard(
+          width: cardWidth,
+          icon: PhosphorIcons.filePlus(PhosphorIconsStyle.light),
           title: 'Solicitar',
           subtitle: 'Peça sua carteirinha ou atualize dados.',
-          color: const Color(0xFF22D3EE),
+          ctaLabel: 'Solicitar',
+          accentColor: const Color(0xFF22D3EE),
           onTap: _handleRequestCard,
         ),
-        _buildQuickCard(
-          icon: PhosphorIconsBold.chatCircleDots,
+        _buildQuickAccessCard(
+          width: cardWidth,
+          icon: PhosphorIcons.chatCircleDots(PhosphorIconsStyle.light),
           title: 'Meu mural',
           subtitle: 'Acompanhe avisos e comunicados.',
-          color: const Color(0xFF60A5FA),
+          ctaLabel: 'Acessar',
+          accentColor: const Color(0xFF60A5FA),
           onTap: () => widget.onNavigate(2),
         ),
       ],
@@ -1272,15 +1282,16 @@ class _HomeViewState extends State<HomeView> {
   }
 
   Widget _buildBlock2() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final cardWidth = (screenWidth * 0.78).clamp(300.0, 340.0);
+
     return _buildCarouselSection(
       title: 'Outros Serviços',
+      height: 185,
       items: [
-        _buildQuickCard(
-          icon: PhosphorIconsBold.wrench,
-          title: 'Em breve',
-          subtitle: 'Novas ferramentas vindo aí',
-          color: const Color(0xFF64748B),
-          onTap: () {},
+        _buildEmBreveServiceCard(
+          width: cardWidth,
+          accentColor: const Color(0xFF8B5CF6),
         ),
       ],
     );
@@ -1329,6 +1340,7 @@ class _HomeViewState extends State<HomeView> {
   Widget _buildCarouselSection({
     required String title,
     required List<Widget> items,
+    double height = 185,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1345,16 +1357,16 @@ class _HomeViewState extends State<HomeView> {
             ),
           ),
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 16),
         SizedBox(
-          height: 145,
+          height: height,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             physics: const BouncingScrollPhysics(),
             padding: const EdgeInsets.symmetric(horizontal: 24),
             clipBehavior: Clip.none,
             itemCount: items.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 16),
+            separatorBuilder: (_, __) => const SizedBox(width: 14),
             itemBuilder: (context, index) => items[index],
           ),
         ),
@@ -1382,17 +1394,17 @@ class _HomeViewState extends State<HomeView> {
     }
 
     return SizedBox(
-      width: 215,
-      height: 132,
+      width: 230,
+      height: 165,
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(22),
+          borderRadius: BorderRadius.circular(24),
           child: Container(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
+            clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(22),
+              borderRadius: BorderRadius.circular(24),
               gradient: const LinearGradient(
                 colors: [
                   Color(0xFF102A4C),
@@ -1408,108 +1420,583 @@ class _HomeViewState extends State<HomeView> {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.35),
-                  blurRadius: 18,
+                  color: Colors.black.withValues(alpha: 0.3),
+                  blurRadius: 15,
                   offset: const Offset(0, 8),
                 ),
               ],
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Stack(
               children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 52,
-                      height: 52,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            color, // Luz (Claro)
-                            color.withValues(alpha: 0.85), // Médio
-                            color.withValues(alpha: 0.7), // Sombra (Escuro)
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Icon(
-                        icon,
-                        color: Colors.white,
-                        size: 28,
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    height: 3,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          color.withValues(alpha: 0.8),
+                          color.withValues(alpha: 0.4),
+                        ],
                       ),
                     ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 19, 16, 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
                         children: [
-                          Text(
-                            title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.outfit(
-                              fontSize: 16.5,
-                              fontWeight: FontWeight.w800,
-                              color: const Color(0xFFF8FAFC),
-                              letterSpacing: -0.4,
+                          Container(
+                            width: 52,
+                            height: 52,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF050B18).withValues(alpha: 0.8),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: color.withValues(alpha: 0.2),
+                                width: 1,
+                              ),
                             ),
+                            child: Icon(icon, color: Colors.white, size: 24),
                           ),
-                          const SizedBox(height: 1),
-                          Text(
-                            subtitle,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.inter(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: const Color(0xFF9FB2D6),
-                              height: 1.2,
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  title.toUpperCase(),
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w800,
+                                    color: const Color(0xFFF8FAFC),
+                                    letterSpacing: 0.5,
+                                    height: 1.1,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  subtitle,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500,
+                                    color: const Color(0xFF94A3B8),
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
-                    ),
-                  ],
-                ),
-                const Spacer(),
-                Container(
-                  width: double.infinity,
-                  height: 38,
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: color.withValues(alpha: 0.15),
-                      width: 1,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        ctaText,
-                        style: GoogleFonts.outfit(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w900,
-                          color: color,
-                          letterSpacing: 1.2,
+                      const Spacer(),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        decoration: BoxDecoration(
+                          color: color.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                      ),
-                      Icon(
-                        Icons.chevron_right_rounded,
-                        color: color,
-                        size: 20,
+                        child: Center(
+                          child: Text(
+                            ctaText,
+                            style: GoogleFonts.outfit(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ),
                 ),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuickAccessCard({
+    required double width,
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required String ctaLabel,
+    required Color accentColor,
+    required VoidCallback onTap,
+  }) {
+    return SizedBox(
+      width: width,
+      height: 138,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(24),
+          child: Container(
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              gradient: const LinearGradient(
+                colors: [
+                  Color(0xFF0A192F), // Tom de fundo profundo
+                  Color(0xFF060D1A), // Quase preto como o background real
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              border: Border.all(
+                color: const Color(0x2494A3B4), // rgba(148,163,184,0.14)
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.28),
+                  blurRadius: 28,
+                  offset: const Offset(0, 10),
+                ),
+                BoxShadow(
+                  color: accentColor.withValues(alpha: 0.06),
+                  blurRadius: 20,
+                  offset: Offset.zero,
+                ),
+              ],
+            ),
+            child: Stack(
+              children: [
+                // Camada de vidro sutil
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.025),
+                  ),
+                ),
+                // Efeito de luz sutil no canto (Glow)
+                Positioned(
+                  bottom: -40,
+                  right: -30,
+                  child: Container(
+                    width: 140,
+                    height: 140,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          accentColor.withValues(alpha: 0.12),
+                          accentColor.withValues(alpha: 0.0),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                // Borda superior colorida (seguindo o radius)
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    height: 3,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          accentColor,
+                          accentColor.withValues(alpha: 0.4),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Bloco Superior: Ícone + Textos
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Moldura do ícone (Dark Glass Tint - Ultra Dark)
+                          Container(
+                            width: 54,
+                            height: 54,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF020617).withValues(alpha: 0.90),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: accentColor.withValues(alpha: 0.50),
+                                width: 1,
+                              ),
+                            ),
+                            child: Stack(
+                              children: [
+                                // Tinta interna (Color Tint)
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: accentColor.withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                ),
+                                Center(
+                                  child: Icon(
+                                    icon,
+                                    color: const Color(0xFFF8FAFC),
+                                    size: 24,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  title,
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 22.0,
+                                    fontWeight: FontWeight.w800,
+                                    color: const Color(0xFFF8FAFC),
+                                    height: 1.05,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 5),
+                                Text(
+                                  subtitle,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                    color: const Color(0xFFB8C2D6),
+                                    height: 1.26,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const Spacer(),
+                      // CTA Button
+                      Container(
+                        height: 40,
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0F234B).withValues(alpha: 0.70),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: accentColor.withValues(alpha: 0.65),
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              ctaLabel,
+                              style: GoogleFonts.outfit(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w800,
+                                color: accentColor,
+                              ),
+                            ),
+                            Icon(
+                              Icons.chevron_right_rounded,
+                              color: accentColor,
+                              size: 16,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmBreveServiceCard({
+    required double width,
+    required Color accentColor,
+  }) {
+    return SizedBox(
+      width: width,
+      height: 170,
+      child: Material(
+        color: Colors.transparent,
+        child: Container(
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            gradient: const LinearGradient(
+              colors: [
+                Color(0xFF102A4C),
+                Color(0xFF0B1D3A),
+                Color(0xFF061226),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            border: Border.all(
+              color: const Color(0x2494A3B4),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.28),
+                blurRadius: 24,
+                offset: const Offset(0, 10),
+              ),
+              BoxShadow(
+                color: accentColor.withValues(alpha: 0.08),
+                blurRadius: 18,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Stack(
+            children: [
+              // Camada de vidro sutil
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.035),
+                ),
+              ),
+
+              // ILUSTRAÇÃO DE FUNDO (Sutil)
+              Positioned(
+                right: -20,
+                top: -20,
+                child: Opacity(
+                  opacity: 0.08,
+                  child: Icon(
+                    PhosphorIcons.planet(PhosphorIconsStyle.fill),
+                    size: 120,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              Positioned(
+                right: 40,
+                bottom: -10,
+                child: Opacity(
+                  opacity: 0.06,
+                  child: Icon(
+                    PhosphorIcons.rocketLaunch(PhosphorIconsStyle.fill),
+                    size: 80,
+                    color: accentColor,
+                  ),
+                ),
+              ),
+              // Dots decorativos
+              Positioned(
+                left: width * 0.4,
+                top: 40,
+                child: Opacity(
+                  opacity: 0.12,
+                  child: Container(
+                    width: 4,
+                    height: 4,
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                left: width * 0.5,
+                top: 60,
+                child: Opacity(
+                  opacity: 0.08,
+                  child: Container(
+                    width: 3,
+                    height: 3,
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+              ),
+
+              // Borda superior colorida
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                  height: 3,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        accentColor,
+                        const Color(0xFF22D3EE),
+                        const Color(0xFF60A5FA),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              // Conteúdo
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Moldura do ícone (Dark Glass)
+                        Container(
+                          width: 56,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF020617).withValues(alpha: 0.90),
+                            borderRadius: BorderRadius.circular(17),
+                            border: Border.all(
+                              color: accentColor.withValues(alpha: 0.45),
+                              width: 1,
+                            ),
+                          ),
+                          child: Stack(
+                            children: [
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: accentColor.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(17),
+                                ),
+                              ),
+                              Center(
+                                child: Icon(
+                                  PhosphorIcons.wrench(PhosphorIconsStyle.light),
+                                  color: const Color(0xFFF8FAFC),
+                                  size: 26,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Em breve',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w800,
+                                      color: const Color(0xFFF8FAFC),
+                                      height: 1.08,
+                                    ),
+                                  ),
+                                  // Badge "EM BREVE" discreto
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: accentColor.withValues(alpha: 0.18),
+                                      borderRadius: BorderRadius.circular(999),
+                                      border: Border.all(
+                                        color: accentColor.withValues(alpha: 0.35),
+                                        width: 1,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      'EM BREVE',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 9.5,
+                                        fontWeight: FontWeight.w800,
+                                        color: const Color(0xFFC4B5FD),
+                                        letterSpacing: 0.3,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 5),
+                              Text(
+                                'Novas ferramentas vindo aí.',
+                                style: GoogleFonts.inter(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                  color: const Color(0xFFB8C2D6),
+                                  height: 1.26,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    // CTA
+                    Container(
+                      height: 42,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0F234B).withValues(alpha: 0.68),
+                        borderRadius: BorderRadius.circular(15),
+                        border: Border.all(
+                          color: accentColor.withValues(alpha: 0.65),
+                          width: 1,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: accentColor.withValues(alpha: 0.10),
+                            blurRadius: 10,
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Aguardar',
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                              color: const Color(0xFFC4B5FD),
+                            ),
+                          ),
+                          const Icon(
+                            Icons.arrow_forward_rounded,
+                            color: Color(0xFFC4B5FD),
+                            size: 17,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),
