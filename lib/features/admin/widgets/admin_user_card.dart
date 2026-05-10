@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../core/constants/colors.dart';
-import '../../../core/widgets/premium/premium_card.dart';
-import '../../../models/app_user.dart';
+import 'package:conectea/core/constants/colors.dart';
+import 'package:conectea/core/widgets/premium/premium_card.dart';
+import 'package:conectea/models/app_user.dart';
 
 class AdminUserCard extends StatelessWidget {
   final AppUser user;

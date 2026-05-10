@@ -6,9 +6,9 @@ import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:url_launcher/url_launcher_string.dart';
-import '../../core/constants/colors.dart';
-import '../../models/app_user.dart';
-import '../../services/database_service.dart';
+import 'package:conectea/core/constants/colors.dart';
+import 'package:conectea/models/app_user.dart';
+import 'package:conectea/services/database_service.dart';
 
 class EditProfileView extends StatefulWidget {
   const EditProfileView({super.key});

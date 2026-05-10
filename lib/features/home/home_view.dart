@@ -9,15 +9,15 @@ import 'package:conectea/models/member.dart';
 import 'package:conectea/models/card_request.dart';
 import 'package:conectea/models/digital_card.dart';
 import 'package:url_launcher/url_launcher_string.dart';
-import '../requests/add_member_page.dart';
-import '../cards/widgets/digital_card_widget.dart';
-import '../account/edit_profile_view.dart';
-import '../account/security_view.dart';
-import 'about_conectea_view.dart';
-import 'family_tea_view.dart';
+import 'package:conectea/features/requests/add_member_page.dart';
+import 'package:conectea/features/cards/widgets/digital_card_widget.dart';
+import 'package:conectea/features/account/edit_profile_view.dart';
+import 'package:conectea/features/account/security_view.dart';
+import 'package:conectea/features/home/about_conectea_view.dart';
+import 'package:conectea/features/home/family_tea_view.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import '../../core/widgets/premium/app_background.dart';
-import '../../core/widgets/premium/premium_card.dart';
+import 'package:conectea/core/widgets/premium/app_background.dart';
+import 'package:conectea/core/widgets/premium/premium_card.dart';
  
 class HomeView extends StatefulWidget {
   final Function(int) onNavigate;

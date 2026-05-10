@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher_string.dart';
-import '../../../services/database_service.dart';
-import '../../../services/google_drive_service.dart';
-import '../../../models/card_request.dart';
-import '../../../models/app_user.dart';
-import '../../../models/member.dart';
-import '../../../core/constants/colors.dart';
-import '../utils/admin_status_helper.dart';
-import 'admin_common_widgets.dart';
-import '../../../core/widgets/premium/premium_button.dart';
+import 'package:conectea/services/database_service.dart';
+import 'package:conectea/services/google_drive_service.dart';
+import 'package:conectea/models/card_request.dart';
+import 'package:conectea/models/app_user.dart';
+import 'package:conectea/models/member.dart';
+import 'package:conectea/core/constants/colors.dart';
+import 'package:conectea/features/admin/utils/admin_status_helper.dart';
+import 'package:conectea/features/admin/widgets/admin_common_widgets.dart';
+import 'package:conectea/core/widgets/premium/premium_button.dart';
 
 class AdminRequestDetailsSheet extends StatefulWidget {
   final CardRequest request;

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../core/constants/colors.dart';
+import 'package:conectea/core/constants/colors.dart';
 
 class AppTheme {
   static ThemeData get nightTheme {

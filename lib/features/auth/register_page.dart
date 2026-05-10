@@ -7,14 +7,14 @@ import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:http/http.dart' as http;
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'dart:convert';
-import '../../core/constants/colors.dart';
-import '../../services/auth_service.dart';
-import '../../services/database_service.dart';
-import '../../models/app_user.dart';
-import '../../core/widgets/premium_auth_background.dart';
-import '../../core/widgets/premium/premium_button.dart';
-import '../../core/widgets/premium/premium_card.dart';
-import '../../app/routes.dart';
+import 'package:conectea/core/constants/colors.dart';
+import 'package:conectea/services/auth_service.dart';
+import 'package:conectea/services/database_service.dart';
+import 'package:conectea/models/app_user.dart';
+import 'package:conectea/core/widgets/premium_auth_background.dart';
+import 'package:conectea/core/widgets/premium/premium_button.dart';
+import 'package:conectea/core/widgets/premium/premium_card.dart';
+import 'package:conectea/app/routes.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});

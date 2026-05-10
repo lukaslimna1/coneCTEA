@@ -3,14 +3,14 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import '../../core/constants/colors.dart';
-import '../../core/widgets/premium/premium_card.dart';
-import '../../services/auth_service.dart';
-import '../../services/database_service.dart';
-import '../../models/app_user.dart';
-import '../../core/widgets/premium_auth_background.dart';
-import '../../core/widgets/premium/premium_button.dart';
-import 'forgot_email_page.dart';
+import 'package:conectea/core/constants/colors.dart';
+import 'package:conectea/core/widgets/premium/premium_card.dart';
+import 'package:conectea/services/auth_service.dart';
+import 'package:conectea/services/database_service.dart';
+import 'package:conectea/models/app_user.dart';
+import 'package:conectea/core/widgets/premium_auth_background.dart';
+import 'package:conectea/core/widgets/premium/premium_button.dart';
+import 'package:conectea/features/auth/forgot_email_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});

@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher_string.dart';
-import '../../core/widgets/premium/app_background.dart';
-import '../../core/widgets/premium/premium_card.dart';
-import '../../core/constants/colors.dart';
-import '../../services/auth_service.dart';
+import 'package:conectea/core/widgets/premium/app_background.dart';
+import 'package:conectea/core/widgets/premium/premium_card.dart';
+import 'package:conectea/core/constants/colors.dart';
+import 'package:conectea/services/auth_service.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import '../../models/app_user.dart';
-import './security_view.dart';
-import './edit_profile_view.dart';
-import '../home/about_conectea_view.dart';
+import 'package:conectea/models/app_user.dart';
+import 'package:conectea/features/account/security_view.dart';
+import 'package:conectea/features/account/edit_profile_view.dart';
+import 'package:conectea/features/home/about_conectea_view.dart';
 
 class AccountView extends StatelessWidget {
   final AppUser? user;

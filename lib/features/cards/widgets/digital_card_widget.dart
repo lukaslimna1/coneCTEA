@@ -6,9 +6,9 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 
-import '../../../models/digital_card.dart';
-import '../../../models/member.dart';
-import '../../../core/widgets/premium_avatar.dart';
+import 'package:conectea/models/digital_card.dart';
+import 'package:conectea/models/member.dart';
+import 'package:conectea/core/widgets/premium_avatar.dart';
 import 'package:conectea/core/constants/colors.dart';
 
 class DigitalCardWidget extends StatefulWidget {
@@ -87,7 +87,7 @@ class _DigitalCardWidgetState extends State<DigitalCardWidget> {
     }
 
     return AspectRatio(
-      aspectRatio: 1.58, // Standard credit card aspect ratio
+      aspectRatio: 1.58, // Proporção padrão de cartão de crédito
       child: _SensorsCardWrapper(
         enabled: widget.enableParallax,
         enableEntryAnimation: widget.enableEntryAnimation,
@@ -109,7 +109,7 @@ class _DigitalCardWidgetState extends State<DigitalCardWidget> {
               return FittedBox(
                 fit: BoxFit.contain,
                 child: SizedBox(
-                  width: 450, // Premium width
+                  width: 450, // Largura Premium
                   height: 450 / 1.58,
                   child: widget.showBack
                       ? _BackCard(
@@ -158,7 +158,7 @@ class _SensorsCardWrapperState extends State<_SensorsCardWrapper> with SingleTic
   void initState() {
     super.initState();
     
-    // Entry Animation
+    // Animação de Entrada
     _entryController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1000),
@@ -171,12 +171,12 @@ class _SensorsCardWrapperState extends State<_SensorsCardWrapper> with SingleTic
     );
     _entryController.forward();
 
-    // Parallax sensor - using gyroscope or accelerometer
+    // Sensor Parallax - usando giroscópio ou acelerômetro
     if (widget.enabled) {
       _accelerometerSubscription = accelerometerEventStream().listen((event) {
         if (!mounted) return;
         setState(() {
-          // Clamp to avoid extreme angles and invert for natural feeling
+          // Limita os ângulos para evitar extremos e inverte para uma sensação natural
           _pitch = (event.y * 0.03).clamp(-0.15, 0.15);
           _yaw = (-event.x * 0.03).clamp(-0.15, 0.15);
         });
@@ -196,13 +196,13 @@ class _SensorsCardWrapperState extends State<_SensorsCardWrapper> with SingleTic
     return MouseRegion(
       onHover: (event) {
         if (!widget.enabled) return;
-        // Only use mouse tilt if sensors aren't active or on desktop/web
+        // Usa inclinação do mouse apenas se sensores não estiverem ativos ou em desktop/web
         final renderBox = context.findRenderObject() as RenderBox?;
         if (renderBox != null && renderBox.hasSize) {
           final size = renderBox.size;
           final localPosition = event.localPosition;
           
-          // Calculate relative position (-1.0 to 1.0)
+          // Calcula a posição relativa (-1.0 a 1.0)
           final relX = (localPosition.dx / size.width) * 2 - 1;
           final relY = (localPosition.dy / size.height) * 2 - 1;
           
@@ -231,7 +231,7 @@ class _SensorsCardWrapperState extends State<_SensorsCardWrapper> with SingleTic
                 curve: Curves.easeOut,
                 builder: (context, Offset offset, child) {
                   final matrix = Matrix4.identity()
-                    ..setEntry(3, 2, 0.001) // perspective
+                    ..setEntry(3, 2, 0.001) // perspectiva
                     ..rotateX(offset.dy)
                     ..rotateY(offset.dx);
                   
@@ -270,7 +270,7 @@ class _CardBackgroundState extends State<_CardBackground> with SingleTickerProvi
   @override
   void initState() {
     super.initState();
-    // Wave entry animation stops after 2 seconds for a clean presentation
+    // Animação de entrada wave para após 2 segundos para uma apresentação limpa
     _waveController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2500),
@@ -373,7 +373,7 @@ class _CardBackgroundState extends State<_CardBackground> with SingleTickerProvi
 
 class _GeometricFluidPainter extends CustomPainter {
   final bool isFront;
-  final double animationProgress; // 0.0 to 1.0
+  final double animationProgress; // 0.0 a 1.0
 
   _GeometricFluidPainter({
     required this.isFront,
@@ -510,7 +510,7 @@ class _FrontCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header Logo & Top Pills
+            // Logo do Cabeçalho e Pílulas Superiores
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -543,7 +543,7 @@ class _FrontCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF0C2445).withValues(alpha: 0.9), // Darker for better contrast
+                        color: const Color(0xFF0C2445).withValues(alpha: 0.9), // Mais escuro para melhor contraste
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
                         boxShadow: [
@@ -558,7 +558,7 @@ class _FrontCard extends StatelessWidget {
                         children: [
                           Icon(
                             PhosphorIconsBold.calendar, 
-                            color: isExpired ? AppColors.errorRed : const Color(0xFFA78BFA), // Brighter purple
+                            color: isExpired ? AppColors.errorRed : const Color(0xFFA78BFA), // Roxo mais brilhante
                             size: 14,
                           ),
                           const SizedBox(width: 6),
@@ -579,7 +579,7 @@ class _FrontCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                       decoration: BoxDecoration(
-                        color: (isActive ? AppColors.statusGreen : AppColors.alertOrange).withValues(alpha: 0.95), // Highly visible
+                        color: (isActive ? AppColors.statusGreen : AppColors.alertOrange).withValues(alpha: 0.95), // Altamente visível
                         borderRadius: BorderRadius.circular(10),
                         boxShadow: [
                           BoxShadow(
@@ -594,7 +594,7 @@ class _FrontCard extends StatelessWidget {
                         children: [
                           Icon(
                             isActive ? PhosphorIconsBold.checkCircle : PhosphorIconsBold.clockCounterClockwise, 
-                            color: Colors.white, // High contrast on background
+                            color: Colors.white, // Alto contraste no fundo
                             size: 14,
                           ),
                           const SizedBox(width: 6),
@@ -622,7 +622,7 @@ class _FrontCard extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             
-            // Title
+            // Título
             Text(
               'CARTEIRINHA DE IDENTIFICAÇÃO',
               style: GoogleFonts.inter(
@@ -645,7 +645,7 @@ class _FrontCard extends StatelessWidget {
             
             const Spacer(),
 
-            // Member Data Row
+            // Linha de Dados do Membro
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -655,7 +655,7 @@ class _FrontCard extends StatelessWidget {
                   borderWidth: 3,
                 ),
                 const SizedBox(width: 24),
-                // Main Info
+                // Informação Principal
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -710,12 +710,12 @@ class _FrontCard extends StatelessWidget {
 
             const Spacer(),
 
-            // Footer Token Row
+            // Linha do Token no Rodapé
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                // Token Pill
+                // Pílula do Token
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
@@ -783,7 +783,7 @@ class _BackCard extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
         child: Row(
           children: [
-            // Left Content (Data)
+            // Conteúdo Esquerdo (Dados)
             Expanded(
               flex: 5,
               child: Column(
@@ -986,7 +986,7 @@ class _BackCard extends StatelessWidget {
                   ),
                 ),
               ),
-              if (trailing != null) trailing,
+              ?trailing,
             ],
           ),
         ],

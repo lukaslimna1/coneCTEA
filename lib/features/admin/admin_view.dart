@@ -4,17 +4,17 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:go_router/go_router.dart';
-import '../../core/widgets/premium/app_background.dart';
+import 'package:conectea/core/widgets/premium/app_background.dart';
 
-import '../../core/constants/colors.dart';
-import '../../core/widgets/premium/premium_card.dart';
-import '../../core/widgets/loading_shimmer.dart';
-import '../../services/database_service.dart';
-import '../../models/card_request.dart';
-import '../../models/app_user.dart';
-import 'widgets/admin_request_card.dart';
-import 'widgets/admin_user_card.dart';
-import 'widgets/admin_request_details_sheet.dart';
+import 'package:conectea/core/constants/colors.dart';
+import 'package:conectea/core/widgets/premium/premium_card.dart';
+import 'package:conectea/core/widgets/loading_shimmer.dart';
+import 'package:conectea/services/database_service.dart';
+import 'package:conectea/models/card_request.dart';
+import 'package:conectea/models/app_user.dart';
+import 'package:conectea/features/admin/widgets/admin_request_card.dart';
+import 'package:conectea/features/admin/widgets/admin_user_card.dart';
+import 'package:conectea/features/admin/widgets/admin_request_details_sheet.dart';
 
 class AdminView extends StatefulWidget {
   const AdminView({super.key});

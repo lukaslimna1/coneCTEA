@@ -8,15 +8,15 @@ import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import '../../core/constants/colors.dart';
-import '../../services/database_service.dart';
-import '../../services/auth_service.dart';
-import '../../services/google_drive_service.dart';
-import '../../models/member.dart';
-import '../../models/card_request.dart';
+import 'package:conectea/core/constants/colors.dart';
+import 'package:conectea/services/database_service.dart';
+import 'package:conectea/services/auth_service.dart';
+import 'package:conectea/services/google_drive_service.dart';
+import 'package:conectea/models/member.dart';
+import 'package:conectea/models/card_request.dart';
 import 'package:intl/intl.dart';
-import '../../core/widgets/premium_auth_background.dart';
-import '../../core/widgets/premium/premium_button.dart';
+import 'package:conectea/core/widgets/premium_auth_background.dart';
+import 'package:conectea/core/widgets/premium/premium_button.dart';
 
 class AddMemberPage extends StatefulWidget {
   final Member? member;

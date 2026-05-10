@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../core/constants/colors.dart';
+import 'package:conectea/core/constants/colors.dart';
 
 class AdminStatusHelper {
   static Color getStatusColor(String status) {

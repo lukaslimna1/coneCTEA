@@ -1,10 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../models/app_user.dart';
-import '../models/member.dart';
-import '../models/card_request.dart';
-import '../models/digital_card.dart';
-import '../models/notification_item.dart';
+import 'package:conectea/models/app_user.dart';
+import 'package:conectea/models/member.dart';
+import 'package:conectea/models/card_request.dart';
+import 'package:conectea/models/digital_card.dart';
+import 'package:conectea/models/notification_item.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -28,7 +28,7 @@ class DatabaseService {
       
       return data?['email']?.toString();
     } catch (e) {
-      debugPrint('Error getting email by CPF: $e');
+      debugPrint('Erro ao buscar e-mail por CPF: $e');
       return null;
     }
   }
@@ -141,7 +141,7 @@ class DatabaseService {
 
   Future<DigitalCard?> getCardByNumber(String cardNumber) async {
     try {
-      debugPrint('DatabaseService: Searching for card_number = "$cardNumber"');
+      debugPrint('DatabaseService: Procurando por card_number = "$cardNumber"');
       final data = await _supabase
           .from('digital_cards')
           .select('*, members(*)')
@@ -149,13 +149,13 @@ class DatabaseService {
           .maybeSingle();
       
       if (data == null) {
-        debugPrint('DatabaseService: No card found for "$cardNumber"');
+        debugPrint('DatabaseService: Nenhuma carteirinha encontrada para "$cardNumber"');
         return null;
       }
-      debugPrint('DatabaseService: Card found! ID: ${data['id']}');
+      debugPrint('DatabaseService: Carteirinha encontrada! ID: ${data['id']}');
       return DigitalCard.fromJson(data);
     } catch (e) {
-      debugPrint('DatabaseService Error: $e');
+      debugPrint('Erro no DatabaseService: $e');
       return null;
     }
   }
@@ -275,7 +275,7 @@ class DatabaseService {
         ));
       }
     } catch (e) {
-      debugPrint('Error notifying admins: $e');
+      debugPrint('Erro ao notificar administradores: $e');
     }
   }
 
@@ -314,17 +314,17 @@ class DatabaseService {
           .select('*, members(name)')
           .order('created_at', ascending: false);
       
-      debugPrint('Admin Fetched Card Requests: ${data.length} items');
+      debugPrint('Admin: Solicitações de carteirinha buscadas: ${data.length} itens');
       return data.map((json) {
         try {
           return CardRequest.fromJson(json);
         } catch (e) {
-          debugPrint('Error parsing CardRequest: $e \\n JSON: $json');
+          debugPrint('Erro ao processar CardRequest: $e \n JSON: $json');
           rethrow;
         }
       }).toList();
     } catch (e) {
-      debugPrint('Error in getAllCardRequests: $e');
+      debugPrint('Erro em getAllCardRequests: $e');
       return [];
     }
   }
@@ -501,12 +501,12 @@ class DatabaseService {
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
-        debugPrint('OneSignal API Error: ${response.body}');
+        debugPrint('Erro na API do OneSignal: ${response.body}');
       } else {
-        debugPrint('Push Notification sent successfully to $userId');
+        debugPrint('Notificação Push enviada com sucesso para $userId');
       }
     } catch (e) {
-      debugPrint('Error sending push notification: $e');
+      debugPrint('Erro ao enviar notificação push: $e');
     }
   }
 
@@ -567,12 +567,12 @@ class DatabaseService {
                     enriched['memberName'] = memberData['name'];
                   }
                 } catch (e) {
-                  debugPrint('Error fetching member name for stream: $e');
+                  debugPrint('Erro ao buscar nome do membro para a stream: $e');
                 }
               }
               requests.add(CardRequest.fromJson(enriched));
             } catch (e) {
-              debugPrint('Error parsing request in stream: $e');
+              debugPrint('Erro ao processar solicitação na stream: $e');
             }
           }
           return requests;
@@ -614,7 +614,7 @@ class DatabaseService {
       await _supabase.from('notifications').insert(notification.toJson());
       debugPrint('✅ NOTIFICATION_CREATED: Sucesso para o usuário ${notification.userId} (Título: ${notification.title})');
     } catch (e) {
-      debugPrint('Error creating notification: $e');
+      debugPrint('Erro ao criar notificação: $e');
     }
   }
 

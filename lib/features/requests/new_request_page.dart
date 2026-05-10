@@ -4,13 +4,13 @@ import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 import 'package:intl/intl.dart';
 import 'package:file_picker/file_picker.dart';
-import '../../services/google_drive_service.dart';
-import '../../core/constants/colors.dart';
-import '../../core/widgets/premium/app_background.dart';
-import '../../services/database_service.dart';
-import '../../services/auth_service.dart';
-import '../../models/member.dart';
-import '../../models/card_request.dart';
+import 'package:conectea/services/google_drive_service.dart';
+import 'package:conectea/core/constants/colors.dart';
+import 'package:conectea/core/widgets/premium/app_background.dart';
+import 'package:conectea/services/database_service.dart';
+import 'package:conectea/services/auth_service.dart';
+import 'package:conectea/models/member.dart';
+import 'package:conectea/models/card_request.dart';
 
 class NewRequestPage extends StatefulWidget {
   final Member member;

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../core/constants/colors.dart';
-import '../../../core/widgets/premium/premium_button.dart';
-import '../utils/admin_status_helper.dart';
+import 'package:conectea/core/constants/colors.dart';
+import 'package:conectea/core/widgets/premium/premium_button.dart';
+import 'package:conectea/features/admin/utils/admin_status_helper.dart';
 
 class AdminSectionTitle extends StatelessWidget {
   final String title;

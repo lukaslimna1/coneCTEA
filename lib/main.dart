@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'app/routes.dart';
-import 'app/theme.dart';
+import 'package:conectea/app/routes.dart';
+import 'package:conectea/app/theme.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter/foundation.dart';

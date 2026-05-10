@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import '../../core/constants/colors.dart';
-import '../../services/auth_service.dart';
-import '../../widgets/premium_hero.dart';
-import 'terms_view.dart';
-import 'privacy_policy_view.dart';
-import 'consents_view.dart';
-import 'stored_data_view.dart';
-import 'information_usage_view.dart';
+import 'package:conectea/core/constants/colors.dart';
+import 'package:conectea/services/auth_service.dart';
+import 'package:conectea/widgets/premium_hero.dart';
+import 'package:conectea/features/account/terms_view.dart';
+import 'package:conectea/features/account/privacy_policy_view.dart';
+import 'package:conectea/features/account/consents_view.dart';
+import 'package:conectea/features/account/stored_data_view.dart';
+import 'package:conectea/features/account/information_usage_view.dart';
 
 class SecurityView extends StatefulWidget {
   const SecurityView({super.key});

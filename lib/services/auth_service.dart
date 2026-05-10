@@ -50,7 +50,7 @@ class AuthService {
     await _supabase.auth.signOut();
   }
 
-  // Password Reset
+  // Recuperação de Senha
   Future<void> sendPasswordResetEmail(String email) async {
     await _supabase.auth.resetPasswordForEmail(
       email,
