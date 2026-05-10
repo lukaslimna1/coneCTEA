@@ -14,6 +14,8 @@ import '../requests/add_member_page.dart';
 import '../cards/widgets/digital_card_widget.dart';
 import '../account/edit_profile_view.dart';
 import '../account/security_view.dart';
+import 'about_conectea_view.dart';
+import 'family_tea_view.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/widgets/premium/app_background.dart';
 import '../../core/widgets/premium/premium_card.dart';
@@ -296,7 +298,25 @@ class _HomeViewState extends State<HomeView> {
                             const SizedBox(height: 24),
                             _buildBlock3(),
                             const SizedBox(height: 24),
-                            _buildInstitutionalBanner(),
+                            _buildHighlightBanner(
+                              eyebrow: 'Família TEA Bauru',
+                              title: 'Acompanhe novidades e projetos',
+                              subtitle:
+                                  'Conheça projetos, ações e atualizações da Família TEA Bauru.',
+                              ctaLabel: 'Ver Instagram',
+                              eyebrowColor: const Color(0xFFA855F7),
+                              illustration: Icons.volunteer_activism_rounded,
+                              onTap: () async {
+                                const instagramUrl =
+                                    "https://www.instagram.com/familiateabauru/";
+                                if (await canLaunchUrlString(instagramUrl)) {
+                                  await launchUrlString(
+                                    instagramUrl,
+                                    mode: LaunchMode.externalApplication,
+                                  );
+                                }
+                              },
+                            ),
                             const SizedBox(height: 40),
                           ],
                         ),
@@ -1004,132 +1024,151 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
-  Widget _buildInstitutionalBanner() {
+  Widget _buildHighlightBanner({
+    required String eyebrow,
+    required String title,
+    required String subtitle,
+    required String ctaLabel,
+    required VoidCallback onTap,
+    Color eyebrowColor = const Color(0xFFA855F7),
+    IconData? illustration,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: PremiumCard(
-        padding: EdgeInsets.zero,
-        margin: EdgeInsets.zero,
-        child: SizedBox(
-          height: 220,
-          width: double.infinity,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(24),
-            child: Container(
-              width: double.infinity,
-              height: 220,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    AppColors.primary.withValues(alpha: 0.20),
-                    AppColors.cyan.withValues(alpha: 0.10),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Positioned(
-                    right: -20,
-                    bottom: -20,
-                    child: Icon(
-                      Icons.volunteer_activism_rounded,
-                      size: 120,
-                      color: Colors.white.withValues(alpha: 0.05),
+      child: Container(
+        width: double.infinity,
+        height: 152,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(24),
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF1B235A),
+              Color(0xFF132D55),
+              Color(0xFF0A3A57),
+            ],
+          ),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.08),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.3),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: Stack(
+            children: [
+              // Decorative Glow
+              Positioned(
+                right: -30,
+                top: -30,
+                child: Container(
+                  width: 150,
+                  height: 150,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        const Color(0xFF22D3EE).withValues(alpha: 0.1),
+                        const Color(0xFF22D3EE).withValues(alpha: 0),
+                      ],
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(24),
+                ),
+              ),
+              // Illustration decorativa sutil
+              if (illustration != null)
+                Positioned(
+                  right: -15,
+                  bottom: -15,
+                  child: Icon(
+                    illustration,
+                    size: 140,
+                    color: Colors.white.withValues(alpha: 0.04),
+                  ),
+                ),
+              // Conteúdo interativo
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: onTap,
+                  borderRadius: BorderRadius.circular(24),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: AppColors.primary.withValues(
-                                  alpha: 0.20,
-                                ),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Icon(
-                                Icons.auto_awesome_rounded,
-                                color: AppColors.primary,
-                                size: 20,
-                              ),
+                            Icon(
+                              Icons.stars_rounded,
+                              size: 14,
+                              color: eyebrowColor,
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: 6),
                             Text(
-                              'Família TEA Bauru',
+                              eyebrow.toUpperCase(),
                               style: GoogleFonts.inter(
-                                fontSize: 14,
+                                fontSize: 11,
                                 fontWeight: FontWeight.w800,
-                                color: AppColors.primary,
-                                letterSpacing: 0.5,
+                                color: eyebrowColor,
+                                letterSpacing: 1.2,
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 10),
                         Text(
-                          'Conectando e Apoiando',
+                          title,
                           style: GoogleFonts.inter(
-                            fontSize: 20,
+                            fontSize: 19,
                             fontWeight: FontWeight.w900,
-                            color: AppColors.cardTitle,
+                            color: Colors.white,
                             letterSpacing: -0.5,
+                            height: 1.1,
                           ),
                         ),
                         const SizedBox(height: 8),
-                        Text(
-                          'O ConeCTEA é mais que um app, é uma rede de suporte para nossa comunidade.',
-                          style: GoogleFonts.inter(
-                            fontSize: 13,
-                            color: AppColors.cardSubtitle,
-                            height: 1.4,
+                        SizedBox(
+                          width: MediaQuery.of(context).size.width * 0.6,
+                          child: Text(
+                            subtitle,
+                            style: GoogleFonts.inter(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                              color: const Color(0xFFD6E1F0),
+                              height: 1.3,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 18),
-                        TextButton(
-                          onPressed: () {
-                            // TODO: Abrir site ou mais info
-                          },
-                          style: TextButton.styleFrom(
-                            padding: EdgeInsets.zero,
-                            minimumSize: Size.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'Saiba mais sobre o projeto',
-                                style: GoogleFonts.inter(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.cyan,
-                                ),
+                        const Spacer(),
+                        Row(
+                          children: [
+                            Text(
+                              '$ctaLabel →',
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w800,
+                                color: const Color(0xFF22D3EE),
                               ),
-                              const SizedBox(width: 4),
-                              const Icon(
-                                Icons.arrow_right_alt_rounded,
-                                color: AppColors.cyan,
-                                size: 20,
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   ),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ),
@@ -1298,24 +1337,20 @@ class _HomeViewState extends State<HomeView> {
   }
 
   Widget _buildBlock3() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final cardWidth = (screenWidth * 0.75).clamp(280.0, 320.0);
+
     return _buildCarouselSection(
       title: 'Informações',
+      height: 80,
+      titleSpacing: 10,
       items: [
-        _buildQuickCard(
-          icon: Icons.security_rounded,
-          title: 'Segurança',
-          subtitle: 'Sua conta protegida',
-          color: const Color(0xFF6366F1),
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const SecurityView()),
-          ),
-        ),
-        _buildQuickCard(
-          icon: Icons.help_outline_rounded,
+        _buildInfoActionCard(
+          width: cardWidth,
+          icon: PhosphorIcons.headset(PhosphorIconsStyle.fill),
           title: 'Suporte',
-          subtitle: 'Fale conosco no WhatsApp',
-          color: AppColors.statusGreen,
+          subtitle: 'Fale conosco pelo WhatsApp.',
+          accentColor: const Color(0xFF34D399),
           onTap: () async {
             const whatsappUrl = "https://wa.me/5514997728448";
             if (await canLaunchUrlString(whatsappUrl)) {
@@ -1326,12 +1361,38 @@ class _HomeViewState extends State<HomeView> {
             }
           },
         ),
-        _buildQuickCard(
-          icon: Icons.info_outline_rounded,
-          title: 'Sobre',
-          subtitle: 'Conheça o projeto',
-          color: AppColors.alertOrange,
-          onTap: () {},
+        _buildInfoActionCard(
+          width: cardWidth,
+          icon: PhosphorIcons.info(PhosphorIconsStyle.fill),
+          title: 'Sobre o app',
+          subtitle: 'Entenda o ConeCTEA.',
+          accentColor: const Color(0xFFF59E0B),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AboutConecteaView()),
+          ),
+        ),
+        _buildInfoActionCard(
+          width: cardWidth,
+          icon: PhosphorIcons.shieldCheck(PhosphorIconsStyle.fill),
+          title: 'Segurança',
+          subtitle: 'Dados e privacidade.',
+          accentColor: const Color(0xFF818CF8),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const SecurityView()),
+          ),
+        ),
+        _buildInfoActionCard(
+          width: cardWidth,
+          icon: PhosphorIcons.users(PhosphorIconsStyle.fill),
+          title: 'Família TEA',
+          subtitle: 'Conheça a organização.',
+          accentColor: const Color(0xFF22D3EE),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const FamilyTeaView()),
+          ),
         ),
       ],
     );
@@ -1341,6 +1402,7 @@ class _HomeViewState extends State<HomeView> {
     required String title,
     required List<Widget> items,
     double height = 185,
+    double titleSpacing = 16,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1357,7 +1419,7 @@ class _HomeViewState extends State<HomeView> {
             ),
           ),
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: titleSpacing),
         SizedBox(
           height: height,
           child: ListView.separated(
@@ -2440,4 +2502,103 @@ class _HomeViewState extends State<HomeView> {
       ),
     );
   }
+  Widget _buildInfoActionCard({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color accentColor,
+    required VoidCallback onTap,
+    double? width,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          width: width,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            gradient: const LinearGradient(
+              colors: [
+                Color(0xFF0F172A),
+                Color(0xFF020617),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.06),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.2),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: accentColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: accentColor.withValues(alpha: 0.2),
+                    width: 1,
+                  ),
+                ),
+                child: Icon(
+                  icon,
+                  color: accentColor,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      title,
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: const Color(0xFF94A3B8),
+                        height: 1.2,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: accentColor.withValues(alpha: 0.6),
+                size: 18,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
+

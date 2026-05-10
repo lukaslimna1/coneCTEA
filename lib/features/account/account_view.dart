@@ -9,6 +9,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../models/app_user.dart';
 import './security_view.dart';
 import './edit_profile_view.dart';
+import '../home/about_conectea_view.dart';
 
 class AccountView extends StatelessWidget {
   final AppUser? user;
@@ -59,8 +60,11 @@ class AccountView extends StatelessWidget {
                 ),
                 _MenuItem(
                   icon: PhosphorIconsRegular.info,
-                  title: 'Sobre o Aplicativo',
-                  onTap: (ctx) {},
+                  title: 'Sobre o ConeCTEA',
+                  onTap: (ctx) => Navigator.push(
+                    ctx,
+                    MaterialPageRoute(builder: (context) => const AboutConecteaView()),
+                  ),
                 ),
               ]),
               const SizedBox(height: 32),
