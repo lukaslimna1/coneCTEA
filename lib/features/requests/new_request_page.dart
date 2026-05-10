@@ -128,7 +128,7 @@ class _NewRequestPageState extends State<NewRequestPage> {
         status: 'under_review',
         protocol: protocol,
         adminNotes: '',
-            '', // Armazena o caminho de armazenamento se necessário, ou mantém como legado
+        driveFolderUrl: '', // Armazena o caminho de armazenamento se necessário, ou mantém como legado
         documentUrl: _idPhotoUrl!,
         medicalReportUrl: _medicalReportUrl!,
         createdAt: DateTime.now(),
