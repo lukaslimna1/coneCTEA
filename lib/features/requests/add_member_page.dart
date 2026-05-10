@@ -178,10 +178,9 @@ class _AddMemberPageState extends State<AddMemberPage> {
     if (result == null || result.files.isEmpty) return;
 
     final file = result.files.first;
-    final nome = _nomeController.text.trim();
     final prefix = isDocument ? 'DOC' : 'LAUDO';
     final tokenId = const Uuid().v4().substring(0, 8).toUpperCase();
-    final fileName = '${prefix}_${tokenId}_${nome.isNotEmpty ? nome.replaceAll(' ', '_') : 'SemNome'}.${file.extension}';
+    final fileName = '${prefix}_MBR_$tokenId.${file.extension}';
 
     setState(() {
       if (isDocument) {

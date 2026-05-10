@@ -65,8 +65,9 @@ class _NewRequestPageState extends State<NewRequestPage> {
   ) async {
     try {
       final extension = file.extension ?? 'bin';
-      final fileName =
-          '${protocol}_${widget.member.name.replaceAll(' ', '_')}_$typeLabel.$extension';
+      final token = const Uuid().v4().substring(0, 4).toUpperCase();
+      final prefix = typeLabel == 'DOC_FOTO' ? 'DOC' : 'LAUDO';
+      final fileName = '${prefix}_${protocol}_$token.$extension';
 
       return await _driveService.uploadFile(file: file, fileName: fileName);
     } catch (e) {

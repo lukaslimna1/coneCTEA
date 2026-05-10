@@ -86,8 +86,10 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
         expiresAt: expiresAt,
       );
 
-
-
+      if (newStatus == 'active') {
+        // Limpeza automática de documentos sensíveis após aprovação (LGPD/Segurança)
+        await _cleanupDocumentsAfterApproval();
+      }
       if (mounted) {
         // 1. Fechar o dialog de carregamento
         Navigator.of(context, rootNavigator: true).pop();
@@ -687,6 +689,39 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
     );
   }
 
+
+  Future<void> _cleanupDocumentsAfterApproval() async {
+    try {
+      // 1. Limpar Documento com Foto
+      if (widget.request.documentUrl.isNotEmpty && 
+          widget.request.documentUrl.contains('drive.google.com')) {
+        final success = await _driveService.deleteFile(widget.request.documentUrl);
+        if (success) {
+          await widget.databaseService.updateRequestFileUrl(
+            widget.request.id, 
+            'document_url', 
+            '',
+          );
+        }
+      }
+
+      // 2. Limpar Laudo Médico
+      if (widget.request.medicalReportUrl.isNotEmpty && 
+          widget.request.medicalReportUrl.contains('drive.google.com')) {
+        final success = await _driveService.deleteFile(widget.request.medicalReportUrl);
+        if (success) {
+          await widget.databaseService.updateRequestFileUrl(
+            widget.request.id, 
+            'medical_report_url', 
+            '',
+          );
+        }
+      }
+    } catch (e) {
+      // Log genérico sem expor dados sensíveis
+      debugPrint('Erro durante limpeza automática de documentos: $e');
+    }
+  }
 
   Future<void> _openUrl(String url) async {
     if (await canLaunchUrlString(url)) {
