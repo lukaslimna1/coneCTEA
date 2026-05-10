@@ -1232,10 +1232,10 @@ class _HomeViewState extends State<HomeView> {
       title: 'Acesso Rápido',
       items: [
         _buildQuickCard(
-          icon: Icons.badge_outlined,
+          icon: PhosphorIconsBold.identificationCard,
           title: 'Ver carteirinha',
-          subtitle: 'Acesse seu documento digital',
-          color: AppColors.primary,
+          subtitle: 'Acesse sua carteirinha digital.',
+          color: const Color(0xFF8B5CF6),
           onTap: () {
             if (_members.isNotEmpty &&
                 _selectedMemberIndex < _members.length &&
@@ -1254,17 +1254,17 @@ class _HomeViewState extends State<HomeView> {
           },
         ),
         _buildQuickCard(
-          icon: Icons.add_card_outlined,
+          icon: PhosphorIconsBold.filePlus,
           title: 'Solicitar',
-          subtitle: 'Nova via ou atualização',
-          color: AppColors.teal,
+          subtitle: 'Peça sua carteirinha ou atualize dados.',
+          color: const Color(0xFF22D3EE),
           onTap: _handleRequestCard,
         ),
         _buildQuickCard(
-          icon: Icons.assignment_outlined,
+          icon: PhosphorIconsBold.chatCircleDots,
           title: 'Meu mural',
-          subtitle: 'Status das solicitações',
-          color: AppColors.alertOrange,
+          subtitle: 'Acompanhe avisos e comunicados.',
+          color: const Color(0xFF60A5FA),
           onTap: () => widget.onNavigate(2),
         ),
       ],
@@ -1276,10 +1276,10 @@ class _HomeViewState extends State<HomeView> {
       title: 'Outros Serviços',
       items: [
         _buildQuickCard(
-          icon: Icons.construction_rounded,
+          icon: PhosphorIconsBold.wrench,
           title: 'Em breve',
           subtitle: 'Novas ferramentas vindo aí',
-          color: AppColors.cardMutedText,
+          color: const Color(0xFF64748B),
           onTap: () {},
         ),
       ],
@@ -1338,22 +1338,23 @@ class _HomeViewState extends State<HomeView> {
           child: Text(
             title,
             style: GoogleFonts.inter(
-              fontSize: 18,
+              fontSize: 19,
               fontWeight: FontWeight.w800,
-              color: AppColors.cardTitle,
+              color: const Color(0xFFF8FAFC),
+              letterSpacing: -0.5,
             ),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 14),
         SizedBox(
-          height: 205,
+          height: 145,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             physics: const BouncingScrollPhysics(),
             padding: const EdgeInsets.symmetric(horizontal: 24),
             clipBehavior: Clip.none,
             itemCount: items.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 14),
+            separatorBuilder: (_, __) => const SizedBox(width: 16),
             itemBuilder: (context, index) => items[index],
           ),
         ),
@@ -1368,92 +1369,142 @@ class _HomeViewState extends State<HomeView> {
     required Color color,
     required VoidCallback onTap,
   }) {
+    String ctaText = 'Acessar';
+    final lowerTitle = title.toLowerCase();
+    if (lowerTitle.contains('carteirinha')) {
+      ctaText = 'Abrir';
+    } else if (lowerTitle.contains('solicitar')) {
+      ctaText = 'Solicitar';
+    } else if (lowerTitle.contains('mural')) {
+      ctaText = 'Acessar';
+    } else if (lowerTitle.contains('breve')) {
+      ctaText = 'Aguardar';
+    }
+
     return SizedBox(
-      width: 180,
-      height: 190,
+      width: 215,
+      height: 132,
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(22),
           child: Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(24),
-              gradient: LinearGradient(
+              borderRadius: BorderRadius.circular(22),
+              gradient: const LinearGradient(
                 colors: [
-                  const Color(0xFF102A4C).withValues(alpha: 0.95),
-                  const Color(0xFF08162D).withValues(alpha: 0.98),
+                  Color(0xFF102A4C),
+                  Color(0xFF0B1D3A),
+                  Color(0xFF08162D),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               border: Border.all(
-                color: Colors.white.withValues(alpha: 0.10),
+                color: const Color(0x1F94A3B4),
                 width: 1,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.35),
+                  blurRadius: 18,
+                  offset: const Offset(0, 8),
+                ),
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.18),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Icon(icon, color: color, size: 26),
-                ),
-                const SizedBox(height: 14),
-                Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.inter(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.cardTitle,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Expanded(
-                  child: Text(
-                    subtitle,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.cardSubtitle,
-                      height: 1.25,
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 52,
+                      height: 52,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            color, // Luz (Claro)
+                            color.withValues(alpha: 0.85), // Médio
+                            color.withValues(alpha: 0.7), // Sombra (Escuro)
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Icon(
+                        icon,
+                        color: Colors.white,
+                        size: 28,
+                      ),
                     ),
-                  ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.outfit(
+                              fontSize: 16.5,
+                              fontWeight: FontWeight.w800,
+                              color: const Color(0xFFF8FAFC),
+                              letterSpacing: -0.4,
+                            ),
+                          ),
+                          const SizedBox(height: 1),
+                          Text(
+                            subtitle,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF9FB2D6),
+                              height: 1.2,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
+                const Spacer(),
                 Container(
                   width: double.infinity,
-                  height: 36,
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  height: 38,
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
                   decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.16),
+                    color: color.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
-                      color: color.withValues(alpha: 0.22),
+                      color: color.withValues(alpha: 0.15),
                       width: 1,
                     ),
                   ),
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Acessar',
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w800,
+                        ctaText,
+                        style: GoogleFonts.outfit(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w900,
                           color: color,
+                          letterSpacing: 1.2,
                         ),
                       ),
-                      const Spacer(),
-                      Icon(Icons.arrow_forward_rounded, color: color, size: 17),
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        color: color,
+                        size: 20,
+                      ),
                     ],
                   ),
                 ),
@@ -1468,7 +1519,7 @@ class _HomeViewState extends State<HomeView> {
   Widget _buildOngoingRequest(CardRequest? request) {
     if (request == null) return const SizedBox.shrink();
 
-    final String rawStatus = (request?.status ?? 'analise').toLowerCase();
+    final String rawStatus = request.status.toLowerCase();
     String statusDisplay = 'EM ANÁLISE';
     Color statusColor = AppColors.alertOrange;
     IconData statusIcon = Icons.history_edu_rounded;
@@ -1566,8 +1617,8 @@ class _HomeViewState extends State<HomeView> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            (request?.type ?? '') == 'new_card' ||
-                                    (request?.type ?? '') == 'Emissão Digital'
+                            request.type == 'new_card' ||
+                                    request.type == 'Emissão Digital'
                                 ? 'Emissão de Carteirinha'
                                 : 'Atualização de Cadastro',
                             style: GoogleFonts.inter(
