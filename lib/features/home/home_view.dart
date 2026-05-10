@@ -8,7 +8,6 @@ import 'package:conectea/models/app_user.dart';
 import 'package:conectea/models/member.dart';
 import 'package:conectea/models/card_request.dart';
 import 'package:conectea/models/digital_card.dart';
-import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import '../requests/add_member_page.dart';
 import '../cards/widgets/digital_card_widget.dart';
@@ -19,8 +18,7 @@ import 'family_tea_view.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/widgets/premium/app_background.dart';
 import '../../core/widgets/premium/premium_card.dart';
-import '../../core/constants/design_tokens.dart';
-
+ 
 class HomeView extends StatefulWidget {
   final Function(int) onNavigate;
 
@@ -334,7 +332,7 @@ class _HomeViewState extends State<HomeView> {
 
   Widget _buildOngoingRequestSection(List<CardRequest> requests) {
     final ongoingRequests = requests.where((r) {
-      final s = (r.status ?? 'analise').toLowerCase();
+      final s = r.status.toLowerCase();
       return s != 'active' &&
           s != 'ativa' &&
           s != 'approved' &&
@@ -343,7 +341,7 @@ class _HomeViewState extends State<HomeView> {
 
     if (ongoingRequests.isEmpty) return const SizedBox.shrink();
 
-    // Defensive check: ensure the first request is not null
+    // Verificação defensiva: garante que a primeira solicitação não seja nula
     final request = ongoingRequests.isNotEmpty ? ongoingRequests.first : null;
     if (request == null) return const SizedBox.shrink();
 
@@ -526,7 +524,7 @@ class _HomeViewState extends State<HomeView> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            (member.name ?? 'Membro').split(' ').first,
+                            member.name.split(' ').first,
                             style: GoogleFonts.inter(
                               fontSize: 14,
                               fontWeight: FontWeight.w800,
@@ -540,11 +538,9 @@ class _HomeViewState extends State<HomeView> {
                                 height: 6,
                                 decoration: BoxDecoration(
                                   color:
-                                      (member.status ?? 'analise')
-                                                  .toLowerCase() ==
+                                      member.status.toLowerCase() ==
                                               'ativa' ||
-                                          (member.status ?? 'analise')
-                                                  .toLowerCase() ==
+                                          member.status.toLowerCase() ==
                                               'active'
                                       ? AppColors.statusGreen
                                       : AppColors.alertOrange,
@@ -554,8 +550,7 @@ class _HomeViewState extends State<HomeView> {
                               const SizedBox(width: 4),
                               Text(
                                 () {
-                                  final status = (member.status ?? 'analise')
-                                      .toLowerCase();
+                                  final status = member.status.toLowerCase();
                                   switch (status) {
                                     case 'active':
                                     case 'ativa':
@@ -587,11 +582,9 @@ class _HomeViewState extends State<HomeView> {
                                   fontSize: 11,
                                   fontWeight: FontWeight.w700,
                                   color:
-                                      (member.status ?? 'analise')
-                                                  .toLowerCase() ==
+                                      member.status.toLowerCase() ==
                                               'ativa' ||
-                                          (member.status ?? 'analise')
-                                                  .toLowerCase() ==
+                                          member.status.toLowerCase() ==
                                               'active'
                                       ? AppColors.statusGreen
                                       : AppColors.alertOrange,
@@ -703,7 +696,7 @@ class _HomeViewState extends State<HomeView> {
     }
 
     final String rawStatus =
-        (memberRequest?.status ?? member.status ?? 'analise').toLowerCase();
+        (memberRequest?.status ?? member.status).toLowerCase();
 
     String statusDisplay = 'EM ANÁLISE';
     Color statusColor = AppColors.alertOrange;
@@ -714,7 +707,6 @@ class _HomeViewState extends State<HomeView> {
 
     final lastUpdate = memberRequest?.updatedAt ?? member.updatedAt;
     final isExpired =
-        lastUpdate != null &&
         rawStatus == 'active' &&
         DateTime.now().difference(lastUpdate).inDays >= 365;
     final effectiveStatus = isExpired ? 'expired' : rawStatus;
@@ -1050,7 +1042,7 @@ class _HomeViewState extends State<HomeView> {
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Container(
         width: double.infinity,
-        height: 152,
+        constraints: const BoxConstraints(minHeight: 152),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
           gradient: const LinearGradient(
@@ -1078,7 +1070,7 @@ class _HomeViewState extends State<HomeView> {
           borderRadius: BorderRadius.circular(24),
           child: Stack(
             children: [
-              // Decorative Glow
+              // Brilho decorativo
               Positioned(
                 right: -30,
                 top: -30,
@@ -1117,6 +1109,7 @@ class _HomeViewState extends State<HomeView> {
                     padding: const EdgeInsets.all(20),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Row(
                           children: [
@@ -1163,7 +1156,7 @@ class _HomeViewState extends State<HomeView> {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        const Spacer(),
+                        const SizedBox(height: 16),
                         Row(
                           children: [
                             Text(
@@ -1351,7 +1344,7 @@ class _HomeViewState extends State<HomeView> {
             padding: const EdgeInsets.symmetric(horizontal: 24),
             clipBehavior: Clip.none,
             itemCount: items.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 14),
+            separatorBuilder: (_, index) => const SizedBox(width: 14),
             itemBuilder: (context, index) => items[index],
           ),
         ),
@@ -1458,7 +1451,7 @@ class _HomeViewState extends State<HomeView> {
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Moldura do ícone (Dark Glass Tint - Ultra Dark)
+                          // Moldura do ícone (Tonalidade Vidro Escuro - Ultra Escuro)
                           Container(
                             width: 54,
                             height: 54,
@@ -1472,7 +1465,7 @@ class _HomeViewState extends State<HomeView> {
                             ),
                             child: Stack(
                               children: [
-                                // Tinta interna (Color Tint)
+                                // Tonalidade interna (Tinta colorida)
                                 Container(
                                   decoration: BoxDecoration(
                                     color: accentColor.withValues(alpha: 0.12),

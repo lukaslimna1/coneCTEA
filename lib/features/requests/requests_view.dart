@@ -38,7 +38,7 @@ class RequestsView extends StatelessWidget {
 
             final requests = snapshot.data ?? [];
             
-            // Sorting: ongoing first, then by date
+            // Ordenação: em andamento primeiro, depois por data
             requests.sort((a, b) {
               final aIsOngoing = _isOngoing(a.status);
               final bIsOngoing = _isOngoing(b.status);

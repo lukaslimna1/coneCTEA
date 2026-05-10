@@ -226,7 +226,7 @@ class PremiumHero extends StatelessWidget {
 
   List<Widget> _buildFloatingPoints() {
     final points = [
-      // (Offset x, Offset y, size, color, opacity)
+      // (Deslocamento x, Deslocamento y, tamanho, cor, opacidade)
       const _PointData(-100, -80, 12, Color(0xFFA855F7), 0.9), // Esquerda superior
       const _PointData(-110, 20, 6, Color(0xFF22D3EE), 0.8),  // Esquerda média
       const _PointData(90, -90, 8, Color(0xFF60A5FA), 0.75), // Direita superior
@@ -237,7 +237,7 @@ class PremiumHero extends StatelessWidget {
 
     return points.map((p) {
       return Positioned(
-        left: 110 + p.x, // 110 is center of 220 container
+        left: 110 + p.x, // 110 é o centro do container de 220
         top: 110 + p.y,
         child: Container(
           width: p.size,

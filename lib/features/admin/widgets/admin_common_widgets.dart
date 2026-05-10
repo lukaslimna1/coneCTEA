@@ -314,6 +314,7 @@ class AdminActionButton extends StatelessWidget {
     this.isOutline = false,
   });
 
+  @override
   Widget build(BuildContext context) {
     return PremiumButton(
       text: label,

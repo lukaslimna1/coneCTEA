@@ -83,7 +83,7 @@ class _ForgotEmailPageState extends State<ForgotEmailPage> {
       if (e.toString().contains('over_email_send_rate_limit') || e.toString().contains('429')) {
         errorMessage = 'Muitas solicitações. Por favor, verifique seu e-mail ou tente novamente em alguns minutos.';
         bgColor = AppColors.alertOrange;
-        setState(() => _resetSent = true); // Mark as sent to prevent immediate retries
+        setState(() => _resetSent = true); // Marca como enviado para evitar tentativas imediatas
       }
 
       if (mounted) {

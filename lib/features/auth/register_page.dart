@@ -177,7 +177,7 @@ class _RegisterPageState extends State<RegisterPage> {
     try {
       final databaseService = DatabaseService();
       
-      // Check if email already exists
+      // Verifica se o e-mail já existe
       final emailExists = await databaseService.isEmailRegistered(_emailController.text.trim());
       if (emailExists) {
         if (mounted) {
@@ -189,7 +189,7 @@ class _RegisterPageState extends State<RegisterPage> {
         return;
       }
 
-      // Check if CPF already exists
+      // Verifica se o CPF já existe
       final cleanCpf = _cpfController.text.replaceAll(RegExp(r'[^0-9]'), '');
       final cpfExists = await databaseService.isCpfRegistered(cleanCpf);
       if (cpfExists) {
@@ -972,7 +972,7 @@ class _RegisterPageState extends State<RegisterPage> {
         const SizedBox(height: 8),
         DropdownButtonFormField<T>(
           isExpanded: true,
-          value: items.any((item) => item.value == value) ? value : null,
+          initialValue: items.any((item) => item.value == value) ? value : null,
           items: items,
           onChanged: onChanged,
           validator: validator,

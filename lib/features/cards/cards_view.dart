@@ -135,12 +135,12 @@ class _CardsViewState extends State<CardsView> {
                                   onTap: () => context.push('/qr-scanner'),
                                   behavior: HitTestBehavior.opaque,
                                   child: Container(
-                                    padding: const EdgeInsets.all(16), // Increased from 14
+                                    padding: const EdgeInsets.all(16), // Aumentado de 14
                                     decoration: BoxDecoration(
-                                      color: const Color(0xA60F172A), // Dark Glass
+                                      color: const Color(0xA60F172A), // Vidro Escuro
                                       borderRadius: BorderRadius.circular(20),
                                       border: Border.all(
-                                        color: const Color(0x3D94A3B8), // Glass border
+                                        color: const Color(0x3D94A3B8), // Borda de vidro
                                         width: 1,
                                       ),
                                       boxShadow: [
@@ -313,7 +313,7 @@ class _CardsViewState extends State<CardsView> {
                     onTap: () => context.push('/member-selection'),
                     behavior: HitTestBehavior.opaque,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12), // Increased from 16/10
+                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12), // Aumentado de 16/10
                       decoration: BoxDecoration(
                         color: const Color(0x2E22D3EE),
                         borderRadius: BorderRadius.circular(16),
@@ -397,7 +397,7 @@ class _CardsViewState extends State<CardsView> {
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 300),
                       margin: const EdgeInsets.only(right: 12),
-                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12), // Increased padding
+                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12), // Preenchimento aumentado
                       decoration: BoxDecoration(
                         color: isSelected
                             ? AppColors.primary.withValues(alpha: 0.15)

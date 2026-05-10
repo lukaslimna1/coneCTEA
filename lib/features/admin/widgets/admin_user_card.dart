@@ -20,7 +20,6 @@ class AdminUserCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isAdmin = user.role.isAdmin;
     final initials = user.name.isNotEmpty 
         ? user.name.trim().split(' ').map((e) => e.isNotEmpty ? e[0] : '').take(2).join('').toUpperCase()
         : '?';

@@ -28,7 +28,7 @@ class AddMemberPage extends StatefulWidget {
 }
 
 class _AddMemberPageState extends State<AddMemberPage> {
-  // ... existing controllers ...
+  // Controladores de formulário e serviços
   final _formKey = GlobalKey<FormState>();
   final _databaseService = DatabaseService();
   final _authService = AuthService();
@@ -259,7 +259,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
       final isEditing = widget.member != null;
       final cleanCpf = _cpfController.text.replaceAll(RegExp(r'[^0-9]'), '');
 
-      // Check for duplicate CPF only when creating new or changing CPF
+      // Verifica CPF duplicado apenas ao criar novo ou alterar o CPF atual
       if (!isEditing || (isEditing && widget.member!.cpf.replaceAll(RegExp(r'[^0-9]'), '') != cleanCpf)) {
         final cpfExists = await _databaseService.isMemberCpfRegistered(cleanCpf);
         if (cpfExists) {
@@ -302,7 +302,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
       if (isEditing) {
         await _databaseService.updateMember(member);
         
-        // Update associated request status back to waiting_approval
+        // Retorna o status da solicitação associada para 'waiting_approval' após edição
         final requests = await _databaseService.getCardRequests(userId);
         final memberRequest = requests.where((r) => r.memberId == member.id).toList();
         
@@ -940,7 +940,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<T>(
-          value: items.any((item) => item.value == value) ? value : null,
+          initialValue: items.any((item) => item.value == value) ? value : null,
           items: items,
           onChanged: enabled ? onChanged : null,
           isExpanded: true,

@@ -201,7 +201,7 @@ class _ConsentsViewState extends State<ConsentsView> {
                 value: value,
                 onChanged: isMandatory ? null : onChanged,
                 activeTrackColor: AppColors.primary.withValues(alpha: 0.5),
-                activeColor: AppColors.primary,
+                activeThumbColor: AppColors.primary,
               ),
             ],
           ),

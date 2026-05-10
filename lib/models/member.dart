@@ -8,7 +8,7 @@ class Member {
   final String phone;
   final String emergencyContact;
   final String responsibleName;
-  final String dateOfBirth; // Changed from birthDate to dateOfBirth (String to match AdminView usage)
+  final String dateOfBirth; // Alterado de birthDate para dateOfBirth (String para alinhar com o AdminView)
   final String bloodType;
   final String cid;
   final String documentUrl;

@@ -104,7 +104,7 @@ class _NewRequestPageState extends State<NewRequestPage> {
       final random = const Uuid().v4().substring(0, 4).toUpperCase();
       final protocol = 'REQ-$dateStr-$random';
 
-      // 1. Upload Documents
+      // 1. Upload de Documentos
       setState(() => _isUploadingDocs = true);
 
       _idPhotoUrl = await _uploadFile(_idPhotoFile!, protocol, 'DOC_FOTO');
@@ -128,8 +128,7 @@ class _NewRequestPageState extends State<NewRequestPage> {
         status: 'under_review',
         protocol: protocol,
         adminNotes: '',
-        driveFolderUrl:
-            '', // This will hold the storage path if needed, or just leave as legacy
+            '', // Armazena o caminho de armazenamento se necessário, ou mantém como legado
         documentUrl: _idPhotoUrl!,
         medicalReportUrl: _medicalReportUrl!,
         createdAt: DateTime.now(),

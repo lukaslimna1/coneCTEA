@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-import '../../core/constants/colors.dart';
 import '../../core/widgets/premium/app_top_header.dart';
 import '../../core/widgets/premium/app_background.dart';
 import '../../core/widgets/premium/premium_bottom_nav_bar.dart';

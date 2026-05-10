@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import '../../constants/colors.dart';
-import '../../constants/design_tokens.dart';
-import '../../constants/text_styles.dart';
-import '../premium_avatar.dart';
 
 class AppTopHeader extends StatelessWidget implements PreferredSizeWidget {
   final bool showAdmBadge;

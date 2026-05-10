@@ -15,7 +15,7 @@ class SupportButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return FloatingActionButton.extended(
       onPressed: _launchWhatsApp,
-      backgroundColor: const Color(0xFF25D366), // WhatsApp Green
+      backgroundColor: const Color(0xFF25D366), // Verde do WhatsApp
       icon: const Icon(Icons.chat, color: Colors.white),
       label: const Text('Suporte WhatsApp',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),

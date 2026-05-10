@@ -659,7 +659,7 @@ class _EditProfileViewState extends State<EditProfileView> {
     required void Function(T?)? onChanged,
   }) {
     return DropdownButtonFormField<T>(
-      value: items.any((item) => item.value == value) ? value : null,
+      initialValue: items.any((item) => item.value == value) ? value : null,
       items: items,
       onChanged: onChanged,
       style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
@@ -683,7 +683,7 @@ class _EditProfileViewState extends State<EditProfileView> {
     required ValueChanged<String?> onChanged,
   }) {
     return DropdownButtonFormField<String>(
-      value: items.contains(value) ? value : null,
+      initialValue: items.contains(value) ? value : null,
       items: items.map((i) => DropdownMenuItem(value: i, child: Text(i, style: const TextStyle(fontSize: 12)))).toList(),
       onChanged: onChanged,
       hint: Text(hint ?? 'Selecione', style: const TextStyle(fontSize: 12)),

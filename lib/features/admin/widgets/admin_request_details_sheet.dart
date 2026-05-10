@@ -323,7 +323,7 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<int>(
-                      value: [7, 15, 30].contains(selectedDays) ? selectedDays : 7,
+                      initialValue: [7, 15, 30].contains(selectedDays) ? selectedDays : 7,
                       dropdownColor: AppColors.surfaceCard,
                       style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary, fontWeight: FontWeight.w600),
                       decoration: InputDecoration(

@@ -25,7 +25,7 @@ class GoogleDriveService {
 
       // Passo 1: POST para /exec sem seguir redirect
       final postRequest = await httpClient.postUrl(Uri.parse(_gasUrl));
-      postRequest.followRedirects = false; // propriedade do REQUEST
+      postRequest.followRedirects = false; // propriedade da REQUISIÇÃO
       postRequest.headers.set('Content-Type', 'application/json');
       postRequest.write(bodyStr);
 
@@ -37,14 +37,14 @@ class GoogleDriveService {
       // Passo 2: GAS retorna 302 — faz GET na URL de destino para ler a resposta
       if (statusCode == 302 || statusCode == 301) {
         final location = postResponse.headers.value('location');
-        await postResponse.drain(); // descarta o body do redirect
+        await postResponse.drain(); // descarta o corpo do redirecionamento
 
         debugPrint('GAS redirect para: $location');
 
         if (location != null && location.isNotEmpty) {
           final getResponse = await httpClient.getUrl(Uri.parse(location))
               .then((req) {
-            req.followRedirects = true; // segue redirects adicionais no GET
+            req.followRedirects = true; // segue redirecionamentos adicionais no GET
             return req.close();
           });
 

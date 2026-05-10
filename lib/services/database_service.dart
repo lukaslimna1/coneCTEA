@@ -13,10 +13,10 @@ class DatabaseService {
   
   static const String _oneSignalAppId = 'e4ccd512-3add-465f-8195-eaf6f3ce86aa';
   static const String _oneSignalApiKey = 'os_v2_app_4tgnker23vdf7amv5l3phtugvj2l3jszbhsee3uozfztqqk2x4uqup3csmnf45hekhpcjzib2lgmcz66jewor5otyeb7madrswumtki';
-  // Removed unused _validationUrlPrefix
+  // Removido _validationUrlPrefix não utilizado
 
 
-  // --- Profile ---
+  // --- Perfil ---
   Future<String?> getEmailByCpf(String cpf) async {
     try {
       final cleanCpf = cpf.replaceAll(RegExp(r'[^0-9]'), '');
@@ -91,7 +91,7 @@ class DatabaseService {
     }
   }
 
-  // --- Members ---
+  // --- Membros ---
   Future<List<Member>> getMembers(String userId) async {
     try {
       final List<dynamic> data = await _supabase
@@ -160,7 +160,7 @@ class DatabaseService {
     }
   }
 
-  // --- Digital Cards ---
+  // --- Carteirinhas Digitais ---
 
   Future<List<DigitalCard>> getDigitalCards(String userId) async {
     try {
@@ -241,7 +241,7 @@ class DatabaseService {
     }
   }
 
-  // --- Card Requests ---
+  // --- Solicitações de Carteirinha ---
   Future<List<CardRequest>> getCardRequests(String userId) async {
     try {
       final List<dynamic> data = await _supabase
@@ -306,7 +306,7 @@ class DatabaseService {
         .map((data) => data.map((json) => CardRequest.fromJson(json)).toList());
   }
 
-  // --- Admin ---
+  // --- Administrativo ---
   Future<List<CardRequest>> getAllCardRequests() async {
     try {
       final List<dynamic> data = await _supabase
@@ -594,7 +594,7 @@ class DatabaseService {
     }
   }
 
-  // --- Notifications ---
+  // --- Notificações ---
   Future<List<NotificationItem>> getNotifications(String userId) async {
     try {
       final List<dynamic> data = await _supabase
