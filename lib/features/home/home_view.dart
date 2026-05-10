@@ -686,6 +686,15 @@ class _HomeViewState extends State<HomeView> {
     }
 
     final member = _members[_selectedMemberIndex];
+    
+    // Busca o cartão digital real do membro
+    DigitalCard? digitalCard;
+    try {
+      digitalCard = _digitalCards.firstWhere((c) => c.memberId == member.id);
+    } catch (_) {
+      digitalCard = null;
+    }
+
     CardRequest? memberRequest;
     try {
       memberRequest = _requests.firstWhere((r) => r.memberId == member.id);
@@ -817,7 +826,11 @@ class _HomeViewState extends State<HomeView> {
                         ),
                         child: Opacity(
                           opacity: isActive ? 1.0 : 0.6,
-                          child: _buildMiniCard(isVerso: false, member: member),
+                          child: DigitalCardWidget(
+                            card: digitalCard,
+                            member: member,
+                            isStatic: true,
+                          ),
                         ),
                       ),
 
@@ -1175,96 +1188,6 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
-  Widget _buildMiniCard({required bool isVerso, Member? member}) {
-    final safeMember = member;
-    final name =
-        safeMember?.name ?? _user?.socialName ?? _user?.name ?? 'Membro';
-    final cpf = safeMember?.cpf ?? '***.***.***-**';
-    final city = safeMember?.city ?? '';
-    final state = safeMember?.state ?? '';
-    final status = safeMember?.status.toUpperCase() ?? 'EM ANÁLISE';
-
-    return Container(
-      width: double.infinity,
-      constraints: const BoxConstraints(minHeight: 180),
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
-        gradient: LinearGradient(
-          colors: [
-            AppColors.primary.withValues(alpha: 0.28),
-            AppColors.cyan.withValues(alpha: 0.14),
-            const Color(0xFF08162D),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.12),
-          width: 1,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                isVerso ? 'VERSO DIGITAL' : 'CARTEIRINHA DIGITAL',
-                style: GoogleFonts.inter(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.cyan,
-                  letterSpacing: 0.8,
-                ),
-              ),
-              Text(
-                status,
-                style: GoogleFonts.inter(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 22),
-          Text(
-            name,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.inter(
-              fontSize: 22,
-              fontWeight: FontWeight.w900,
-              color: AppColors.cardTitle,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            cpf.isNotEmpty ? cpf : 'Documento protegido',
-            style: GoogleFonts.inter(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: AppColors.cardSubtitle,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            city.isNotEmpty || state.isNotEmpty
-                ? '$city ${state.isNotEmpty ? "/ $state" : ""}'
-                : 'ConeCTEA • Família TEA Bauru',
-            style: GoogleFonts.inter(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: AppColors.cardSubtitle.withValues(alpha: 0.75),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildBlock1() {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -1436,159 +1359,6 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
-  Widget _buildQuickCard({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    String ctaText = 'Acessar';
-    final lowerTitle = title.toLowerCase();
-    if (lowerTitle.contains('carteirinha')) {
-      ctaText = 'Abrir';
-    } else if (lowerTitle.contains('solicitar')) {
-      ctaText = 'Solicitar';
-    } else if (lowerTitle.contains('mural')) {
-      ctaText = 'Acessar';
-    } else if (lowerTitle.contains('breve')) {
-      ctaText = 'Aguardar';
-    }
-
-    return SizedBox(
-      width: 230,
-      height: 165,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(24),
-          child: Container(
-            clipBehavior: Clip.antiAlias,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(24),
-              gradient: const LinearGradient(
-                colors: [
-                  Color(0xFF102A4C),
-                  Color(0xFF0B1D3A),
-                  Color(0xFF08162D),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              border: Border.all(
-                color: const Color(0x1F94A3B4),
-                width: 1,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.3),
-                  blurRadius: 15,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: Stack(
-              children: [
-                Positioned(
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  child: Container(
-                    height: 3,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          color.withValues(alpha: 0.8),
-                          color.withValues(alpha: 0.4),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 19, 16, 12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            width: 52,
-                            height: 52,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF050B18).withValues(alpha: 0.8),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: color.withValues(alpha: 0.2),
-                                width: 1,
-                              ),
-                            ),
-                            child: Icon(icon, color: Colors.white, size: 24),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  title.toUpperCase(),
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w800,
-                                    color: const Color(0xFFF8FAFC),
-                                    letterSpacing: 0.5,
-                                    height: 1.1,
-                                  ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  subtitle,
-                                  style: GoogleFonts.inter(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w500,
-                                    color: const Color(0xFF94A3B8),
-                                  ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const Spacer(),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        decoration: BoxDecoration(
-                          color: color.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Center(
-                          child: Text(
-                            ctaText,
-                            style: GoogleFonts.outfit(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 
   Widget _buildQuickAccessCard({
     required double width,
