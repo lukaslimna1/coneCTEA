@@ -176,7 +176,7 @@ class _EditProfileViewState extends State<EditProfileView> {
           children: [
             const Icon(Icons.support_agent_rounded, color: AppColors.alertOrange),
             const SizedBox(width: 8),
-            Text('Alterar $field', style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: AppColors.darkBlue)),
+            Text('Alterar $field', style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
           ],
         ),
         content: Column(
@@ -190,7 +190,7 @@ class _EditProfileViewState extends State<EditProfileView> {
             const SizedBox(height: 16),
             Text(
               'Entre em contato com o suporte da ConeCTEA para solicitar esta alteração.',
-              style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.darkBlue),
+              style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
             ),
           ],
         ),
@@ -205,7 +205,7 @@ class _EditProfileViewState extends State<EditProfileView> {
               if (await canLaunchUrlString(url)) {
                 await launchUrlString(url, mode: LaunchMode.externalApplication);
               }
-              if (mounted) Navigator.pop(ctx);
+              if (ctx.mounted) Navigator.pop(ctx);
             },
             icon: const Icon(Icons.chat_rounded, size: 18, color: Colors.white),
             label: const Text('Falar no WhatsApp', style: TextStyle(color: Colors.white)),
@@ -225,7 +225,7 @@ class _EditProfileViewState extends State<EditProfileView> {
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: Text('Editar Dados Pessoais',
-            style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: AppColors.darkBlue)),
+            style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
         content: Text(
           'Tem certeza que deseja editar seus dados? \n\nAlterações frequentes em informações de identificação podem passar por nova análise da equipe ConeCTEA.',
           style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary, height: 1.5),
@@ -295,16 +295,16 @@ class _EditProfileViewState extends State<EditProfileView> {
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.white,
+        backgroundColor: AppColors.background,
+        surfaceTintColor: AppColors.background,
         elevation: 0,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.arrow_back_ios_rounded, color: AppColors.darkBlue),
+          icon: const Icon(Icons.arrow_back_ios_rounded, color: AppColors.textPrimary),
         ),
         title: Text(
           'Dados Pessoais',
-          style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.darkBlue),
+          style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
         ),
         actions: [
           if (!_isEditMode && !_isLoading)
@@ -569,7 +569,7 @@ class _EditProfileViewState extends State<EditProfileView> {
 
   Widget _buildSectionTitle(String title) {
     return Text(title,
-        style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.darkBlue));
+        style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary));
   }
 
   Widget _buildLockedField({
@@ -584,7 +584,7 @@ class _EditProfileViewState extends State<EditProfileView> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: const Color(0xFFF5F5F5),
+          color: AppColors.cardBackground,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: AppColors.borderLight),
         ),
@@ -602,7 +602,7 @@ class _EditProfileViewState extends State<EditProfileView> {
                   const SizedBox(height: 2),
                   Text(value,
                       style: GoogleFonts.inter(
-                          fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.darkBlue)),
+                          fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
                 ],
               ),
             ),
@@ -637,12 +637,12 @@ class _EditProfileViewState extends State<EditProfileView> {
       controller: controller,
       keyboardType: keyboardType,
       inputFormatters: inputFormatters,
-      style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.darkBlue),
+      style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon, color: AppColors.primary, size: 20),
         filled: true,
-        fillColor: Colors.white,
+        fillColor: AppColors.cardBackground,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: AppColors.borderLight)),
         enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: AppColors.borderLight)),
@@ -659,15 +659,15 @@ class _EditProfileViewState extends State<EditProfileView> {
     required void Function(T?)? onChanged,
   }) {
     return DropdownButtonFormField<T>(
-      value: value,
+      value: items.any((item) => item.value == value) ? value : null,
       items: items,
       onChanged: onChanged,
-      style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.darkBlue),
+      style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon, color: AppColors.primary, size: 20),
         filled: true,
-        fillColor: onChanged == null ? const Color(0xFFF5F5F5) : Colors.white,
+        fillColor: AppColors.cardBackground,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: AppColors.borderLight)),
       ),
@@ -683,16 +683,16 @@ class _EditProfileViewState extends State<EditProfileView> {
     required ValueChanged<String?> onChanged,
   }) {
     return DropdownButtonFormField<String>(
-      value: value,
+      value: items.contains(value) ? value : null,
       items: items.map((i) => DropdownMenuItem(value: i, child: Text(i, style: const TextStyle(fontSize: 12)))).toList(),
       onChanged: onChanged,
       hint: Text(hint ?? 'Selecione', style: const TextStyle(fontSize: 12)),
-      style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.darkBlue),
+      style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon, color: AppColors.primary, size: 20),
         filled: true,
-        fillColor: Colors.white,
+        fillColor: AppColors.cardBackground,
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
       ),

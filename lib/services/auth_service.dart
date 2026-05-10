@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
+import 'package:flutter/foundation.dart';
 
 class AuthService {
   final SupabaseClient _supabase = Supabase.instance.client;
@@ -17,7 +18,7 @@ class AuthService {
         email: email,
         password: password,
       );
-      if (response.user != null) {
+      if (response.user != null && !kIsWeb) {
         OneSignal.login(response.user!.id);
       }
       return response;
@@ -34,7 +35,7 @@ class AuthService {
         password: password,
         data: data ?? {},
       );
-      if (response.user != null) {
+      if (response.user != null && !kIsWeb) {
         OneSignal.login(response.user!.id);
       }
       return response;
@@ -45,7 +46,7 @@ class AuthService {
 
   // Logout
   Future<void> signOut() async {
-    OneSignal.logout();
+    if (!kIsWeb) OneSignal.logout();
     await _supabase.auth.signOut();
   }
 

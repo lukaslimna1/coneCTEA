@@ -50,6 +50,8 @@ dependencies:
   sensors_plus: ^7.0.0
   onesignal_flutter: ^5.5.4
   mobile_scanner: 7.2.0
+  flutter_native_splash: 2.4.7
+  phosphor_flutter: ^2.1.0
 
 dev_dependencies:
   flutter_test:
@@ -61,6 +63,20 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.13.1
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/conectea_icon.png"
+  min_sdk_android: 21 # android min sdk min:16, default 21
+
+flutter_native_splash:
+  color: "#080612"
+  image: assets/images/conectea_splash.png
+  android_12:
+    image: assets/images/conectea_splash.png
+    color: "#080612"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

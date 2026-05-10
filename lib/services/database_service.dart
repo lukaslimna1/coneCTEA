@@ -13,7 +13,7 @@ class DatabaseService {
   
   static const String _oneSignalAppId = 'e4ccd512-3add-465f-8195-eaf6f3ce86aa';
   static const String _oneSignalApiKey = 'os_v2_app_4tgnker23vdf7amv5l3phtugvj2l3jszbhsee3uozfztqqk2x4uqup3csmnf45hekhpcjzib2lgmcz66jewor5otyeb7madrswumtki';
-  static const String _validationUrlPrefix = 'https://conectea.app/validar/';
+  // Removed unused _validationUrlPrefix
 
 
   // --- Profile ---
@@ -230,10 +230,10 @@ class DatabaseService {
         'front_data': {
           'name': member.name,
           'cpf': member.cpf,
-          'bloodType': member.bloodType ?? '',
-          'cid': member.cid ?? '',
+          'bloodType': member.bloodType,
+          'cid': member.cid,
         },
-        'back_data': {'emergencyContact': member.emergencyContact ?? ''},
+        'back_data': {'emergencyContact': member.emergencyContact},
         'qr_validation_url': cardNumber,
         'created_at': now.toIso8601String(),
         'updated_at': now.toIso8601String(),
@@ -271,7 +271,7 @@ class DatabaseService {
           createdAt: DateTime.now(),
           isRead: false,
           actionLabel: 'Analisar',
-          actionRoute: '/admin',
+          actionRoute: '/home',
         ));
       }
     } catch (e) {
@@ -431,7 +431,7 @@ class DatabaseService {
         break;
       default:
         if (notes.isNotEmpty && !notes.contains('Pendência:')) {
-          message += '\nMotivo: ${notes.length > 50 ? notes.substring(0, 47) + "..." : notes}';
+          message += '\nMotivo: ${notes.length > 50 ? "${notes.substring(0, 47)}..." : notes}';
         }
     }
 
@@ -622,9 +622,20 @@ class DatabaseService {
     return _supabase
         .from('notifications')
         .stream(primaryKey: ['id'])
-        .eq('user_id', userId)
         .order('created_at', ascending: false)
-        .map((data) => data.map((json) => NotificationItem.fromJson(json)).toList());
+        .map((data) => data
+            .where((json) => json['user_id'] == userId)
+            .map((json) => NotificationItem.fromJson(json))
+            .toList());
+  }
+
+  Stream<int> unreadNotificationsCountStream(String userId) {
+    return _supabase
+        .from('notifications')
+        .stream(primaryKey: ['id'])
+        .map((data) => data
+            .where((json) => json['user_id'] == userId && json['is_read'] == false)
+            .length);
   }
 
   Future<void> markNotificationAsRead(String notificationId) async {

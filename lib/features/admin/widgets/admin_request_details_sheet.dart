@@ -6,10 +6,10 @@ import '../../../services/google_drive_service.dart';
 import '../../../models/card_request.dart';
 import '../../../models/app_user.dart';
 import '../../../models/member.dart';
-import '../../../models/notification_item.dart';
 import '../../../core/constants/colors.dart';
 import '../utils/admin_status_helper.dart';
 import 'admin_common_widgets.dart';
+import '../../../core/widgets/premium/premium_button.dart';
 
 class AdminRequestDetailsSheet extends StatefulWidget {
   final CardRequest request;
@@ -137,7 +137,16 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
     Map<String, bool> selectedOptions = {};
 
     if (status == 'reviewing_data') {
-      options = ['Nome Completo', 'CPF', 'Data de Nascimento', 'Estado', 'Cidade'];
+      options = [
+        'Nome Completo', 
+        'CPF', 
+        'Data de Nascimento', 
+        'Telefone',
+        'Contato de Emergência',
+        'Tipo Sanguíneo',
+        'Estado', 
+        'Cidade'
+      ];
       
       // Adicionar Responsável apenas se for menor de 18 anos
       if (_member != null && _member!.dateOfBirth.isNotEmpty) {
@@ -167,132 +176,177 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          backgroundColor: AppColors.surfaceCard,
+          surfaceTintColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+            side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+          ),
           title: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: statusColor.withValues(alpha: 0.1),
+                  color: statusColor.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(Icons.info_outline, color: statusColor, size: 24),
+                child: Icon(
+                  status == 'rejected' ? Icons.cancel_outlined : 
+                  status == 'suspended' ? Icons.block_outlined :
+                  Icons.info_outline, 
+                  color: statusColor, 
+                  size: 24
+                ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 16),
               Expanded(
                 child: Text(
-                  'Confirmar: $label',
-                  style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+                  label.toUpperCase(),
+                  style: GoogleFonts.outfit(
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.textPrimary,
+                    fontSize: 18,
+                    letterSpacing: 0.5,
+                  ),
                 ),
               ),
             ],
           ),
           content: SizedBox(
-            width: 450,
+            width: 480,
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Justificativa para o usuário:',
+                    'JUSTIFICATIVA PARA O USUÁRIO',
                     style: GoogleFonts.inter(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.darkBlue,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textSecondary,
+                      letterSpacing: 1,
                     ),
                   ),
                   const SizedBox(height: 12),
                   TextField(
                     controller: notesController,
                     maxLines: 4,
-                    style: GoogleFonts.inter(fontSize: 14),
+                    style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary),
                     decoration: InputDecoration(
-                      hintText: 'Descreva aqui o motivo da alteração...',
+                      hintText: 'Descreva detalhadamente o motivo...',
+                      hintStyle: GoogleFonts.inter(color: AppColors.inputPlaceholder),
                       filled: true,
-                      fillColor: Colors.grey[50],
+                      fillColor: AppColors.inputBackground,
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.grey[300]!),
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: const BorderSide(color: AppColors.inputBorder),
                       ),
                       enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.grey[200]!),
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: const BorderSide(color: AppColors.inputBorder),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: const BorderSide(color: AppColors.primary, width: 2),
                       ),
                     ),
                   ),
                   if (options.isNotEmpty) ...[
                     const SizedBox(height: 24),
                     Text(
-                      status == 'reviewing_data' ? '📋 Campos para correção:' : '📄 Documentos solicitados:',
+                      status == 'reviewing_data' ? '📋 CAMPOS PARA CORREÇÃO' : '📄 DOCUMENTOS SOLICITADOS',
                       style: GoogleFonts.inter(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
                         color: AppColors.primary,
+                        letterSpacing: 1,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 12),
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.grey[50],
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey[200]!),
+                        color: AppColors.inputBackground,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.inputBorder),
                       ),
+                      clipBehavior: Clip.antiAlias,
                       child: Column(
-                        children: options.map((opt) => CheckboxListTile(
-                          title: Text(opt, style: GoogleFonts.inter(fontSize: 13)),
-                          value: selectedOptions[opt] ?? false,
-                          dense: true,
-                          activeColor: AppColors.primary,
-                          controlAffinity: ListTileControlAffinity.leading,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-                          onChanged: (val) {
-                            setDialogState(() {
-                              selectedOptions[opt] = val ?? false;
-                              
-                              String newNotes = "Pendências encontradas:\n";
-                              bool hasAny = false;
-                              selectedOptions.forEach((key, isSelected) {
-                                if (isSelected) {
-                                  newNotes += "- Pendência: $key\n";
-                                  hasAny = true;
-                                }
-                              });
-                              notesController.text = hasAny ? newNotes : "";
-                            });
-                          },
-                        )).toList(),
+                        children: options.map((opt) {
+                          final isSelected = selectedOptions[opt] ?? false;
+                          return Material(
+                            color: Colors.transparent,
+                            child: CheckboxListTile(
+                              title: Text(
+                                opt, 
+                                style: GoogleFonts.inter(
+                                  fontSize: 13, 
+                                  color: isSelected ? AppColors.textPrimary : AppColors.textSecondary,
+                                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                                )
+                              ),
+                              value: isSelected,
+                              dense: true,
+                              activeColor: AppColors.primary,
+                              checkColor: Colors.white,
+                              controlAffinity: ListTileControlAffinity.leading,
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                              onChanged: (val) {
+                                setDialogState(() {
+                                  selectedOptions[opt] = val ?? false;
+                                  
+                                  String newNotes = "Pendência:\n";
+                                  bool hasAny = false;
+                                  selectedOptions.forEach((key, isSelected) {
+                                    if (isSelected) {
+                                      newNotes += "- $key\n";
+                                      hasAny = true;
+                                    }
+                                  });
+                                  notesController.text = hasAny ? newNotes : "";
+                                });
+                              },
+                            ),
+                          );
+                        }).toList(),
                       ),
                     ),
                     const SizedBox(height: 24),
                     Text(
-                      '⏳ Prazo para resposta:',
+                      '⏳ PRAZO PARA RESPOSTA',
                       style: GoogleFonts.inter(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
                         color: AppColors.primary,
+                        letterSpacing: 1,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 12),
                     DropdownButtonFormField<int>(
-                      value: selectedDays,
+                      value: [7, 15, 30].contains(selectedDays) ? selectedDays : 7,
+                      dropdownColor: AppColors.surfaceCard,
+                      style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary, fontWeight: FontWeight.w600),
                       decoration: InputDecoration(
                         filled: true,
-                        fillColor: Colors.grey[50],
+                        fillColor: AppColors.inputBackground,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: const BorderSide(color: AppColors.inputBorder),
                         ),
                         enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey[200]!),
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: const BorderSide(color: AppColors.inputBorder),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: const BorderSide(color: AppColors.primary),
                         ),
                       ),
                       items: const [
-                        DropdownMenuItem(value: 7, child: Text('7 dias')),
-                        DropdownMenuItem(value: 15, child: Text('15 dias')),
-                        DropdownMenuItem(value: 30, child: Text('30 dias')),
+                        DropdownMenuItem(value: 7, child: Text('7 dias úteis')),
+                        DropdownMenuItem(value: 15, child: Text('15 dias úteis')),
+                        DropdownMenuItem(value: 30, child: Text('30 dias úteis')),
                       ],
                       onChanged: (val) {
                         if (val != null) {
@@ -305,34 +359,35 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
               ),
             ),
           ),
-          actionsPadding: const EdgeInsets.all(20),
+          actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: Text(
-                'Cancelar',
-                style: GoogleFonts.inter(color: AppColors.textSecondary, fontWeight: FontWeight.w600),
-              ),
-            ),
-            const SizedBox(width: 8),
-            ElevatedButton(
-              onPressed: () {
-                if (notesController.text.trim().isEmpty) {
-                  ScaffoldMessenger.of(ctx).showSnackBar(
-                    const SnackBar(content: Text('Justificativa obrigatória')),
-                  );
-                  return;
-                }
-                Navigator.pop(ctx, true);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: statusColor,
-                foregroundColor: Colors.white,
-                elevation: 0,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              child: Text('Confirmar Alteração', style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
+            Row(
+              children: [
+                Expanded(
+                  child: PremiumButton(
+                    text: 'Cancelar',
+                    variant: PremiumButtonVariant.outline,
+                    onPressed: () => Navigator.pop(context, false),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 2,
+                  child: PremiumButton(
+                    text: 'Confirmar',
+                    colorOverride: statusColor,
+                    onPressed: () {
+                      if (notesController.text.trim().isEmpty) {
+                        ScaffoldMessenger.of(ctx).showSnackBar(
+                          const SnackBar(content: Text('Justificativa obrigatória')),
+                        );
+                        return;
+                      }
+                      Navigator.pop(ctx, true);
+                    },
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -396,7 +451,7 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
     return Container(
       height: MediaQuery.of(context).size.height * 0.85,
       decoration: const BoxDecoration(
-        color: AppColors.backgroundLight,
+        color: AppColors.background,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(24),
           topRight: Radius.circular(24),
@@ -407,12 +462,12 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
           Container(
             padding: const EdgeInsets.all(24),
             decoration: const BoxDecoration(
-              color: Colors.white,
+              color: AppColors.cardBackground,
               borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(24),
                 topRight: Radius.circular(24),
               ),
-              border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
+              border: Border(bottom: BorderSide(color: AppColors.borderLight)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -422,11 +477,11 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
                   style: GoogleFonts.inter(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.darkBlue,
+                    color: AppColors.textPrimary,
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close),
+                  icon: const Icon(Icons.close, color: AppColors.textSecondary),
                   onPressed: () => Navigator.of(context).pop(),
                 ),
               ],
@@ -496,13 +551,23 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
                         TextField(
                           controller: _notesController,
                           maxLines: 3,
+                          style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary),
                           decoration: InputDecoration(
                             hintText: 'Adicione notas sobre a análise...',
+                            hintStyle: GoogleFonts.inter(color: AppColors.inputPlaceholder),
                             filled: true,
-                            fillColor: Colors.white,
+                            fillColor: AppColors.inputBackground,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                              borderSide: const BorderSide(color: AppColors.inputBorder),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: AppColors.inputBorder),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: AppColors.primary),
                             ),
                           ),
                         ),
@@ -528,7 +593,7 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
           style: GoogleFonts.inter(
             fontSize: 16,
             fontWeight: FontWeight.bold,
-            color: AppColors.darkBlue,
+            color: AppColors.textPrimary,
           ),
         ),
         const SizedBox(height: 16),

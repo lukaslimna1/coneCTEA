@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/constants/colors.dart';
 import '../../models/digital_card.dart';
 import '../../models/member.dart';
 import '../../models/card_request.dart';
 import '../../services/auth_service.dart';
 import '../../services/database_service.dart';
+import '../../core/widgets/premium/premium_button.dart';
+import '../../core/widgets/premium/premium_card.dart';
+import '../../core/widgets/premium/app_background.dart';
+import 'package:go_router/go_router.dart';
 import 'widgets/digital_card_widget.dart';
 import 'full_screen_card_page.dart';
 
@@ -29,584 +34,516 @@ class _CardsViewState extends State<CardsView> {
     final userId = _authService.currentUser?.id;
     if (userId == null) return const Center(child: Text('Por favor, faça login'));
 
-    return StreamBuilder<List<Member>>(
-      stream: _databaseService.membersStream(userId),
-      builder: (context, memberSnap) {
-        return StreamBuilder<List<DigitalCard>>(
-          stream: _databaseService.digitalCardsStream(userId),
-          builder: (context, cardSnap) {
-            return StreamBuilder<List<CardRequest>>(
-              stream: _databaseService.cardRequestsStream(userId),
-              builder: (context, requestSnap) {
-                if (memberSnap.connectionState == ConnectionState.waiting ||
-                    cardSnap.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: CircularProgressIndicator(color: AppColors.primary),
-                  );
-                }
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      extendBodyBehindAppBar: true,
+      body: AppBackground(
+        child: StreamBuilder<List<Member>>(
+          stream: _databaseService.membersStream(userId),
+          builder: (context, memberSnap) {
+            return StreamBuilder<List<DigitalCard>>(
+              stream: _databaseService.digitalCardsStream(userId),
+              builder: (ctx, cardSnap) {
+                return StreamBuilder<List<CardRequest>>(
+                  stream: _databaseService.cardRequestsStream(userId),
+                  builder: (ctx2, requestSnap) {
+                    if (memberSnap.connectionState == ConnectionState.waiting ||
+                        cardSnap.connectionState == ConnectionState.waiting) {
+                      return const Center(
+                        child: CircularProgressIndicator(color: AppColors.primary),
+                      );
+                    }
 
-                final members = memberSnap.data ?? [];
-                final allCards = cardSnap.data ?? [];
-                final requests = requestSnap.data ?? [];
+                    final members = memberSnap.data ?? [];
+                    final allCards = cardSnap.data ?? [];
+                    final requests = requestSnap.data ?? [];
 
-                // Mapa: member_id → DigitalCard (somente status == 'active')
-                final Map<String, DigitalCard> activeCardsMap = {};
-                for (final card in allCards) {
-                  if (card.isActive) {
-                    activeCardsMap[card.memberId] = card;
-                  }
-                }
+                    // Mapa: member_id → DigitalCard (somente status == 'active')
+                    final Map<String, DigitalCard> activeCardsMap = {};
+                    for (final card in allCards) {
+                      if (card.isActive) {
+                        activeCardsMap[card.memberId] = card;
+                      }
+                    }
 
-                // Membros com carteirinha ATIVA
-                final activeMembers = members
-                    .where((m) => activeCardsMap.containsKey(m.id))
-                    .toList();
+                    // Membros com carteirinha ATIVA
+                    final activeMembers = members
+                        .where((m) => activeCardsMap.containsKey(m.id))
+                        .toList();
 
-                // Membros SEM carteirinha ativa (pendentes)
-                final pendingMembers = members
-                    .where((m) => !activeCardsMap.containsKey(m.id))
-                    .toList();
+                    // Membros SEM carteirinha ativa (pendentes)
+                    final pendingMembers = members
+                        .where((m) => !activeCardsMap.containsKey(m.id))
+                        .toList();
 
-                // Corrigir índice selecionado se necessário
-                final selIdx = _selectedMemberIndex.clamp(
-                  0,
-                  activeMembers.isEmpty ? 0 : activeMembers.length - 1,
-                );
+                    // Corrigir índice selecionado se necessário
+                    final selIdx = _selectedMemberIndex.clamp(
+                      0,
+                      activeMembers.isEmpty ? 0 : activeMembers.length - 1,
+                    );
 
-                if (members.isEmpty) {
-                  return _buildEmptyState();
-                }
+                    if (members.isEmpty) {
+                      return _buildEmptyState();
+                    }
 
-                if (activeMembers.isEmpty) {
-                  return _buildPendingState(pendingMembers, requests);
-                }
+                    if (activeMembers.isEmpty) {
+                      return _buildPendingState(pendingMembers, requests);
+                    }
 
-                final selectedMember = activeMembers[selIdx];
-                final selectedCard = activeCardsMap[selectedMember.id]!;
+                    final selectedMember = activeMembers[selIdx];
+                    final selectedCard = activeCardsMap[selectedMember.id]!;
 
-                return RefreshIndicator(
-                  onRefresh: () async {},
-                  color: AppColors.primary,
-                  child: ListView(
-                    padding: const EdgeInsets.all(0),
-                    children: [
-                      // Header
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Carteirinhas',
-                              style: GoogleFonts.inter(
-                                fontSize: 28,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.darkBlue,
-                                letterSpacing: -0.5,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Gerencie as carteirinhas vinculadas à sua conta.',
-                              style: GoogleFonts.inter(
-                                fontSize: 14,
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      // Banner de membros
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: _buildMembersBanner(activeMembers.length),
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      // Seletor de membros (chips horizontais)
-                      if (activeMembers.length > 1) ...[
-                        SizedBox(
-                          height: 90,
-                          child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            itemCount: activeMembers.length,
-                            itemBuilder: (context, i) {
-                              final m = activeMembers[i];
-                              final isSelected = i == selIdx;
-                              return GestureDetector(
-                                onTap: () => setState(() {
-                                  _selectedMemberIndex = i;
-                                  _showBack = false;
-                                }),
-                                child: Container(
-                                  width: 130,
-                                  margin: const EdgeInsets.only(right: 12),
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: isSelected ? AppColors.primary : Colors.white,
-                                    borderRadius: BorderRadius.circular(18),
-                                    border: Border.all(
-                                      color: isSelected
-                                          ? AppColors.primary
-                                          : AppColors.borderLight,
-                                    ),
-                                    boxShadow: isSelected
-                                        ? [
-                                            BoxShadow(
-                                              color: AppColors.primary.withValues(alpha: 0.25),
-                                              blurRadius: 12,
-                                              offset: const Offset(0, 4),
-                                            )
-                                          ]
-                                        : [],
-                                  ),
-                                  child: Row(
+                    return RefreshIndicator(
+                      onRefresh: () async {},
+                      color: AppColors.primary,
+                      child: ListView(
+                        padding: const EdgeInsets.fromLTRB(0, 100, 0, 32),
+                        children: [
+                          // Header com Ícone QR
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Container(
-                                        width: 34,
-                                        height: 34,
-                                        decoration: BoxDecoration(
-                                          color: isSelected
-                                              ? Colors.white.withValues(alpha: 0.2)
-                                              : AppColors.primary.withValues(alpha: 0.1),
-                                          shape: BoxShape.circle,
-                                        ),
-                                        alignment: Alignment.center,
-                                        child: Text(
-                                          m.initials,
-                                          style: GoogleFonts.inter(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 11,
-                                            color: isSelected
-                                                ? Colors.white
-                                                : AppColors.primary,
-                                          ),
+                                      Text(
+                                        'Carteirinhas',
+                                        style: GoogleFonts.inter(
+                                          fontSize: 32,
+                                          fontWeight: FontWeight.w900,
+                                          color: AppColors.cardTitle,
+                                          letterSpacing: -1,
                                         ),
                                       ),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            Text(
-                                              m.name.split(' ').first,
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: GoogleFonts.inter(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w700,
-                                                color: isSelected
-                                                    ? Colors.white
-                                                    : AppColors.darkBlue,
-                                              ),
-                                            ),
-                                            Row(
-                                              children: [
-                                                Container(
-                                                  width: 6,
-                                                  height: 6,
-                                                  decoration: BoxDecoration(
-                                                    color: isSelected
-                                                        ? Colors.white
-                                                        : AppColors.statusGreen,
-                                                    shape: BoxShape.circle,
-                                                  ),
-                                                ),
-                                                const SizedBox(width: 4),
-                                                Text(
-                                                  'Ativa',
-                                                  style: GoogleFonts.inter(
-                                                    fontSize: 10,
-                                                    color: isSelected
-                                                        ? Colors.white.withValues(alpha: 0.8)
-                                                        : AppColors.textSecondary,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        'Gerencie suas identificações e dos\nmembros da sua família.',
+                                        style: GoogleFonts.inter(
+                                          fontSize: 14,
+                                          color: AppColors.cardSubtitle.withValues(alpha: 0.8),
+                                          height: 1.4,
+                                          fontWeight: FontWeight.w500,
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
-                              );
-                            },
+                                GestureDetector(
+                                  onTap: () => context.push('/qr-scanner'),
+                                  behavior: HitTestBehavior.opaque,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(16), // Increased from 14
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xA60F172A), // Dark Glass
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(
+                                        color: const Color(0x3D94A3B8), // Glass border
+                                        width: 1,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withValues(alpha: 0.1),
+                                          blurRadius: 10,
+                                          offset: const Offset(0, 4),
+                                        ),
+                                      ],
+                                    ),
+                                    child: const Icon(
+                                      PhosphorIconsRegular.qrCode,
+                                      color: Color(0xFFF8FAFC),
+                                      size: 28,
+                                    ),
+                                  ),
+                                ),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: 16),
-                      ],
 
-                      // Preview da carteirinha + info lateral
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Card preview
-                            Expanded(
-                              flex: 3,
-                              child: GestureDetector(
-                                onTap: () => _openFullScreen(
-                                    selectedMember, activeMembers, activeCardsMap),
-                                child: Hero(
-                                  tag: 'card_${selectedMember.id}',
-                                  child: Material(
-                                    type: MaterialType.transparency,
-                                    child: DigitalCardWidget(
-                                      card: selectedCard,
-                                      member: selectedMember,
-                                      showBack: _showBack,
-                                    ),
+                          const SizedBox(height: 16),
+                          
+                          // Novo Seletor Horizontal de Membros (Padão Home)
+                          _buildMembersSelector(members, activeCardsMap, selIdx, requests),
+
+                          const SizedBox(height: 24),
+
+                          // Título da Seção Carteirinha
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  PhosphorIconsRegular.cards,
+                                  color: AppColors.primary,
+                                  size: 18,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'SUA CARTEIRINHA DIGITAL',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.cardMutedText,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          // Visualização da Carteirinha
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: GestureDetector(
+                              onTap: () => _openFullScreen(
+                                  selectedMember, activeMembers, activeCardsMap),
+                              child: Hero(
+                                tag: 'card_${selectedMember.id}',
+                                child: Material(
+                                  type: MaterialType.transparency,
+                                  child: DigitalCardWidget(
+                                    card: selectedCard,
+                                    member: selectedMember,
+                                    showBack: _showBack,
                                   ),
                                 ),
                               ),
                             ),
+                          ),
 
-                            const SizedBox(width: 16),
+                          const SizedBox(height: 20),
 
-                            // Info lateral
-                            Expanded(
-                              flex: 2,
-                              child: _buildCardInfo(selectedCard),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      // Botões de ação
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: _buildActionButtons(
-                            selectedMember, activeMembers, activeCardsMap),
-                      ),
-
-                      const SizedBox(height: 32),
-
-                      // Lista: todos os membros da família
-                      if (members.isNotEmpty) ...[
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
-                          child: Text(
-                            'Membros da família',
-                            style: GoogleFonts.inter(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.darkBlue,
+                          // Datas e Status
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: _buildInfoBlock(
+                                    icon: PhosphorIconsRegular.calendarCheck,
+                                    label: 'Válida até',
+                                    value: DateFormat('dd/MM/yyyy').format(selectedCard.validUntil),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: _buildInfoBlock(
+                                    icon: PhosphorIconsRegular.checkCircle,
+                                    label: 'Situação',
+                                    value: 'ATIVA',
+                                    isStatus: true,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 12),
-                        ...members.map((m) => _buildMemberListItem(
-                          m,
-                          activeCardsMap[m.id],
-                          activeMembers,
-                          activeCardsMap,
-                          requests,
-                        )),
-                      ],
 
-                      const SizedBox(height: 32),
-                    ],
-                  ),
+                          const SizedBox(height: 24),
+
+                          // Botões de Ação
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: PremiumButton(
+                                    text: 'Ver carteirinha',
+                                    variant: PremiumButtonVariant.primary,
+                                    icon: PhosphorIconsRegular.identificationCard,
+                                    onPressed: () => _openFullScreen(
+                                        selectedMember, activeMembers, activeCardsMap),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: PremiumButton(
+                                    text: _showBack ? 'Ver frente' : 'Ver verso',
+                                    variant: PremiumButtonVariant.outline,
+                                    textColor: Colors.white,
+                                    icon: PhosphorIconsRegular.arrowsClockwise,
+                                    onPressed: () => setState(() => _showBack = !_showBack),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          
+                          const SizedBox(height: 40),
+                        ],
+                      ),
+                    );
+                  },
                 );
               },
             );
           },
-        );
-      },
-    );
-  }
-
-  Widget _buildMembersBanner(int count) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.borderLight),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(Icons.group_rounded, color: AppColors.primary, size: 22),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '$count ${count == 1 ? 'membro vinculado' : 'membros vinculados'}',
-                  style: GoogleFonts.inter(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 14,
-                    color: AppColors.darkBlue,
-                  ),
-                ),
-                Text(
-                  'Selecione uma carteirinha para visualizar.',
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildCardInfo(DigitalCard card) {
-    final dateStr = DateFormat('dd/MM/yyyy').format(card.validUntil);
+  Widget _buildMembersSelector(
+    List<Member> members,
+    Map<String, DigitalCard> activeCardsMap,
+    int selectedIdx,
+    List<CardRequest> requests,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: AppColors.statusGreen.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Column(
-            children: [
-              const Icon(Icons.check_circle_rounded,
-                  color: AppColors.statusGreen, size: 32),
-              const SizedBox(height: 8),
-              Text(
-                'Carteirinha\nativa',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.inter(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.statusGreen,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Válida até',
-                style: GoogleFonts.inter(
-                  fontSize: 10,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-              Text(
-                dateStr,
-                style: GoogleFonts.inter(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.primary,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildActionButtons(
-    Member member,
-    List<Member> activeMembers,
-    Map<String, DigitalCard> cardsMap,
-  ) {
-    return Row(
-      children: [
-        Expanded(
-          child: _ActionBtn(
-            icon: Icons.badge_rounded,
-            label: 'Ver carteirinha',
-            onTap: () => _openFullScreen(member, activeMembers, cardsMap),
-          ),
-        ),
-        if (activeMembers.length > 1) ...[
-          const SizedBox(width: 8),
-          Expanded(
-            child: _ActionBtn(
-              icon: Icons.swap_horiz_rounded,
-              label: 'Alternar membro',
-              onTap: () => setState(() {
-                _selectedMemberIndex =
-                    (_selectedMemberIndex + 1) % activeMembers.length;
-                _showBack = false;
-              }),
-            ),
-          ),
-        ],
-        const SizedBox(width: 8),
-        Expanded(
-          child: _ActionBtn(
-            icon: Icons.flip_rounded,
-            label: 'Ver verso',
-            onTap: () => setState(() => _showBack = !_showBack),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMemberListItem(
-    Member member,
-    DigitalCard? card,
-    List<Member> activeMembers,
-    Map<String, DigitalCard> cardsMap,
-    List<CardRequest> requests,
-  ) {
-    final hasActiveCard = card != null && card.isActive;
-    final request = requests.firstWhere(
-      (r) => r.memberId == member.id,
-      orElse: () => CardRequest(
-        id: '', userId: '', memberId: member.id, type: '', status: 'waiting_approval',
-        protocol: '', adminNotes: '', driveFolderUrl: '', documentUrl: '',
-        medicalReportUrl: '', createdAt: DateTime.now(), updatedAt: DateTime.now(),
-      ),
-    );
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: AppColors.borderLight),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 46,
-              height: 46,
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              alignment: Alignment.center,
-              child: Text(
-                member.initials,
-                style: GoogleFonts.inter(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
-                ),
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    member.name,
-                    style: GoogleFonts.inter(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 14,
-                      color: AppColors.darkBlue,
-                    ),
-                  ),
-                  Text(
-                    'Membro vinculado',
+                    '${members.length} MEMBROS',
                     style: GoogleFonts.inter(
                       fontSize: 12,
-                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.cardMutedText,
+                      letterSpacing: 1.2,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: hasActiveCard
-                          ? AppColors.statusGreen.withValues(alpha: 0.1)
-                          : AppColors.alertOrange.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          hasActiveCard
-                              ? Icons.check_circle_rounded
-                              : Icons.access_time_rounded,
-                          size: 12,
-                          color: hasActiveCard
-                              ? AppColors.statusGreen
-                              : AppColors.alertOrange,
+                  GestureDetector(
+                    onTap: () => context.push('/member-selection'),
+                    behavior: HitTestBehavior.opaque,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12), // Increased from 16/10
+                      decoration: BoxDecoration(
+                        color: const Color(0x2E22D3EE),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: const Color(0xFF22D3EE).withValues(alpha: 0.4),
+                          width: 1.2,
                         ),
-                        const SizedBox(width: 4),
-                        Text(
-                          hasActiveCard
-                              ? 'Carteirinha ativa'
-                              : _getStatusLabel(request.status),
-                          style: GoogleFonts.inter(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: hasActiveCard
-                                ? AppColors.statusGreen
-                                : AppColors.alertOrange,
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF22D3EE).withValues(alpha: 0.15),
+                            blurRadius: 12,
+                            spreadRadius: -2,
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            PhosphorIconsRegular.plusCircle,
+                            size: 16,
+                            color: Color(0xFF22D3EE),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Solicitar Nova',
+                            style: GoogleFonts.inter(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
-            if (hasActiveCard) ...[
-              OutlinedButton(
-                onPressed: () => _openFullScreen(member, activeMembers, cardsMap),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.primary,
-                  side: const BorderSide(color: AppColors.primary),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                ),
-                child: Text(
-                  'Abrir',
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                  ),
+            const SizedBox(height: 16),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              clipBehavior: Clip.none,
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Row(
+                children: List.generate(members.length, (index) {
+                  final member = members[index];
+                  final hasActiveCard = activeCardsMap.containsKey(member.id);
+                  final request = requests.where((r) => r.memberId == member.id).firstOrNull;
+                  
+                  final activeMembers = members.where((m) => activeCardsMap.containsKey(m.id)).toList();
+                  final isSelected = hasActiveCard && activeMembers.indexOf(member) == selectedIdx;
+
+                  return GestureDetector(
+                    onTap: () {
+                      if (hasActiveCard) {
+                        final idx = activeMembers.indexOf(member);
+                        setState(() {
+                          _selectedMemberIndex = idx;
+                          _showBack = false;
+                        });
+                      } else {
+                        String message = '${member.name} não possui carteirinha ativa.';
+                        if (request != null) {
+                          message = 'Carteirinha de ${member.name} está em análise.';
+                        }
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(message),
+                            backgroundColor: AppColors.alertOrange,
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      }
+                    },
+                    behavior: HitTestBehavior.opaque,
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      margin: const EdgeInsets.only(right: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12), // Increased padding
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? AppColors.primary.withValues(alpha: 0.15)
+                            : const Color(0xA60F172A),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: isSelected
+                              ? AppColors.primary.withValues(alpha: 0.5)
+                              : const Color(0x2E94A3B8),
+                          width: 1.5,
+                        ),
+                        boxShadow: isSelected
+                            ? [
+                                BoxShadow(
+                                  color: AppColors.primary.withValues(alpha: 0.25),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                                BoxShadow(
+                                  color: Colors.white.withValues(alpha: 0.1),
+                                  blurRadius: 0,
+                                  spreadRadius: 0.5,
+                                ),
+                              ]
+                            : [],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              gradient: isSelected ? AppColors.premiumGradient : null,
+                              color: isSelected ? null : const Color(0xFF1E293B),
+                              shape: BoxShape.circle,
+                              border: isSelected ? Border.all(color: Colors.white.withValues(alpha: 0.2), width: 1) : null,
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              member.initials,
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w800,
+                                color: isSelected ? Colors.white : AppColors.primary,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                member.name.split(' ').first,
+                                style: GoogleFonts.inter(
+                                  fontSize: 14,
+                                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                                  color: isSelected ? Colors.white : AppColors.cardSubtitle,
+                                ),
+                              ),
+                              if (isSelected)
+                                Container(
+                                  height: 2,
+                                  width: 12,
+                                  margin: const EdgeInsets.only(top: 2),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.statusGreen,
+                                    borderRadius: BorderRadius.circular(1),
+                                  ),
+                                )
+                              else if (request != null && !hasActiveCard)
+                                Text(
+                                  'Em análise',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.alertOrange,
+                                  ),
+                                ),
+                            ],
+                          ),
+                          if (hasActiveCard && !isSelected)
+                             Padding(
+                               padding: const EdgeInsets.only(left: 8),
+                               child: Icon(
+                                 PhosphorIconsFill.checkCircle,
+                                 size: 14,
+                                 color: AppColors.statusGreen.withValues(alpha: 0.5),
+                                ),
+                             ),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+              ),
+            ),
+          ],
+        );
+  }
+
+  Widget _buildInfoBlock({
+    required IconData icon,
+    required String label,
+    required String value,
+    bool isStatus = false,
+  }) {
+    return PremiumCard(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            color: isStatus ? AppColors.statusGreen : AppColors.primary,
+            size: 24,
+          ),
+          const SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: GoogleFonts.inter(
+                  fontSize: 11,
+                  color: AppColors.cardSubtitle,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-              const SizedBox(width: 8),
+              Text(
+                value,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  color: isStatus ? AppColors.statusGreen : AppColors.cardTitle,
+                ),
+              ),
             ],
-            const Icon(Icons.chevron_right_rounded,
-                color: AppColors.textSecondary, size: 20),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
+
+
+
 
   void _openFullScreen(
     Member member,
@@ -637,14 +574,14 @@ class _CardsViewState extends State<CardsView> {
             style: GoogleFonts.inter(
               fontSize: 28,
               fontWeight: FontWeight.w800,
-              color: AppColors.darkBlue,
+              color: AppColors.cardTitle,
               letterSpacing: -0.5,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             'Gerencie as carteirinhas vinculadas à sua conta.',
-            style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary),
+            style: GoogleFonts.inter(fontSize: 14, color: AppColors.cardSubtitle),
           ),
           const SizedBox(height: 48),
           Center(
@@ -654,7 +591,7 @@ class _CardsViewState extends State<CardsView> {
                 color: AppColors.alertOrange.withValues(alpha: 0.08),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.pending_actions_rounded,
+              child: const Icon(PhosphorIconsRegular.clockClockwise,
                   size: 72, color: AppColors.alertOrange),
             ),
           ),
@@ -665,7 +602,7 @@ class _CardsViewState extends State<CardsView> {
             style: GoogleFonts.inter(
               fontSize: 20,
               fontWeight: FontWeight.w800,
-              color: AppColors.darkBlue,
+              color: AppColors.cardTitle,
             ),
           ),
           const SizedBox(height: 8),
@@ -674,7 +611,7 @@ class _CardsViewState extends State<CardsView> {
             textAlign: TextAlign.center,
             style: GoogleFonts.inter(
               fontSize: 14,
-              color: AppColors.textSecondary,
+              color: AppColors.cardSubtitle,
               height: 1.5,
             ),
           ),
@@ -684,7 +621,7 @@ class _CardsViewState extends State<CardsView> {
             style: GoogleFonts.inter(
               fontSize: 16,
               fontWeight: FontWeight.w700,
-              color: AppColors.darkBlue,
+              color: AppColors.cardTitle,
             ),
           ),
           const SizedBox(height: 12),
@@ -697,14 +634,9 @@ class _CardsViewState extends State<CardsView> {
                 medicalReportUrl: '', createdAt: DateTime.now(), updatedAt: DateTime.now(),
               ),
             );
-            return Container(
+            return PremiumCard(
               margin: const EdgeInsets.only(bottom: 12),
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.borderLight),
-              ),
               child: Row(
                 children: [
                   Container(
@@ -732,20 +664,20 @@ class _CardsViewState extends State<CardsView> {
                           m.name,
                           style: GoogleFonts.inter(
                             fontWeight: FontWeight.w700,
-                            color: AppColors.darkBlue,
+                            color: AppColors.cardTitle,
                           ),
                         ),
                         Text(
                           _getStatusLabel(req.status),
                           style: GoogleFonts.inter(
                             fontSize: 12,
-                            color: AppColors.textSecondary,
+                            color: AppColors.cardSubtitle,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const Icon(Icons.access_time_rounded,
+                  const Icon(PhosphorIconsRegular.clock,
                       color: AppColors.alertOrange, size: 20),
                 ],
               ),
@@ -767,7 +699,7 @@ class _CardsViewState extends State<CardsView> {
               color: AppColors.primary.withValues(alpha: 0.05),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.badge_outlined, size: 72, color: AppColors.primary),
+            child: const Icon(PhosphorIconsRegular.identificationCard, size: 72, color: AppColors.primary),
           ),
           const SizedBox(height: 24),
           Text(
@@ -775,7 +707,7 @@ class _CardsViewState extends State<CardsView> {
             style: GoogleFonts.inter(
               fontSize: 20,
               fontWeight: FontWeight.w800,
-              color: AppColors.darkBlue,
+              color: AppColors.cardTitle,
             ),
           ),
           const SizedBox(height: 12),
@@ -785,7 +717,7 @@ class _CardsViewState extends State<CardsView> {
               'Cadastre um membro e envie a documentação\npara receber sua identificação digital.',
               textAlign: TextAlign.center,
               style: GoogleFonts.inter(
-                color: AppColors.textSecondary,
+                color: AppColors.cardSubtitle,
                 height: 1.5,
               ),
             ),
@@ -808,52 +740,4 @@ class _CardsViewState extends State<CardsView> {
   }
 }
 
-class _ActionBtn extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
 
-  const _ActionBtn({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.borderLight),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: AppColors.primary, size: 22),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              style: GoogleFonts.inter(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: AppColors.darkBlue,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

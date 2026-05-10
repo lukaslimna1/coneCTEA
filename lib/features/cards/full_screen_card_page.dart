@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'dart:math';
 
 import '../../core/constants/colors.dart';
@@ -70,7 +70,7 @@ class _FullScreenCardPageState extends State<FullScreenCardPage> with SingleTick
     final card = widget.cardsByMemberId[member.id]!;
 
     return Scaffold(
-      backgroundColor: AppColors.darkBlue,
+      backgroundColor: AppColors.background,
       body: Stack(
         children: [
           // Background Gradient & Grid
@@ -80,10 +80,10 @@ class _FullScreenCardPageState extends State<FullScreenCardPage> with SingleTick
                 gradient: RadialGradient(
                   center: Alignment.center,
                   radius: 1.5,
-                  colors: [
-                    Color(0xFF003366),
-                    AppColors.darkBlue,
-                  ],
+                    colors: [
+                      Color(0xFF0E2A52),
+                      AppColors.background,
+                    ],
                 ),
               ),
             ),
@@ -175,15 +175,16 @@ class _FullScreenCardPageState extends State<FullScreenCardPage> with SingleTick
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           IconButton(
-            icon: const Icon(Icons.close_rounded, color: Colors.white, size: 28),
+            icon: const Icon(PhosphorIconsRegular.x, color: Colors.white, size: 28),
             onPressed: () => Navigator.of(context).pop(),
           ),
           Hero(
             tag: 'app_logo_mini',
-            child: SvgPicture.asset(
-              'assets/images/logo_horizontal.svg',
-              height: 24,
-              colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+            child: Image.asset(
+              'assets/images/conectea_logo.png',
+              height: 32,
+              fit: BoxFit.contain,
+              filterQuality: FilterQuality.high,
             ),
           ),
           const SizedBox(width: 48), // Spacer for balance
@@ -214,7 +215,8 @@ class _FullScreenCardPageState extends State<FullScreenCardPage> with SingleTick
                 });
               }
             },
-            child: Container(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
               margin: const EdgeInsets.only(right: 12),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               decoration: BoxDecoration(
@@ -224,12 +226,19 @@ class _FullScreenCardPageState extends State<FullScreenCardPage> with SingleTick
                   color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.2),
                   width: 1.5,
                 ),
+                boxShadow: isSelected ? [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.4),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  )
+                ] : null,
               ),
               child: Text(
                 member.name.split(' ')[0],
                 style: GoogleFonts.inter(
                   color: Colors.white,
-                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
                   fontSize: 14,
                 ),
               ),
@@ -246,7 +255,7 @@ class _FullScreenCardPageState extends State<FullScreenCardPage> with SingleTick
         ElevatedButton.icon(
           onPressed: _flipCard,
           icon: Icon(
-            _isBackVisible ? Icons.flip_to_front_rounded : Icons.flip_to_back_rounded,
+            _isBackVisible ? PhosphorIconsRegular.arrowsLeftRight : PhosphorIconsRegular.arrowsLeftRight,
             color: AppColors.primary,
           ),
           label: Text(

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/colors.dart';
+import '../../../core/widgets/premium/premium_card.dart';
 import '../../../models/app_user.dart';
-import '../../../core/widgets/user_role_badge.dart';
 
 class AdminUserCard extends StatelessWidget {
   final AppUser user;
@@ -34,35 +34,42 @@ class AdminUserCard extends StatelessWidget {
       default: roleColor = AppColors.textSecondary;
     }
 
-    return Container(
+    return PremiumCard(
+      hasGradient: true,
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: isAdmin ? roleColor.withValues(alpha: 0.3) : AppColors.borderLight),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
       child: Row(
         children: [
           Container(
             width: 50,
             height: 50,
             decoration: BoxDecoration(
-              color: roleColor.withValues(alpha: 0.1),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  roleColor.withValues(alpha: 0.8),
+                  roleColor.withValues(alpha: 0.2),
+                ],
+              ),
               shape: BoxShape.circle,
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.1),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: roleColor.withValues(alpha: 0.2),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: Center(
               child: Text(
                 initials,
                 style: GoogleFonts.inter(
-                  color: roleColor,
+                  color: Colors.white,
                   fontWeight: FontWeight.w800,
                   fontSize: 18,
                 ),
@@ -81,7 +88,7 @@ class AdminUserCard extends StatelessWidget {
                         user.name,
                         style: GoogleFonts.inter(
                           fontWeight: FontWeight.w800,
-                          color: AppColors.darkBlue,
+                          color: AppColors.textPrimary,
                           fontSize: 15,
                         ),
                         overflow: TextOverflow.ellipsis,
@@ -165,7 +172,7 @@ class AdminUserCard extends StatelessWidget {
             style: GoogleFonts.inter(
               fontSize: 13, 
               fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-              color: isSelected ? AppColors.primary : AppColors.darkBlue,
+              color: isSelected ? AppColors.primary : AppColors.textPrimary,
             )
           ),
         ],

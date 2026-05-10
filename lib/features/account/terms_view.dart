@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/constants/colors.dart';
+import '../../widgets/premium_hero.dart';
 
 class TermsView extends StatelessWidget {
   const TermsView({super.key});
@@ -8,238 +10,288 @@ class TermsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundPremium,
+      backgroundColor: const Color(0xFF020C1C),
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor: AppColors.backgroundPremium,
+        backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF243B6B)),
-          onPressed: () => Navigator.pop(context),
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFF071326).withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 18),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
         ),
         title: Text(
           'Termos de Uso',
-          style: GoogleFonts.inter(
-            fontWeight: FontWeight.bold,
-            color: const Color(0xFF243B6B),
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.w600,
+            fontSize: 18,
+            color: AppColors.textPrimary,
           ),
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeader(
-              icon: Icons.description_rounded,
+            const PremiumHero(
+              icon: PhosphorIconsRegular.fileText,
               title: 'Termos de Uso',
               subtitle: 'Conheça as regras de utilização do aplicativo ConeCTEA.',
-              iconColor: const Color(0xFF8E6FF7),
-            ),
-            const SizedBox(height: 24),
-            
-            _buildBlock(
-              '1. Sobre estes termos',
-              'Estes Termos de Uso definem as regras para acesso e utilização do aplicativo ConeCTEA. Ao utilizar o aplicativo, o usuário declara estar ciente e de acordo com as condições aqui apresentadas.',
-            ),
-            _buildBlock(
-              '2. Finalidade do ConeCTEA',
-              'O ConeCTEA foi desenvolvido para facilitar o acesso a serviços, informações e funcionalidades relacionadas à carteirinha digital, solicitações, acompanhamento de status e comunicação com a instituição responsável.',
-            ),
-            _buildListBlock(
-              '3. Responsabilidades do usuário',
-              [
-                'Fornecer informações verdadeiras e atualizadas',
-                'Utilizar o aplicativo de forma adequada e responsável',
-                'Manter seus dados de acesso em segurança',
-                'Não compartilhar a conta com terceiros',
-                'Respeitar as regras e finalidades do aplicativo',
-              ],
-            ),
-            _buildBlock(
-              '4. Responsabilidades da plataforma',
-              'O ConeCTEA busca oferecer uma experiência acessível, organizada e segura. A instituição responsável poderá analisar solicitações, atualizar informações e gerenciar o status da carteirinha conforme seus critérios e procedimentos internos.',
-            ),
-            _buildListBlock(
-              '5. Condutas não permitidas',
-              [
-                'Utilizar dados falsos ou de terceiros sem autorização',
-                'Tentar acessar áreas não autorizadas do sistema',
-                'Fazer uso indevido da carteirinha digital',
-                'Praticar ações que prejudiquem o funcionamento do aplicativo',
-                'Utilizar o app para fins ilegais ou fraudulentos',
-              ],
-            ),
-            _buildBlock(
-              '6. Atualizações dos termos',
-              'Os Termos de Uso poderão ser atualizados a qualquer momento para melhoria do serviço, adequação legal ou evolução do aplicativo. Sempre que houver alterações relevantes, o usuário poderá ser notificado.',
             ),
             
-            const SizedBox(height: 12),
-            _buildVersionCard('1.0', '08/05/2026'),
-            const SizedBox(height: 32),
-            
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF243B6B),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  elevation: 0,
-                ),
-                child: Text(
-                  'ENTENDI',
-                  style: GoogleFonts.inter(fontWeight: FontWeight.bold, letterSpacing: 1),
-                ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildSectionBlock(
+                    '1. Sobre estes termos',
+                    'Estes Termos de Uso regulam o acesso e a utilização do aplicativo ConeCTEA e de todos os serviços disponibilizados pela plataforma. Ao utilizar o aplicativo, você concorda com os termos descritos abaixo.',
+                    '1',
+                  ),
+                  _buildSectionBlock(
+                    '2. Finalidade do ConeCTEA',
+                    'O ConeCTEA foi desenvolvido para apoiar pessoas com Transtorno do Espectro Autista (TEA) e seus familiares no gerenciamento de carteirinhas digitais, solicitações e recebimento de informações relevantes de forma segura e prática.',
+                    '2',
+                  ),
+                  _buildListSectionBlock(
+                    '3. Responsabilidades do usuário',
+                    [
+                      'Fornecer informações verdadeiras, completas e atualizadas.',
+                      'Manter a confidencialidade de sua conta e senha.',
+                      'Utilizar o aplicativo de forma ética e de acordo com a legislação aplicável.',
+                      'Notificar imediatamente qualquer uso não autorizado de sua conta.',
+                    ],
+                    '3',
+                  ),
+                  _buildSectionBlock(
+                    '4. Responsabilidades da plataforma',
+                    'O ConeCTEA se compromete a oferecer uma experiência segura, estável e acessível, protegendo os dados dos usuários e garantindo a confidencialidade das informações, conforme nossa Política de Privacidade e a legislação vigente.',
+                    '4',
+                  ),
+                  
+                  const SizedBox(height: 12),
+                  _buildVersionCard('1.0', '08/05/2026'),
+                  const SizedBox(height: 32),
+                  
+                  SizedBox(
+                    width: double.infinity,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF7C3AED), Color(0xFF6366F1)],
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF7C3AED).withValues(alpha: 0.3),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          padding: const EdgeInsets.symmetric(vertical: 18),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        ),
+                        child: Text(
+                          'CONCORDO COM OS TERMOS',
+                          style: GoogleFonts.inter(
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 1.2,
+                            fontSize: 14,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 60),
+                ],
               ),
             ),
-            const SizedBox(height: 40),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildHeader({required IconData icon, required String title, required String subtitle, required Color iconColor}) {
-    return Column(
-      children: [
-        Center(
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: iconColor, size: 32),
-          ),
-        ),
-        const SizedBox(height: 16),
-        Text(
-          title,
-          textAlign: TextAlign.center,
-          style: GoogleFonts.inter(
-            fontSize: 22,
-            fontWeight: FontWeight.w800,
-            color: const Color(0xFF1F2E4D),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          subtitle,
-          textAlign: TextAlign.center,
-          style: GoogleFonts.inter(
-            fontSize: 14,
-            color: const Color(0xFF6C7A96),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBlock(String title, String content) {
+  Widget _buildSectionBlock(String title, String content, String number) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE6EBF3)),
+        color: const Color(0xFF0B1D3A).withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
       ),
-      child: Column(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: GoogleFonts.inter(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: const Color(0xFF1F2E4D),
-            ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            content,
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              color: const Color(0xFF6C7A96),
-              height: 1.6,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildListBlock(String title, List<String> items) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE6EBF3)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: GoogleFonts.inter(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: const Color(0xFF1F2E4D),
-            ),
-          ),
-          const SizedBox(height: 12),
-          ...items.map((item) => Padding(
-            padding: const EdgeInsets.only(bottom: 8.0),
-            child: Row(
+          _buildNumberBadge(number),
+          const SizedBox(width: 20),
+          Expanded(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Padding(
-                  padding: EdgeInsets.only(top: 6.0, right: 10),
-                  child: Icon(Icons.circle, size: 6, color: Color(0xFF2CCCD3)),
+                Text(
+                  title,
+                  style: GoogleFonts.outfit(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
-                Expanded(
-                  child: Text(
-                    item,
-                    style: GoogleFonts.inter(
-                      fontSize: 14,
-                      color: const Color(0xFF6C7A96),
-                      height: 1.4,
-                    ),
+                const SizedBox(height: 12),
+                Text(
+                  content,
+                  style: GoogleFonts.inter(
+                    fontSize: 15,
+                    color: const Color(0xFFB8C7E6),
+                    height: 1.6,
                   ),
                 ),
               ],
             ),
-          )),
+          ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildListSectionBlock(String title, List<String> items, String number) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0B1D3A).withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildNumberBadge(number),
+          const SizedBox(width: 20),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.outfit(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ...items.map((item) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        margin: const EdgeInsets.only(top: 8, right: 12),
+                        width: 6,
+                        height: 6,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Color(0xFF22D3EE),
+                        ),
+                      ),
+                      Expanded(
+                        child: Text(
+                          item,
+                          style: GoogleFonts.inter(
+                            fontSize: 15,
+                            color: const Color(0xFFB8C7E6),
+                            height: 1.5,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                )),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNumberBadge(String number) {
+    return Container(
+      width: 36,
+      height: 36,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFF7C3AED).withValues(alpha: 0.2),
+            const Color(0xFF22D3EE).withValues(alpha: 0.2),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFF7C3AED).withValues(alpha: 0.4)),
+      ),
+      child: Center(
+        child: Text(
+          number,
+          style: GoogleFonts.outfit(
+            fontSize: 18,
+            fontWeight: FontWeight.w800,
+            color: const Color(0xFF22D3EE),
+          ),
+        ),
       ),
     );
   }
 
   Widget _buildVersionCard(String version, String date) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       decoration: BoxDecoration(
-        color: const Color(0xFF243B6B).withValues(alpha: 0.05),
+        color: Colors.white.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Row(
             children: [
-              Text('Versão $version', style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 12, color: const Color(0xFF243B6B))),
-              Text('Vigência: $date', style: GoogleFonts.inter(fontSize: 11, color: const Color(0xFF6C7A96))),
+              const Icon(PhosphorIconsFill.info, color: Color(0xFF7C3AED), size: 16),
+              const SizedBox(width: 10),
+              Text(
+                'Versão $version',
+                style: GoogleFonts.inter(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                  color: AppColors.textPrimary,
+                ),
+              ),
             ],
           ),
           Text(
             'Atualizado em $date',
-            style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF6C7A96)),
+            style: GoogleFonts.inter(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textSecondary,
+            ),
           ),
         ],
       ),

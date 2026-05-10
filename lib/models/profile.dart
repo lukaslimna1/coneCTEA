@@ -13,6 +13,7 @@ enum UserRole {
       case 'admin_dev':
         return UserRole.adminDev;
       case 'user':
+        return UserRole.user;
       default:
         return UserRole.user;
     }
@@ -27,7 +28,6 @@ enum UserRole {
       case UserRole.adminDev:
         return 'admin_dev';
       case UserRole.user:
-      default:
         return 'user';
     }
   }

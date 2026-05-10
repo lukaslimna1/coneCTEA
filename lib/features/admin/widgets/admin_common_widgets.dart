@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/colors.dart';
+import '../../../core/widgets/premium/premium_button.dart';
 import '../utils/admin_status_helper.dart';
 
 class AdminSectionTitle extends StatelessWidget {
@@ -16,7 +17,7 @@ class AdminSectionTitle extends StatelessWidget {
         style: GoogleFonts.inter(
           fontSize: 16,
           fontWeight: FontWeight.bold,
-          color: AppColors.darkBlue,
+          color: AppColors.textPrimary,
         ),
       ),
     );
@@ -83,7 +84,7 @@ class _AdminDetailRowState extends State<AdminDetailRow> {
                     displayedValue,
                     style: GoogleFonts.inter(
                       fontSize: 14,
-                      color: AppColors.darkBlue,
+                      color: AppColors.textPrimary,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -172,7 +173,7 @@ class AdminDocumentLink extends StatelessWidget {
                       style: GoogleFonts.inter(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.darkBlue,
+                        color: AppColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -313,28 +314,15 @@ class AdminActionButton extends StatelessWidget {
     this.isOutline = false,
   });
 
-  @override
   Widget build(BuildContext context) {
-    return ElevatedButton.icon(
+    return PremiumButton(
+      text: label,
+      icon: icon,
+      colorOverride: color,
+      variant: isOutline ? PremiumButtonVariant.outline : PremiumButtonVariant.primary,
       onPressed: onTap,
-      icon: Icon(icon, size: 18),
-      label: Text(
-        label,
-        style: GoogleFonts.inter(
-          fontWeight: FontWeight.w700,
-          fontSize: 13,
-        ),
-      ),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: isOutline ? Colors.white : color,
-        foregroundColor: isOutline ? color : Colors.white,
-        elevation: isOutline ? 0 : 2,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: isOutline ? BorderSide(color: color, width: 2) : BorderSide.none,
-        ),
-      ),
+      height: 48,
+      isExpanded: false,
     );
   }
 }

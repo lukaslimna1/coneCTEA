@@ -16,6 +16,10 @@ import '../admin/scanner_view.dart';
 import '../account/edit_profile_view.dart';
 import '../legal/terms_of_use_page.dart';
 import '../account/security_view.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
+import '../../core/widgets/premium/app_background.dart';
+import '../../core/widgets/premium/premium_card.dart';
+import '../../core/constants/design_tokens.dart';
 
 class HomeView extends StatefulWidget {
   final Function(int) onNavigate;
@@ -29,7 +33,7 @@ class HomeView extends StatefulWidget {
 class _HomeViewState extends State<HomeView> {
   final DatabaseService _databaseService = DatabaseService();
   final AuthService _authService = AuthService();
-  
+
   AppUser? _user;
   List<Member> _members = [];
   List<CardRequest> _requests = [];
@@ -45,7 +49,8 @@ class _HomeViewState extends State<HomeView> {
   }
 
   Future<void> _requestRenewal(String requestId) async {
-    if (_lastResetRequest != null && DateTime.now().difference(_lastResetRequest!).inMinutes < 1) {
+    if (_lastResetRequest != null &&
+        DateTime.now().difference(_lastResetRequest!).inMinutes < 1) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -60,9 +65,9 @@ class _HomeViewState extends State<HomeView> {
     _lastResetRequest = DateTime.now();
     try {
       await _databaseService.updateCardRequestStatus(
-        requestId, 
-        'renewing', 
-        adminNotes: 'Pedido de renovação iniciado pelo usuário.'
+        requestId,
+        'renewing',
+        adminNotes: 'Pedido de renovação iniciado pelo usuário.',
       );
       await _loadData();
       if (mounted) {
@@ -87,23 +92,26 @@ class _HomeViewState extends State<HomeView> {
   Future<void> _loadData() async {
     if (!mounted) return;
     setState(() => _isLoading = true);
-    
+
     try {
       final userId = _authService.currentUser?.id;
       if (userId != null) {
         var user = await _databaseService.getUserProfile(userId);
-        
+
         if (user == null) {
           final email = _authService.currentUser?.email ?? '';
-          final metaName = _authService.currentUser?.userMetadata?['name'] 
-              ?? _authService.currentUser?.userMetadata?['full_name']
-              ?? email.split('@')[0];
-          
+          final metaName =
+              _authService.currentUser?.userMetadata?['name'] ??
+              _authService.currentUser?.userMetadata?['full_name'] ??
+              email.split('@')[0];
+
           user = AppUser(
             id: userId,
             email: email,
             name: metaName,
-            role: (email == 'lucasmslima1@gmail.com') ? UserRole.admin : UserRole.user,
+            role: (email == 'lucasmslima1@gmail.com')
+                ? UserRole.admin
+                : UserRole.user,
             createdAt: DateTime.now(),
             updatedAt: DateTime.now(),
             cpf: '',
@@ -111,13 +119,14 @@ class _HomeViewState extends State<HomeView> {
             isActive: true,
           );
         } else if (user.name.trim().isEmpty || user.name == 'Usuário') {
-          final metaName = _authService.currentUser?.userMetadata?['name'] 
-              ?? _authService.currentUser?.userMetadata?['full_name'];
+          final metaName =
+              _authService.currentUser?.userMetadata?['name'] ??
+              _authService.currentUser?.userMetadata?['full_name'];
           if (metaName != null && metaName.toString().trim().isNotEmpty) {
             user = user.copyWith(name: metaName.toString().trim());
           }
         }
-        
+
         if (mounted) {
           setState(() {
             _user = user;
@@ -134,10 +143,10 @@ class _HomeViewState extends State<HomeView> {
 
   bool get _isProfileComplete {
     if (_user == null) return false;
-    return _user!.cpf.isNotEmpty && 
-           _user!.phone.isNotEmpty && 
-           (_user!.city?.isNotEmpty ?? false) && 
-           (_user!.state?.isNotEmpty ?? false);
+    return _user!.cpf.isNotEmpty &&
+        _user!.phone.isNotEmpty &&
+        (_user!.city?.isNotEmpty ?? false) &&
+        (_user!.state?.isNotEmpty ?? false);
   }
 
   void _handleRequestCard() {
@@ -145,7 +154,9 @@ class _HomeViewState extends State<HomeView> {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
           title: const Text('🎉 Quase lá!'),
           content: const Text(
             'Para solicitar sua carteirinha, seu perfil precisa estar completo com CPF, Telefone, Cidade e Estado.',
@@ -166,12 +177,17 @@ class _HomeViewState extends State<HomeView> {
                   }
                 },
                 icon: const Icon(Icons.edit_rounded, size: 18),
-                label: const Text('Completar Dados', style: TextStyle(color: Colors.white)),
+                label: const Text(
+                  'Completar Dados',
+                  style: TextStyle(color: Colors.white),
+                ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               ),
             ),
@@ -179,7 +195,10 @@ class _HomeViewState extends State<HomeView> {
             Center(
               child: TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: Text('Voltar', style: TextStyle(color: AppColors.textSecondary)),
+                child: Text(
+                  'Voltar',
+                  style: TextStyle(color: AppColors.textSecondary),
+                ),
               ),
             ),
           ],
@@ -192,18 +211,20 @@ class _HomeViewState extends State<HomeView> {
 
   String get _displayName {
     if (_user != null) {
-      final String name = (_user!.socialName != null && _user!.socialName!.isNotEmpty)
+      final String name =
+          (_user!.socialName != null && _user!.socialName!.isNotEmpty)
           ? _user!.socialName!
           : _user!.name;
-      
+
       if (name.trim().isNotEmpty && name != 'Usuário') {
         return name.trim().split(' ').first;
       }
     }
 
-    final metaName = _authService.currentUser?.userMetadata?['name'] 
-        ?? _authService.currentUser?.userMetadata?['full_name'];
-    
+    final metaName =
+        _authService.currentUser?.userMetadata?['name'] ??
+        _authService.currentUser?.userMetadata?['full_name'];
+
     if (metaName != null && metaName.toString().trim().isNotEmpty) {
       return metaName.toString().trim().split(' ').first;
     }
@@ -219,17 +240,21 @@ class _HomeViewState extends State<HomeView> {
   @override
   Widget build(BuildContext context) {
     final userId = _authService.currentUser?.id;
-    if (userId == null) return const Center(child: Text('Por favor, faça login'));
+    if (userId == null)
+      return const Center(child: Text('Por favor, faça login'));
 
     return StreamBuilder<List<Member>>(
       stream: _databaseService.membersStream(userId),
       builder: (context, memberSnapshot) {
-        if (memberSnapshot.connectionState == ConnectionState.waiting && _isLoading) {
-          return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+        if (memberSnapshot.connectionState == ConnectionState.waiting &&
+            _isLoading) {
+          return const Center(
+            child: CircularProgressIndicator(color: AppColors.primary),
+          );
         }
-        
+
         final members = memberSnapshot.data ?? [];
-        _members = members; 
+        _members = members;
 
         return StreamBuilder<List<CardRequest>>(
           stream: _databaseService.cardRequestsStream(userId),
@@ -243,45 +268,40 @@ class _HomeViewState extends State<HomeView> {
                 final cards = cardSnapshot.data ?? [];
                 _digitalCards = cards;
 
-                return Container(
-              decoration: const BoxDecoration(
-                color: Color(0xFFF1F5F9), 
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Color(0xFFF1F5F9), 
-                    Color(0xFFCBD5E1), 
-                  ],
-                ),
-              ),
-              child: RefreshIndicator(
-                onRefresh: _loadData,
-                color: AppColors.primary,
-                child: SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-                  padding: const EdgeInsets.symmetric(vertical: 24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildGreeting(),
-                      const SizedBox(height: 32),
-                      _buildMembersSection(),
-                      const SizedBox(height: 36),
-                      _buildCarteirinhaSection(),
-                      const SizedBox(height: 36),
-                      _buildBlock1(),
-                      const SizedBox(height: 36),
-                      _buildBlock2(),
-                      const SizedBox(height: 36),
-                      _buildBlock3(),
-                      const SizedBox(height: 40),
-                      _buildInstitutionalBanner(),
-                      const SizedBox(height: 48),
-                    ],
+                return Scaffold(
+                  backgroundColor: Colors.transparent,
+                  extendBodyBehindAppBar: true,
+                  body: AppBackground(
+                    child: RefreshIndicator(
+                      onRefresh: _loadData,
+                      color: AppColors.primary,
+                      child: SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(
+                          parent: BouncingScrollPhysics(),
+                        ),
+                        padding: const EdgeInsets.fromLTRB(0, 100, 0, 48),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildGreeting(),
+                            const SizedBox(height: 12),
+                            _buildMembersSection(),
+                            const SizedBox(height: 24),
+                            _buildCarteirinhaSection(),
+                            const SizedBox(height: 32),
+                            _buildBlock1(),
+                            const SizedBox(height: 24),
+                            _buildBlock2(),
+                            const SizedBox(height: 24),
+                            _buildBlock3(),
+                            const SizedBox(height: 24),
+                            _buildInstitutionalBanner(),
+                            const SizedBox(height: 40),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ),
                 );
               },
             );
@@ -294,11 +314,14 @@ class _HomeViewState extends State<HomeView> {
   Widget _buildOngoingRequestSection(List<CardRequest> requests) {
     final ongoingRequests = requests.where((r) {
       final s = r.status.toLowerCase();
-      return s != 'active' && s != 'ativa' && s != 'approved' && s != 'aprovada';
+      return s != 'active' &&
+          s != 'ativa' &&
+          s != 'approved' &&
+          s != 'aprovada';
     }).toList();
 
     if (ongoingRequests.isEmpty) return const SizedBox.shrink();
-    
+
     return _buildOngoingRequest(ongoingRequests.first);
   }
 
@@ -317,7 +340,7 @@ class _HomeViewState extends State<HomeView> {
                   style: GoogleFonts.inter(
                     fontSize: 28,
                     fontWeight: FontWeight.w800,
-                    color: AppColors.textPrimary,
+                    color: AppColors.cardTitle,
                     letterSpacing: -0.5,
                   ),
                 ),
@@ -325,34 +348,30 @@ class _HomeViewState extends State<HomeView> {
                   'Que bom te ver por aqui.',
                   style: GoogleFonts.inter(
                     fontSize: 16,
-                    fontWeight: FontWeight.w600, // Aumentado de w500 para w600
-                    color: AppColors.textSecondary.withValues(alpha: 0.9), // Mais opaco para melhor contraste
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.cardSubtitle,
                   ),
                 ),
               ],
             ),
           ),
-          IconButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ScannerView()),
-              );
-            },
-            icon: Container(
+          GestureDetector(
+            onTap: () => context.push('/qr-scanner'),
+            child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Colors.white.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.1),
+                  width: 1,
+                ),
               ),
-              child: const Icon(Icons.qr_code_scanner, color: AppColors.primary),
+              child: const Icon(
+                PhosphorIconsBold.qrCode,
+                color: AppColors.cardTitle,
+                size: 28,
+              ),
             ),
           ),
         ],
@@ -377,14 +396,14 @@ class _HomeViewState extends State<HomeView> {
                     style: GoogleFonts.inter(
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
-                      color: AppColors.textPrimary,
+                      color: AppColors.cardTitle,
                     ),
                   ),
                   Text(
                     'Selecione um membro para visualizar.',
                     style: GoogleFonts.inter(
                       fontSize: 13,
-                      color: AppColors.textSecondary,
+                      color: AppColors.cardSubtitle,
                     ),
                   ),
                 ],
@@ -418,48 +437,55 @@ class _HomeViewState extends State<HomeView> {
               return GestureDetector(
                 onTap: () => setState(() => _selectedMemberIndex = index),
                 child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
+                  duration: const Duration(milliseconds: 300),
                   margin: const EdgeInsets.only(right: 12),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   decoration: BoxDecoration(
-                    color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.95),
+                    color: isSelected
+                        ? Colors.white.withValues(alpha: 0.1)
+                        : Colors.white.withValues(alpha: 0.03),
                     borderRadius: BorderRadius.circular(24),
                     border: Border.all(
-                      color: isSelected ? AppColors.primary : AppColors.borderLight.withValues(alpha: 0.5),
+                      color: isSelected
+                          ? AppColors.primary
+                          : Colors.white.withValues(alpha: 0.1),
                       width: isSelected ? 2 : 1,
                     ),
                     boxShadow: [
-                      BoxShadow(
-                        color: isSelected 
-                            ? AppColors.primary.withValues(alpha: 0.15)
-                            : AppColors.shadowColor.withValues(alpha: 0.08),
-                        blurRadius: isSelected ? 20 : 12,
-                        offset: Offset(0, isSelected ? 8 : 4),
-                      ),
-                      if (!isSelected)
+                      if (isSelected)
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.02),
-                          blurRadius: 1,
-                          spreadRadius: 1,
+                          color: AppColors.primary.withValues(alpha: 0.2),
+                          blurRadius: 15,
+                          offset: const Offset(0, 4),
                         ),
                     ],
                   ),
                   child: Row(
                     children: [
                       Container(
-                        width: 36,
-                        height: 36,
+                        width: 40,
+                        height: 40,
                         decoration: BoxDecoration(
-                          color: isSelected ? AppColors.primary : AppColors.purpleLight,
+                          gradient: isSelected
+                              ? AppColors.premiumGradient
+                              : LinearGradient(
+                                  colors: [
+                                    Colors.white.withValues(alpha: 0.1),
+                                    Colors.white.withValues(alpha: 0.05),
+                                  ],
+                                ),
                           shape: BoxShape.circle,
                         ),
                         child: Center(
                           child: Text(
                             initials,
                             style: GoogleFonts.inter(
-                              color: isSelected ? Colors.white : AppColors.primary,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
                             ),
                           ),
                         ),
@@ -472,8 +498,8 @@ class _HomeViewState extends State<HomeView> {
                             member.name.split(' ').first,
                             style: GoogleFonts.inter(
                               fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.textPrimary,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.cardTitle,
                             ),
                           ),
                           Row(
@@ -482,8 +508,9 @@ class _HomeViewState extends State<HomeView> {
                                 width: 6,
                                 height: 6,
                                 decoration: BoxDecoration(
-                                  color: member.status.toLowerCase() == 'ativa' || member.status.toLowerCase() == 'active' 
-                                      ? AppColors.statusGreen 
+                                  color: member.status.toLowerCase() == 'ativa' ||
+                                          member.status.toLowerCase() == 'active'
+                                      ? AppColors.statusGreen
                                       : AppColors.alertOrange,
                                   shape: BoxShape.circle,
                                 ),
@@ -520,9 +547,10 @@ class _HomeViewState extends State<HomeView> {
                                 }(),
                                 style: GoogleFonts.inter(
                                   fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: member.status.toLowerCase() == 'ativa' || member.status.toLowerCase() == 'active' 
-                                      ? AppColors.statusGreen 
+                                  fontWeight: FontWeight.w700,
+                                  color: member.status.toLowerCase() == 'ativa' ||
+                                          member.status.toLowerCase() == 'active'
+                                      ? AppColors.statusGreen
                                       : AppColors.alertOrange,
                                 ),
                               ),
@@ -545,65 +573,73 @@ class _HomeViewState extends State<HomeView> {
     if (_members.isEmpty) {
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(32),
-          border: Border.all(color: AppColors.borderLight.withValues(alpha: 0.6)),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.shadowColor.withValues(alpha: 0.06),
-              blurRadius: 24,
-              offset: const Offset(0, 12),
-            ),
-          ],
-        ),
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            Icon(Icons.badge_outlined, size: 48, color: AppColors.textSecondary.withValues(alpha: 0.5)),
-            const SizedBox(height: 16),
-            Text(
-              'Você ainda não possui uma carteirinha.',
-              style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Cadastre um membro para solicitar a carteirinha de identificação.',
-              style: GoogleFonts.inter(fontSize: 13, color: AppColors.textSecondary),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _handleRequestCard,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        child: PremiumCard(
+          padding: const EdgeInsets.all(24),
+          margin: EdgeInsets.zero,
+          child: Column(
+            children: [
+              Icon(
+                Icons.badge_outlined,
+                size: 48,
+                color: AppColors.textSecondary.withValues(alpha: 0.5),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Você ainda não possui uma carteirinha.',
+                style: GoogleFonts.inter(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textPrimary,
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.add_circle_outline_rounded, size: 20),
-                    const SizedBox(width: 10),
-                    Text(
-                      'Solicitar Carteirinha',
-                      style: GoogleFonts.inter(fontWeight: FontWeight.w800, fontSize: 15),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Cadastre um membro para solicitar a carteirinha de identificação premium do projeto.',
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  color: AppColors.cardSubtitle.withValues(alpha: 0.8),
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _handleRequestCard,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
                     ),
-                  ],
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.add_circle_outline_rounded, size: 20),
+                      const SizedBox(width: 10),
+                      Text(
+                        'Solicitar Carteirinha',
+                        style: GoogleFonts.inter(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-    );
+      );
+    }
+
+    if (_members.isEmpty || _selectedMemberIndex >= _members.length) {
+      return const SizedBox.shrink();
     }
 
     final member = _members[_selectedMemberIndex];
@@ -615,9 +651,9 @@ class _HomeViewState extends State<HomeView> {
     }
 
     final String rawStatus = memberRequest?.status.toLowerCase() ?? member.status.toLowerCase();
-    
+
     String statusDisplay = 'EM ANÁLISE';
-    Color statusColor = const Color(0xFFF9A825);
+    Color statusColor = AppColors.alertOrange;
     IconData statusIcon = Icons.history_rounded;
     bool isActive = false;
     bool showJustification = false;
@@ -694,255 +730,343 @@ class _HomeViewState extends State<HomeView> {
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(32),
-          border: Border.all(color: AppColors.borderLight.withValues(alpha: 1.0), width: 1.5),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
-              blurRadius: 28,
-              offset: const Offset(0, 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 4, bottom: 16),
+            child: Text(
+              'Documento Digital',
+              style: GoogleFonts.inter(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: AppColors.cardTitle,
+              ),
             ),
-          ],
-        ),
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            // === Carteirinha: Frente em Destaque ===
-            TweenAnimationBuilder<double>(
-              tween: Tween<double>(begin: 0, end: 10),
-              duration: const Duration(seconds: 2),
-              curve: Curves.easeInOutSine,
-              builder: (context, value, child) {
-                return Transform.translate(
-                  offset: Offset(0, value),
-                  child: child,
-                );
-              },
-              onEnd: () {
-                // This won't work for infinite loop easily in TweenAnimationBuilder without state.
-                // But we can use a simpler approach if we want it infinite.
-              },
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  // Frente da carteirinha — destaque total
-                  Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(18),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primary.withValues(alpha: 0.18),
-                          blurRadius: 20,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
-                    child: _buildMiniCard(isVerso: false, member: member),
-                  ),
-                  // Status badge flutuando no canto superior direito
-                  Positioned(
-                    top: -8,
-                    right: -8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          ),
+          PremiumCard(
+            padding: const EdgeInsets.all(24),
+            margin: EdgeInsets.zero,
+            child: Column(
+              children: [
+                Stack(
+                  alignment: Alignment.center,
+                  clipBehavior: Clip.none,
+                  children: [
+                    // Frente da carteirinha
+                    Container(
+                      width: double.infinity,
                       decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: statusColor.withValues(alpha: 0.4), width: 1.5),
+                        borderRadius: BorderRadius.circular(18),
                         boxShadow: [
                           BoxShadow(
-                            color: statusColor.withValues(alpha: 0.2),
-                            blurRadius: 10,
-                            offset: const Offset(0, 3),
+                            color: AppColors.primary.withValues(alpha: 0.15),
+                            blurRadius: 25,
+                            offset: const Offset(0, 10),
                           ),
                         ],
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(statusIcon, color: statusColor, size: 14),
-                          const SizedBox(width: 5),
-                          Text(
-                            statusDisplay,
-                            style: GoogleFonts.inter(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w900,
-                              color: statusColor,
-                            ),
+                      child: Opacity(
+                        opacity: isActive ? 1.0 : 0.6,
+                        child: _buildMiniCard(isVerso: false, member: member),
+                      ),
+                    ),
+                    
+                    // Overlay de Status (quando não ativa)
+                    if (!isActive)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: AppColors.background.withValues(alpha: 0.7),
+                          borderRadius: BorderRadius.circular(30),
+                          border: Border.all(
+                            color: statusColor.withValues(alpha: 0.5),
+                            width: 2,
                           ),
-                        ],
+                          boxShadow: [
+                            BoxShadow(
+                              color: statusColor.withValues(alpha: 0.3),
+                              blurRadius: 15,
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(statusIcon, color: statusColor, size: 20),
+                            const SizedBox(width: 10),
+                            Text(
+                              statusDisplay,
+                              style: GoogleFonts.inter(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w900,
+                                color: statusColor,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+
+                if (showJustification && adminNotes.isNotEmpty) ...[
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    child: TextButton.icon(
+                      onPressed: () => _showJustificationDialog(
+                        statusDisplay,
+                        statusColor,
+                        adminNotes,
+                        isRejected: effectiveStatus == 'rejected',
+                      ),
+                      icon: Icon(Icons.help_outline_rounded, size: 18, color: statusColor),
+                      label: Text(
+                        "Ver motivo da ${effectiveStatus == 'rejected' ? 'reprovação' : 'suspensão'}",
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: statusColor,
+                        ),
+                      ),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        backgroundColor: statusColor.withValues(alpha: 0.1),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                       ),
                     ),
                   ),
                 ],
-              ),
-            ),
 
-            
-            if (showJustification && adminNotes.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              if (effectiveStatus == 'rejected' || effectiveStatus == 'suspended')
-                SizedBox(
-                  width: double.infinity,
-                  child: TextButton.icon(
-                    onPressed: () => _showJustificationDialog(
-                      statusDisplay, 
-                      statusColor, 
-                      adminNotes, 
-                      isRejected: effectiveStatus == 'rejected'
-                    ),
-                    icon: Icon(Icons.help_outline_rounded, size: 18, color: statusColor),
-                    label: Text(
-                      "Ver motivo da ${effectiveStatus == 'rejected' ? 'reprovação' : 'suspensão'}",
-                      style: GoogleFonts.inter(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: statusColor,
+                const SizedBox(height: 24),
+
+                if (isRejected)
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () async {
+                        const whatsappUrl = "https://wa.me/5514997728448";
+                        if (await canLaunchUrlString(whatsappUrl)) {
+                          await launchUrlString(whatsappUrl, mode: LaunchMode.externalApplication);
+                        }
+                      },
+                      icon: const Icon(Icons.support_agent_rounded, color: AppColors.errorRed),
+                      label: Text(
+                        'Falar com Suporte',
+                        style: GoogleFonts.inter(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 15,
+                          color: AppColors.errorRed,
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        side: const BorderSide(color: AppColors.errorRed, width: 1.5),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(18),
+                        ),
                       ),
                     ),
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      backgroundColor: statusColor.withValues(alpha: 0.08),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  )
+                else
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        if (isActive) {
+                          widget.onNavigate(1);
+                        } else if (status == 'waiting_docs' || status == 'reviewing_data') {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => AddMemberPage(
+                                member: member,
+                                request: memberRequest,
+                              ),
+                            ),
+                          ).then((_) => _loadData());
+                        } else if (status == 'expired' || status == 'suspended') {
+                          if (memberRequest != null) {
+                            _requestRenewal(memberRequest.id);
+                          }
+                        }
+                      },
+                      icon: Icon(
+                        isActive
+                            ? Icons.qr_code_scanner_rounded
+                            : (status == 'expired' || status == 'suspended'
+                                ? Icons.autorenew_rounded
+                                : (status == 'waiting_docs' || status == 'reviewing_data'
+                                    ? Icons.edit_document
+                                    : Icons.lock_outline_rounded)),
+                        size: 20,
+                      ),
+                      label: Text(
+                        isActive
+                            ? 'Abrir Carteira Digital'
+                            : (status == 'expired' || status == 'suspended'
+                                ? 'Solicitar Renovação'
+                                : (status == 'waiting_docs'
+                                    ? 'Enviar Documentos'
+                                    : (status == 'reviewing_data'
+                                        ? 'Revisar Dados'
+                                        : 'Aguardando Aprovação'))),
+                        style: GoogleFonts.inter(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 15,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: isActive
+                            ? AppColors.primary
+                            : (status == 'waiting_docs' || status == 'reviewing_data'
+                                ? AppColors.alertOrange
+                                : (status == 'expired' || status == 'suspended'
+                                    ? Colors.purple
+                                    : AppColors.borderLight.withValues(alpha: 0.2))),
+                        foregroundColor: isActive ||
+                                status == 'waiting_docs' ||
+                                status == 'reviewing_data' ||
+                                status == 'expired' ||
+                                status == 'suspended'
+                            ? Colors.white
+                            : AppColors.textSecondary,
+                        elevation: isActive ? 4 : 0,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                      ),
                     ),
                   ),
-                )
-              else
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: statusColor.withValues(alpha: 0.2)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInstitutionalBanner() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: PremiumCard(
+        padding: EdgeInsets.zero,
+        margin: EdgeInsets.zero,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.primary.withValues(alpha: 0.2),
+                  AppColors.cyan.withValues(alpha: 0.1),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: Stack(
+              children: [
+                Positioned(
+                  right: -20,
+                  bottom: -20,
+                  child: Icon(
+                    Icons.volunteer_activism_rounded,
+                    size: 120,
+                    color: Colors.white.withValues(alpha: 0.05),
                   ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.info_outline_rounded, color: statusColor, size: 18),
-                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.auto_awesome_rounded,
+                              color: AppColors.primary,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
                           Text(
-                            'Justificativa da Equipe:',
+                            'Família TEA Bauru',
                             style: GoogleFonts.inter(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: statusColor,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.primary,
+                              letterSpacing: 0.5,
                             ),
                           ),
                         ],
                       ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Conectando e Apoiando',
+                        style: GoogleFonts.inter(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.cardTitle,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
                       const SizedBox(height: 8),
                       Text(
-                        adminNotes,
+                        'O ConeCTEA é mais que um app, é uma rede de suporte para nossa comunidade.',
                         style: GoogleFonts.inter(
                           fontSize: 13,
-                          color: AppColors.textPrimary,
-                          height: 1.5,
+                          color: AppColors.cardSubtitle,
+                          height: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      TextButton(
+                        onPressed: () {
+                          // TODO: Abrir site ou mais info
+                        },
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Saiba mais sobre o projeto',
+                              style: GoogleFonts.inter(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.cyan,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Icon(
+                              Icons.arrow_right_alt_rounded,
+                              color: AppColors.cyan,
+                              size: 20,
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
                 ),
-            ],
-
-            const SizedBox(height: 24),
-            
-            if (isRejected)
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: () async {
-                    const whatsappUrl = "https://wa.me/5514997728448"; 
-                    if (await canLaunchUrlString(whatsappUrl)) {
-                      await launchUrlString(whatsappUrl, mode: LaunchMode.externalApplication);
-                    } else {
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Não foi possível abrir o WhatsApp')),
-                        );
-                      }
-                    }
-                  },
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    side: const BorderSide(color: Colors.red),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.support_agent_rounded, color: Colors.red),
-                      const SizedBox(width: 10),
-                      Text(
-                        'Falar com Suporte',
-                        style: GoogleFonts.inter(fontWeight: FontWeight.w800, fontSize: 15, color: Colors.red),
-                      ),
-                    ],
-                  ),
-                ),
-              )
-            else
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    if (isActive) {
-                      widget.onNavigate(1);
-                    } else if (status == 'waiting_docs' || status == 'reviewing_data') {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => AddMemberPage(
-                            member: member,
-                            request: memberRequest,
-                          ),
-                        ),
-                      ).then((_) => _loadData());
-                    } else if (status == 'expired' || status == 'suspended') {
-                      if (memberRequest != null) {
-                        _requestRenewal(memberRequest.id);
-                      }
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: isActive ? AppColors.primary : 
-                                   (status == 'waiting_docs' || status == 'reviewing_data' ? AppColors.warning : 
-                                   (status == 'expired' || status == 'suspended' ? Colors.purple : AppColors.borderLight)),
-                    foregroundColor: isActive || status == 'waiting_docs' || status == 'reviewing_data' || status == 'expired' || status == 'suspended' ? Colors.white : AppColors.textSecondary,
-                    elevation: isActive ? 4 : 0,
-                    shadowColor: AppColors.primary.withValues(alpha: 0.3),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        isActive ? Icons.qr_code_scanner_rounded : 
-                        (status == 'expired' || status == 'suspended' ? Icons.autorenew_rounded :
-                        (status == 'waiting_docs' || status == 'reviewing_data' ? Icons.edit_document : Icons.lock_outline_rounded)), 
-                        size: 20
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        isActive ? 'Abrir Carteira Digital' : 
-                        (status == 'expired' || status == 'suspended' ? 'Solicitar Renovação' :
-                        (status == 'waiting_docs' ? 'Enviar Documentos' : 
-                        (status == 'reviewing_data' ? 'Revisar Dados' : 'Aguardando Aprovação'))),
-                        style: GoogleFonts.inter(fontWeight: FontWeight.w800, fontSize: 15),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-          ],
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -950,25 +1074,25 @@ class _HomeViewState extends State<HomeView> {
 
   Widget _buildMiniCard({required bool isVerso, Member? member}) {
     member ??= Member(
-        id: 'dummy',
-        userId: 'dummy',
-        name: _user?.socialName ?? _user?.name ?? 'Membro',
-        dateOfBirth: '2000-01-01',
-        cpf: '***.***.***-**',
-        phone: '',
-        bloodType: '',
-        emergencyContact: '',
-        responsibleName: '',
-        cid: '',
-        documentUrl: '',
-        medicalReportUrl: '',
-        city: '',
-        state: '',
-        status: 'active',
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      );
-    
+      id: 'dummy',
+      userId: 'dummy',
+      name: _user?.socialName ?? _user?.name ?? 'Membro',
+      dateOfBirth: '2000-01-01',
+      cpf: '***.***.***-**',
+      phone: '',
+      bloodType: '',
+      emergencyContact: '',
+      responsibleName: '',
+      cid: '',
+      documentUrl: '',
+      medicalReportUrl: '',
+      city: '',
+      state: '',
+      status: 'active',
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+
     return RepaintBoundary(
       child: IgnorePointer(
         child: DigitalCardWidget(
@@ -991,13 +1115,18 @@ class _HomeViewState extends State<HomeView> {
           subtitle: 'Acesse seu documento',
           color: AppColors.primary,
           onTap: () {
-            if (_members.isNotEmpty && 
-                (_members[_selectedMemberIndex].status.toLowerCase() == 'ativa' || 
-                 _members[_selectedMemberIndex].status.toLowerCase() == 'active')) {
+            if (_members.isNotEmpty &&
+                _selectedMemberIndex < _members.length &&
+                (_members[_selectedMemberIndex].status.toLowerCase() ==
+                        'ativa' ||
+                    _members[_selectedMemberIndex].status.toLowerCase() ==
+                        'active')) {
               widget.onNavigate(1);
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Carteirinha ainda não disponível.')),
+                const SnackBar(
+                  content: Text('Carteirinha ainda não disponível.'),
+                ),
               );
             }
           },
@@ -1028,7 +1157,7 @@ class _HomeViewState extends State<HomeView> {
           icon: Icons.construction_rounded,
           title: 'Em breve',
           subtitle: 'Novas ferramentas vindo aí',
-          color: Colors.blueGrey, // Cor mais legível que cinza puro
+          color: AppColors.cardMutedText,
           onTap: () {},
         ),
       ],
@@ -1043,10 +1172,10 @@ class _HomeViewState extends State<HomeView> {
           icon: Icons.security_rounded,
           title: 'Segurança',
           subtitle: 'Sua conta protegida',
-          color: const Color(0xFF4F46E5), // Indigo
+          color: const Color(0xFF6366F1), // Indigo Premium
           onTap: () => Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => SecurityView()),
+            MaterialPageRoute(builder: (context) => const SecurityView()),
           ),
         ),
         _buildQuickCard(
@@ -1057,7 +1186,10 @@ class _HomeViewState extends State<HomeView> {
           onTap: () async {
             const whatsappUrl = "https://wa.me/5514997728448";
             if (await canLaunchUrlString(whatsappUrl)) {
-              await launchUrlString(whatsappUrl, mode: LaunchMode.externalApplication);
+              await launchUrlString(
+                whatsappUrl,
+                mode: LaunchMode.externalApplication,
+              );
             }
           },
         ),
@@ -1065,26 +1197,44 @@ class _HomeViewState extends State<HomeView> {
           icon: Icons.info_outline_rounded,
           title: 'Sobre',
           subtitle: 'Conheça o projeto',
-          color: const Color(0xFFF59E0B), // Amber para destacar no branco
+          color: AppColors.alertOrange,
           onTap: () {
             showDialog(
               context: context,
               builder: (context) => AlertDialog(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                backgroundColor: AppColors.cardBackground,
+                surfaceTintColor: Colors.transparent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24),
+                  side: BorderSide(
+                    color: Colors.white.withValues(alpha: 0.1),
+                    width: 1,
+                  ),
+                ),
                 title: Text(
                   'Sobre o ConeCTEA',
-                  style: GoogleFonts.inter(fontWeight: FontWeight.w900, color: AppColors.darkBlue),
+                  style: GoogleFonts.inter(
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.cardTitle,
+                  ),
                 ),
                 content: Text(
-                  'O ConeCTEA é uma iniciativa da Família TEA Bauru para facilitar a identificação e o suporte a pessoas com autismo e suas famílias.\n\nVersão 1.0.0',
-                  style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary, height: 1.5),
+                  'O ConeCTEA é uma iniciativa da Família TEA Bauru para facilitar a identificação e o suporte a pessoas com autismo e suas famílias.\n\nVersão 3.3.0',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    color: AppColors.cardSubtitle,
+                    height: 1.5,
+                  ),
                 ),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
                     child: Text(
                       'Fechar',
-                      style: GoogleFonts.inter(fontWeight: FontWeight.w700, color: AppColors.primary),
+                      style: GoogleFonts.inter(
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primary,
+                      ),
                     ),
                   ),
                 ],
@@ -1113,7 +1263,7 @@ class _HomeViewState extends State<HomeView> {
                 style: GoogleFonts.inter(
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
-                  color: AppColors.textPrimary,
+                  color: AppColors.cardTitle,
                 ),
               ),
               if (items.length > 1)
@@ -1123,12 +1273,16 @@ class _HomeViewState extends State<HomeView> {
                       'Deslize',
                       style: GoogleFonts.inter(
                         fontSize: 12,
-                        fontWeight: FontWeight.w700, // Aumentado de w600 para w700
-                        color: AppColors.textSecondary.withValues(alpha: 0.9),
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.cardSubtitle.withValues(alpha: 0.7),
                       ),
                     ),
                     const SizedBox(width: 4),
-                    const Icon(Icons.swipe_left_rounded, color: AppColors.textSecondary, size: 16),
+                    Icon(
+                      Icons.swipe_left_rounded,
+                      color: AppColors.cardSubtitle.withValues(alpha: 0.5),
+                      size: 16,
+                    ),
                   ],
                 ),
             ],
@@ -1157,31 +1311,17 @@ class _HomeViewState extends State<HomeView> {
     required VoidCallback onTap,
   }) {
     return Padding(
-      padding: const EdgeInsets.only(right: 16, bottom: 8), // Padding inferior para sombra não cortar
-      child: Container(
+      padding: const EdgeInsets.only(right: 16, bottom: 8),
+      child: PremiumCard(
         width: 165,
-        height: 210, // Altura fixa para garantir alinhamento perfeito
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(32),
-          border: Border.all(
-            color: AppColors.borderLight.withValues(alpha: 0.8),
-            width: 1.5,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: color.withValues(alpha: 0.12),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
-              spreadRadius: -2,
-            ),
-          ],
-        ),
+        height: 210,
+        padding: EdgeInsets.zero,
+        margin: EdgeInsets.zero,
         child: Material(
           color: Colors.transparent,
           child: InkWell(
             onTap: onTap,
-            borderRadius: BorderRadius.circular(32),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
             splashColor: color.withValues(alpha: 0.1),
             highlightColor: color.withValues(alpha: 0.05),
             child: Stack(
@@ -1198,7 +1338,7 @@ class _HomeViewState extends State<HomeView> {
                 Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center, // Centralização vertical garantida
+                    mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Container(
@@ -1216,7 +1356,7 @@ class _HomeViewState extends State<HomeView> {
                         style: GoogleFonts.inter(
                           fontSize: 15,
                           fontWeight: FontWeight.w900,
-                          color: AppColors.darkBlue, // Título em azul escuro para melhor contraste
+                          color: AppColors.cardTitle,
                           height: 1.1,
                         ),
                         maxLines: 1,
@@ -1230,8 +1370,8 @@ class _HomeViewState extends State<HomeView> {
                           textAlign: TextAlign.center,
                           style: GoogleFonts.inter(
                             fontSize: 11,
-                            color: AppColors.textSecondary.withValues(alpha: 0.9), // Cinza institucional escuro
-                            fontWeight: FontWeight.w700, // Peso extra para legibilidade
+                            color: AppColors.cardSubtitle,
+                            fontWeight: FontWeight.w700,
                             height: 1.2,
                           ),
                           maxLines: 2,
@@ -1240,10 +1380,17 @@ class _HomeViewState extends State<HomeView> {
                       ),
                       const Spacer(),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
-                          color: color.withValues(alpha: 0.25), // Aumentado de 0.15 para 0.25 para contraste
+                          color: color.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(100),
+                          border: Border.all(
+                            color: color.withValues(alpha: 0.3),
+                            width: 1,
+                          ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -1253,14 +1400,14 @@ class _HomeViewState extends State<HomeView> {
                               style: GoogleFonts.inter(
                                 fontSize: 9,
                                 fontWeight: FontWeight.w900,
-                                color: color,
+                                color: Colors.white,
                                 letterSpacing: 0.5,
                               ),
                             ),
                             const SizedBox(width: 4),
                             Icon(
                               Icons.arrow_forward_ios_rounded,
-                              color: color,
+                              color: Colors.white,
                               size: 10,
                             ),
                           ],
@@ -1349,38 +1496,13 @@ class _HomeViewState extends State<HomeView> {
               style: GoogleFonts.inter(
                 fontSize: 18,
                 fontWeight: FontWeight.w800,
-                color: AppColors.textPrimary,
+                color: AppColors.cardTitle,
               ),
             ),
           ),
-          Container(
-            width: double.infinity,
+          PremiumCard(
             padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(32),
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Colors.white,
-                  Color(0xFFF8FAFC),
-                ],
-              ),
-              border: Border.all(color: statusColor.withValues(alpha: 0.4), width: 1.5),
-              boxShadow: [
-                BoxShadow(
-                  color: statusColor.withValues(alpha: 0.1),
-                  blurRadius: 24,
-                  offset: const Offset(0, 12),
-                ),
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
+            margin: EdgeInsets.zero,
             child: Column(
               children: [
                 Row(
@@ -1391,7 +1513,9 @@ class _HomeViewState extends State<HomeView> {
                       decoration: BoxDecoration(
                         color: statusColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(18),
-                        border: Border.all(color: statusColor.withValues(alpha: 0.1)),
+                        border: Border.all(
+                          color: statusColor.withValues(alpha: 0.1),
+                        ),
                       ),
                       child: Icon(statusIcon, color: statusColor, size: 28),
                     ),
@@ -1401,28 +1525,36 @@ class _HomeViewState extends State<HomeView> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            request.type == 'new_card' || request.type == 'Emissão Digital' 
-                                ? 'Emissão de Carteirinha' 
+                            request.type == 'new_card' ||
+                                    request.type == 'Emissão Digital'
+                                ? 'Emissão de Carteirinha'
                                 : 'Atualização de Cadastro',
                             style: GoogleFonts.inter(
                               fontSize: 16,
                               fontWeight: FontWeight.w800,
-                              color: AppColors.textPrimary,
+                              color: AppColors.cardTitle,
                               letterSpacing: -0.3,
                             ),
                           ),
                           const SizedBox(height: 2),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
-                              color: AppColors.backgroundLight,
+                              color: Colors.white.withValues(alpha: 0.05),
                               borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.05),
+                                width: 1,
+                              ),
                             ),
                             child: Text(
                               'Protocolo: #${request.protocol}',
                               style: GoogleFonts.inter(
                                 fontSize: 11,
-                                color: AppColors.textSecondary,
+                                color: AppColors.cardSubtitle.withValues(alpha: 0.7),
                                 fontWeight: FontWeight.w700,
                                 letterSpacing: 0.2,
                               ),
@@ -1432,7 +1564,10 @@ class _HomeViewState extends State<HomeView> {
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
                         color: statusColor,
                         borderRadius: BorderRadius.circular(12),
@@ -1460,7 +1595,7 @@ class _HomeViewState extends State<HomeView> {
                 Container(
                   height: 1,
                   width: double.infinity,
-                  color: AppColors.borderLight.withValues(alpha: 0.5),
+                  color: Colors.white.withValues(alpha: 0.05),
                 ),
                 const SizedBox(height: 20),
                 Row(
@@ -1472,20 +1607,24 @@ class _HomeViewState extends State<HomeView> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            isApproved ? 'Solicitação concluída' : 'Previsão de conclusão',
+                            isApproved
+                                ? 'Solicitação concluída'
+                                : 'Previsão de conclusão',
                             style: GoogleFonts.inter(
                               fontSize: 11,
-                              color: AppColors.textSecondary,
+                              color: AppColors.cardSubtitle,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            isApproved ? 'Já disponível na carteira' : 'Em até 5 dias úteis',
+                            isApproved
+                                ? 'Já disponível na carteira'
+                                : 'Em até 5 dias úteis',
                             style: GoogleFonts.inter(
                               fontSize: 14,
                               fontWeight: FontWeight.w800,
-                              color: AppColors.textPrimary,
+                              color: AppColors.cardTitle,
                             ),
                           ),
                         ],
@@ -1497,8 +1636,13 @@ class _HomeViewState extends State<HomeView> {
                         backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
                         elevation: 0,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -1520,7 +1664,9 @@ class _HomeViewState extends State<HomeView> {
               ],
             ),
           ),
-          if (request.expiresAt != null && (request.status == 'waiting_docs' || request.status == 'reviewing_data'))
+          if (request.expiresAt != null &&
+              (request.status == 'waiting_docs' ||
+                  request.status == 'reviewing_data'))
             Padding(
               padding: const EdgeInsets.only(top: 12),
               child: Container(
@@ -1529,11 +1675,17 @@ class _HomeViewState extends State<HomeView> {
                 decoration: BoxDecoration(
                   color: AppColors.errorRed.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.errorRed.withValues(alpha: 0.3)),
+                  border: Border.all(
+                    color: AppColors.errorRed.withValues(alpha: 0.3),
+                  ),
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.warning_amber_rounded, color: AppColors.errorRed, size: 20),
+                    Icon(
+                      Icons.warning_amber_rounded,
+                      color: AppColors.errorRed,
+                      size: 20,
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -1554,194 +1706,72 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
-  void _showInformationBottomSheet() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-        ),
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Informações',
-              style: GoogleFonts.inter(
-                fontSize: 20,
-                fontWeight: FontWeight.w900,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 24),
-            _buildInfoTile(
-              icon: Icons.notifications_none_rounded,
-              title: 'Notificações',
-              subtitle: 'Avisos e atualizações importantes',
-              onTap: () {
-                Navigator.pop(context);
-                widget.onNavigate(3);
-              },
-            ),
-            const SizedBox(height: 12),
-            _buildInfoTile(
-              icon: Icons.gavel_rounded,
-              title: 'Termos de Uso',
-              subtitle: 'Nossas regras e políticas',
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const TermsOfUsePage()),
-                );
-              },
-            ),
-            const SizedBox(height: 24),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoTile({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
+  void _showJustificationDialog(
+    String status,
+    Color color,
+    String notes, {
+    bool isRejected = false,
   }) {
-    return ListTile(
-      onTap: onTap,
-      leading: Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: AppColors.primary.withValues(alpha: 0.1),
-          shape: BoxShape.circle,
-        ),
-        child: Icon(icon, color: AppColors.primary),
-      ),
-      title: Text(title, style: GoogleFonts.inter(fontWeight: FontWeight.w800, fontSize: 16)),
-      subtitle: Text(subtitle, style: GoogleFonts.inter(fontSize: 13, color: AppColors.textSecondary)),
-      trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-    );
-  }
-
-  Widget _buildSupportAndAboutSection() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Row(
-        children: [
-          Expanded(
-            child: _buildSmallActionCard(
-              icon: Icons.help_outline_rounded,
-              title: 'Suporte',
-              onTap: () async {
-                const whatsappUrl = "https://wa.me/5514997728448";
-                if (await canLaunchUrlString(whatsappUrl)) {
-                  await launchUrlString(whatsappUrl, mode: LaunchMode.externalApplication);
-                }
-              },
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: _buildSmallActionCard(
-              icon: Icons.info_outline_rounded,
-              title: 'Sobre',
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Página Sobre em breve!')),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSmallActionCard({
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.borderLight.withValues(alpha: 0.8)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: AppColors.primary, size: 20),
-            const SizedBox(width: 8),
-            Text(
-              title,
-              style: GoogleFonts.inter(
-                fontWeight: FontWeight.w700,
-                fontSize: 14,
-                color: AppColors.textPrimary,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-
-  void _showJustificationDialog(String status, Color color, String notes, {bool isRejected = false}) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        backgroundColor: AppColors.cardBackground.withValues(alpha: 0.95),
+        surfaceTintColor: Colors.transparent,
         title: Row(
           children: [
             Icon(Icons.info_outline_rounded, color: color),
-            const SizedBox(width: 8),
-            Text('Motivo: $status', style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: color)),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Motivo: $status',
+                style: GoogleFonts.inter(
+                  fontWeight: FontWeight.w900,
+                  color: color,
+                  fontSize: 18,
+                ),
+              ),
+            ),
           ],
         ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+          side: BorderSide(
+            color: color.withValues(alpha: 0.3),
+            width: 1.5,
+          ),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              notes,
-              style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary, height: 1.5),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: color.withValues(alpha: 0.1),
+                ),
+              ),
+              child: Text(
+                notes,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  color: AppColors.cardTitle,
+                  height: 1.6,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ),
             if (isRejected) ...[
-              const SizedBox(height: 16),
-              const Divider(),
-              const SizedBox(height: 12),
+              const SizedBox(height: 20),
               Text(
                 'Caso não concorde com esta decisão, entre em contato com o nosso suporte para mais informações.',
                 style: GoogleFonts.inter(
                   fontSize: 12,
-                  color: AppColors.textSecondary,
+                  color: AppColors.cardSubtitle.withValues(alpha: 0.6),
                   fontStyle: FontStyle.italic,
+                  height: 1.4,
                 ),
               ),
             ],
@@ -1750,232 +1780,45 @@ class _HomeViewState extends State<HomeView> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Entendi'),
+            child: Text(
+              'Entendi',
+              style: GoogleFonts.inter(
+                color: AppColors.cardSubtitle,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
           ),
           if (isRejected)
-            ElevatedButton(
-              onPressed: () async {
-                const whatsappUrl = "https://wa.me/5514997728448";
-                if (await canLaunchUrlString(whatsappUrl)) {
-                  await launchUrlString(whatsappUrl, mode: LaunchMode.externalApplication);
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: color,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: ElevatedButton.icon(
+                onPressed: () async {
+                  const whatsappUrl = "https://wa.me/5514997728448";
+                  if (await canLaunchUrlString(whatsappUrl)) {
+                    await launchUrlString(
+                      whatsappUrl,
+                      mode: LaunchMode.externalApplication,
+                    );
+                  }
+                },
+                icon: const Icon(Icons.support_agent_rounded, size: 18),
+                label: const Text('Suporte'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: color,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
               ),
-              child: const Text('Falar com Suporte'),
             ),
         ],
       ),
     );
   }
-
-  Widget _buildServiceCard({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 12),
-      child: Container(
-        width: 200,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: AppColors.borderLight.withValues(alpha: 1.0), width: 1.5),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-            ),
-            BoxShadow(
-              color: AppColors.shadowColor.withValues(alpha: 0.03),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(24),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Icon(icon, color: AppColors.primary, size: 22),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          title,
-                          style: GoogleFonts.inter(
-                            fontSize: 14, 
-                            fontWeight: FontWeight.w800, 
-                            color: AppColors.textPrimary,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(
-                          subtitle,
-                          style: GoogleFonts.inter(
-                            fontSize: 10, 
-                            color: AppColors.textSecondary,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                  Icon(Icons.arrow_forward_ios_rounded, color: AppColors.primary.withValues(alpha: 0.5), size: 14),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInstitutionalBanner() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(32),
-          gradient: const LinearGradient(
-            colors: [
-              AppColors.primary,
-              Color(0xFF833AB4), // Instagram-like purple
-              Color(0xFFE1306C), // Instagram-like pink
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFFE1306C).withValues(alpha: 0.3),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(32),
-          child: Stack(
-            children: [
-              Positioned(
-                right: -40,
-                top: -20,
-                child: Icon(
-                  Icons.camera_alt_rounded,
-                  size: 200,
-                  color: Colors.white.withValues(alpha: 0.1),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(32),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(100),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.star_rounded, color: Colors.white, size: 14),
-                          const SizedBox(width: 4),
-                          Text(
-                            'COMUNIDADE',
-                            style: GoogleFonts.inter(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.white,
-                              letterSpacing: 1,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Inclusão que conecta.\nDireitos que transformam.',
-                      style: GoogleFonts.inter(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white,
-                        height: 1.1,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'Siga a @familiateabauru no Instagram e fique por dentro de todas as novidades e direitos das famílias TEA.',
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        color: Colors.white.withValues(alpha: 0.95),
-                        fontWeight: FontWeight.w600,
-                        height: 1.4,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed: () => launchUrlString('https://www.instagram.com/familiateabauru/', mode: LaunchMode.externalApplication),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: const Color(0xFFE1306C),
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.camera_alt_outlined, size: 20),
-                          const SizedBox(width: 10),
-                          Text(
-                            'Siga nosso Instagram',
-                            style: GoogleFonts.inter(
-                              fontWeight: FontWeight.w900,
-                              fontSize: 15,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }
-
-
-

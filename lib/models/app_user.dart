@@ -174,4 +174,15 @@ class AppUser {
       'social_name': socialName ?? '',
     };
   }
+
+  String get initials {
+    final displayName = (socialName != null && socialName!.isNotEmpty) ? socialName! : name;
+    final trimmedName = displayName.trim();
+    if (trimmedName.isEmpty) return 'U';
+    final parts = trimmedName.split(RegExp(r'\s+'));
+    if (parts.length > 1) {
+      return (parts.first[0] + parts.last[0]).toUpperCase();
+    }
+    return parts.first[0].toUpperCase();
+  }
 }

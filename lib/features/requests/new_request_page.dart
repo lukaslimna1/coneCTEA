@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../services/google_drive_service.dart';
 import '../../core/constants/colors.dart';
+import '../../core/widgets/premium/app_background.dart';
 import '../../services/database_service.dart';
 import '../../services/auth_service.dart';
 import '../../models/member.dart';
@@ -198,7 +199,7 @@ class _NewRequestPageState extends State<NewRequestPage> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: AppColors.backgroundLight,
+                color: AppColors.cardBackground,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
               ),
@@ -243,7 +244,8 @@ class _NewRequestPageState extends State<NewRequestPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: Colors.transparent,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text(
           'Confirmar Solicitação',
@@ -262,13 +264,14 @@ class _NewRequestPageState extends State<NewRequestPage> {
           onPressed: () => context.pop(),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildMemberSummary(),
-            const SizedBox(height: 32),
+      body: AppBackground(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(24, 100, 24, 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildMemberSummary(),
+              const SizedBox(height: 32),
 
             Text(
               'Tipo de Solicitação',
@@ -295,14 +298,15 @@ class _NewRequestPageState extends State<NewRequestPage> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildMemberSummary() {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
@@ -366,7 +370,7 @@ class _NewRequestPageState extends State<NewRequestPage> {
   Widget _buildTypeSelector() {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
       ),
@@ -507,7 +511,7 @@ class _NewRequestPageState extends State<NewRequestPage> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.cardBackground,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: hasFile

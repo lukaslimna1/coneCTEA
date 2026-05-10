@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:conectea/core/constants/colors.dart';
+import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/services/database_service.dart';
 import 'package:conectea/services/auth_service.dart';
 import 'package:conectea/models/member.dart';
@@ -44,7 +45,8 @@ class _MemberSelectionPageState extends State<MemberSelectionPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: Colors.transparent,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text(
           'Solicitar Carteirinha',
@@ -57,42 +59,44 @@ class _MemberSelectionPageState extends State<MemberSelectionPage> {
           onPressed: () => context.pop(),
         ),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Para quem você deseja solicitar a carteirinha?',
-                    style: GoogleFonts.inter(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.textPrimary,
-                      letterSpacing: -0.5,
+      body: AppBackground(
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+            : SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(24, 100, 24, 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Para quem você deseja solicitar a carteirinha?',
+                      style: GoogleFonts.inter(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textPrimary,
+                        letterSpacing: -0.5,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Selecione um beneficiário cadastrado ou adicione um novo.',
-                    style: GoogleFonts.inter(
-                      fontSize: 14,
-                      color: AppColors.textSecondary,
+                    const SizedBox(height: 8),
+                    Text(
+                      'Selecione um beneficiário cadastrado ou adicione um novo.',
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 32),
-                  
-                  if (_members.isEmpty)
-                    _buildEmptyState()
-                  else
-                    ..._members.map((member) => _buildMemberTile(member)),
-                  
-                  const SizedBox(height: 20),
-                  _buildAddButton(),
-                ],
+                    const SizedBox(height: 32),
+                    
+                    if (_members.isEmpty)
+                      _buildEmptyState()
+                    else
+                      ..._members.map((member) => _buildMemberTile(member)),
+                    
+                    const SizedBox(height: 20),
+                    _buildAddButton(),
+                  ],
+                ),
               ),
-            ),
+      ),
     );
   }
 
@@ -101,7 +105,7 @@ class _MemberSelectionPageState extends State<MemberSelectionPage> {
       width: double.infinity,
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
       ),
@@ -145,10 +149,10 @@ class _MemberSelectionPageState extends State<MemberSelectionPage> {
             duration: const Duration(milliseconds: 200),
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: isSelected ? AppColors.primary.withValues(alpha: 0.05) : Colors.white,
+              color: isSelected ? AppColors.primary.withValues(alpha: 0.15) : AppColors.cardBackground,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: isSelected ? AppColors.primary : Colors.black.withValues(alpha: 0.05),
+                color: isSelected ? AppColors.primary : AppColors.borderLight.withValues(alpha: 0.1),
                 width: isSelected ? 2 : 1,
               ),
               boxShadow: [
@@ -207,7 +211,7 @@ class _MemberSelectionPageState extends State<MemberSelectionPage> {
                 if (isSelected)
                   const Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 24)
                 else
-                  Icon(Icons.circle_outlined, color: Colors.black.withValues(alpha: 0.1), size: 24),
+                  Icon(Icons.circle_outlined, color: AppColors.textSecondary.withValues(alpha: 0.3), size: 24),
               ],
             ),
           ),

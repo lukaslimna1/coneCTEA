@@ -1,13 +1,15 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 
 import '../../../models/digital_card.dart';
 import '../../../models/member.dart';
+import '../../../core/widgets/premium_avatar.dart';
+import 'package:conectea/core/constants/colors.dart';
 
 class DigitalCardWidget extends StatefulWidget {
   final DigitalCard? card;
@@ -196,7 +198,7 @@ class _SensorsCardWrapperState extends State<_SensorsCardWrapper> with SingleTic
         if (!widget.enabled) return;
         // Only use mouse tilt if sensors aren't active or on desktop/web
         final renderBox = context.findRenderObject() as RenderBox?;
-        if (renderBox != null) {
+        if (renderBox != null && renderBox.hasSize) {
           final size = renderBox.size;
           final localPosition = event.localPosition;
           
@@ -284,45 +286,48 @@ class _CardBackgroundState extends State<_CardBackground> with SingleTickerProvi
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        // Fundo escuro gradiente (azul-noite institucional)
-        Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: widget.isFront
-                  ? const [
-                      Color(0xFF060E1F),
-                      Color(0xFF0B1733),
-                      Color(0xFF0D1B3E),
-                    ]
-                  : const [
-                      Color(0xFF080F20),
-                      Color(0xFF0A1530),
-                      Color(0xFF0D1B3E),
-                    ],
-            ),
-          ),
-        ),
-
-        // Watermark logo no verso (visível em branco sobre escuro)
-        if (!widget.isFront)
-          Positioned(
-            right: -20,
-            bottom: -40,
-            child: IgnorePointer(
-              child: Opacity(
-                opacity: 0.06,
-                child: SvgPicture.asset(
-                  'assets/images/logo_horizontal.svg',
-                  height: 280,
-                  colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final size = Size(constraints.maxWidth, constraints.maxHeight);
+        return Stack(
+          children: [
+            // Fundo escuro gradiente (azul-noite institucional)
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: widget.isFront
+                      ? const [
+                          Color(0xFF0C2445), // Azul Noite Profundo
+                          Color(0xFF10315E), // Azul Noite Principal
+                          Color(0xFF1B3D71), // Azul Médio
+                        ]
+                      : const [
+                          Color(0xFF0C2445),
+                          Color(0xFF0D1B3E),
+                          Color(0xFF10315E),
+                        ],
                 ),
               ),
             ),
-          ),
+
+            // Marca d'água (Símbolo marca d’água 60% a 80% da altura da carteirinha, bem transparente)
+            Positioned(
+              right: -size.width * 0.1,
+              bottom: -size.height * 0.1,
+              child: IgnorePointer(
+                child: Opacity(
+                  opacity: 0.08, // Opacidade entre 6% e 12%
+                    child: Image.asset(
+                      'assets/images/conectea_icon.png',
+                      height: size.height * 0.75, // Proporção de 75% da altura
+                      fit: BoxFit.contain,
+                      filterQuality: FilterQuality.high,
+                    ),
+                ),
+              ),
+            ),
 
         // Formas geométricas fluidas animadas
         Positioned.fill(
@@ -359,7 +364,9 @@ class _CardBackgroundState extends State<_CardBackground> with SingleTickerProvi
             ),
           ),
         ),
-      ],
+          ],
+        );
+      },
     );
   }
 }
@@ -382,15 +389,15 @@ class _GeometricFluidPainter extends CustomPainter {
 
     final shift = (1.0 - animationProgress) * 50;
 
-    // Gradiente roxo neon → ciano (identidade ConeCTEA)
+    // Gradiente institucional (Azul Noite → Prata/Azul Claro)
     final paintNeon = Paint()
       ..shader = const LinearGradient(
         colors: [
-          Color(0xFFA143FF), // Roxo neon
-          Color(0xFF8155FF), // Violeta
-          Color(0xFF00D8D0), // Ciano/teal
+          Color(0xFF2C5282), // Azul Médio
+          Color(0xFF4299E1), // Azul Claro
+          Color(0xFFE2E8F0), // Prata
         ],
-        stops: [0.0, 0.5, 1.0],
+        stops: [0.0, 0.6, 1.0],
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
@@ -439,11 +446,11 @@ class _GeometricFluidPainter extends CustomPainter {
     if (animationProgress > 0.1) {
       final dp = (animationProgress - 0.1) / 0.9;
       canvas.drawCircle(Offset(size.width * 0.85, size.height * 0.3), 6.0 * dp,
-          Paint()..color = const Color(0xFF00D8D0).withValues(alpha: 0.8));
+          Paint()..color = const Color(0xFF4299E1).withValues(alpha: 0.4));
       canvas.drawCircle(Offset(size.width * 0.92, size.height * 0.22), 3.5 * dp,
-          Paint()..color = const Color(0xFFA143FF).withValues(alpha: 0.9));
+          Paint()..color = const Color(0xFFE2E8F0).withValues(alpha: 0.5));
       canvas.drawCircle(Offset(size.width * 0.45, size.height * 0.92), 2.5 * dp,
-          Paint()..color = const Color(0xFF00D8D0).withValues(alpha: 0.7));
+          Paint()..color = const Color(0xFF2C5282).withValues(alpha: 0.3));
     }
   }
 
@@ -453,7 +460,7 @@ class _GeometricFluidPainter extends CustomPainter {
     // Linha neon no fundo do verso
     final paintCyan = Paint()
       ..shader = const LinearGradient(
-        colors: [Color(0x007C3AED), Color(0x8814B8A6), Color(0x007C3AED)],
+        colors: [Color(0x0010315E), Color(0x664299E1), Color(0x0010315E)],
         begin: Alignment.centerLeft,
         end: Alignment.centerRight,
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
@@ -488,6 +495,10 @@ class _FrontCard extends StatelessWidget {
     final validStr = card != null ? _parseDate(card!.validUntil.toIso8601String()) : '--/--/----';
     final validationToken = card != null ? card!.cardNumber : '----';
     
+    final status = card?.status ?? 'pending';
+    final isActive = status == 'active';
+    final isExpired = card != null && card!.validUntil.isBefore(DateTime.now());
+
     final bool hasValidBloodType = member.bloodType.isNotEmpty && 
         !member.bloodType.toLowerCase().contains('não sei') && 
         !member.bloodType.toLowerCase().contains('prefiro');
@@ -495,7 +506,7 @@ class _FrontCard extends StatelessWidget {
     return _CardBackground(
       isFront: true,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(28.0, 28.0, 28.0, 16.0),
+        padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 12.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -504,15 +515,22 @@ class _FrontCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SvgPicture.asset(
-                  'assets/images/logo_horizontal.svg',
-                  height: 32,
-                  placeholderBuilder: (context) => Text(
-                    'ConeCTEA',
-                    style: GoogleFonts.outfit(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w900,
+                ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    maxWidth: 215, // Logo horizontal ~45% a 60% da largura da carteirinha
+                    maxHeight: 36, // Logo horizontal pequena/média
+                  ),
+                  child: Image.asset(
+                    'assets/images/conectea_logo.png',
+                    fit: BoxFit.contain,
+                    filterQuality: FilterQuality.high,
+                    errorBuilder: (context, error, stackTrace) => Text(
+                      'ConeCTEA',
+                      style: GoogleFonts.outfit(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                   ),
                 ),
@@ -521,49 +539,78 @@ class _FrontCard extends StatelessWidget {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Validity Pill — roxo neon translúcido
+                    // Validity Pill — Estilo Glassmorphism Refinado
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF7C3AED).withValues(alpha: 0.3),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: const Color(0xFFA143FF).withValues(alpha: 0.5)),
+                        color: const Color(0xFF0C2445).withValues(alpha: 0.9), // Darker for better contrast
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.4),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.calendar_month_rounded, color: Color(0xFFA143FF), size: 10),
-                          const SizedBox(width: 4),
+                          Icon(
+                            PhosphorIconsBold.calendar, 
+                            color: isExpired ? AppColors.errorRed : const Color(0xFFA78BFA), // Brighter purple
+                            size: 14,
+                          ),
+                          const SizedBox(width: 6),
                           Text(
                             validStr,
                             style: GoogleFonts.inter(
-                              color: Colors.white,
-                              fontSize: 9,
+                              color: isExpired ? AppColors.errorRed : Colors.white,
+                              fontSize: 12,
                               fontWeight: FontWeight.w900,
+                              letterSpacing: 0.5,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 6),
-                    // Status Pill — ciano neon translúcido
+                    const SizedBox(width: 8),
+                    // Status Pill — Dinâmico e Vibrante
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF00D8D0).withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: const Color(0xFF00D8D0).withValues(alpha: 0.5)),
+                        color: (isActive ? AppColors.statusGreen : AppColors.alertOrange).withValues(alpha: 0.95), // Highly visible
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            color: (isActive ? AppColors.statusGreen : AppColors.alertOrange).withValues(alpha: 0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.verified_rounded, color: Color(0xFF00D8D0), size: 10),
-                          const SizedBox(width: 4),
+                          Icon(
+                            isActive ? PhosphorIconsBold.checkCircle : PhosphorIconsBold.clockCounterClockwise, 
+                            color: Colors.white, // High contrast on background
+                            size: 14,
+                          ),
+                          const SizedBox(width: 6),
                           Text(
-                            'ATIVA',
+                            isActive ? 'ATIVA' : (
+                              status == 'waiting_approval' || status == 'pending' ? 'PENDENTE' :
+                              status == 'reviewing_data' ? 'PENDENTE' :
+                              status == 'waiting_docs' ? 'DOCS PEND.' :
+                              status == 'suspended' ? 'SUSPENSA' :
+                              status == 'rejected' ? 'REPROVADA' : 'INATIVA'
+                            ),
                             style: GoogleFonts.inter(
-                              color: const Color(0xFF00D8D0),
-                              fontSize: 8,
+                              color: Colors.white,
+                              fontSize: 10,
                               fontWeight: FontWeight.w900,
+                              letterSpacing: 0.5,
                             ),
                           ),
                         ],
@@ -602,35 +649,10 @@ class _FrontCard extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Premium Avatar Circle
-                Container(
-                  width: 90,
-                  height: 90,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF7C3AED), Color(0xFF14B8A6)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF7C3AED).withValues(alpha: 0.5),
-                        blurRadius: 20,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 3),
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    member.initials,
-                    style: GoogleFonts.outfit(
-                      color: Colors.white,
-                      fontSize: 32,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
+                PremiumAvatar(
+                  initials: member.initials,
+                  size: 90,
+                  borderWidth: 3,
                 ),
                 const SizedBox(width: 24),
                 // Main Info
@@ -695,7 +717,7 @@ class _FrontCard extends StatelessWidget {
               children: [
                 // Token Pill
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(8),
@@ -703,7 +725,7 @@ class _FrontCard extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.tag_rounded, color: const Color(0xFF00D8D0), size: 10),
+                      const Icon(PhosphorIconsRegular.hash, color: Color(0xFF4299E1), size: 8),
                       const SizedBox(width: 4),
                       Text(
                         'TOKEN: ',
@@ -752,14 +774,13 @@ class _BackCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final validationToken = card != null ? card!.cardNumber : '----';
-    // O QRCode agora contém apenas o Token (ID) para busca interna
     final qrData = validationToken;
-    final validStr = card != null ? _parseDate(card!.validUntil.toIso8601String()) : '--/--/----';
+    // Removed unused validStr variable
 
     return _CardBackground(
       isFront: false,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
         child: Row(
           children: [
             // Left Content (Data)
@@ -771,7 +792,7 @@ class _BackCard extends StatelessWidget {
                   Text(
                     'INFORMAÇÕES ADICIONAIS',
                     style: GoogleFonts.outfit(
-                      color: const Color(0xFF00D8D0), // Ciano neon
+                      color: const Color(0xFF4299E1), // Azul Claro
                       fontSize: 14,
                       fontWeight: FontWeight.w900,
                       letterSpacing: 0.5,
@@ -782,7 +803,7 @@ class _BackCard extends StatelessWidget {
                     width: 30,
                     height: 2,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFA143FF), // Roxo neon
+                      color: const Color(0xFF2C5282), // Azul Médio
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -799,7 +820,7 @@ class _BackCard extends StatelessWidget {
                         trailing: Padding(
                           padding: const EdgeInsets.only(left: 8.0),
                           child: Icon(
-                            showCpf ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+                            showCpf ? PhosphorIconsRegular.eyeSlash : PhosphorIconsRegular.eye,
                             size: 18,
                             color: const Color(0xFF00D8D0),
                           ),
@@ -808,7 +829,7 @@ class _BackCard extends StatelessWidget {
                     ),
                   ),
                   
-                  if (member.cid?.isNotEmpty ?? false)
+                  if (member.cid.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 6.0),
                       child: Container(

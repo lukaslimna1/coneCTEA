@@ -107,7 +107,7 @@ class _ForgotEmailPageState extends State<ForgotEmailPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.darkBlue),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -130,7 +130,7 @@ class _ForgotEmailPageState extends State<ForgotEmailPage> {
               style: GoogleFonts.inter(
                 fontSize: 28,
                 fontWeight: FontWeight.w900,
-                color: AppColors.darkBlue,
+                color: AppColors.textPrimary,
               ),
             ),
             const SizedBox(height: 12),
@@ -150,7 +150,7 @@ class _ForgotEmailPageState extends State<ForgotEmailPage> {
                 style: GoogleFonts.inter(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.darkBlue,
+                  color: AppColors.textPrimary,
                 ),
               ),
               const SizedBox(height: 8),
@@ -161,7 +161,7 @@ class _ForgotEmailPageState extends State<ForgotEmailPage> {
                 decoration: InputDecoration(
                   hintText: '000.000.000-00',
                   filled: true,
-                  fillColor: AppColors.backgroundLight,
+                  fillColor: AppColors.cardBackground,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
                     borderSide: BorderSide.none,
@@ -207,7 +207,7 @@ class _ForgotEmailPageState extends State<ForgotEmailPage> {
                     const SizedBox(height: 16),
                     Text(
                       'E-mail localizado!',
-                      style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.darkBlue),
+                      style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
                     ),
                     const SizedBox(height: 8),
                     Text(

@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'scanner_view.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:go_router/go_router.dart';
+import '../../core/widgets/premium/app_background.dart';
 
 import '../../core/constants/colors.dart';
+import '../../core/widgets/premium/premium_card.dart';
 import '../../core/widgets/loading_shimmer.dart';
 import '../../services/database_service.dart';
 import '../../models/card_request.dart';
@@ -98,21 +101,28 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildHeader(),
-        _buildTabBar(),
-        Expanded(
-          child: TabBarView(
-            controller: _tabController,
-            children: [
-              _buildRequestsTab(),
-              _buildUsersTab(),
-            ],
-          ),
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      extendBodyBehindAppBar: true,
+      body: AppBackground(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 100),
+            _buildHeader(),
+            _buildTabBar(),
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildRequestsTab(),
+                  _buildUsersTab(),
+                ],
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 
@@ -139,7 +149,7 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
                           style: GoogleFonts.inter(
                             fontSize: 26,
                             fontWeight: FontWeight.w900,
-                            color: AppColors.darkBlue,
+                            color: AppColors.textPrimary,
                             letterSpacing: -1.0,
                           ),
                         ),
@@ -161,30 +171,43 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
                       icon: Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.purple.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
+                          color: const Color(0xA60F172A), // Dark Glass base
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: const Color(0x2E94A3B8), // Glass border
+                            width: 1,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.1),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
-                        child: const Icon(Icons.build_circle_rounded, color: Colors.purple),
+                        child: const Icon(PhosphorIconsRegular.wrench, color: Color(0xFF7C3AED)), // Soft Purple
                       ),
                       tooltip: 'Rodar Manutenções',
                     ),
                   const SizedBox(width: 8),
-                  IconButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const ScannerView()),
-                      );
-                    },
-                    icon: Container(
+                  GestureDetector(
+                    onTap: () => context.push('/qr-scanner'),
+                    child: Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
+                        color: Colors.white.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.1),
+                          width: 1,
+                        ),
                       ),
-                      child: Icon(Icons.qr_code_scanner, color: AppColors.primary),
+                      child: const Icon(
+                        PhosphorIconsBold.qrCode,
+                        color: AppColors.textPrimary,
+                        size: 28,
+                      ),
                     ),
-                    tooltip: 'Validar QR Code',
                   ),
                 ],
               ),
@@ -196,37 +219,60 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
   }
 
   Widget _buildTabBar() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.borderLight),
-      ),
-      child: TabBar(
-        controller: _tabController,
-        labelColor: Colors.white,
-        unselectedLabelColor: AppColors.textSecondary,
-        indicatorSize: TabBarIndicatorSize.tab,
-        dividerColor: Colors.transparent,
-        indicator: BoxDecoration(
-          color: AppColors.primary,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primary.withValues(alpha: 0.3),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 800),
+        child: PremiumCard(
+          margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+          padding: const EdgeInsets.all(4),
+          child: TabBar(
+            controller: _tabController,
+            labelColor: Colors.white,
+            unselectedLabelColor: AppColors.textSecondary.withValues(alpha: 0.5),
+            indicatorSize: TabBarIndicatorSize.tab,
+            dividerColor: Colors.transparent,
+            indicator: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.primary,
+                  AppColors.primary.withValues(alpha: 0.8),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withValues(alpha: 0.2),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
-          ],
+            labelStyle: GoogleFonts.inter(fontWeight: FontWeight.w800, fontSize: 14),
+            unselectedLabelStyle: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 14),
+            tabs: const [
+              Tab(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(PhosphorIconsRegular.clipboardText, size: 20),
+                    SizedBox(width: 8),
+                    Text('Solicitações'),
+                  ],
+                ),
+              ),
+              Tab(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(PhosphorIconsRegular.user, size: 20),
+                    SizedBox(width: 8),
+                    Text('Usuários'),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
-        labelStyle: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 13),
-        unselectedLabelStyle: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 13),
-        tabs: const [
-          Tab(text: 'Solicitações'),
-          Tab(text: 'Usuários'),
-        ],
       ),
     );
   }
@@ -316,11 +362,7 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
         constraints: const BoxConstraints(maxWidth: 800),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.grey[200], // Um pouco mais escuro para destacar o branco do container
-              borderRadius: BorderRadius.circular(12),
-            ),
+          child: PremiumCard(
             padding: const EdgeInsets.all(4),
             child: Row(
               children: [
@@ -337,31 +379,50 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
 
   Widget _buildFilterButton(int index, String label) {
     final isSelected = _requestFilterIndex == index;
+    final IconData icon;
+    // Removed unused 'color' variable
+    
+    switch (index) {
+      case 0:
+        icon = PhosphorIconsRegular.clock;
+        break;
+      case 1:
+        icon = PhosphorIconsRegular.checkCircle;
+        break;
+      default:
+        icon = PhosphorIconsRegular.shieldWarning;
+    }
+
     return Expanded(
       child: GestureDetector(
         onTap: () => setState(() => _requestFilterIndex = index),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 10),
+          padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.darkBlue : Colors.transparent, // Mudança para cor sólida e visível
-            borderRadius: BorderRadius.circular(8),
-            boxShadow: isSelected ? [
-              BoxShadow(
-                color: AppColors.darkBlue.withValues(alpha: 0.3),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              )
-            ] : [],
+            color: isSelected ? const Color(0xFF7C3AED).withValues(alpha: 0.2) : Colors.transparent, 
+            borderRadius: BorderRadius.circular(10),
+            border: isSelected ? Border.all(color: const Color(0xFF7C3AED).withValues(alpha: 0.5)) : null,
           ),
           alignment: Alignment.center,
-          child: Text(
-            label,
-            style: GoogleFonts.inter(
-              fontSize: 13,
-              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w700, // Aumentado de w600 para w700
-              color: isSelected ? Colors.white : AppColors.textSecondary.withValues(alpha: 0.8), // Melhorado o contraste
-            ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon, 
+                size: 18, 
+                color: isSelected ? Colors.white : AppColors.textSecondary.withValues(alpha: 0.4),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                  color: isSelected ? Colors.white : AppColors.textSecondary.withValues(alpha: 0.4),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -391,47 +452,58 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
   }
 
   Widget _buildStatCard(String label, String value, Color color, IconData icon) {
-    return Container(
-      width: 130,
+    return PremiumCard(
+      width: 140,
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.borderLight),
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack(
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: color, size: 20),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: color, size: 24),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                label,
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  color: color,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                value,
+                style: GoogleFonts.outfit(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
           ),
-          const SizedBox(height: 12),
-          Text(
-            value,
-            style: GoogleFonts.inter(
-              fontSize: 22,
-              fontWeight: FontWeight.w900,
-              color: AppColors.darkBlue,
-            ),
-          ),
-          Text(
-            label,
-            style: GoogleFonts.inter(
-              fontSize: 12,
-              fontWeight: FontWeight.w700, // Aumentado de w600 para w700
-              color: AppColors.textSecondary.withValues(alpha: 0.9), // Melhorado o contraste
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              height: 3,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    color,
+                    color.withValues(alpha: 0.5),
+                  ],
+                ),
+                borderRadius: const BorderRadius.vertical(bottom: Radius.circular(3)),
+              ),
             ),
           ),
         ],
@@ -482,22 +554,22 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
         style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600),
         decoration: InputDecoration(
           hintText: 'Buscar por nome ou e-mail...',
-          hintStyle: GoogleFonts.inter(color: AppColors.textSecondary, fontWeight: FontWeight.w500),
-          prefixIcon: const Icon(Icons.search_rounded, color: AppColors.textSecondary),
+          hintStyle: GoogleFonts.inter(color: AppColors.textSecondary.withValues(alpha: 0.5), fontWeight: FontWeight.w500),
+          prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF7C3AED)),
           filled: true,
-          fillColor: Colors.white,
+          fillColor: const Color(0xA60F172A),
           contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(20),
-            borderSide: const BorderSide(color: AppColors.borderLight),
+            borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(20),
-            borderSide: const BorderSide(color: AppColors.borderLight),
+            borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(20),
-            borderSide: const BorderSide(color: AppColors.primary, width: 2),
+            borderSide: const BorderSide(color: Color(0xFF7C3AED), width: 1.5),
           ),
         ),
       ),
@@ -535,31 +607,56 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: AppColors.purpleLight.withValues(alpha: 0.5),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, size: 48, color: AppColors.primary.withValues(alpha: 0.5)),
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      AppColors.primary.withValues(alpha: 0.2),
+                      AppColors.primary.withValues(alpha: 0.0),
+                    ],
+                  ),
+                ),
+              ),
+              Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                ),
+              ),
+              Icon(
+                PhosphorIconsRegular.tray, 
+                size: 48, 
+                color: AppColors.primary.withValues(alpha: 0.8),
+              ),
+            ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
           Text(
             message,
             style: GoogleFonts.inter(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textSecondary,
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: AppColors.textPrimary,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             'Arraste para baixo para atualizar',
             style: GoogleFonts.inter(
-              fontSize: 12,
-              color: AppColors.textSecondary.withValues(alpha: 0.7),
+              fontSize: 14,
+              color: AppColors.textSecondary.withValues(alpha: 0.5),
             ),
           ),
+          const SizedBox(height: 24),
+          const Icon(PhosphorIconsRegular.caretDoubleDown, color: Color(0xFF1B3D71), size: 24),
         ],
       ),
     );
@@ -584,7 +681,7 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
         decoration: const BoxDecoration(
-          color: Colors.white,
+          color: AppColors.cardBackground,
           borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
         ),
         padding: const EdgeInsets.all(32),
@@ -608,7 +705,7 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
                   style: GoogleFonts.inter(
                     fontSize: 20,
                     fontWeight: FontWeight.w900,
-                    color: AppColors.darkBlue,
+                    color: AppColors.textPrimary,
                   ),
                 ),
               ],
@@ -621,7 +718,7 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
               () async {
                 Navigator.pop(context);
                 // Mock logic for now
-                if (mounted) {
+                if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Manutenção concluída!')));
                 }
               }
@@ -632,7 +729,7 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
               'Sincroniza datas de validade com base nos últimos status.',
               () async {
                 Navigator.pop(context);
-                if (mounted) {
+                if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Prazos recalculados com sucesso!')));
                 }
               }
@@ -647,7 +744,7 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
     return ListTile(
       onTap: onTap,
       leading: Icon(icon, color: AppColors.primary),
-      title: Text(title, style: GoogleFonts.inter(fontWeight: FontWeight.w700, color: AppColors.darkBlue)),
+      title: Text(title, style: GoogleFonts.inter(fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
       subtitle: Text(subtitle, style: GoogleFonts.inter(fontSize: 12, color: AppColors.textSecondary)),
       contentPadding: EdgeInsets.zero,
     );
@@ -697,7 +794,7 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
-                  value: const [
+                  value: [
                     'Feminino',
                     'Masculino',
                     'Não binário',
@@ -732,7 +829,7 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
                   'gender': selectedGenero,
                 };
                 await _databaseService.updateAnyUserProfile(user.id, data);
-              if (mounted) {
+              if (context.mounted) {
                 Navigator.pop(context);
                 _loadAllUsers();
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Perfil atualizado!')));
@@ -752,8 +849,8 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.white,
+        backgroundColor: AppColors.cardBackground,
+        surfaceTintColor: AppColors.cardBackground,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: Column(
           children: [
@@ -768,7 +865,7 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
             const SizedBox(height: 16),
             Text(
               'Confirmar Alteração',
-              style: GoogleFonts.inter(fontWeight: FontWeight.w900, color: AppColors.darkBlue),
+              style: GoogleFonts.inter(fontWeight: FontWeight.w900, color: AppColors.textPrimary),
             ),
           ],
         ),
@@ -810,33 +907,31 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
 
     try {
       await _databaseService.updateUserProfileRole(user.id, newRole);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.check_circle_rounded, color: Colors.white),
-                const SizedBox(width: 12),
-                const Text('Cargo atualizado com sucesso!'),
-              ],
-            ),
-            backgroundColor: AppColors.statusGreen,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle_rounded, color: Colors.white),
+              const SizedBox(width: 12),
+              const Text('Cargo atualizado com sucesso!'),
+            ],
           ),
-        );
-        _loadAllUsers();
-      }
+          backgroundColor: AppColors.statusGreen,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+      _loadAllUsers();
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erro ao atualizar cargo: $e'),
-            backgroundColor: AppColors.errorRed,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro ao atualizar cargo: $e'),
+          backgroundColor: AppColors.errorRed,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 }

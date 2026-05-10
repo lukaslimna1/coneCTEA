@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:http/http.dart' as http;
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'dart:convert';
 import '../../core/constants/colors.dart';
 import '../../services/auth_service.dart';
 import '../../services/database_service.dart';
 import '../../models/app_user.dart';
+import '../../core/widgets/premium_auth_background.dart';
+import '../../core/widgets/premium/premium_button.dart';
+import '../../core/widgets/premium/premium_card.dart';
 import '../../app/routes.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -242,13 +245,9 @@ class _RegisterPageState extends State<RegisterPage> {
         );
 
         try {
-          // Tenta salvar no banco. Se falhar por RLS (ex: e-mail não confirmado),
-          // pelo menos os dados básicos estão no user_metadata do Auth.
           await databaseService.createUserProfile(newUser);
         } catch (dbError) {
           debugPrint('Erro ao salvar perfil no DB: $dbError');
-          // Não lançamos erro aqui para não travar o fluxo se o usuário 
-          // ainda não puder escrever no banco (ex: política de RLS restrita)
         }
         
         await authService.signOut();
@@ -258,15 +257,22 @@ class _RegisterPageState extends State<RegisterPage> {
             context: context,
             barrierDismissible: false,
             builder: (context) => AlertDialog(
+              backgroundColor: const Color(0xFF0C2445),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(24),
+                side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
               ),
-              title: const Text('📧 Verifique seu e-mail'),
-              content: const Text(
+              title: Text(
+                '📧 Verifique seu e-mail',
+                style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.w800),
+                textAlign: TextAlign.center,
+              ),
+              content: Text(
                 'Cadastro realizado com sucesso! 🚀\n\n'
                 'Enviamos um e-mail de confirmação para você. '
                 'Por favor, verifique sua caixa de entrada (e a pasta de Spam) e clique no link de validação para ativar sua conta antes de fazer o login.',
                 textAlign: TextAlign.center,
+                style: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.8), height: 1.5),
               ),
               actions: [
                 SizedBox(
@@ -278,13 +284,14 @@ class _RegisterPageState extends State<RegisterPage> {
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(16),
                       ),
                     ),
-                    child: const Text(
+                    child: Text(
                       'Ir para Login',
-                      style: TextStyle(color: Colors.white),
+                      style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.w800),
                     ),
                   ),
                 ),
@@ -317,511 +324,429 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.sizeOf(context).height;
-    final screenWidth = MediaQuery.sizeOf(context).width;
-
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: Column(
-              children: [
-                const SizedBox(height: 10),
-                Hero(
-                  tag: 'app_logo',
-                  child: SvgPicture.asset(
-                    'assets/images/logo.svg',
-                    width: screenWidth * 0.8,
-                    height: screenHeight * 0.12,
-                    fit: BoxFit.contain,
-                  ),
-                ),
-                const SizedBox(height: 12),
-
-                Text(
-                  'Criar sua conta',
-                  style: GoogleFonts.inter(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.darkBlue,
-                    letterSpacing: -0.5,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Preencha seus dados para acessar\nsolicitações e sua carteirinha digital.',
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.inter(
-                    fontSize: 15,
-                    color: AppColors.textSecondary,
-                    height: 1.4,
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-
-                Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(28),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 30,
-                        offset: const Offset(0, 10),
+      backgroundColor: AppColors.background,
+      body: PremiumAuthBackground(
+        child: SafeArea(
+          child: CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        onPressed: () => context.pop(),
+                        icon: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                          ),
+                          child: Icon(PhosphorIcons.arrowLeft(), color: Colors.white, size: 20),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Voltar',
+                        style: GoogleFonts.inter(
+                          color: Colors.white.withValues(alpha: 0.6),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ],
                   ),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildSectionTitle('👤 Dados Pessoais'),
-                        const SizedBox(height: 16),
-
-                        _buildInputField(
-                          label: 'Nome Completo*',
-                          controller: _nomeController,
-                          hint: 'Digite seu nome completo',
-                          icon: Icons.person_outline,
-                          validator: (v) =>
-                              v!.isEmpty ? 'Campo obrigatório' : null,
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 20),
+                      Hero(
+                        tag: 'app_logo',
+                        child: Image.asset(
+                          'assets/images/conectea_logo.png',
+                          width: 300, // Premium size (260-320px)
+                          fit: BoxFit.contain,
                         ),
-                        const SizedBox(height: 16),
-
-                        _buildInputField(
-                          label: 'CPF*',
-                          controller: _cpfController,
-                          hint: '000.000.000-00',
-                          icon: Icons.badge_outlined,
-                          inputFormatters: [cpfMask],
-                          keyboardType: TextInputType.number,
-                          validator: (v) {
-                            if (v == null || v.isEmpty) return 'Campo obrigatório';
-                            if (!_isValidCPF(v)) return 'CPF inválido';
-                            return null;
-                          },
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        'Criar sua conta',
+                        style: GoogleFonts.outfit(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                          letterSpacing: -0.8,
                         ),
-                        const SizedBox(height: 16),
-
-                        Wrap(
-                          spacing: 12,
-                          runSpacing: 16,
-                          children: [
-                            SizedBox(
-                              width: (screenWidth - 48 - 24 - 12) / 2,
-                              child: _buildInputField(
-                                label: 'Telefone*',
-                                controller: _telefoneController,
-                                hint: '(00) 00000-0000',
-                                icon: Icons.phone_outlined,
-                                inputFormatters: [phoneMask],
-                                keyboardType: TextInputType.phone,
-                                validator: (v) =>
-                                    v!.length < 14 ? 'Telefone inválido' : null,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Preencha seus dados para acessar\nsolicitações e sua carteirinha digital.',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.inter(
+                          fontSize: 15,
+                          color: AppColors.textSecondary.withValues(alpha: 0.7),
+                          height: 1.4,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      PremiumCard(
+                        hasGradient: true,
+                        padding: const EdgeInsets.all(24),
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildSectionTitle(PhosphorIcons.user(), 'Dados Pessoais'),
+                              const SizedBox(height: 20),
+                              _buildInputField(
+                                label: 'Nome Completo*',
+                                controller: _nomeController,
+                                hint: 'Digite seu nome completo',
+                                 icon: PhosphorIcons.user(),
+                                validator: (v) => v!.isEmpty ? 'Campo obrigatório' : null,
                               ),
-                            ),
-                            SizedBox(
-                              width: (screenWidth - 48 - 24 - 12) / 2,
-                              child: _buildInputField(
-                                label: 'Nascimento*',
-                                controller: _dataNascimentoController,
-                                hint: 'DD/MM/AAAA',
-                                icon: Icons.calendar_today_outlined,
-                                inputFormatters: [dateMask],
-                                keyboardType: TextInputType.datetime,
-                                validator: (v) =>
-                                    v!.length < 10 ? 'Data inválida' : null,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-
-                        _buildInputField(
-                          label: 'E-mail*',
-                          controller: _emailController,
-                          hint: 'Digite seu e-mail',
-                          icon: Icons.email_outlined,
-                          keyboardType: TextInputType.emailAddress,
-                          helper: 'Será usado para login no aplicativo.',
-                          validator: (v) {
-                            if (v!.isEmpty) return 'Campo obrigatório';
-                            if (!v.contains('@')) return 'E-mail inválido';
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 24),
-
-                        _buildSectionTitle('📍 Localização'),
-                        const SizedBox(height: 16),
-
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              flex: 2,
-                              child: _buildSearchableDropdown(
-                                label: 'Estado*',
-                                value: _selectedState,
-                                items: _states.map((s) => s['sigla'] as String).toList(),
-                                icon: Icons.map_outlined,
-                                onChanged: (v) {
-                                  setState(() => _selectedState = v);
-                                  _fetchCities(v);
+                              const SizedBox(height: 20),
+                              _buildInputField(
+                                label: 'CPF*',
+                                controller: _cpfController,
+                                hint: '000.000.000-00',
+                                 icon: PhosphorIcons.identificationCard(),
+                                inputFormatters: [cpfMask],
+                                keyboardType: TextInputType.number,
+                                validator: (v) {
+                                  if (v == null || v.isEmpty) return 'Campo obrigatório';
+                                  if (!_isValidCPF(v)) return 'CPF inválido';
+                                  return null;
                                 },
                               ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              flex: 4,
-                              child: _buildSearchableDropdown(
-                                label: 'Cidade*',
-                                value: _selectedCity,
-                                items: _cities,
-                                icon: Icons.location_on_outlined,
-                                hint: _isLoadingCities ? 'Buscando...' : 'Selecione',
-                                onChanged: (v) => setState(() => _selectedCity = v),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 24),
-
-                        _buildSectionTitle('🔐 Segurança'),
-                        const SizedBox(height: 16),
-
-                        _buildInputField(
-                          label: 'Senha*',
-                          controller: _passwordController,
-                          hint: 'Crie uma senha',
-                          icon: Icons.lock_outline,
-                          obscure: _obscurePassword,
-                          validator: (v) =>
-                              v!.length < 6 ? 'Mínimo 6 caracteres' : null,
-                          suffixIcon: StatefulBuilder(
-                            builder: (context, setEyeState) => IconButton(
-                              icon: Icon(
-                                _obscurePassword
-                                    ? Icons.visibility_off_outlined
-                                    : Icons.visibility_outlined,
-                                color: AppColors.textSecondary,
-                                size: 20,
-                              ),
-                              onPressed: () {
-                                setEyeState(() => _obscurePassword = !_obscurePassword);
-                                setState(() {});
-                              },
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-
-                        _buildInputField(
-                          label: 'Confirmar Senha*',
-                          controller: _confirmPasswordController,
-                          hint: 'Repita sua senha',
-                          icon: Icons.lock_reset_outlined,
-                          obscure: _obscureConfirmPassword,
-                          validator: (v) => v != _passwordController.text
-                              ? 'Senhas não conferem'
-                              : null,
-                          suffixIcon: StatefulBuilder(
-                            builder: (context, setEyeState) => IconButton(
-                              icon: Icon(
-                                _obscureConfirmPassword
-                                    ? Icons.visibility_off_outlined
-                                    : Icons.visibility_outlined,
-                                color: AppColors.textSecondary,
-                                size: 20,
-                              ),
-                              onPressed: () {
-                                setEyeState(() => _obscureConfirmPassword = !_obscureConfirmPassword);
-                                setState(() {});
-                              },
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-
-                        Theme(
-                          data: Theme.of(
-                            context,
-                          ).copyWith(dividerColor: Colors.transparent),
-                          child: ExpansionTile(
-                            tilePadding: EdgeInsets.zero,
-                            title: Text(
-                              '🧬 Dados complementares (opcional)',
-                              style: GoogleFonts.inter(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.primary,
-                              ),
-                            ),
-                            children: [
-                              const SizedBox(height: 12),
-                              _buildDropdownField<String>(
-                                label: 'Foi indicado por alguma instituição?',
-                                value: _indicacaoInstituicao,
-                                items: const ['Não', 'Sim']
-                                    .map((t) => DropdownMenuItem(value: t, child: Text(t)))
-                                    .toList(),
-                                icon: Icons.account_balance_outlined,
-                                onChanged: (v) =>
-                                    setState(() => _indicacaoInstituicao = v!),
-                              ),
-                              if (_indicacaoInstituicao == 'Sim') ...[
-                                const SizedBox(height: 12),
-                                _buildInputField(
-                                  label: 'Nome da instituição',
-                                  controller: _nomeInstituicaoController,
-                                  hint: 'Digite o nome da instituição',
-                                  icon: Icons.business_outlined,
-                                ),
-                              ],
-                              const SizedBox(height: 16),
-                              _buildInputField(
-                                label: 'Nome Social',
-                                controller: _nomeSocialController,
-                                hint: 'Como você gostaria de ser chamado(a)',
-                                icon: Icons.badge_outlined,
-                              ),
-                              const SizedBox(height: 16),
+                              const SizedBox(height: 20),
                               Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Expanded(
-                                    child: _buildDropdownField<String>(
-                                      label: 'Gênero',
-                                      value: _generoSelecionado,
-                                      items: const [
-                                        'Feminino',
-                                        'Masculino',
-                                        'Não binário',
-                                        'Outro',
-                                        'Prefiro não informar',
-                                      ].map((t) => DropdownMenuItem(value: t, child: Text(t, style: const TextStyle(fontSize: 12)))).toList(),
-                                      icon: Icons.wc_outlined,
-                                      onChanged: (v) =>
-                                          setState(() => _generoSelecionado = v),
+                                    child: _buildInputField(
+                                      label: 'Telefone*',
+                                      controller: _telefoneController,
+                                      hint: '(00) 00000-0000',
+                                       icon: PhosphorIcons.phone(),
+                                      inputFormatters: [phoneMask],
+                                      keyboardType: TextInputType.phone,
+                                      validator: (v) => v!.length < 14 ? 'Telefone inválido' : null,
                                     ),
                                   ),
                                   const SizedBox(width: 12),
                                   Expanded(
-                                    child: _buildDropdownField<String>(
-                                      label: 'Raça / Cor',
-                                      value: _racaSelecionada,
-                                      items: const [
-                                        'Branca',
-                                        'Preta',
-                                        'Parda',
-                                        'Amarela',
-                                        'Indígena',
-                                        'Prefiro não informar',
-                                      ].map((t) => DropdownMenuItem(value: t, child: Text(t, style: const TextStyle(fontSize: 12)))).toList(),
-                                      icon: Icons.groups_outlined,
-                                      onChanged: (v) =>
-                                          setState(() => _racaSelecionada = v),
+                                    child: _buildInputField(
+                                      label: 'Nascimento*',
+                                      controller: _dataNascimentoController,
+                                      hint: 'DD/MM/AAAA',
+                                       icon: PhosphorIcons.calendar(),
+                                      inputFormatters: [dateMask],
+                                      keyboardType: TextInputType.datetime,
+                                      validator: (v) => v!.length < 10 ? 'Data inválida' : null,
                                     ),
                                   ),
                                 ],
                               ),
+                              const SizedBox(height: 20),
+                              _buildInputField(
+                                label: 'E-mail*',
+                                controller: _emailController,
+                                hint: 'Digite seu e-mail',
+                                 icon: PhosphorIcons.envelopeSimple(),
+                                keyboardType: TextInputType.emailAddress,
+                                helper: 'Será usado para login no aplicativo.',
+                                validator: (v) {
+                                  if (v!.isEmpty) return 'Campo obrigatório';
+                                  if (!v.contains('@')) return 'E-mail inválido';
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: 32),
+                               _buildSectionTitle(PhosphorIcons.mapPin(), 'Localização'),
+                              const SizedBox(height: 20),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    flex: 2,
+                                    child: _buildSearchableDropdown(
+                                      label: 'Estado*',
+                                      value: _selectedState,
+                                      items: _states.map((s) => s['sigla'] as String).toList(),
+                                       icon: PhosphorIcons.mapTrifold(),
+                                      onChanged: (v) {
+                                        setState(() => _selectedState = v);
+                                        _fetchCities(v);
+                                      },
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    flex: 4,
+                                    child: _buildSearchableDropdown(
+                                      label: 'Cidade*',
+                                      value: _selectedCity,
+                                      items: _cities,
+                                       icon: PhosphorIcons.mapPin(),
+                                      hint: _isLoadingCities ? 'Buscando...' : 'Selecione',
+                                      onChanged: (v) => setState(() => _selectedCity = v),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 32),
+                               _buildSectionTitle(PhosphorIcons.shieldCheck(), 'Segurança'),
+                              const SizedBox(height: 20),
+                              _buildInputField(
+                                label: 'Senha*',
+                                controller: _passwordController,
+                                hint: 'Crie uma senha',
+                                 icon: PhosphorIcons.lock(),
+                                obscure: _obscurePassword,
+                                validator: (v) => v!.length < 6 ? 'Mínimo 6 caracteres' : null,
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                     _obscurePassword ? PhosphorIcons.eyeSlash() : PhosphorIcons.eye(),
+                                    color: AppColors.textSecondary.withValues(alpha: 0.5),
+                                    size: 20,
+                                  ),
+                                  onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                              _buildInputField(
+                                label: 'Confirmar Senha*',
+                                controller: _confirmPasswordController,
+                                hint: 'Repita sua senha',
+                                 icon: PhosphorIcons.lockKey(),
+                                obscure: _obscureConfirmPassword,
+                                validator: (v) => v != _passwordController.text ? 'Senhas não conferem' : null,
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                     _obscureConfirmPassword ? PhosphorIcons.eyeSlash() : PhosphorIcons.eye(),
+                                    color: AppColors.textSecondary.withValues(alpha: 0.5),
+                                    size: 20,
+                                  ),
+                                  onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+                                ),
+                              ),
+                              const SizedBox(height: 32),
+                              Theme(
+                                data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                                child: ExpansionTile(
+                                  tilePadding: EdgeInsets.zero,
+                                  title: Text(
+                                    '🧬 Dados complementares (opcional)',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.cyan,
+                                    ),
+                                  ),
+                                   leading: Icon(PhosphorIcons.dna(), color: AppColors.cyan, size: 20),
+                                  children: [
+                                    const SizedBox(height: 12),
+                                    _buildDropdownField<String>(
+                                      label: 'Foi indicado por alguma instituição?',
+                                      value: _indicacaoInstituicao,
+                                      items: const ['Não', 'Sim']
+                                          .map((t) => DropdownMenuItem(value: t, child: Text(t, style: const TextStyle(color: Colors.white))))
+                                          .toList(),
+                                       icon: PhosphorIcons.bank(),
+                                      onChanged: (v) => setState(() => _indicacaoInstituicao = v!),
+                                    ),
+                                    if (_indicacaoInstituicao == 'Sim') ...[
+                                      const SizedBox(height: 16),
+                                      _buildInputField(
+                                        label: 'Nome da instituição',
+                                        controller: _nomeInstituicaoController,
+                                        hint: 'Digite o nome da instituição',
+                                         icon: PhosphorIcons.buildings(),
+                                      ),
+                                    ],
+                                    const SizedBox(height: 16),
+                                    _buildInputField(
+                                      label: 'Nome Social',
+                                      controller: _nomeSocialController,
+                                      hint: 'Como você gostaria de ser chamado(a)',
+                                       icon: PhosphorIcons.identificationBadge(),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Expanded(
+                                          child: _buildDropdownField<String>(
+                                            label: 'Gênero',
+                                            value: _generoSelecionado,
+                                            items: const [
+                                              'Feminino',
+                                              'Masculino',
+                                              'Não binário',
+                                              'Outro',
+                                              'Prefiro não informar',
+                                            ].map((t) => DropdownMenuItem(value: t, child: Text(t, style: const TextStyle(fontSize: 12, color: Colors.white)))).toList(),
+                                             icon: PhosphorIcons.genderIntersex(),
+                                            onChanged: (v) => setState(() => _generoSelecionado = v),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: _buildDropdownField<String>(
+                                            label: 'Raça / Cor',
+                                            value: _racaSelecionada,
+                                            items: const [
+                                              'Branca',
+                                              'Preta',
+                                              'Parda',
+                                              'Amarela',
+                                              'Indígena',
+                                              'Prefiro não informar',
+                                            ].map((t) => DropdownMenuItem(value: t, child: Text(t, style: const TextStyle(fontSize: 12, color: Colors.white)))).toList(),
+                                             icon: PhosphorIcons.usersThree(),
+                                            onChanged: (v) => setState(() => _racaSelecionada = v),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 16),
+                                  ],
+                                ),
+                              ),
+                              const Divider(height: 48, color: Colors.white10),
+                              _buildTermsCheckbox(
+                                value: _concordaTermos,
+                                onChanged: (v) => setState(() => _concordaTermos = v!),
+                                text: Text.rich(
+                                  TextSpan(
+                                    text: 'Li e concordo com os ',
+                                    children: [
+                                      WidgetSpan(
+                                        alignment: PlaceholderAlignment.middle,
+                                        child: GestureDetector(
+                                          onTap: _showTermsOfUse,
+                                          child: const Text(
+                                            'Termos de Uso',
+                                            style: TextStyle(
+                                              color: AppColors.primary,
+                                              fontWeight: FontWeight.w700,
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      const TextSpan(text: ' e '),
+                                      WidgetSpan(
+                                        alignment: PlaceholderAlignment.middle,
+                                        child: GestureDetector(
+                                          onTap: _showPrivacyPolicy,
+                                          child: const Text(
+                                            'Política de Privacidade',
+                                            style: TextStyle(
+                                              color: AppColors.primary,
+                                              fontWeight: FontWeight.w700,
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      const TextSpan(text: '.'),
+                                    ],
+                                  ),
+                                  style: GoogleFonts.inter(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(left: 36, top: 4, right: 16),
+                                child: Text(
+                                  'O tratamento de dados pessoais no ConeCTEA segue a Lei Geral de Proteção de Dados (LGPD).',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500,
+                                    color: AppColors.textSecondary.withValues(alpha: 0.5),
+                                    height: 1.4,
+                                  ),
+                                ),
+                              ),
                               const SizedBox(height: 16),
+                              _buildTermsCheckbox(
+                                value: _autorizaDados,
+                                onChanged: (v) => setState(() => _autorizaDados = v!),
+                                text: Text(
+                                  'Autorizo o tratamento de meus dados pessoais.',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 13,
+                                    color: Colors.white.withValues(alpha: 0.8),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              _buildTermsCheckbox(
+                                value: _autorizaSaude,
+                                onChanged: (v) => setState(() => _autorizaSaude = v!),
+                                text: Text(
+                                  'Autorizo o tratamento de meus dados de saúde e laudos médicos.',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 13,
+                                    color: Colors.white.withValues(alpha: 0.8),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 40),
+                              const SizedBox(height: 40),
+                              PremiumButton(
+                                text: 'Criar minha conta',
+                                onPressed: _handleRegister,
+                                isLoading: _isLoading,
+                              ),
+                              const SizedBox(height: 24),
+                              Center(
+                                child: TextButton(
+                                  onPressed: () => context.go('/login'),
+                                  child: Text.rich(
+                                    TextSpan(
+                                      text: 'Já tenho uma conta? ',
+                                      children: [
+                                        TextSpan(
+                                          text: 'Entrar agora',
+                                          style: TextStyle(
+                                            color: AppColors.primary,
+                                            fontWeight: FontWeight.w800,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    style: GoogleFonts.inter(
+                                      fontSize: 14,
+                                      color: AppColors.textSecondary.withValues(alpha: 0.7),
+                                    ),
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                         ),
-
-                        const Divider(height: 48),
-
-                        _buildTermsCheckbox(
-                          value: _concordaTermos,
-                          onChanged: (v) => setState(() => _concordaTermos = v!),
-                          text: Text.rich(
-                            TextSpan(
-                              text: 'Li e concordo com os ',
-                              children: [
-                                WidgetSpan(
-                                  alignment: PlaceholderAlignment.middle,
-                                  child: GestureDetector(
-                                    onTap: _showTermsOfUse,
-                                    child: Text(
-                                      'Termos de Uso',
-                                      style: TextStyle(
-                                        color: AppColors.primary,
-                                        fontWeight: FontWeight.w700,
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                const TextSpan(text: ' e '),
-                                WidgetSpan(
-                                  alignment: PlaceholderAlignment.middle,
-                                  child: GestureDetector(
-                                    onTap: _showPrivacyPolicy,
-                                    child: Text(
-                                      'Política de Privacidade',
-                                      style: TextStyle(
-                                        color: AppColors.primary,
-                                        fontWeight: FontWeight.w700,
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                const TextSpan(text: '.'),
-                              ],
-                            ),
-                            style: GoogleFonts.inter(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 48, top: 4, right: 16),
-                          child: Text(
-                            'O tratamento de dados pessoais no ConeCTEA segue a Lei Geral de Proteção de Dados (LGPD). Consulte nossa Política de Privacidade para mais detalhes.',
-                            style: GoogleFonts.inter(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textSecondary.withValues(alpha: 0.7),
-                              height: 1.4,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        _buildTermsCheckbox(
-                          value: _autorizaDados,
-                          onChanged: (v) => setState(() => _autorizaDados = v!),
-                          text: Text(
-                            'Autorizo o tratamento de meus dados pessoais para as finalidades do aplicativo.',
-                            style: GoogleFonts.inter(
-                              fontSize: 13,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        _buildTermsCheckbox(
-                          value: _autorizaSaude,
-                          onChanged: (v) => setState(() => _autorizaSaude = v!),
-                          text: Text(
-                            'Autorizo o tratamento de meus dados de saúde e laudos médicos para fins de identificação.',
-                            style: GoogleFonts.inter(
-                              fontSize: 13,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(height: 32),
-
-                        SizedBox(
-                          width: double.infinity,
-                          height: 58,
-                          child: ElevatedButton(
-                            onPressed: _isLoading ? null : _handleRegister,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              elevation: 0,
-                            ),
-                            child: _isLoading
-                                ? const CircularProgressIndicator(
-                                    color: Colors.white,
-                                  )
-                                : const Text(
-                                    'Criar minha conta',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w800,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                          ),
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        Center(
-                          child: TextButton(
-                            onPressed: () => context.go('/login'),
-                            child: Text.rich(
-                              TextSpan(
-                                text: 'Já tenho uma conta? ',
-                                children: [
-                                  TextSpan(
-                                    text: 'Entrar agora',
-                                    style: TextStyle(
-                                      color: AppColors.primary,
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              style: GoogleFonts.inter(
-                                fontSize: 14,
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 32),
-
-                SvgPicture.asset(
-                  'assets/images/family_login_Color.svg',
-                  width: double.infinity,
-                  height: screenHeight * 0.18,
-                  fit: BoxFit.contain,
-                ),
-
-                const SizedBox(height: 24),
-
-                Padding(
-                  padding: const EdgeInsets.only(
-                    left: 24,
-                    right: 24,
-                    bottom: 40,
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.lock_outline,
-                        color: AppColors.textSecondary,
-                        size: 28,
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Text(
-                          'O cadastro é simples e sem envio de documentos, para manter o app leve e seguro.',
-                          style: GoogleFonts.inter(
-                            fontSize: 13,
-                            color: AppColors.textSecondary,
-                            height: 1.4,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
+                      const SizedBox(height: 140), // Espaço para a ilustração do background
                     ],
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -854,14 +779,21 @@ class _RegisterPageState extends State<RegisterPage> {
     return true;
   }
 
-  Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: GoogleFonts.inter(
-        fontSize: 16,
-        fontWeight: FontWeight.w800,
-        color: AppColors.darkBlue,
-      ),
+  Widget _buildSectionTitle(IconData icon, String title) {
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: AppColors.primary),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: GoogleFonts.outfit(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+            letterSpacing: 0.2,
+          ),
+        ),
+      ],
     );
   }
 
@@ -884,7 +816,7 @@ class _RegisterPageState extends State<RegisterPage> {
           label,
           style: GoogleFonts.inter(
             fontWeight: FontWeight.w700,
-            color: AppColors.darkBlue,
+            color: AppColors.textPrimary,
             fontSize: 13,
           ),
         ),
@@ -895,39 +827,45 @@ class _RegisterPageState extends State<RegisterPage> {
           validator: validator,
           inputFormatters: inputFormatters,
           keyboardType: keyboardType,
-          style: GoogleFonts.inter(fontSize: 15),
+          style: GoogleFonts.inter(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600),
           decoration: InputDecoration(
             hintText: hint,
+            hintStyle: GoogleFonts.inter(color: AppColors.textSecondary.withValues(alpha: 0.3), fontSize: 14),
             prefixIcon: Icon(icon, color: AppColors.primary, size: 22),
             suffixIcon: suffixIcon,
             filled: true,
-            fillColor: Colors.white,
-            contentPadding: const EdgeInsets.symmetric(
-              vertical: 16,
-              horizontal: 16,
-            ),
+            fillColor: const Color(0xFF071B3A).withValues(alpha: 0.5),
+            contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
               borderSide: const BorderSide(color: AppColors.primary, width: 2),
             ),
-            errorStyle: const TextStyle(height: 0.8),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: Colors.redAccent, width: 1),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: Colors.redAccent, width: 2),
+            ),
+            errorStyle: GoogleFonts.inter(fontSize: 12, color: Colors.redAccent),
           ),
         ),
         if (helper != null) ...[
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
           Text(
             helper,
             style: GoogleFonts.inter(
-              fontSize: 12,
-              color: AppColors.textSecondary,
+              fontSize: 11,
+              color: AppColors.textSecondary.withValues(alpha: 0.5),
             ),
           ),
         ],
@@ -935,7 +873,6 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  
   Widget _buildSearchableDropdown({
     required String label,
     required String? value,
@@ -951,7 +888,7 @@ class _RegisterPageState extends State<RegisterPage> {
           label,
           style: GoogleFonts.inter(
             fontWeight: FontWeight.w700,
-            color: AppColors.darkBlue,
+            color: AppColors.textPrimary,
             fontSize: 13,
           ),
         ),
@@ -960,12 +897,13 @@ class _RegisterPageState extends State<RegisterPage> {
           builder: (context, controller) {
             return InkWell(
               onTap: () => controller.openView(),
+              borderRadius: BorderRadius.circular(16),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                  color: const Color(0xFF071B3A).withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
                 ),
                 child: Row(
                   children: [
@@ -976,29 +914,30 @@ class _RegisterPageState extends State<RegisterPage> {
                         value ?? hint ?? 'Selecione',
                         style: GoogleFonts.inter(
                           fontSize: 15,
-                          color: value == null ? AppColors.textSecondary : AppColors.textPrimary,
+                          fontWeight: FontWeight.w600,
+                          color: value == null ? AppColors.textSecondary.withValues(alpha: 0.3) : Colors.white,
                         ),
                       ),
                     ),
-                    const Icon(Icons.arrow_drop_down, color: AppColors.textSecondary),
+                    const Icon(PhosphorIconsRegular.caretDown, color: AppColors.textSecondary, size: 16),
                   ],
                 ),
               ),
             );
           },
+          viewBackgroundColor: const Color(0xFF071B3A),
+          viewSurfaceTintColor: const Color(0xFF071B3A),
           viewHintText: 'Digite para buscar...',
           viewLeading: IconButton(
-            icon: const Icon(Icons.arrow_back),
+            icon: const Icon(PhosphorIconsRegular.arrowLeft, color: Colors.white),
             onPressed: () => Navigator.pop(context),
           ),
           suggestionsBuilder: (context, controller) {
             final keyword = controller.text.toLowerCase();
-            final filtered = items
-                .where((item) => item.toLowerCase().contains(keyword))
-                .toList();
+            final filtered = items.where((item) => item.toLowerCase().contains(keyword)).toList();
 
             return filtered.map((item) => ListTile(
-              title: Text(item),
+              title: Text(item, style: GoogleFonts.inter(fontWeight: FontWeight.w500, color: Colors.white)),
               onTap: () {
                 controller.closeView(item);
                 onChanged(item);
@@ -1026,36 +965,37 @@ class _RegisterPageState extends State<RegisterPage> {
           label,
           style: GoogleFonts.inter(
             fontWeight: FontWeight.w700,
-            color: AppColors.darkBlue,
+            color: AppColors.textPrimary,
             fontSize: 13,
           ),
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<T>(
           isExpanded: true,
-          initialValue: value,
+          value: items.any((item) => item.value == value) ? value : null,
           items: items,
           onChanged: onChanged,
           validator: validator,
+          dropdownColor: const Color(0xFF0C2445),
+          icon: const Icon(PhosphorIconsRegular.caretDown, color: AppColors.textSecondary, size: 16),
+          style: GoogleFonts.inter(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600),
           decoration: InputDecoration(
             hintText: hint,
+            hintStyle: GoogleFonts.inter(color: AppColors.textSecondary.withValues(alpha: 0.3), fontSize: 14),
             prefixIcon: Icon(icon, color: AppColors.primary, size: 22),
             filled: true,
-            fillColor: Colors.white,
-            contentPadding: const EdgeInsets.symmetric(
-              vertical: 16,
-              horizontal: 16,
-            ),
+            fillColor: const Color(0xFF071B3A).withValues(alpha: 0.5),
+            contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
               borderSide: const BorderSide(color: AppColors.primary, width: 2),
             ),
             errorStyle: const TextStyle(height: 0.8),
@@ -1079,8 +1019,9 @@ class _RegisterPageState extends State<RegisterPage> {
             value: value,
             onChanged: onChanged,
             activeColor: AppColors.primary,
+            side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(6),
             ),
           ),
         ),
@@ -1171,14 +1112,17 @@ Ao criar uma conta, acessar ou utilizar o aplicativo, o usuário declara estar c
 
   Widget _buildScrollableDialog({required String title, required String content}) {
     return AlertDialog(
-      backgroundColor: Colors.white,
-      surfaceTintColor: Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+      backgroundColor: const Color(0xFF0C2445),
+      surfaceTintColor: const Color(0xFF0C2445),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(28),
+        side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+      ),
       title: Text(
         title, 
-        style: GoogleFonts.inter(
-          fontWeight: FontWeight.w900,
-          color: AppColors.darkBlue,
+        style: GoogleFonts.outfit(
+          fontWeight: FontWeight.w800,
+          color: Colors.white,
           letterSpacing: -0.5,
         ),
       ),
@@ -1191,28 +1135,26 @@ Ao criar uma conta, acessar ou utilizar o aplicativo, o usuário declara estar c
             style: GoogleFonts.inter(
               fontSize: 14, 
               height: 1.6,
-              color: AppColors.textPrimary.withValues(alpha: 0.8),
+              color: Colors.white.withValues(alpha: 0.7),
               fontWeight: FontWeight.w500,
             ),
           ),
         ),
       ),
       actions: [
-        Padding(
-          padding: const EdgeInsets.only(right: 8, bottom: 8),
-          child: TextButton(
-            onPressed: () => Navigator.pop(context),
-            style: TextButton.styleFrom(
-              foregroundColor: AppColors.primary,
-              textStyle: GoogleFonts.inter(
-                fontWeight: FontWeight.w800,
-                fontSize: 14,
-              ),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(
+            'Compreendido',
+            style: GoogleFonts.inter(
+              fontWeight: FontWeight.w800,
+              fontSize: 14,
+              color: AppColors.primary,
             ),
-            child: const Text('Compreendido'),
           ),
         ),
       ],
     );
   }
 }
+

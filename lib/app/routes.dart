@@ -6,21 +6,18 @@ import '../features/home/home_page.dart';
 import '../features/requests/add_member_page.dart';
 import '../features/requests/member_selection_page.dart';
 import '../features/admin/admin_dashboard_page.dart';
-import '../features/splash/splash_screen.dart';
+import '../features/admin/scanner_view.dart';
 import '../core/notifiers/auth_notifier.dart';
 
 class AppRoutes {
   static final authNotifier = AuthNotifier();
 
   static final router = GoRouter(
-    initialLocation: '/splash',
+    initialLocation: '/home',
     refreshListenable: authNotifier,
     redirect: (context, state) {
       final isAuthenticated = authNotifier.isAuthenticated;
       final location = state.matchedLocation;
-
-      // Splash nunca é redirecionada — ela mesma decide para onde ir
-      if (location == '/splash') return null;
 
       if (authNotifier.suppressRedirect) return null;
 
@@ -33,17 +30,13 @@ class AppRoutes {
         return '/login';
       }
 
-      if (isLoggingIn || isRegistering) {
+      if (isLoggingIn || isRegistering || location == '/') {
         return '/home';
       }
 
       return null;
     },
     routes: [
-      GoRoute(
-        path: '/splash',
-        builder: (context, state) => const SplashScreen(),
-      ),
       GoRoute(
         path: '/login',
         builder: (context, state) => const LoginPage(),
@@ -71,6 +64,10 @@ class AppRoutes {
       GoRoute(
         path: '/admin-dashboard',
         builder: (context, state) => const AdminDashboardPage(),
+      ),
+      GoRoute(
+        path: '/qr-scanner',
+        builder: (context, state) => const ScannerView(),
       ),
     ],
   );

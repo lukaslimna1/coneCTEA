@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../models/card_request.dart';
 import '../../../core/constants/colors.dart';
+import '../../../core/widgets/premium/premium_card.dart';
 import '../utils/admin_status_helper.dart';
 
 class AdminRequestCard extends StatelessWidget {
@@ -19,24 +20,11 @@ class AdminRequestCard extends StatelessWidget {
     final statusColor = AdminStatusHelper.getStatusColor(request.status);
     final statusLabel = AdminStatusHelper.getStatusLabel(request.status);
 
-    return InkWell(
+    return PremiumCard(
+      hasGradient: true,
       onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.borderLight),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
+      padding: const EdgeInsets.all(20),
+      child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
@@ -45,7 +33,7 @@ class AdminRequestCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppColors.purpleLight,
+                    color: AppColors.cardElevated,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
@@ -53,7 +41,7 @@ class AdminRequestCard extends StatelessWidget {
                     style: GoogleFonts.inter(
                       fontSize: 10,
                       fontWeight: FontWeight.w800,
-                      color: AppColors.primary,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                 ),
@@ -66,7 +54,7 @@ class AdminRequestCard extends StatelessWidget {
               style: GoogleFonts.inter(
                 fontSize: 16,
                 fontWeight: FontWeight.w900,
-                color: AppColors.darkBlue,
+                color: AppColors.textPrimary,
                 letterSpacing: -0.5,
               ),
             ),
@@ -105,18 +93,17 @@ class AdminRequestCard extends StatelessWidget {
                   style: GoogleFonts.inter(
                     fontSize: 12,
                     fontWeight: FontWeight.w800,
-                    color: AppColors.primary,
+                    color: const Color(0xFF7C3AED), // Soft Purple
                   ),
                 ),
                 const SizedBox(width: 4),
-                Icon(Icons.arrow_forward_rounded, size: 16, color: AppColors.primary),
+                const Icon(Icons.arrow_forward_rounded, size: 16, color: Color(0xFF7C3AED)),
               ],
             ),
           ],
         ),
-      ),
-    );
-  }
+      );
+    }
 
   Widget _buildStatusBadge(Color color, String label) {
     return Container(

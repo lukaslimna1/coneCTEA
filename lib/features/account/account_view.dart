@@ -1,94 +1,139 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import '../../core/widgets/premium/app_background.dart';
+import '../../core/widgets/premium/premium_card.dart';
 import '../../core/constants/colors.dart';
 import '../../services/auth_service.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
+import '../../models/app_user.dart';
 import './security_view.dart';
 import './edit_profile_view.dart';
 
 class AccountView extends StatelessWidget {
-  const AccountView({super.key});
+  final AppUser? user;
+  final String initials;
+
+  const AccountView({
+    super.key,
+    this.user,
+    this.initials = 'U',
+  });
 
   @override
   Widget build(BuildContext context) {
     final authService = AuthService();
-    final user = authService.currentUser;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        children: [
-          const SizedBox(height: 20),
-          _buildProfileHeader(user?.email ?? 'Usuário'),
-          const SizedBox(height: 32),
-          _buildMenuSection(context, [
-            _MenuItem(
-              icon: Icons.person_outline_rounded,
-              title: 'Dados Pessoais',
-              onTap: (ctx) => Navigator.push(
-                ctx,
-                MaterialPageRoute(builder: (context) => const EditProfileView()),
-              ),
-            ),
-            _MenuItem(
-              icon: Icons.security_rounded,
-              title: 'Segurança',
-              onTap: (ctx) => Navigator.push(
-                ctx,
-                MaterialPageRoute(builder: (context) => const SecurityView()),
-              ),
-            ),
-            _MenuItem(
-              icon: Icons.help_outline_rounded,
-              title: 'Ajuda e Suporte',
-              onTap: (ctx) {},
-            ),
-            _MenuItem(
-              icon: Icons.info_outline_rounded,
-              title: 'Sobre o Aplicativo',
-              onTap: (ctx) {},
-            ),
-          ]),
-          const SizedBox(height: 32),
-          _buildLogoutButton(context, authService),
-          const SizedBox(height: 32),
-          _buildSocialSection(),
-          const SizedBox(height: 20),
-        ],
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      extendBodyBehindAppBar: true,
+      body: AppBackground(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            children: [
+              const SizedBox(height: 100),
+              _buildProfileHeader(user),
+              const SizedBox(height: 32),
+              _buildMenuSection(context, [
+                _MenuItem(
+                  icon: PhosphorIconsRegular.user,
+                  title: 'Dados Pessoais',
+                  onTap: (ctx) => Navigator.push(
+                    ctx,
+                    MaterialPageRoute(builder: (context) => const EditProfileView()),
+                  ),
+                ),
+                _MenuItem(
+                  icon: PhosphorIconsRegular.shieldCheck,
+                  title: 'Segurança',
+                  onTap: (ctx) => Navigator.push(
+                    ctx,
+                    MaterialPageRoute(builder: (context) => const SecurityView()),
+                  ),
+                ),
+                _MenuItem(
+                  icon: PhosphorIconsRegular.question,
+                  title: 'Ajuda e Suporte',
+                  onTap: (ctx) {},
+                ),
+                _MenuItem(
+                  icon: PhosphorIconsRegular.info,
+                  title: 'Sobre o Aplicativo',
+                  onTap: (ctx) {},
+                ),
+              ]),
+              const SizedBox(height: 32),
+              _buildLogoutButton(context, authService),
+              const SizedBox(height: 32),
+              _buildSocialSection(),
+              const SizedBox(height: 32),
+            ],
+          ),
+        ),
       ),
     );
   }
 
-  Widget _buildProfileHeader(String email) {
-    // Get initial from email
-    final initial = email.isNotEmpty ? email[0].toUpperCase() : 'U';
+  Widget _buildProfileHeader(AppUser? user) {
+    final displayName = user?.name.isNotEmpty == true 
+        ? user!.name 
+        : (user?.email ?? 'Usuário');
 
     return Column(
       children: [
-        CircleAvatar(
-          radius: 50,
-          backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-          child: Text(
-            initial,
-            style: const TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
-              color: AppColors.primary,
+        Container(
+          width: 100,
+          height: 100,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                AppColors.primary,
+                Color(0xFF0C2445), // Azul mais escuro
+              ],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withValues(alpha: 0.3),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.25),
+              width: 3,
+            ),
+          ),
+          child: Center(
+            child: Text(
+              initials,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 36,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 1,
+              ),
             ),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 24),
         Text(
-          email,
+          displayName,
           style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+            color: AppColors.cardTitle,
           ),
         ),
+        const SizedBox(height: 4),
         const Text(
           'Perfil do Titular',
           style: TextStyle(
-            color: AppColors.textSecondary,
+            color: AppColors.cardSubtitle,
+            fontWeight: FontWeight.w500,
           ),
         ),
       ],
@@ -96,35 +141,48 @@ class AccountView extends StatelessWidget {
   }
 
   Widget _buildMenuSection(BuildContext context, List<_MenuItem> items) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+    return PremiumCard(
       child: Column(
-        children: items.map((item) => _buildMenuTile(context, item)).toList(),
+        children: items.map((item) {
+          final isLast = items.last == item;
+          return Column(
+            children: [
+              _buildMenuTile(context, item),
+              if (!isLast)
+                Divider(
+                  height: 1,
+                  thickness: 1,
+                  color: AppColors.borderLight.withValues(alpha: 0.5),
+                  indent: 56,
+                  endIndent: 20,
+                ),
+            ],
+          );
+        }).toList(),
       ),
     );
   }
 
   Widget _buildMenuTile(BuildContext context, _MenuItem item) {
     return ListTile(
-      leading: Icon(item.icon, color: AppColors.textPrimary),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceDark,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(item.icon, color: AppColors.cardTitle, size: 22),
+      ),
       title: Text(
         item.title,
-        style: const TextStyle(
-          fontWeight: FontWeight.w500,
-          color: AppColors.textPrimary,
+        style: GoogleFonts.inter(
+          fontWeight: FontWeight.w600,
+          color: AppColors.cardTitle,
+          fontSize: 15,
         ),
       ),
-      trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
+      trailing: const Icon(PhosphorIconsRegular.caretRight, color: AppColors.cardMutedText, size: 20),
       onTap: () => item.onTap?.call(context),
     );
   }
@@ -136,19 +194,21 @@ class AccountView extends StatelessWidget {
         onPressed: () async {
           await authService.signOut();
         },
-        icon: const Icon(Icons.logout_rounded, color: AppColors.errorRed),
-        label: const Text(
+        icon: const Icon(PhosphorIconsRegular.signOut, color: AppColors.errorRed),
+        label: Text(
           'Sair da Conta',
-          style: TextStyle(
+          style: GoogleFonts.inter(
             color: AppColors.errorRed,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w700,
+            fontSize: 15,
           ),
         ),
         style: TextButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 16),
+          backgroundColor: AppColors.errorRed.withValues(alpha: 0.1),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: const BorderSide(color: AppColors.errorRed, width: 1),
+            borderRadius: BorderRadius.circular(20),
+            side: BorderSide(color: AppColors.errorRed.withValues(alpha: 0.2), width: 1),
           ),
         ),
       ),
@@ -158,12 +218,12 @@ class AccountView extends StatelessWidget {
   Widget _buildSocialSection() {
     return Column(
       children: [
-        const Text(
+        Text(
           'Acompanhe nossa comunidade',
-          style: TextStyle(
+          style: GoogleFonts.inter(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: AppColors.textSecondary,
+            color: AppColors.cardMutedText,
           ),
         ),
         const SizedBox(height: 16),
@@ -171,7 +231,7 @@ class AccountView extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             _SocialButton(
-              icon: Icons.camera_alt_rounded,
+              icon: PhosphorIconsRegular.instagramLogo,
               label: 'Instagram',
               color: const Color(0xFFE4405F),
               onTap: () => launchUrlString(
@@ -201,32 +261,24 @@ class _SocialButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withValues(alpha: 0.2)),
-        ),
+    return PremiumCard(
+        onTap: onTap,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: color, size: 20),
+            Icon(icon, color: color, size: 22),
             const SizedBox(width: 8),
             Text(
               label,
-              style: TextStyle(
+              style: GoogleFonts.inter(
                 color: color,
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                fontSize: 15,
               ),
             ),
           ],
         ),
-      ),
     );
   }
 }

@@ -7,6 +7,7 @@ import 'package:uuid/uuid.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/constants/colors.dart';
 import '../../services/database_service.dart';
 import '../../services/auth_service.dart';
@@ -14,6 +15,8 @@ import '../../services/google_drive_service.dart';
 import '../../models/member.dart';
 import '../../models/card_request.dart';
 import 'package:intl/intl.dart';
+import '../../core/widgets/premium_auth_background.dart';
+import '../../core/widgets/premium/premium_button.dart';
 
 class AddMemberPage extends StatefulWidget {
   final Member? member;
@@ -61,7 +64,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
     if (widget.request == null) return true;
     if (widget.request!.status == 'reviewing_data' || 
         widget.request!.status == 'waiting_docs') {
-      final notes = widget.request!.adminNotes ?? '';
+      final notes = widget.request!.adminNotes;
       if (!notes.contains('Pendência:')) return true; // Unlock all if admin didn't use checkboxes
       return notes.toLowerCase().contains(fieldName.toLowerCase());
     }
@@ -95,9 +98,9 @@ class _AddMemberPageState extends State<AddMemberPage> {
       _responsavelController.text = m.responsibleName;
       _nascimentoController.text = m.dateOfBirth;
       _cidController.text = m.cid;
-      _selectedBloodType = m.bloodType;
-      _selectedState = m.state;
-      _selectedCity = m.city;
+      _selectedBloodType = m.bloodType.isNotEmpty ? m.bloodType : null;
+      _selectedState = m.state.isNotEmpty ? m.state : null;
+      _selectedCity = m.city.isNotEmpty ? m.city : null;
       _documentUrl = m.documentUrl.isNotEmpty ? m.documentUrl : null;
       _medicalReportUrl = m.medicalReportUrl.isNotEmpty ? m.medicalReportUrl : null;
       if (_selectedState != null) _fetchCities(_selectedState!, resetCity: false);
@@ -112,13 +115,15 @@ class _AddMemberPageState extends State<AddMemberPage> {
       );
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
-        setState(() {
-          _states = data.map((s) => {
-            'id': s['id'],
-            'sigla': s['sigla'],
-            'nome': s['nome'],
-          }).toList();
-        });
+        if (mounted) {
+          setState(() {
+            _states = data.map((s) => {
+              'id': s['id'],
+              'sigla': s['sigla'],
+              'nome': s['nome'],
+            }).toList();
+          });
+        }
       }
     } catch (e) {
       debugPrint('Erro ao buscar estados: $e');
@@ -139,14 +144,18 @@ class _AddMemberPageState extends State<AddMemberPage> {
       );
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
-        setState(() {
-          _cities = data.map((c) => c['nome'].toString()).toList();
-        });
+        if (mounted) {
+          setState(() {
+            _cities = data.map((c) => c['nome'].toString()).toList();
+          });
+        }
       }
     } catch (e) {
       debugPrint('Erro ao buscar cidades: $e');
     } finally {
-      setState(() => _isLoadingCities = false);
+      if (mounted) {
+        setState(() => _isLoadingCities = false);
+      }
     }
   }
 
@@ -185,15 +194,17 @@ class _AddMemberPageState extends State<AddMemberPage> {
     try {
       final url = await _driveService.uploadFile(file: file, fileName: fileName);
       if (url != null) {
-        setState(() {
-          if (isDocument) {
-            _documentUrl = url;
-            _documentFileName = file.name;
-          } else {
-            _medicalReportUrl = url;
-            _medicalReportFileName = file.name;
-          }
-        });
+        if (mounted) {
+          setState(() {
+            if (isDocument) {
+              _documentUrl = url;
+              _documentFileName = file.name;
+            } else {
+              _medicalReportUrl = url;
+              _medicalReportFileName = file.name;
+            }
+          });
+        }
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -260,7 +271,9 @@ class _AddMemberPageState extends State<AddMemberPage> {
               ),
             );
           }
-          setState(() => _isLoading = false);
+          if (mounted) {
+            setState(() => _isLoading = false);
+          }
           return;
         }
       }
@@ -370,7 +383,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                 shape: BoxShape.circle,
               ),
               child: const Icon(
-                Icons.check_rounded,
+                PhosphorIconsFill.checkCircle,
                 color: AppColors.statusGreen,
                 size: 48,
               ),
@@ -449,33 +462,89 @@ class _AddMemberPageState extends State<AddMemberPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
-      appBar: AppBar(
-        title: Text(
-          'Novo Dependente',
-          style: GoogleFonts.inter(
-            fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: AppColors.textPrimary,
-          ),
-          onPressed: () => context.pop(),
-        ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (widget.request != null && (widget.request!.status == 'reviewing_data' || widget.request!.status == 'waiting_docs'))
+      backgroundColor: const Color(0xFF051124),
+      body: PremiumAuthBackground(
+        child: SafeArea(
+          child: CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        onPressed: () => context.pop(),
+                        icon: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                          ),
+                          child: const Icon(PhosphorIconsRegular.caretLeft, color: Colors.white, size: 20),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Voltar',
+                        style: GoogleFonts.inter(
+                          color: Colors.white.withValues(alpha: 0.6),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 24),
+                      Text(
+                        widget.member != null ? 'Editar Dependente' : 'Novo Dependente',
+                        style: GoogleFonts.outfit(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                          letterSpacing: -0.8,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Cadastre quem receberá a carteirinha.\nPode ser você mesmo ou um dependente.',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.inter(
+                          fontSize: 15,
+                          color: AppColors.textSecondary.withValues(alpha: 0.7),
+                          height: 1.4,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0E1B31).withValues(alpha: 0.8),
+                          borderRadius: BorderRadius.circular(28),
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.3),
+                              blurRadius: 40,
+                              offset: const Offset(0, 20),
+                            ),
+                          ],
+                        ),
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (widget.request != null && (widget.request!.status == 'reviewing_data' || widget.request!.status == 'waiting_docs'))
                 Container(
                   margin: const EdgeInsets.only(bottom: 24),
                   padding: const EdgeInsets.all(16),
@@ -489,12 +558,12 @@ class _AddMemberPageState extends State<AddMemberPage> {
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.warning_amber_rounded, color: Colors.orange[800]),
+                          Icon(PhosphorIconsRegular.warningCircle, color: Colors.orange[800]),
                           const SizedBox(width: 8),
                           Text(
                             'Ajuste solicitado pelo Administrador',
                             style: GoogleFonts.inter(
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w800,
                               color: Colors.orange[900],
                             ),
                           ),
@@ -513,21 +582,13 @@ class _AddMemberPageState extends State<AddMemberPage> {
                   ),
                 ),
 
-              Text(
-                'Cadastre quem receberá a carteirinha. Pode ser você mesmo ou um dependente.',
-                style: GoogleFonts.inter(
-                  fontSize: 15,
-                  color: AppColors.textSecondary,
-                  height: 1.5,
-                ),
-              ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 12),
 
               _buildInputField(
                 label: 'Nome completo do Beneficiário*',
                 controller: _nomeController,
                 hint: 'Digite o nome completo',
-                icon: Icons.person_outline,
+                icon: PhosphorIconsRegular.user,
                 validator: (v) => v!.isEmpty ? 'Campo obrigatório' : null,
                 enabled: _isFieldEnabled('Nome Completo'),
               ),
@@ -537,7 +598,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                 label: 'CPF*',
                 controller: _cpfController,
                 hint: '000.000.000-00',
-                icon: Icons.badge_outlined,
+                icon: PhosphorIconsRegular.identificationCard,
                 inputFormatters: [cpfMask],
                 keyboardType: TextInputType.number,
                 validator: (v) {
@@ -553,7 +614,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                 label: 'Data de Nascimento*',
                 controller: _nascimentoController,
                 hint: 'DD/MM/AAAA',
-                icon: Icons.calendar_today_outlined,
+                icon: PhosphorIconsRegular.calendar,
                 inputFormatters: [dateMask],
                 keyboardType: TextInputType.datetime,
                 validator: (v) => v!.length < 10 ? 'Data incompleta' : null,
@@ -573,7 +634,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                         setState(() => _selectedState = val);
                         _fetchCities(val);
                       },
-                      icon: Icons.map_outlined,
+                      icon: PhosphorIconsRegular.mapPin,
                       enabled: _isFieldEnabled('Estado'),
                     ),
                   ),
@@ -585,7 +646,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                       value: _selectedCity,
                       items: _cities,
                       onChanged: (val) => setState(() => _selectedCity = val),
-                      icon: Icons.location_on_outlined,
+                      icon: PhosphorIconsRegular.navigationArrow,
                       hint: _isLoadingCities ? 'Carregando...' : 'Selecione',
                       enabled: _isFieldEnabled('Cidade'),
                     ),
@@ -598,7 +659,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                 label: 'Telefone',
                 controller: _telefoneController,
                 hint: '(00) 00000-0000',
-                icon: Icons.phone_outlined,
+                icon: PhosphorIconsRegular.phone,
                 inputFormatters: [phoneMask],
                 keyboardType: TextInputType.phone,
                 enabled: _isFieldEnabled('Telefone'),
@@ -609,7 +670,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                 label: 'Contato de Emergência (Opcional)',
                 controller: _contatoEmergenciaController,
                 hint: 'Nome e Telefone',
-                icon: Icons.emergency_outlined,
+                icon: PhosphorIconsRegular.firstAid,
                 enabled: _isFieldEnabled('Contato de Emergência'),
               ),
               const SizedBox(height: 20),
@@ -618,7 +679,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                 label: 'Contato do Responsável (Opcional)',
                 controller: _responsavelController,
                 hint: 'Nome e Telefone (se menor)',
-                icon: Icons.family_restroom_outlined,
+                icon: PhosphorIconsRegular.users,
                 enabled: _isFieldEnabled('Responsável'),
               ),
               const SizedBox(height: 20),
@@ -629,8 +690,8 @@ class _AddMemberPageState extends State<AddMemberPage> {
                 isUploading: _isUploadingDoc,
                 isUploaded: _documentUrl != null,
                 onTap: () => _pickAndUploadFile(isDocument: true),
-                icon: Icons.badge_outlined,
-                enabled: _isFieldEnabled('Documento de Identidade (RG/CNH)'),
+                icon: PhosphorIconsRegular.image,
+                enabled: _isFieldEnabled('Documento com Foto (RG/CNH)'),
               ),
               const SizedBox(height: 20),
 
@@ -640,28 +701,28 @@ class _AddMemberPageState extends State<AddMemberPage> {
                 isUploading: _isUploadingReport,
                 isUploaded: _medicalReportUrl != null,
                 onTap: () => _pickAndUploadFile(isDocument: false),
-                icon: Icons.medical_information_outlined,
-                enabled: _isFieldEnabled('Laudo Médico (CID)'),
+                icon: PhosphorIconsRegular.stethoscope,
+                enabled: _isFieldEnabled('Laudo Médico'),
               ),
               const SizedBox(height: 12),
 
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFF8E1),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: const Color(0xFFFFE082)),
+                  color: AppColors.alertOrange.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.alertOrange.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.info_outline_rounded, color: Color(0xFFF9A825), size: 20),
+                    const Icon(PhosphorIconsRegular.info, color: AppColors.alertOrange, size: 20),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
                         'Os documentos são opcionais agora. Podemos solicitar documentação complementar durante a análise.',
                         style: GoogleFonts.inter(
                           fontSize: 12,
-                          color: const Color(0xFF5D4037),
+                          color: AppColors.textPrimary.withValues(alpha: 0.8),
                           height: 1.4,
                         ),
                       ),
@@ -675,10 +736,10 @@ class _AddMemberPageState extends State<AddMemberPage> {
                 label: 'Tipo Sanguíneo (Opcional)',
                 value: _selectedBloodType,
                 items: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Não sei', 'Prefiro não informar']
-                    .map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
+                    .map((t) => DropdownMenuItem(value: t, child: Text(t, style: const TextStyle(color: Colors.white)))).toList(),
                 onChanged: (val) =>
                     setState(() => _selectedBloodType = val),
-                icon: Icons.bloodtype_outlined,
+                icon: PhosphorIconsRegular.drop,
                 enabled: _isFieldEnabled('Tipo Sanguíneo'),
               ),
               const SizedBox(height: 20),
@@ -687,42 +748,32 @@ class _AddMemberPageState extends State<AddMemberPage> {
                 label: 'CID (Opcional)',
                 controller: _cidController,
                 hint: 'Ex: F84.0',
-                icon: Icons.assignment_outlined,
-                enabled: _isFieldEnabled('Laudo Médico (CID)'),
+                icon: PhosphorIconsRegular.clipboardText,
+                enabled: _isFieldEnabled('Laudo Médico'),
               ),
 
-              const SizedBox(height: 48),
+              const SizedBox(height: 40),
 
-              SizedBox(
-                width: double.infinity,
-                height: 58,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _handleSave,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text(
-                          'Salvar e Continuar',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                ),
+              PremiumButton(
+                text: 'Salvar e Continuar',
+                onPressed: _handleSave,
+                isLoading: _isLoading,
               ),
               const SizedBox(height: 20),
             ],
           ),
         ),
       ),
-    );
+      const SizedBox(height: 140), // Espaço para a ilustração
+    ],
+  ),
+),
+),
+],
+),
+),
+),
+);
   }
 
   Widget _buildInputField({
@@ -742,8 +793,8 @@ class _AddMemberPageState extends State<AddMemberPage> {
           label,
           style: GoogleFonts.inter(
             fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
-            fontSize: 14,
+            color: Colors.white,
+            fontSize: 13,
           ),
         ),
         const SizedBox(height: 8),
@@ -755,27 +806,30 @@ class _AddMemberPageState extends State<AddMemberPage> {
           enabled: enabled,
           style: GoogleFonts.inter(
             fontSize: 15,
-            color: enabled ? AppColors.textPrimary : AppColors.textSecondary,
+            fontWeight: FontWeight.w600,
+            color: enabled ? Colors.white : Colors.white.withValues(alpha: 0.5),
           ),
           decoration: InputDecoration(
             hintText: hint,
+            hintStyle: GoogleFonts.inter(color: AppColors.textSecondary.withValues(alpha: 0.3), fontSize: 14),
             prefixIcon: Icon(icon, color: enabled ? AppColors.primary : AppColors.textSecondary.withValues(alpha: 0.5), size: 22),
             filled: true,
-            fillColor: enabled ? Colors.white : Colors.black.withValues(alpha: 0.03),
-            contentPadding: const EdgeInsets.symmetric(
-              vertical: 16,
-              horizontal: 16,
-            ),
+            fillColor: enabled ? const Color(0xFF071B3A).withValues(alpha: 0.5) : Colors.black.withValues(alpha: 0.2),
+            contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
+            ),
+            disabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.02)),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
               borderSide: const BorderSide(color: AppColors.primary, width: 2),
             ),
           ),
@@ -801,7 +855,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
           label,
           style: GoogleFonts.inter(
             fontWeight: FontWeight.w700,
-            color: AppColors.darkBlue,
+            color: Colors.white,
             fontSize: 13,
           ),
         ),
@@ -810,35 +864,39 @@ class _AddMemberPageState extends State<AddMemberPage> {
           builder: (context, controller) {
             return InkWell(
               onTap: enabled ? () => controller.openView() : null,
+              borderRadius: BorderRadius.circular(16),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 decoration: BoxDecoration(
-                  color: enabled ? Colors.white : Colors.grey[100],
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                  color: enabled ? const Color(0xFF071B3A).withValues(alpha: 0.5) : Colors.black.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
                 ),
                 child: Row(
                   children: [
-                    Icon(icon, color: enabled ? AppColors.primary : Colors.grey, size: 22),
+                    Icon(icon, color: enabled ? AppColors.primary : AppColors.textSecondary.withValues(alpha: 0.5), size: 22),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         value ?? hint ?? 'Selecione',
                         style: GoogleFonts.inter(
                           fontSize: 15,
-                          color: value == null ? AppColors.textSecondary : AppColors.textPrimary,
+                          fontWeight: FontWeight.w600,
+                          color: value == null ? AppColors.textSecondary.withValues(alpha: 0.3) : (enabled ? Colors.white : Colors.white.withValues(alpha: 0.5)),
                         ),
                       ),
                     ),
-                    const Icon(Icons.arrow_drop_down, color: AppColors.textSecondary),
+                    Icon(PhosphorIconsRegular.caretDown, color: AppColors.textSecondary.withValues(alpha: 0.5), size: 16),
                   ],
                 ),
               ),
             );
           },
+          viewBackgroundColor: const Color(0xFF071B3A),
+          viewSurfaceTintColor: const Color(0xFF071B3A),
           viewHintText: 'Digite para buscar...',
           viewLeading: IconButton(
-            icon: const Icon(Icons.arrow_back),
+            icon: const Icon(PhosphorIconsRegular.arrowLeft, color: Colors.white),
             onPressed: () => Navigator.pop(context),
           ),
           suggestionsBuilder: (context, controller) {
@@ -848,7 +906,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                 .toList();
 
             return filtered.map((item) => ListTile(
-              title: Text(item),
+              title: Text(item, style: GoogleFonts.inter(fontWeight: FontWeight.w500, color: Colors.white)),
               onTap: () {
                 controller.closeView(item);
                 onChanged(item);
@@ -876,40 +934,44 @@ class _AddMemberPageState extends State<AddMemberPage> {
           label,
           style: GoogleFonts.inter(
             fontWeight: FontWeight.w700,
-            color: enabled ? AppColors.textPrimary : AppColors.textSecondary.withValues(alpha: 0.7),
-            fontSize: 14,
+            color: Colors.white,
+            fontSize: 13,
           ),
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<T>(
-          value: value,
+          value: items.any((item) => item.value == value) ? value : null,
           items: items,
           onChanged: enabled ? onChanged : null,
           isExpanded: true,
-          icon: const Icon(Icons.keyboard_arrow_down_rounded),
+          dropdownColor: const Color(0xFF0C2445),
+          icon: const Icon(PhosphorIconsRegular.caretDown, color: AppColors.textSecondary, size: 16),
+          style: GoogleFonts.inter(
+            color: enabled ? Colors.white : Colors.white.withValues(alpha: 0.5),
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+          ),
           decoration: InputDecoration(
             hintText: hint,
+            hintStyle: GoogleFonts.inter(color: AppColors.textSecondary.withValues(alpha: 0.3), fontSize: 14),
             prefixIcon: Icon(icon, color: enabled ? AppColors.primary : AppColors.textSecondary.withValues(alpha: 0.5), size: 22),
             filled: true,
-            fillColor: enabled ? Colors.white : Colors.black.withValues(alpha: 0.03),
-            contentPadding: const EdgeInsets.symmetric(
-              vertical: 16,
-              horizontal: 16,
-            ),
+            fillColor: enabled ? const Color(0xFF071B3A).withValues(alpha: 0.5) : Colors.black.withValues(alpha: 0.2),
+            contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
             ),
             disabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: const Color(0xFFE2E8F0).withValues(alpha: 0.5)),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.02)),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
               borderSide: const BorderSide(color: AppColors.primary, width: 2),
             ),
           ),
@@ -934,8 +996,8 @@ class _AddMemberPageState extends State<AddMemberPage> {
           label,
           style: GoogleFonts.inter(
             fontWeight: FontWeight.w700,
-            color: enabled ? AppColors.textPrimary : AppColors.textSecondary.withValues(alpha: 0.7),
-            fontSize: 14,
+            color: Colors.white,
+            fontSize: 13,
           ),
         ),
         const SizedBox(height: 8),
@@ -946,22 +1008,22 @@ class _AddMemberPageState extends State<AddMemberPage> {
             padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
             decoration: BoxDecoration(
               color: isUploaded 
-                  ? AppColors.primary.withValues(alpha: 0.06) 
-                  : (enabled ? Colors.white : Colors.black.withValues(alpha: 0.03)),
-              borderRadius: BorderRadius.circular(12),
+                  ? AppColors.primary.withValues(alpha: 0.15) 
+                  : (enabled ? const Color(0xFF071B3A).withValues(alpha: 0.5) : Colors.black.withValues(alpha: 0.2)),
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: isUploaded 
                     ? AppColors.primary 
-                    : (enabled ? const Color(0xFFE2E8F0) : const Color(0xFFE2E8F0).withValues(alpha: 0.5)),
+                    : (enabled ? Colors.white.withValues(alpha: 0.05) : Colors.white.withValues(alpha: 0.02)),
                 width: isUploaded ? 2 : 1,
               ),
             ),
             child: Row(
               children: [
                 Icon(
-                  isUploaded ? Icons.check_circle_rounded : icon,
+                  isUploaded ? PhosphorIconsRegular.checkCircle : icon,
                   color: isUploaded 
-                      ? Colors.green 
+                      ? AppColors.statusGreen 
                       : (enabled ? AppColors.primary : AppColors.textSecondary.withValues(alpha: 0.5)),
                   size: 22,
                 ),
@@ -972,7 +1034,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                           children: [
                             const SizedBox(
                               width: 16, height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2),
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                             ),
                             const SizedBox(width: 10),
                             Text('Enviando...', style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary)),
@@ -982,7 +1044,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                           isUploaded ? fileName ?? 'Arquivo enviado' : (enabled ? 'Toque para enviar arquivo' : 'Campo bloqueado'),
                           style: GoogleFonts.inter(
                             fontSize: 14,
-                            color: isUploaded ? AppColors.textPrimary : AppColors.textSecondary,
+                            color: isUploaded ? Colors.white : (enabled ? Colors.white.withValues(alpha: 0.7) : AppColors.textSecondary),
                             fontWeight: isUploaded ? FontWeight.w600 : FontWeight.w400,
                           ),
                           overflow: TextOverflow.ellipsis,
@@ -990,7 +1052,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                 ),
                 if (!isUploading && enabled)
                   Icon(
-                    isUploaded ? Icons.refresh_rounded : Icons.upload_file_rounded,
+                    isUploaded ? PhosphorIconsRegular.arrowsClockwise : PhosphorIconsRegular.uploadSimple,
                     color: AppColors.primary,
                     size: 20,
                   ),

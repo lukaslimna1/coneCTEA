@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/constants/colors.dart';
+import '../../core/widgets/premium/premium_card.dart';
 import '../../services/auth_service.dart';
 import '../../services/database_service.dart';
 import '../../models/app_user.dart';
+import '../../core/widgets/premium_auth_background.dart';
+import '../../core/widgets/premium/premium_button.dart';
 import 'forgot_email_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -23,15 +25,9 @@ class _LoginPageState extends State<LoginPage> {
   final _authService = AuthService();
   final _databaseService = DatabaseService();
 
-  final _cpfMask = MaskTextInputFormatter(
-    mask: '###.###.###-##',
-    filter: {"#": RegExp(r'[0-9]')},
-  );
-  
-  bool _obscurePassword = true;
   bool _isLoading = false;
+  bool _obscurePassword = true;
   String? _errorMessage;
-
 
   @override
   void dispose() {
@@ -41,13 +37,8 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _handleLogin() async {
-    final email = _emailController.text.trim();
-    final password = _passwordController.text;
-
-    if (email.isEmpty || password.isEmpty) {
-      setState(() {
-        _errorMessage = 'Por favor, preencha todos os campos.';
-      });
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      setState(() => _errorMessage = 'Por favor, preencha todos os campos.');
       return;
     }
 
@@ -57,158 +48,308 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      final response = await _authService.signInWithEmailPassword(email, password);
-      
+      final response = await _authService.signInWithEmailPassword(
+        _emailController.text.trim(),
+        _passwordController.text,
+      );
+
       if (response.user != null) {
-        final databaseService = DatabaseService();
-        final profile = await databaseService.getUserProfile(response.user!.id);
-        
-        if (profile == null) {
-          // Se o perfil não existe (ex: conta antiga ou erro no cadastro), cria um perfil básico
-          final newUser = AppUser(
-            id: response.user!.id,
-            name: response.user!.userMetadata?['full_name'] ?? email.split('@')[0],
-            email: email,
-            cpf: '',
-            phone: '',
-            role: UserRole.user,
-            createdAt: DateTime.now(),
-            updatedAt: DateTime.now(),
-            isActive: true,
-          );
-          await databaseService.createUserProfile(newUser);
+        final profile = await _databaseService.getUserProfile(response.user!.id);
+        if (profile != null) {
+          if (!mounted) return;
+          
+          if (profile.role.isAdmin) {
+            context.go('/home');
+          } else {
+            context.go('/home');
+          }
+        } else {
+          setState(() => _errorMessage = 'Perfil não encontrado.');
         }
       }
     } on AuthException catch (e) {
-      setState(() {
-        _errorMessage = e.message;
-      });
+      setState(() => _errorMessage = _getAuthErrorMessage(e.message));
     } catch (e) {
-      setState(() {
-        _errorMessage = 'Erro inesperado ao tentar entrar.';
-      });
+      setState(() => _errorMessage = 'Ocorreu um erro inesperado. Tente novamente.');
     } finally {
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+        setState(() => _isLoading = false);
       }
     }
   }
 
+  String _getAuthErrorMessage(String message) {
+    if (message.contains('Invalid login credentials')) {
+      return 'E-mail ou senha incorretos.';
+    }
+    if (message.contains('Email not confirmed')) {
+      return 'Por favor, confirme seu e-mail antes de acessar.';
+    }
+    return message;
+  }
 
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.sizeOf(context).height;
-
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
-      body: SafeArea(
-        child: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            SliverFillRemaining(
-              hasScrollBody: false,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const SizedBox(height: 10), // Respiro de 10px do topo
-                    
-                    // 1. Logo principal do ConeCTEA
-                    Hero(
-                      tag: 'app_logo',
-                      child: SvgPicture.asset(
-                        'assets/images/logo.svg',
-                        width: MediaQuery.sizeOf(context).width * 0.8, // Maior conforme solicitado
-                        height: screenHeight * 0.12, // Reduzido para caber melhor
-                        fit: BoxFit.contain,
-                        placeholderBuilder: (context) => Container(
-                          height: screenHeight * 0.12,
-                          alignment: Alignment.center,
-                          child: Text(
-                            'ConeCTEA',
-                            style: GoogleFonts.inter(
-                              fontSize: 32,
-                              fontWeight: FontWeight.w900,
+      backgroundColor: AppColors.background,
+      body: PremiumAuthBackground(
+        child: SafeArea(
+          child: CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const SizedBox(height: 20),
+                      
+                      // 1. Logo principal do ConeCTEA
+                      Hero(
+                        tag: 'app_logo',
+                        child: Image.asset(
+                          'assets/images/conectea_logo.png',
+                          width: 300, // Premium size (260-320px)
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) => Icon(
+                              PhosphorIcons.infinity(PhosphorIconsStyle.fill),
                               color: AppColors.primary,
+                              size: 80,
                             ),
-                          ),
                         ),
                       ),
-                    ),
-                
-                // 2. Título de Boas-vindas bem próximo à logo
-                const SizedBox(height: 4),
+                  
+                  const SizedBox(height: 24),
 
-                // Título de Boas-vindas
-                Text(
-                  'Bem-vindo ao ConeCTEA',
-                  style: GoogleFonts.inter(
-                    fontSize: 26,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.darkBlue,
-                    letterSpacing: -0.5,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 12),
-                
-                // Subtítulo explicativo
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Text(
-                    'Acesse sua conta para acompanhar carteirinhas, solicitações e notificações.',
-                    style: GoogleFonts.inter(
-                      fontSize: 15,
-                      color: AppColors.textSecondary,
-                      height: 1.4,
+                  // Título de Boas-vindas
+                  Text(
+                    'Bem-vindo',
+                    style: GoogleFonts.outfit(
+                      fontSize: 32,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textPrimary,
+                      letterSpacing: -0.8,
                     ),
                     textAlign: TextAlign.center,
                   ),
-                ),
-                const SizedBox(height: 12), // Reduzido de 20
-
-
-                // Card Principal de Login
-                Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(28),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 30,
-                        offset: const Offset(0, 10),
+                  const SizedBox(height: 12),
+                  
+                  // Subtítulo explicativo
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Text(
+                      'Acesse sua conta para acompanhar carteirinhas, solicitações e notificações.',
+                      style: GoogleFonts.inter(
+                        fontSize: 15,
+                        color: AppColors.textSecondary.withValues(alpha: 0.7),
+                        height: 1.5,
+                        fontWeight: FontWeight.w500,
                       ),
-                    ],
+                      textAlign: TextAlign.center,
+                    ),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Exibição de erros de autenticação
-                      if (_errorMessage != null) ...[
+                  const SizedBox(height: 32),
+
+
+                  // Card Principal de Login
+                  PremiumCard(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Exibição de erros de autenticação
+                        if (_errorMessage != null) ...[
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            margin: const EdgeInsets.only(bottom: 20),
+                            decoration: BoxDecoration(
+                              color: Colors.red.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: Colors.red.withValues(alpha: 0.2)),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(PhosphorIcons.warningCircle(), color: Colors.redAccent, size: 20),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    _errorMessage!,
+                                    style: GoogleFonts.inter(
+                                      color: Colors.white, 
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+
+                        const SizedBox(height: 24),
+                        // Campo de entrada: E-mail
+                        Text(
+                          'E-mail',
+                          style: GoogleFonts.inter(
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          style: GoogleFonts.inter(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600),
+                          decoration: InputDecoration(
+                            hintText: 'Digite seu e-mail',
+                            hintStyle: GoogleFonts.inter(color: AppColors.textSecondary.withValues(alpha: 0.3), fontSize: 15),
+                            prefixIcon: Icon(PhosphorIcons.envelope(), color: const Color(0xFF7C3AED), size: 22),
+                            filled: true,
+                            fillColor: const Color(0xA60F172A),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: const BorderSide(color: Color(0xFF7C3AED), width: 1.5),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Campo de entrada: Senha com opção de visibilidade
+                        Text(
+                          'Senha',
+                          style: GoogleFonts.inter(
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: _passwordController,
+                          obscureText: _obscurePassword,
+                          style: GoogleFonts.inter(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600),
+                          decoration: InputDecoration(
+                            hintText: 'Digite sua senha',
+                            hintStyle: GoogleFonts.inter(color: AppColors.textSecondary.withValues(alpha: 0.3), fontSize: 15),
+                            prefixIcon: Icon(PhosphorIcons.lock(), color: const Color(0xFF7C3AED), size: 22),
+                            filled: true,
+                            fillColor: const Color(0xA60F172A),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: const BorderSide(color: Color(0xFF7C3AED), width: 1.5),
+                            ),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscurePassword ? PhosphorIcons.eyeSlash() : PhosphorIcons.eye(),
+                                color: AppColors.textSecondary.withValues(alpha: 0.5),
+                                size: 20,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _obscurePassword = !_obscurePassword;
+                                });
+                              },
+                            ),
+                          ),
+                        ),
+                        
+                        // Links de recuperação de acesso
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              TextButton(
+                                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ForgotEmailPage())),
+                                child: Text(
+                                  'Esqueci meu e-mail',
+                                  style: GoogleFonts.inter(
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: () => context.push('/forgot-password'),
+                                child: Text(
+                                  'Esqueci minha senha',
+                                  style: GoogleFonts.inter(
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Botão de ação principal (Entrar)
+                        PremiumButton(
+                          text: 'Entrar',
+                          onPressed: _handleLogin,
+                          isLoading: _isLoading,
+                          icon: PhosphorIcons.signIn(),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Botão para novos usuários (Outlined)
+                        PremiumButton(
+                          text: 'Primeiro acesso / Criar conta',
+                          onPressed: () => context.push('/register'),
+                          variant: PremiumButtonVariant.outline,
+                          icon: PhosphorIcons.userPlus(),
+                        ),
+                        const SizedBox(height: 32),
+
+                        // Box de Informação de Responsáveis
                         Container(
-                          padding: const EdgeInsets.all(12),
-                          margin: const EdgeInsets.only(bottom: 20),
+                          padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
-                            color: Colors.red.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.red.withValues(alpha: 0.2)),
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                const Color(0xFF1B3D71).withValues(alpha: 0.1),
+                                const Color(0xFF1B3D71).withValues(alpha: 0.05),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.error_outline, color: Colors.red, size: 20),
-                              const SizedBox(width: 10),
+                              const Icon(Icons.info_outline_rounded, color: Color(0xFF7C3AED), size: 28), 
+                              const SizedBox(width: 16),
                               Expanded(
                                 child: Text(
-                                  _errorMessage!,
+                                  'Responsáveis podem acessar e alternar entre membros vinculados à conta.',
                                   style: GoogleFonts.inter(
-                                    color: Colors.red.shade800, 
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w500,
+                                    fontSize: 14,
+                                    color: AppColors.textSecondary.withValues(alpha: 0.8),
+                                    height: 1.5,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
                               ),
@@ -216,222 +357,19 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                       ],
-
-                      // Campo de entrada: E-mail
-                      Text(
-                        'E-mail',
-                        style: GoogleFonts.inter(
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.darkBlue,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      TextField(
-                        controller: _emailController,
-                        keyboardType: TextInputType.emailAddress,
-                        decoration: const InputDecoration(
-                          hintText: 'Digite seu e-mail',
-                          prefixIcon: Icon(Icons.person_outline, color: AppColors.primary),
-                        ),
-                      ),
-                      const SizedBox(height: 12), // Reduzido de 20
-
-                      // Campo de entrada: Senha com opção de visibilidade
-                      Text(
-                        'Senha',
-                        style: GoogleFonts.inter(
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.darkBlue,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      TextField(
-                        controller: _passwordController,
-                        obscureText: _obscurePassword,
-                        decoration: InputDecoration(
-                          hintText: 'Digite sua senha',
-                          prefixIcon: const Icon(Icons.lock_outline, color: AppColors.primary),
-                          suffixIcon: StatefulBuilder(
-                            builder: (context, setEyeState) => IconButton(
-                              icon: Icon(
-                                _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                                color: AppColors.textSecondary,
-                              ),
-                              onPressed: () {
-                                setEyeState(() {
-                                  _obscurePassword = !_obscurePassword;
-                                });
-                                setState(() {}); // Still call parent setState to update TextField's obscureText
-                              },
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      // Links de recuperação
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          TextButton(
-                            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ForgotEmailPage())),
-                            child: Text(
-                              'Esqueci meu e-mail',
-                              style: GoogleFonts.inter(
-                                color: AppColors.textSecondary,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () => context.push('/forgot-password'),
-                            child: Text(
-                              'Esqueci minha senha',
-                              style: GoogleFonts.inter(
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8), // Reduzido de 16
-
-                      // Botão de ação principal (Entrar)
-                      SizedBox(
-                        width: double.infinity,
-                        height: 56,
-                        child: ElevatedButton(
-                          onPressed: _isLoading ? null : _handleLogin,
-                          child: _isLoading 
-                              ? const SizedBox(
-                                  height: 24, 
-                                  width: 24, 
-                                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
-                                )
-                              : const Text('Entrar'),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Botão para novos usuários
-                      SizedBox(
-                        width: double.infinity,
-                        height: 56,
-                        child: OutlinedButton(
-                          onPressed: _isLoading ? null : () {
-                            context.push('/register');
-                          },
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: AppColors.primary),
-                            foregroundColor: AppColors.primary,
-                          ),
-                          child: const Text('Primeiro acesso / Criar conta'),
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Box de Informação de Responsáveis (Idêntico à referência)
-                      _buildInfoBox(
-                        icon: Icons.info_outline,
-                        text: 'Responsáveis podem acessar e alternar entre membros vinculados à conta.',
-                        backgroundColor: AppColors.primary.withValues(alpha: 0.05),
-                        iconColor: AppColors.primary,
-                        textColor: AppColors.textPrimary,
-                      ),
+                    ),
+                  ),
+                  
+                  // Espaçamento para o conteúdo inferior do background
+                  const SizedBox(height: 140),
                     ],
                   ),
                 ),
-                
-                const SizedBox(height: 20),
-
-
-                // Ilustração da Família
-                SvgPicture.asset(
-                  'assets/images/family_login_Color.svg',
-                  width: double.infinity,
-                  height: screenHeight * 0.15, // Ajustado para visibilidade
-                  fit: BoxFit.contain,
-                ),
-
-                const SizedBox(height: 20),
-
-
-                // Rodapé de Segurança (Idêntico à referência: Ícone solto + Texto)
-                Padding(
-                  // Alinha horizontalmente com o conteúdo do _buildInfoBox (24 do card + 20 do padding interno do box = 44)
-                  padding: const EdgeInsets.symmetric(horizontal: 44.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.lock_outline, size: 28, color: AppColors.textSecondary),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Text(
-                          'Documentos e anexos são enviados por link externo para manter o app leve e seguro.',
-                          style: GoogleFonts.inter(
-                            fontSize: 13,
-                            color: AppColors.textSecondary,
-                            height: 1.4,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 12), // Reduzido de 24
-              ],
-            ),
+              ),
+            ],
           ),
         ),
-      ],
-    ),
-      ),
-    );
-  }
-
-  /// Helper widget para criar boxes de informação padronizados.
-  /// Garante consistência visual, tamanho e alinhamento entre diferentes partes da tela.
-  Widget _buildInfoBox({
-    required IconData icon,
-    required String text,
-    required Color backgroundColor,
-    required Color iconColor,
-    required Color textColor,
-  }) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Icon(icon, color: iconColor, size: 28), 
-          const SizedBox(width: 16),
-          Expanded(
-            child: Text(
-              text,
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                color: textColor,
-                height: 1.4,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
 }
-
-

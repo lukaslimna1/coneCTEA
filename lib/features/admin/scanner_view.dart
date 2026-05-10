@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/constants/colors.dart';
 import '../../services/database_service.dart';
 import '../../models/digital_card.dart';
-import '../../models/member.dart';
 import 'package:intl/intl.dart';
 
 class ScannerView extends StatefulWidget {
@@ -80,7 +80,7 @@ class _ScannerViewState extends State<ScannerView> {
         // Se o getCardByNumber retornou o member via join, ele estaria no JSON
         // Mas como o modelo não tem o campo member, vamos buscar manualmente se necessário
         // ou assumir que frontData tem o nome.
-        final name = card.frontData['name'] ?? 'Membro';
+        // card.frontData['name'] is available but not used here
 
         _showResultSheet(
           isValid: isActive && !isExpired,
@@ -118,7 +118,7 @@ class _ScannerViewState extends State<ScannerView> {
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
         decoration: const BoxDecoration(
-          color: Colors.white,
+          color: AppColors.background,
           borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
         ),
         padding: const EdgeInsets.all(32),
@@ -129,12 +129,12 @@ class _ScannerViewState extends State<ScannerView> {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: (isValid ? Colors.green : Colors.red).withValues(alpha: 0.1),
+                color: (isValid ? AppColors.statusGreen : AppColors.errorRed).withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                isValid ? Icons.check_circle_outline : Icons.error_outline,
-                color: isValid ? Colors.green : Colors.red,
+                isValid ? PhosphorIconsRegular.checkCircle : PhosphorIconsRegular.warningCircle,
+                color: isValid ? AppColors.statusGreen : AppColors.errorRed,
                 size: 48,
               ),
             ),
@@ -144,7 +144,7 @@ class _ScannerViewState extends State<ScannerView> {
               style: GoogleFonts.poppins(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Colors.black87,
+                color: AppColors.textPrimary,
               ),
             ),
             const SizedBox(height: 12),
@@ -153,7 +153,7 @@ class _ScannerViewState extends State<ScannerView> {
               textAlign: TextAlign.center,
               style: GoogleFonts.inter(
                 fontSize: 16,
-                color: Colors.black54,
+                color: AppColors.textSecondary,
               ),
             ),
             if (card != null) ...[
@@ -198,11 +198,11 @@ class _ScannerViewState extends State<ScannerView> {
         children: [
           Text(
             label,
-            style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: Colors.black54),
+            style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: AppColors.textSecondary),
           ),
           Text(
             value,
-            style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: Colors.black87),
+            style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: AppColors.textPrimary),
           ),
         ],
       ),
@@ -234,7 +234,7 @@ class _ScannerViewState extends State<ScannerView> {
               children: [
                 IconButton(
                   onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close, color: Colors.white, size: 30),
+                  icon: const Icon(PhosphorIconsRegular.x, color: Colors.white, size: 28),
                   style: IconButton.styleFrom(
                     backgroundColor: Colors.black45,
                   ),

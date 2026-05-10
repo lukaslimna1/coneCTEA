@@ -37,6 +37,28 @@ class Member {
     required this.updatedAt,
   });
 
+  factory Member.empty() {
+    return Member(
+      id: '',
+      userId: '',
+      name: '',
+      cpf: '',
+      city: '',
+      state: '',
+      phone: '',
+      emergencyContact: '',
+      responsibleName: '',
+      dateOfBirth: '',
+      bloodType: '',
+      cid: '',
+      documentUrl: '',
+      medicalReportUrl: '',
+      status: 'pending',
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+  }
+
   factory Member.fromJson(Map<String, dynamic> json) {
     return Member(
       id: json['id']?.toString() ?? '',
@@ -132,11 +154,11 @@ class Member {
   String get initials {
     final trimmedName = name.trim();
     if (trimmedName.isEmpty) return 'U';
-    final parts = trimmedName.split(' ');
+    final parts = trimmedName.split(RegExp(r'\s+'));
     if (parts.length > 1) {
-      return (parts[0][0] + parts[1][0]).toUpperCase();
+      return (parts.first[0] + parts.last[0]).toUpperCase();
     }
-    return parts[0][0].toUpperCase();
+    return parts.first[0].toUpperCase();
   }
 }
 
