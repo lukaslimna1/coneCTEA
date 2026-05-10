@@ -47,7 +47,6 @@ app.*.map.json
 # Supabase / Environment sensitive files (DO NOT commit)
 .env
 .env.*
-DOCTecnico.md
 google_apps_script.js
 
 # Temp analysis files
