@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../models/app_user.dart';
+import 'package:conectea/models/app_user.dart';
 
+/// Badge visual para exibir o nível de acesso (Role) do usuário.
+/// Utiliza gradientes e ícones específicos para cada nível hierárquico.
 class UserRoleBadge extends StatelessWidget {
   final UserRole role;
   final VoidCallback? onTap;
@@ -17,6 +19,7 @@ class UserRoleBadge extends StatelessWidget {
     Color textColor = Colors.white;
     Color borderColor = Colors.white.withValues(alpha: 0.3);
 
+    // Mapeamento de estilos baseados na função do usuário
     switch (role) {
       case UserRole.adminDev:
         startColor = const Color(0xFF1E293B); // Slate 800
@@ -30,7 +33,7 @@ class UserRoleBadge extends StatelessWidget {
         endColor = const Color(0xFFB8860B);   // Dark Goldenrod
         icon = Icons.workspace_premium_rounded;
         label = 'ADM MASTER';
-        textColor = const Color(0xFF451A03); // Deep Brown
+        textColor = const Color(0xFF451A03); // Deep Brown (Melhor contraste com dourado)
         borderColor = Colors.white.withValues(alpha: 0.5);
         break;
       case UserRole.admin:
@@ -40,6 +43,7 @@ class UserRoleBadge extends StatelessWidget {
         label = 'ADMINISTRADOR';
         break;
       default:
+        // Caso não seja um administrador, o badge não é exibido
         return const SizedBox.shrink();
     }
 
@@ -53,7 +57,7 @@ class UserRoleBadge extends StatelessWidget {
             end: Alignment.bottomRight,
             colors: [startColor, endColor],
           ),
-          borderRadius: BorderRadius.circular(100), // Fully rounded for premium pill look
+          borderRadius: BorderRadius.circular(100), // Estética Pill Premium
           boxShadow: [
             BoxShadow(
               color: startColor.withValues(alpha: 0.4),

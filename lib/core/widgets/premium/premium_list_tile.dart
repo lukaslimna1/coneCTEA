@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import '../../constants/colors.dart';
-import '../../constants/design_tokens.dart';
-import '../../constants/text_styles.dart';
-import 'premium_icon_tile.dart';
+import 'package:conectea/core/constants/colors.dart';
+import 'package:conectea/core/constants/design_tokens.dart';
+import 'package:conectea/core/constants/text_styles.dart';
+import 'package:conectea/core/widgets/premium/premium_icon_tile.dart';
 
+/// Item de lista padronizado com o design system Premium.
+/// Combina um PremiumIconTile com textos de título/subtítulo e ações.
 class PremiumListTile extends StatelessWidget {
   final String title;
   final String? subtitle;

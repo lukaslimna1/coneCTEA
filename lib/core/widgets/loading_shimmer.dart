@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
+/// Widget de carregamento (Skeleton) com efeito de brilho (Shimmer).
+/// Utilizado como placeholder enquanto dados reais são carregados.
 class LoadingShimmer extends StatelessWidget {
   final double width;
   final double height;

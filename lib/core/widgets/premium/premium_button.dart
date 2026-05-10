@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
-import '../../constants/colors.dart';
-import '../../constants/design_tokens.dart';
-import '../../constants/text_styles.dart';
+import 'package:conectea/core/constants/colors.dart';
+import 'package:conectea/core/constants/design_tokens.dart';
+import 'package:conectea/core/constants/text_styles.dart';
 
+/// Variantes de estilo disponíveis para o PremiumButton.
 enum PremiumButtonVariant { primary, secondary, outline, ghost, danger, premium, glass }
 
+/// Botão customizado seguindo o design system Premium do ConeCTEA.
+/// Suporta múltiplos estados (carregando, desabilitado) e variantes visuais.
 class PremiumButton extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;
@@ -37,7 +40,7 @@ class PremiumButton extends StatelessWidget {
 
     return ConstrainedBox(
       constraints: BoxConstraints(
-        minHeight: 48, // Minimum touch target height for mobile
+        minHeight: 48, // Altura mínima para alvo de toque mobile
         maxWidth: width ?? (isExpanded ? double.infinity : double.maxFinite),
       ),
       child: SizedBox(
@@ -62,7 +65,7 @@ class PremiumButton extends StatelessWidget {
         return _buildGradientButton(
           colors: colorOverride != null 
             ? [colorOverride!, colorOverride!.withValues(alpha: 0.8)] 
-            : [AppColors.primary, const Color(0xFF1E3A8A)], // Deeper blue
+            : [AppColors.primary, const Color(0xFF1E3A8A)], // Azul profundo
         );
       case PremiumButtonVariant.secondary:
         return _buildSolidButton(
@@ -159,10 +162,10 @@ class PremiumButton extends StatelessWidget {
   Widget _buildGlassButton() {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xA60F172A), // Dark Glass base
+        color: const Color(0xA60F172A), // Base Dark Glass
         borderRadius: BorderRadius.circular(AppRadius.button),
         border: Border.all(
-          color: const Color(0x2E94A3B8), // Glass border
+          color: const Color(0x2E94A3B8), // Borda Glass
           width: 1,
         ),
         boxShadow: [
@@ -180,7 +183,7 @@ class PremiumButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppRadius.button),
           child: Container(
             alignment: Alignment.center,
-            child: _buildContent(const Color(0xFFF8FAFC)), // White/Ice color for Glass variant
+            child: _buildContent(const Color(0xFFF8FAFC)), // Cor Gelo/Branco para variante Glass
           ),
         ),
       ),

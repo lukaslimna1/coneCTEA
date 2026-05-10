@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../constants/colors.dart';
-import '../../constants/design_tokens.dart';
+import 'package:conectea/core/constants/colors.dart';
+import 'package:conectea/core/constants/design_tokens.dart';
 
+/// Campo de entrada de texto padronizado com o design system Premium.
+/// Inclui suporte a labels, placeholders, ícones e validações.
 class PremiumInput extends StatelessWidget {
   final String label;
   final String? placeholder;

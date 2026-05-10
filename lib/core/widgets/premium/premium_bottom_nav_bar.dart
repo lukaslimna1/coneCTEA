@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+/// Barra de navegação inferior flutuante com estética Premium.
+/// Suporta animações suaves de transição entre itens e indicadores visuais.
 class PremiumBottomNavBar extends StatelessWidget {
   final int currentIndex;
   final Function(int) onTap;
@@ -113,6 +115,7 @@ class PremiumBottomNavBar extends StatelessWidget {
   }
 }
 
+/// Definição de um item da barra de navegação Premium.
 class PremiumNavItem {
   final IconData activeIcon;
   final IconData inactiveIcon;

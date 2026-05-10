@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+/// Tokens de espaçamento para manter a consistência visual.
 class AppSpacing {
   static const double xs = 4.0;
   static const double sm = 8.0;
@@ -10,6 +11,7 @@ class AppSpacing {
   static const double edge = 24.0;
 }
 
+/// Tokens de arredondamento de bordas.
 class AppRadius {
   static const double sm = 12.0;
   static const double md = 16.0;
@@ -18,6 +20,7 @@ class AppRadius {
   static const double button = 22.0;
 }
 
+/// Definições de sombras do sistema.
 class AppShadows {
   static List<BoxShadow> get soft => [
         BoxShadow(

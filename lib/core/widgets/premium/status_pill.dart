@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../constants/colors.dart';
-import '../../constants/text_styles.dart';
+import 'package:conectea/core/constants/colors.dart';
+import 'package:conectea/core/constants/text_styles.dart';
 
+/// Widget de "pílula" para exibição de status (Ativa, Em Análise, etc).
+/// Mapeia os estados do backend para labels e cores amigáveis ao usuário.
 class StatusPill extends StatelessWidget {
   final String status;
 

@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:conectea/core/constants/colors.dart';
 
+/// Configuração global do tema do Flutter para o aplicativo.
+/// Implementa o "Night Mode" como padrão e define estilos de componentes (Botões, Inputs, Cards).
 class AppTheme {
+  /// Retorna o tema principal do aplicativo (Escuro/Night).
   static ThemeData get nightTheme {
     return ThemeData(
       useMaterial3: true,
@@ -16,7 +19,7 @@ class AppTheme {
       ),
       scaffoldBackgroundColor: AppColors.background,
       
-      // Textos
+      // Configuração de Tipografia Global
       textTheme: GoogleFonts.interTextTheme().copyWith(
         displayLarge: GoogleFonts.inter(color: AppColors.cardTitle, fontWeight: FontWeight.bold),
         displayMedium: GoogleFonts.inter(color: AppColors.cardTitle, fontWeight: FontWeight.bold),
@@ -30,7 +33,7 @@ class AppTheme {
         labelLarge: GoogleFonts.inter(color: AppColors.primary, fontWeight: FontWeight.w600),
       ),
 
-      // Botões
+      // Estilização de Botões Elevados
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
@@ -42,6 +45,7 @@ class AppTheme {
         ),
       ),
       
+      // Estilização de Botões de Contorno
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.cardTitle,
@@ -52,7 +56,7 @@ class AppTheme {
         ),
       ),
 
-      // Inputs (Dark Edition)
+      // Estilização de Campos de Entrada (Night Edition)
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.inputBackground,
@@ -74,7 +78,7 @@ class AppTheme {
         suffixIconColor: AppColors.iconMuted,
       ),
 
-      // Cards
+      // Estilização de Cards Padrão
       cardTheme: CardThemeData(
         color: AppColors.surfaceCard,
         elevation: 0,
@@ -84,7 +88,7 @@ class AppTheme {
         ),
       ),
 
-      // Bottom Nav Theme
+      // Estilização da Barra de Navegação Inferior
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: AppColors.background,
         selectedItemColor: AppColors.primary,
@@ -97,13 +101,13 @@ class AppTheme {
     );
   }
 
-  // Mantendo o lightTheme para futura acessibilidade
+  /// Retorna o tema claro (Manteúdo para compatibilidade futura).
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
       scaffoldBackgroundColor: const Color(0xFFF6F8FC),
-      // ... configurações simplificadas aqui ...
+      // Configurações simplificadas para fallback
     );
   }
 }

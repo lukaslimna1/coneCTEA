@@ -1,6 +1,8 @@
-import 'package:flutter/material.dart';
 import 'dart:math' as math;
+import 'package:flutter/material.dart';
 
+/// Widget que exibe o símbolo do infinito animado com as cores da neurodiversidade.
+/// Utilizado como elemento visual de carregamento ou identidade da marca.
 class AnimatedInfinitySymbol extends StatefulWidget {
   final double width;
   final double height;
@@ -47,6 +49,7 @@ class _AnimatedInfinitySymbolState extends State<AnimatedInfinitySymbol> with Si
   }
 }
 
+/// Painter responsável por desenhar e animar o gradiente sobre o símbolo do infinito.
 class InfinityPainter extends CustomPainter {
   final double animationValue;
 
@@ -58,7 +61,7 @@ class InfinityPainter extends CustomPainter {
     final w = size.width;
     final h = size.height;
     
-    // Parâmetros para curva suave do infinito
+    // Parâmetros para curva suave do infinito (Leminiscata)
     path.moveTo(w * 0.5, h * 0.5);
     // Lado direito
     path.cubicTo(w * 0.6, 0, w, 0, w, h * 0.5);
@@ -67,7 +70,7 @@ class InfinityPainter extends CustomPainter {
     path.cubicTo(w * 0.4, 0, 0, 0, 0, h * 0.5);
     path.cubicTo(0, h, w * 0.4, h, w * 0.5, h * 0.5);
 
-    // Cores da Neurodiversidade (TEA)
+    // Cores da Neurodiversidade (TEA) representadas no espectro
     final colors = [
       const Color(0xFFFF3B30), // Vermelho
       const Color(0xFFFF9500), // Laranja
@@ -75,12 +78,12 @@ class InfinityPainter extends CustomPainter {
       const Color(0xFF34C759), // Verde
       const Color(0xFF007AFF), // Azul
       const Color(0xFFAF52DE), // Roxo
-      const Color(0xFFFF3B30), // Retorna ao Vermelho
+      const Color(0xFFFF3B30), // Retorno ao Vermelho para continuidade do gradiente
     ];
 
     final rect = Rect.fromLTWH(0, 0, w, h);
     
-    // O SweepGradient girando cria o efeito de "fluxo" pela linha
+    // O SweepGradient rotacionado cria o efeito de "fluxo" contínuo pela linha
     final gradient = SweepGradient(
       colors: colors,
       transform: GradientRotation(animationValue * 2 * math.pi),
@@ -94,9 +97,9 @@ class InfinityPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
 
-    // Sombra suave para o traço
+    // Sombra suave (Glow) para o traço para efeito premium
     final shadowPaint = Paint()
-      ..color = colors[5].withValues(alpha: 0.2) // Sombra roxa suave
+      ..color = colors[5].withValues(alpha: 0.2) // Sombra roxa suave de base
       ..style = PaintingStyle.stroke
       ..strokeWidth = 14.0
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);

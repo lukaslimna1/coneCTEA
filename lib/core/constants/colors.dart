@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+/// Definição centralizada da paleta de cores do sistema ConeCTEA.
+/// Baseada no design system "Night Blue" com estética Glassmorphism.
 class AppColors {
   // --- PALETA NIGHT BLUE (DARK MODE PADRÃO) ---
   static const Color primary = Color(0xFF7C3AED); // Roxo ConeCTEA (Soft Purple Premium)

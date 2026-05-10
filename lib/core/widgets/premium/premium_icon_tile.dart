@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import '../../constants/colors.dart';
-// removed unused import
+import 'package:conectea/core/constants/colors.dart';
 
+/// Tamanhos pré-definidos para o PremiumIconTile.
 enum PremiumIconSize { small, medium, large, hero }
 
+/// Widget de ícone encapsulado em um container estilizado com o design system.
+/// Utilizado em listas, cards e cabeçalhos.
 class PremiumIconTile extends StatelessWidget {
   final IconData icon;
   final Color? iconColor;

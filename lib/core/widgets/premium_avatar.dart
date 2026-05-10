@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../constants/colors.dart';
+import 'package:conectea/core/constants/colors.dart';
 
+/// Widget de Avatar Premium com bordas iluminadas e suporte a imagens ou iniciais.
+/// Utiliza o design system "Night Blue" para os fallbacks e sombras.
 class PremiumAvatar extends StatelessWidget {
   final String? imageUrl;
   final String? name;
@@ -22,6 +24,7 @@ class PremiumAvatar extends StatelessWidget {
     this.borderWidth = 2,
   });
 
+  /// Gera as iniciais baseadas no nome fornecido ou retorna '?' como fallback.
   String _getInitials() {
     if (initials != null) return initials!;
     if (name == null || name!.isEmpty) return '?';
@@ -63,7 +66,7 @@ class PremiumAvatar extends StatelessWidget {
       child: ClipOval(
         child: imageUrl != null && imageUrl!.isNotEmpty
             ? Image.network(
-                imageUrl!,
+                 imageUrl!,
                 width: size,
                 height: size,
                 fit: BoxFit.cover,
@@ -74,6 +77,7 @@ class PremiumAvatar extends StatelessWidget {
     );
   }
 
+  /// Constrói o widget visual das iniciais quando a imagem não está disponível.
   Widget _buildInitials() {
     return Center(
       child: Text(

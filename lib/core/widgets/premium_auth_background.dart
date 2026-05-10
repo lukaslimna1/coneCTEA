@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../constants/colors.dart';
-import 'premium/app_background.dart';
+import 'package:conectea/core/constants/colors.dart';
+import 'package:conectea/core/widgets/premium/app_background.dart';
 
+/// Wrapper de fundo especializado para telas de autenticação.
+/// Inclui o [AppBackground] e uma barra de segurança informativa no rodapé.
 class PremiumAuthBackground extends StatelessWidget {
   final Widget child;
 
@@ -17,10 +19,10 @@ class PremiumAuthBackground extends StatelessWidget {
     return AppBackground(
       child: Stack(
         children: [
-          // 1. Conteúdo Principal
+          // 1. Conteúdo Principal da Tela
           child,
 
-          // 2. Barra de Segurança/Informação Inferior
+          // 2. Barra de Segurança/Informação Inferior (Trust Badge)
           Positioned(
             bottom: 24,
             left: 24,

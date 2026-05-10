@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
+/// Cabeçalho superior padronizado do aplicativo.
+/// Exibe a logo, contador de notificações e avatar do usuário com suporte a badges de administrador.
 class AppTopHeader extends StatelessWidget implements PreferredSizeWidget {
   final bool showAdmBadge;
   final String? userName;
@@ -243,6 +245,7 @@ class AppTopHeader extends StatelessWidget implements PreferredSizeWidget {
   Size get preferredSize => const Size.fromHeight(100);
 }
 
+/// Widget utilitário para fornecer feedback visual de escala ao tocar.
 class ScaleFeedback extends StatefulWidget {
   final Widget child;
   final VoidCallback? onTap;

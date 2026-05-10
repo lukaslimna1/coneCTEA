@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../constants/colors.dart';
+import 'package:conectea/core/constants/colors.dart';
 
+/// Plano de fundo dinâmico do aplicativo com estética "Night Blue".
+/// Inclui gradientes radiais (glows) e um padrão de pontos (grid) sutil.
 class AppBackground extends StatelessWidget {
   final Widget child;
   final bool showDots;
@@ -73,6 +75,7 @@ class AppBackground extends StatelessWidget {
   }
 }
 
+/// Widget que desenha uma grade de pontos sutil.
 class DotGridPainter extends StatelessWidget {
   const DotGridPainter({super.key});
 
@@ -82,6 +85,7 @@ class DotGridPainter extends StatelessWidget {
   }
 }
 
+/// Pintor customizado para a grade de pontos.
 class _GridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {

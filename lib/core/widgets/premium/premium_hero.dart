@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+/// Widget de destaque visual (Hero) para cabeçalhos de páginas Premium.
+/// Apresenta um ícone centralizado com orbe de luz, gradientes e elementos decorativos.
 class PremiumHero extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -33,7 +35,7 @@ class PremiumHero extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // 7.1 Luz central suave (Radial Gradient)
+          // 1. Luz central suave (Radial Gradient)
           Positioned.fill(
             child: Container(
               decoration: BoxDecoration(
@@ -51,7 +53,7 @@ class PremiumHero extends StatelessWidget {
             ),
           ),
 
-          // 6.2 Grids pontilhados laterais
+          // 2. Grids pontilhados laterais
           Positioned(
             left: 20,
             top: 100,
@@ -78,7 +80,7 @@ class PremiumHero extends StatelessWidget {
               Stack(
                 alignment: Alignment.center,
                 children: [
-                  // 5) GLOW / BRILHO DO CÍRCULO
+                  // 3. Brilho do Círculo (Glow)
                   Container(
                     width: 220,
                     height: 220,
@@ -101,7 +103,7 @@ class PremiumHero extends StatelessWidget {
                     ),
                   ),
 
-                  // 4) BORDA DO CÍRCULO (Anel externo sutil)
+                  // 4. Borda do Círculo (Anel externo sutil)
                   Container(
                     width: 195,
                     height: 195,
@@ -114,7 +116,7 @@ class PremiumHero extends StatelessWidget {
                     ),
                   ),
 
-                  // 3) CÍRCULO / ORBE ATRÁS DO ÍCONE
+                  // 5. Orbe atrás do ícone
                   Container(
                     width: 180,
                     height: 180,
@@ -147,7 +149,7 @@ class PremiumHero extends StatelessWidget {
                       child: Stack(
                         alignment: Alignment.center,
                         children: [
-                          // Glow sutil atrás do ícone para dar profundidade sem criar artefatos
+                          // Glow sutil atrás do ícone para dar profundidade
                           Transform.scale(
                             scale: 1.1,
                             child: Icon(
@@ -179,12 +181,12 @@ class PremiumHero extends StatelessWidget {
                       ),
                     ),
 
-                  // 6.1 Pontos flutuantes ao redor do círculo
+                  // 6. Pontos flutuantes ao redor do círculo
                   ..._buildFloatingPoints(),
                 ],
               ),
               const SizedBox(height: 40),
-              // 8) TÍTULO
+              // 7. Título
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Text(
@@ -199,7 +201,7 @@ class PremiumHero extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              // 8) SUBTÍTULO
+              // 8. Subtítulo
               ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 580),
                 child: Padding(
@@ -259,6 +261,7 @@ class PremiumHero extends StatelessWidget {
   }
 }
 
+/// Modelo de dados para os pontos flutuantes decorativos.
 class _PointData {
   final double x;
   final double y;
@@ -269,6 +272,7 @@ class _PointData {
   const _PointData(this.x, this.y, this.size, this.color, this.opacity);
 }
 
+/// Grade decorativa de pontos laterais.
 class _DottedGrid extends StatelessWidget {
   final int rows;
   final int columns;

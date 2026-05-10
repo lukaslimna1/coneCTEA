@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../constants/colors.dart';
-import '../../constants/design_tokens.dart';
-import '../../constants/text_styles.dart';
+import 'package:conectea/core/constants/colors.dart';
+import 'package:conectea/core/constants/design_tokens.dart';
+import 'package:conectea/core/constants/text_styles.dart';
 
+/// Card customizado com estética Premium (Glassmorphism).
+/// Oferece suporte a títulos, subtítulos, gradientes e estados interativos.
 class PremiumCard extends StatelessWidget {
   final Widget child;
   final String? title;
@@ -91,7 +93,7 @@ class PremiumCard extends StatelessWidget {
         child: Stack(
           fit: height != null ? StackFit.expand : StackFit.loose,
           children: [
-            // Background Decoration (only if we have constraints or size)
+            // Decoração de Fundo (apenas se houver gradiente)
             if (hasGradient)
               Positioned(
                 top: -30,
@@ -110,7 +112,7 @@ class PremiumCard extends StatelessWidget {
                   ),
                 ),
               ),
-            // Content
+            // Conteúdo
             Material(
               color: Colors.transparent,
               child: InkWell(

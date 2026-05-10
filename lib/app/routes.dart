@@ -9,6 +9,8 @@ import 'package:conectea/features/admin/admin_dashboard_page.dart';
 import 'package:conectea/features/admin/scanner_view.dart';
 import 'package:conectea/core/notifiers/auth_notifier.dart';
 
+/// Definição centralizada das rotas de navegação do aplicativo utilizando GoRouter.
+/// Gerencia redirecionamentos baseados no estado de autenticação.
 class AppRoutes {
   static final authNotifier = AuthNotifier();
 
