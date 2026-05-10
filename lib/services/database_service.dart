@@ -5,14 +5,10 @@ import 'package:conectea/models/member.dart';
 import 'package:conectea/models/card_request.dart';
 import 'package:conectea/models/digital_card.dart';
 import 'package:conectea/models/notification_item.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 
 class DatabaseService {
   final _supabase = Supabase.instance.client;
   
-  static const String _oneSignalAppId = 'e4ccd512-3add-465f-8195-eaf6f3ce86aa';
-  static const String _oneSignalApiKey = 'os_v2_app_4tgnker23vdf7amv5l3phtugvj2l3jszbhsee3uozfztqqk2x4uqup3csmnf45hekhpcjzib2lgmcz66jewor5otyeb7madrswumtki';
   // Removido _validationUrlPrefix não utilizado
 
 
@@ -478,36 +474,20 @@ class DatabaseService {
     }
   }
 
+  /// Método neutralizado no cliente por segurança.
+  /// O disparo de Push Notifications via OneSignal REST API deve ser realizado
+  /// exclusivamente através de backend ou Supabase Edge Functions para proteger a API Key.
   Future<void> _sendPushNotification({
     required String userId,
     required String title,
     required String message,
   }) async {
-    try {
-      final response = await http.post(
-        Uri.parse('https://onesignal.com/api/v1/notifications'),
-        headers: {
-          'Content-Type': 'application/json; charset=utf-8',
-          'Authorization': 'Basic $_oneSignalApiKey',
-        },
-        body: jsonEncode({
-          'app_id': _oneSignalAppId,
-          'include_external_user_ids': [userId],
-          'headings': {'en': title, 'pt': title},
-          'contents': {'en': message, 'pt': message},
-          'ios_badgeType': 'Increase',
-          'ios_badgeCount': 1,
-        }),
-      );
-
-      if (response.statusCode != 200 && response.statusCode != 201) {
-        debugPrint('Erro na API do OneSignal: ${response.body}');
-      } else {
-        debugPrint('Notificação Push enviada com sucesso para $userId');
-      }
-    } catch (e) {
-      debugPrint('Erro ao enviar notificação push: $e');
-    }
+    // Registro em debug para rastrear a intenção de envio
+    debugPrint('🔔 PUSH_PENDING: Notificação remota para $userId ("$title").');
+    debugPrint('Nota: O disparo real deve ser implementado via Edge Function.');
+    
+    // As notificações internas (NotificationItem) continuam sendo criadas no banco
+    // e lidas pelo app via Stream em tempo real.
   }
 
   Future<void> updateRequestFileUrl(String requestId, String field, String url) async {
