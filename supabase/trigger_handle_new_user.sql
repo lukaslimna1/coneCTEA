@@ -37,7 +37,7 @@ BEGIN
     -- CPF: obrigatório — fica vazio se não vier, mas o app valida antes
     COALESCE(NEW.raw_user_meta_data->>'cpf', ''),
     COALESCE(NEW.raw_user_meta_data->>'phone', ''),
-    'user',
+    'user', -- Role fixo como 'user' por segurança (ignora metadados do cliente)
     true,
     COALESCE(NEW.raw_user_meta_data->>'date_of_birth', ''),
     COALESCE(NEW.raw_user_meta_data->>'city', ''),

@@ -32,11 +32,33 @@ ALTER TABLE public.profiles       REPLICA IDENTITY FULL;
 --    transmitir mudanças via WebSocket para os clientes
 -- ─────────────────────────────────────────────────────────────
 
-ALTER PUBLICATION supabase_realtime ADD TABLE public.card_requests;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.members;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.digital_cards;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.profiles;
+DO $$
+BEGIN
+  -- card_requests
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'card_requests') THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.card_requests;
+  END IF;
+
+  -- members
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'members') THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.members;
+  END IF;
+
+  -- digital_cards
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'digital_cards') THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.digital_cards;
+  END IF;
+
+  -- notifications
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'notifications') THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications;
+  END IF;
+
+  -- profiles
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'profiles') THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.profiles;
+  END IF;
+END $$;
 
 
 -- ─────────────────────────────────────────────────────────────
