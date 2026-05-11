@@ -14,6 +14,9 @@ import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:go_router/go_router.dart';
 import 'package:conectea/features/cards/widgets/digital_card_widget.dart';
 import 'package:conectea/features/cards/full_screen_card_page.dart';
+import 'package:conectea/models/app_user.dart';
+import 'package:conectea/features/account/edit_profile_view.dart';
+import 'package:conectea/features/requests/add_member_page.dart';
 
 class CardsView extends StatefulWidget {
   const CardsView({super.key});
@@ -28,11 +31,112 @@ class _CardsViewState extends State<CardsView> {
 
   int _selectedMemberIndex = 0;
   bool _showBack = false;
+  AppUser? _user;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    if (!mounted) return;
+    try {
+      final userId = _authService.currentUser?.id;
+      if (userId != null) {
+        final user = await _databaseService.getUserProfile(userId);
+        if (mounted) {
+          setState(() {
+            _user = user;
+          });
+        }
+      }
+    } catch (e) {
+      // Falha silenciosa ou log
+    }
+  }
+
+  bool get _isProfileComplete {
+    if (_user == null) return false;
+    return _user!.cpf.isNotEmpty &&
+        _user!.phone.isNotEmpty &&
+        (_user!.city?.isNotEmpty ?? false) &&
+        (_user!.state?.isNotEmpty ?? false);
+  }
+
+  void _handleRequestNewCard() {
+    if (!_isProfileComplete) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+          title: const Text('🎉 Quase lá!'),
+          content: const Text(
+            'Para cadastrar um novo dependente, seu perfil de responsável precisa estar completo com CPF, Telefone, Cidade e Estado.',
+            textAlign: TextAlign.center,
+          ),
+          actions: [
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () async {
+                  Navigator.pop(context);
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const EditProfileView()),
+                  );
+                  if (result == true) {
+                    _loadProfile();
+                  }
+                },
+                icon: const Icon(Icons.edit_rounded, size: 18),
+                label: const Text(
+                  'Completar Dados',
+                  style: TextStyle(color: Colors.white),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Center(
+              child: TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(
+                  'Voltar',
+                  style: TextStyle(color: AppColors.textSecondary),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const AddMemberPage()),
+    ).then((_) {
+      // Recarregar perfil se necessário, embora os membros sejam via stream
+      _loadProfile();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final userId = _authService.currentUser?.id;
-    if (userId == null) return const Center(child: Text('Por favor, faça login'));
+    if (userId == null) {
+      return const Center(child: Text('Por favor, faça login'));
+    }
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -50,7 +154,9 @@ class _CardsViewState extends State<CardsView> {
                     if (memberSnap.connectionState == ConnectionState.waiting ||
                         cardSnap.connectionState == ConnectionState.waiting) {
                       return const Center(
-                        child: CircularProgressIndicator(color: AppColors.primary),
+                        child: CircularProgressIndicator(
+                          color: AppColors.primary,
+                        ),
                       );
                     }
 
@@ -107,7 +213,8 @@ class _CardsViewState extends State<CardsView> {
                               children: [
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         'Carteirinhas',
@@ -123,7 +230,8 @@ class _CardsViewState extends State<CardsView> {
                                         'Gerencie suas identificações e dos\nmembros da sua família.',
                                         style: GoogleFonts.inter(
                                           fontSize: 14,
-                                          color: AppColors.cardSubtitle.withValues(alpha: 0.8),
+                                          color: AppColors.cardSubtitle
+                                              .withValues(alpha: 0.8),
                                           height: 1.4,
                                           fontWeight: FontWeight.w500,
                                         ),
@@ -135,17 +243,25 @@ class _CardsViewState extends State<CardsView> {
                                   onTap: () => context.push('/qr-scanner'),
                                   behavior: HitTestBehavior.opaque,
                                   child: Container(
-                                    padding: const EdgeInsets.all(16), // Aumentado de 14
+                                    padding: const EdgeInsets.all(
+                                      16,
+                                    ), // Aumentado de 14
                                     decoration: BoxDecoration(
-                                      color: const Color(0xA60F172A), // Vidro Escuro
+                                      color: const Color(
+                                        0xA60F172A,
+                                      ), // Vidro Escuro
                                       borderRadius: BorderRadius.circular(20),
                                       border: Border.all(
-                                        color: const Color(0x3D94A3B8), // Borda de vidro
+                                        color: const Color(
+                                          0x3D94A3B8,
+                                        ), // Borda de vidro
                                         width: 1,
                                       ),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: Colors.black.withValues(alpha: 0.1),
+                                          color: Colors.black.withValues(
+                                            alpha: 0.1,
+                                          ),
                                           blurRadius: 10,
                                           offset: const Offset(0, 4),
                                         ),
@@ -158,14 +274,19 @@ class _CardsViewState extends State<CardsView> {
                                     ),
                                   ),
                                 ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
 
                           const SizedBox(height: 16),
-                          
+
                           // Novo Seletor Horizontal de Membros (Padão Home)
-                          _buildMembersSelector(members, activeCardsMap, selIdx, requests),
+                          _buildMembersSelector(
+                            members,
+                            activeCardsMap,
+                            selIdx,
+                            requests,
+                          ),
 
                           const SizedBox(height: 24),
 
@@ -200,7 +321,10 @@ class _CardsViewState extends State<CardsView> {
                             padding: const EdgeInsets.symmetric(horizontal: 24),
                             child: GestureDetector(
                               onTap: () => _openFullScreen(
-                                  selectedMember, activeMembers, activeCardsMap),
+                                selectedMember,
+                                activeMembers,
+                                activeCardsMap,
+                              ),
                               child: Hero(
                                 tag: 'card_${selectedMember.id}',
                                 child: Material(
@@ -226,7 +350,9 @@ class _CardsViewState extends State<CardsView> {
                                   child: _buildInfoBlock(
                                     icon: PhosphorIconsRegular.calendarCheck,
                                     label: 'Válida até',
-                                    value: DateFormat('dd/MM/yyyy').format(selectedCard.validUntil),
+                                    value: DateFormat(
+                                      'dd/MM/yyyy',
+                                    ).format(selectedCard.validUntil),
                                   ),
                                 ),
                                 const SizedBox(width: 12),
@@ -253,25 +379,32 @@ class _CardsViewState extends State<CardsView> {
                                   child: PremiumButton(
                                     text: 'Ver carteirinha',
                                     variant: PremiumButtonVariant.primary,
-                                    icon: PhosphorIconsRegular.identificationCard,
+                                    icon:
+                                        PhosphorIconsRegular.identificationCard,
                                     onPressed: () => _openFullScreen(
-                                        selectedMember, activeMembers, activeCardsMap),
+                                      selectedMember,
+                                      activeMembers,
+                                      activeCardsMap,
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: PremiumButton(
-                                    text: _showBack ? 'Ver frente' : 'Ver verso',
+                                    text: _showBack
+                                        ? 'Ver frente'
+                                        : 'Ver verso',
                                     variant: PremiumButtonVariant.outline,
                                     textColor: Colors.white,
                                     icon: PhosphorIconsRegular.arrowsClockwise,
-                                    onPressed: () => setState(() => _showBack = !_showBack),
+                                    onPressed: () =>
+                                        setState(() => _showBack = !_showBack),
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                          
+
                           const SizedBox(height: 40),
                         ],
                       ),
@@ -295,209 +428,237 @@ class _CardsViewState extends State<CardsView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    '${members.length} MEMBROS',
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.cardMutedText,
-                      letterSpacing: 1.2,
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () => context.push('/member-selection'),
-                    behavior: HitTestBehavior.opaque,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12), // Aumentado de 16/10
-                      decoration: BoxDecoration(
-                        color: const Color(0x2E22D3EE),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: const Color(0xFF22D3EE).withValues(alpha: 0.4),
-                          width: 1.2,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF22D3EE).withValues(alpha: 0.15),
-                            blurRadius: 12,
-                            spreadRadius: -2,
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            PhosphorIconsRegular.plusCircle,
-                            size: 16,
-                            color: Color(0xFF22D3EE),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Solicitar Nova',
-                            style: GoogleFonts.inter(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                              letterSpacing: 0.3,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '${members.length} MEMBROS',
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.cardMutedText,
+                  letterSpacing: 1.2,
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              physics: const BouncingScrollPhysics(),
-              clipBehavior: Clip.none,
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Row(
-                children: List.generate(members.length, (index) {
-                  final member = members[index];
-                  final hasActiveCard = activeCardsMap.containsKey(member.id);
-                  final request = requests.where((r) => r.memberId == member.id).firstOrNull;
-                  
-                  final activeMembers = members.where((m) => activeCardsMap.containsKey(m.id)).toList();
-                  final isSelected = hasActiveCard && activeMembers.indexOf(member) == selectedIdx;
+              GestureDetector(
+                onTap: _handleRequestNewCard,
+                behavior: HitTestBehavior.opaque,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 12,
+                  ), // Aumentado de 16/10
+                  decoration: BoxDecoration(
+                    color: const Color(0x2E22D3EE),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: const Color(0xFF22D3EE).withValues(alpha: 0.4),
+                      width: 1.2,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF22D3EE).withValues(alpha: 0.15),
+                        blurRadius: 12,
+                        spreadRadius: -2,
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        PhosphorIconsRegular.plusCircle,
+                        size: 16,
+                        color: Color(0xFF22D3EE),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Solicitar Nova',
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          clipBehavior: Clip.none,
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Row(
+            children: List.generate(members.length, (index) {
+              final member = members[index];
+              final hasActiveCard = activeCardsMap.containsKey(member.id);
+              final request = requests
+                  .where((r) => r.memberId == member.id)
+                  .firstOrNull;
 
-                  return GestureDetector(
-                    onTap: () {
-                      if (hasActiveCard) {
-                        final idx = activeMembers.indexOf(member);
-                        setState(() {
-                          _selectedMemberIndex = idx;
-                          _showBack = false;
-                        });
-                      } else {
-                        String message = '${member.name} não possui carteirinha ativa.';
-                        if (request != null) {
-                          message = 'Carteirinha de ${member.name} está em análise.';
-                        }
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(message),
-                            backgroundColor: AppColors.alertOrange,
-                            behavior: SnackBarBehavior.floating,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            duration: const Duration(seconds: 2),
-                          ),
-                        );
-                      }
-                    },
-                    behavior: HitTestBehavior.opaque,
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
-                      margin: const EdgeInsets.only(right: 12),
-                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12), // Preenchimento aumentado
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? AppColors.primary.withValues(alpha: 0.15)
-                            : const Color(0xA60F172A),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: isSelected
-                              ? AppColors.primary.withValues(alpha: 0.5)
-                              : const Color(0x2E94A3B8),
-                          width: 1.5,
+              final activeMembers = members
+                  .where((m) => activeCardsMap.containsKey(m.id))
+                  .toList();
+              final isSelected =
+                  hasActiveCard && activeMembers.indexOf(member) == selectedIdx;
+
+              return GestureDetector(
+                onTap: () {
+                  if (hasActiveCard) {
+                    final idx = activeMembers.indexOf(member);
+                    setState(() {
+                      _selectedMemberIndex = idx;
+                      _showBack = false;
+                    });
+                  } else {
+                    String message =
+                        '${member.name} não possui carteirinha ativa.';
+                    if (request != null) {
+                      message =
+                          'Carteirinha de ${member.name} está em análise.';
+                    }
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(message),
+                        backgroundColor: AppColors.alertOrange,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        boxShadow: isSelected
-                            ? [
-                                BoxShadow(
-                                  color: AppColors.primary.withValues(alpha: 0.25),
-                                  blurRadius: 12,
-                                  offset: const Offset(0, 4),
-                                ),
-                                BoxShadow(
-                                  color: Colors.white.withValues(alpha: 0.1),
-                                  blurRadius: 0,
-                                  spreadRadius: 0.5,
-                                ),
-                              ]
-                            : [],
+                        duration: const Duration(seconds: 2),
                       ),
-                      child: Row(
+                    );
+                  }
+                },
+                behavior: HitTestBehavior.opaque,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  margin: const EdgeInsets.only(right: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 12,
+                  ), // Preenchimento aumentado
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? AppColors.primary.withValues(alpha: 0.15)
+                        : const Color(0xA60F172A),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: isSelected
+                          ? AppColors.primary.withValues(alpha: 0.5)
+                          : const Color(0x2E94A3B8),
+                      width: 1.5,
+                    ),
+                    boxShadow: isSelected
+                        ? [
+                            BoxShadow(
+                              color: AppColors.primary.withValues(alpha: 0.25),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                            BoxShadow(
+                              color: Colors.white.withValues(alpha: 0.1),
+                              blurRadius: 0,
+                              spreadRadius: 0.5,
+                            ),
+                          ]
+                        : [],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          gradient: isSelected
+                              ? AppColors.premiumGradient
+                              : null,
+                          color: isSelected ? null : const Color(0xFF1E293B),
+                          shape: BoxShape.circle,
+                          border: isSelected
+                              ? Border.all(
+                                  color: Colors.white.withValues(alpha: 0.2),
+                                  width: 1,
+                                )
+                              : null,
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          member.initials,
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                            color: isSelected
+                                ? Colors.white
+                                : AppColors.primary,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Container(
-                            width: 32,
-                            height: 32,
-                            decoration: BoxDecoration(
-                              gradient: isSelected ? AppColors.premiumGradient : null,
-                              color: isSelected ? null : const Color(0xFF1E293B),
-                              shape: BoxShape.circle,
-                              border: isSelected ? Border.all(color: Colors.white.withValues(alpha: 0.2), width: 1) : null,
+                          Text(
+                            member.name.split(' ').first,
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              fontWeight: isSelected
+                                  ? FontWeight.w800
+                                  : FontWeight.w600,
+                              color: isSelected
+                                  ? Colors.white
+                                  : AppColors.cardSubtitle,
                             ),
-                            alignment: Alignment.center,
-                            child: Text(
-                              member.initials,
+                          ),
+                          if (isSelected)
+                            Container(
+                              height: 2,
+                              width: 12,
+                              margin: const EdgeInsets.only(top: 2),
+                              decoration: BoxDecoration(
+                                color: AppColors.statusGreen,
+                                borderRadius: BorderRadius.circular(1),
+                              ),
+                            )
+                          else if (request != null && !hasActiveCard)
+                            Text(
+                              'Em análise',
                               style: GoogleFonts.inter(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w800,
-                                color: isSelected ? Colors.white : AppColors.primary,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.alertOrange,
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 10),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                member.name.split(' ').first,
-                                style: GoogleFonts.inter(
-                                  fontSize: 14,
-                                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                                  color: isSelected ? Colors.white : AppColors.cardSubtitle,
-                                ),
-                              ),
-                              if (isSelected)
-                                Container(
-                                  height: 2,
-                                  width: 12,
-                                  margin: const EdgeInsets.only(top: 2),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.statusGreen,
-                                    borderRadius: BorderRadius.circular(1),
-                                  ),
-                                )
-                              else if (request != null && !hasActiveCard)
-                                Text(
-                                  'Em análise',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.alertOrange,
-                                  ),
-                                ),
-                            ],
-                          ),
-                          if (hasActiveCard && !isSelected)
-                             Padding(
-                               padding: const EdgeInsets.only(left: 8),
-                               child: Icon(
-                                 PhosphorIconsFill.checkCircle,
-                                 size: 14,
-                                 color: AppColors.statusGreen.withValues(alpha: 0.5),
-                                ),
-                             ),
                         ],
                       ),
-                    ),
-                  );
-                }),
-              ),
-            ),
-          ],
-        );
+                      if (hasActiveCard && !isSelected)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 8),
+                          child: Icon(
+                            PhosphorIconsFill.checkCircle,
+                            size: 14,
+                            color: AppColors.statusGreen.withValues(alpha: 0.5),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildInfoBlock({
@@ -542,9 +703,6 @@ class _CardsViewState extends State<CardsView> {
     );
   }
 
-
-
-
   void _openFullScreen(
     Member member,
     List<Member> activeMembers,
@@ -581,7 +739,10 @@ class _CardsViewState extends State<CardsView> {
           const SizedBox(height: 4),
           Text(
             'Gerencie as carteirinhas vinculadas à sua conta.',
-            style: GoogleFonts.inter(fontSize: 14, color: AppColors.cardSubtitle),
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              color: AppColors.cardSubtitle,
+            ),
           ),
           const SizedBox(height: 48),
           Center(
@@ -591,8 +752,11 @@ class _CardsViewState extends State<CardsView> {
                 color: AppColors.alertOrange.withValues(alpha: 0.08),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(PhosphorIconsRegular.clockClockwise,
-                  size: 72, color: AppColors.alertOrange),
+              child: const Icon(
+                PhosphorIconsRegular.clockClockwise,
+                size: 72,
+                color: AppColors.alertOrange,
+              ),
             ),
           ),
           const SizedBox(height: 24),
@@ -629,9 +793,18 @@ class _CardsViewState extends State<CardsView> {
             final req = requests.firstWhere(
               (r) => r.memberId == m.id,
               orElse: () => CardRequest(
-                id: '', userId: '', memberId: m.id, type: '', status: 'waiting_approval',
-                protocol: '', adminNotes: '', driveFolderUrl: '', documentUrl: '',
-                medicalReportUrl: '', createdAt: DateTime.now(), updatedAt: DateTime.now(),
+                id: '',
+                userId: '',
+                memberId: m.id,
+                type: '',
+                status: 'waiting_approval',
+                protocol: '',
+                adminNotes: '',
+                driveFolderUrl: '',
+                documentUrl: '',
+                medicalReportUrl: '',
+                createdAt: DateTime.now(),
+                updatedAt: DateTime.now(),
               ),
             );
             return PremiumCard(
@@ -677,8 +850,11 @@ class _CardsViewState extends State<CardsView> {
                       ],
                     ),
                   ),
-                  const Icon(PhosphorIconsRegular.clock,
-                      color: AppColors.alertOrange, size: 20),
+                  const Icon(
+                    PhosphorIconsRegular.clock,
+                    color: AppColors.alertOrange,
+                    size: 20,
+                  ),
                 ],
               ),
             );
@@ -699,7 +875,11 @@ class _CardsViewState extends State<CardsView> {
               color: AppColors.primary.withValues(alpha: 0.05),
               shape: BoxShape.circle,
             ),
-            child: const Icon(PhosphorIconsRegular.identificationCard, size: 72, color: AppColors.primary),
+            child: const Icon(
+              PhosphorIconsRegular.identificationCard,
+              size: 72,
+              color: AppColors.primary,
+            ),
           ),
           const SizedBox(height: 24),
           Text(
@@ -722,6 +902,15 @@ class _CardsViewState extends State<CardsView> {
               ),
             ),
           ),
+          const SizedBox(height: 32),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 48),
+            child: PremiumButton(
+              text: 'Solicitar Carteirinha',
+              onPressed: _handleRequestNewCard,
+              icon: PhosphorIconsRegular.plusCircle,
+            ),
+          ),
         ],
       ),
     );
@@ -729,15 +918,20 @@ class _CardsViewState extends State<CardsView> {
 
   String _getStatusLabel(String status) {
     switch (status) {
-      case 'active': return 'Carteirinha ativa';
-      case 'waiting_approval': return 'Em análise pela equipe';
-      case 'waiting_docs': return 'Aguardando documentação';
-      case 'reviewing_data': return 'Revisão de dados';
-      case 'rejected': return 'Solicitação reprovada';
-      case 'suspended': return 'Carteirinha suspensa';
-      default: return 'Em análise';
+      case 'active':
+        return 'Carteirinha ativa';
+      case 'waiting_approval':
+        return 'Em análise pela equipe';
+      case 'waiting_docs':
+        return 'Aguardando documentação';
+      case 'reviewing_data':
+        return 'Revisão de dados';
+      case 'rejected':
+        return 'Solicitação reprovada';
+      case 'suspended':
+        return 'Carteirinha suspensa';
+      default:
+        return 'Em análise';
     }
   }
 }
-
-

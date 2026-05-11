@@ -173,7 +173,11 @@ class _HomeViewState extends State<HomeView> {
       );
       return;
     }
-    context.push('/member-selection');
+    // Navegação direta para AddMemberPage em vez de MemberSelectionPage
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const AddMemberPage()),
+    ).then((_) => _loadData());
   }
 
   Future<void> _handleRenewalRequest(String requestId) async {
@@ -344,8 +348,9 @@ class _HomeViewState extends State<HomeView> {
                               onRequestRenewal: _handleRenewalRequest,
                               onSupportTap: _handleSupportTap,
                               onOpenMural: () => widget.onNavigate(2),
-                              onViewAllMembers: () =>
-                                  context.push('/member-selection'),
+                              onViewAllMembers: () => widget.onNavigate(
+                                1,
+                              ), // Redireciona para aba Carteirinhas
                             );
                           },
                         );
