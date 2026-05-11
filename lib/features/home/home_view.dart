@@ -23,6 +23,7 @@ import 'package:conectea/features/home/widgets/comum/home_section_header.dart';
 import 'package:conectea/features/home/widgets/acesso_rapido/home_quick_access_section.dart';
 import 'package:conectea/features/home/widgets/outros_servicos/home_services_section.dart';
 import 'package:conectea/features/home/widgets/informacoes/home_information_section.dart';
+import 'package:conectea/features/home/utils/home_status_helper.dart';
  
 class HomeView extends StatefulWidget {
   final Function(int) onNavigate;
@@ -477,6 +478,7 @@ class _HomeViewState extends State<HomeView> {
               final isSelected = index == _selectedMemberIndex;
               final member = _members[index];
               final initials = member.initials;
+              final statusInfo = HomeStatusHelper.memberStatus(member.status);
 
               return GestureDetector(
                 onTap: () {
@@ -558,11 +560,7 @@ class _HomeViewState extends State<HomeView> {
                                 width: 6,
                                 height: 6,
                                 decoration: BoxDecoration(
-                                  color:
-                                      member.status.toLowerCase() ==
-                                              'ativa' ||
-                                          member.status.toLowerCase() ==
-                                              'active'
+                                  color: statusInfo.isActive
                                       ? AppColors.statusGreen
                                       : AppColors.alertOrange,
                                   shape: BoxShape.circle,
@@ -570,43 +568,11 @@ class _HomeViewState extends State<HomeView> {
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                () {
-                                  final status = member.status.toLowerCase();
-                                  switch (status) {
-                                    case 'active':
-                                    case 'ativa':
-                                      return 'Ativa';
-                                    case 'waiting_approval':
-                                    case 'under_review':
-                                    case 'analise':
-                                      return 'Em Análise';
-                                    case 'waiting_docs':
-                                      return 'Aguardando Docs';
-                                    case 'reviewing_data':
-                                      return 'Revisar Dados';
-                                    case 'rejected':
-                                    case 'rejeitada':
-                                      return 'Reprovada';
-                                    case 'suspended':
-                                    case 'suspensa':
-                                      return 'Suspensa';
-                                    case 'expired':
-                                    case 'vencida':
-                                      return 'Vencida';
-                                    case 'renewing':
-                                      return 'Em Renovação';
-                                    default:
-                                      return 'Em Análise';
-                                  }
-                                }(),
+                                statusInfo.shortLabel,
                                 style: GoogleFonts.inter(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w700,
-                                  color:
-                                      member.status.toLowerCase() ==
-                                              'ativa' ||
-                                          member.status.toLowerCase() ==
-                                              'active'
+                                  color: statusInfo.isActive
                                       ? AppColors.statusGreen
                                       : AppColors.alertOrange,
                                 ),
@@ -718,81 +684,20 @@ class _HomeViewState extends State<HomeView> {
     final String rawStatus =
         (memberRequest?.status ?? member.status).toLowerCase();
 
-    String statusDisplay = 'EM ANÁLISE';
-    Color statusColor = AppColors.alertOrange;
-    IconData statusIcon = Icons.history_rounded;
-    bool isActive = false;
-    bool showJustification = false;
-    bool isRejected = false;
-
     final lastUpdate = memberRequest?.updatedAt ?? member.updatedAt;
     final isExpired =
         rawStatus == 'active' &&
         DateTime.now().difference(lastUpdate).inDays >= 365;
-    final effectiveStatus = isExpired ? 'expired' : rawStatus;
-    final status = effectiveStatus;
+    final statusInfo = HomeStatusHelper.digitalCardStatus(rawStatus, isExpired: isExpired);
+    final status = isExpired ? 'expired' : rawStatus;
+    final effectiveStatus = status;
 
-    switch (effectiveStatus) {
-      case 'active':
-      case 'ativa':
-      case 'approved':
-      case 'aprovada':
-        statusDisplay = 'ATIVA';
-        statusColor = AppColors.statusGreen;
-        statusIcon = Icons.check_circle_rounded;
-        isActive = true;
-        break;
-      case 'waiting_approval':
-      case 'under_review':
-      case 'analise':
-        statusDisplay = 'EM ANÁLISE';
-        statusColor = AppColors.alertOrange;
-        statusIcon = Icons.history_rounded;
-        break;
-      case 'waiting_docs':
-        statusDisplay = 'AGUARDANDO DOCS';
-        statusColor = AppColors.cardBlue;
-        statusIcon = Icons.file_present_rounded;
-        showJustification = true;
-        break;
-      case 'reviewing_data':
-        statusDisplay = 'REVISAR DADOS';
-        statusColor = AppColors.alertOrange;
-        statusIcon = Icons.edit_note_rounded;
-        showJustification = true;
-        break;
-      case 'rejected':
-      case 'rejeitada':
-        statusDisplay = 'REPROVADA';
-        statusColor = AppColors.errorRed;
-        statusIcon = Icons.error_outline_rounded;
-        showJustification = true;
-        isRejected = true;
-        break;
-      case 'suspended':
-      case 'suspensa':
-        statusDisplay = 'SUSPENSA';
-        statusColor = AppColors.adminBlock;
-        statusIcon = Icons.block_rounded;
-        showJustification = true;
-        break;
-      case 'expired':
-      case 'vencida':
-        statusDisplay = 'VENCIDA';
-        statusColor = Colors.brown;
-        statusIcon = Icons.event_busy_rounded;
-        break;
-      case 'renewing':
-      case 'renovacao':
-        statusDisplay = 'RENOVAÇÃO';
-        statusColor = AppColors.primary;
-        statusIcon = Icons.autorenew_rounded;
-        break;
-      default:
-        statusDisplay = 'EM ANÁLISE';
-        statusColor = AppColors.alertOrange;
-        statusIcon = Icons.pending_actions_rounded;
-    }
+    final String statusDisplay = statusInfo.fullLabel;
+    final Color statusColor = statusInfo.color;
+    final IconData statusIcon = statusInfo.icon;
+    final bool isActive = statusInfo.isActive;
+    final bool showJustification = statusInfo.showJustification;
+    final bool isRejected = statusInfo.isRejected;
 
     final adminNotes = memberRequest?.adminNotes ?? '';
 
@@ -1051,61 +956,12 @@ class _HomeViewState extends State<HomeView> {
     if (request == null) return const SizedBox.shrink();
 
     final String rawStatus = request.status.toLowerCase();
-    String statusDisplay = 'EM ANÁLISE';
-    Color statusColor = AppColors.alertOrange;
-    IconData statusIcon = Icons.history_edu_rounded;
-    bool isApproved = false;
+    final statusInfo = HomeStatusHelper.ongoingRequestStatus(rawStatus);
 
-    switch (rawStatus) {
-      case 'active':
-      case 'ativa':
-      case 'approved':
-      case 'aprovada':
-        statusDisplay = 'ATIVA';
-        statusColor = AppColors.statusGreen;
-        statusIcon = Icons.check_circle_rounded;
-        isApproved = true;
-        break;
-      case 'waiting_approval':
-      case 'under_review':
-      case 'analise':
-        statusDisplay = 'EM ANÁLISE';
-        statusColor = AppColors.alertOrange;
-        statusIcon = Icons.history_rounded;
-        break;
-      case 'waiting_docs':
-        statusDisplay = 'AGUARDANDO DOCS';
-        statusColor = AppColors.cardBlue;
-        statusIcon = Icons.file_present_rounded;
-        break;
-      case 'reviewing_data':
-        statusDisplay = 'REVISAR DADOS';
-        statusColor = AppColors.alertOrange;
-        statusIcon = Icons.edit_note_rounded;
-        break;
-      case 'rejected':
-      case 'rejeitada':
-        statusDisplay = 'REPROVADA';
-        statusColor = AppColors.errorRed;
-        statusIcon = Icons.error_outline_rounded;
-        break;
-      case 'suspended':
-      case 'suspensa':
-        statusDisplay = 'SUSPENSA';
-        statusColor = AppColors.adminBlock;
-        statusIcon = Icons.block_rounded;
-        break;
-      case 'expired':
-      case 'vencida':
-        statusDisplay = 'VENCIDA';
-        statusColor = Colors.brown;
-        statusIcon = Icons.event_busy_rounded;
-        break;
-      default:
-        statusDisplay = 'EM ANÁLISE';
-        statusColor = AppColors.alertOrange;
-        statusIcon = Icons.pending_actions_rounded;
-    }
+    final String statusDisplay = statusInfo.fullLabel;
+    final Color statusColor = statusInfo.color;
+    final IconData statusIcon = statusInfo.icon;
+    final bool isApproved = statusInfo.isActive;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
