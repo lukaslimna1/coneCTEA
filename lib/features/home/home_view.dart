@@ -25,6 +25,7 @@ import 'package:conectea/features/home/widgets/header/home_greeting_header.dart'
 import 'package:conectea/features/home/widgets/solicitacoes/home_ongoing_request_section.dart';
 import 'package:conectea/features/home/widgets/membros/home_members_section.dart';
 import 'package:conectea/features/home/widgets/carteirinha/home_digital_card_section.dart';
+import 'package:conectea/features/requests/add_member_page.dart';
 
 class HomeView extends StatefulWidget {
   final Function(int) onNavigate;
@@ -196,16 +197,14 @@ class _HomeViewState extends State<HomeView> {
     try {
       await _databaseService.updateCardRequestStatus(
         requestId,
-        'waiting_docs',
+        'renewing',
         adminNotes: 'Pedido de renovação iniciado pelo usuário.',
       );
       await _loadData();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text(
-              'Solicitação reiniciada. Por favor, envie os documentos atualizados.',
-            ),
+            content: Text('Pedido de renovação enviado com sucesso!'),
             backgroundColor: AppColors.primary,
           ),
         );
@@ -342,7 +341,15 @@ class _HomeViewState extends State<HomeView> {
                               onRequestCard: _handleRequestCard,
                               onOpenDigitalCard: () => widget.onNavigate(1),
                               onEditPendingRequest: (member, request) =>
-                                  _handleRequestCard(),
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => AddMemberPage(
+                                        member: member,
+                                        request: request,
+                                      ),
+                                    ),
+                                  ),
                               onRequestRenewal: _handleRenewalRequest,
                               onSupportTap: _handleSupportTap,
                             ),
