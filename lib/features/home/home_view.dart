@@ -349,7 +349,7 @@ class _HomeViewState extends State<HomeView> {
                                         request: request,
                                       ),
                                     ),
-                                  ),
+                                  ).then((_) => _loadData()),
                               onRequestRenewal: _handleRenewalRequest,
                               onSupportTap: _handleSupportTap,
                             ),
@@ -379,16 +379,7 @@ class _HomeViewState extends State<HomeView> {
                             const HomeServicesSection(),
                             const SizedBox(height: 24),
                             HomeInformationSection(
-                              onSupportTap: () async {
-                                const whatsappUrl =
-                                    "https://wa.me/5514997728448";
-                                if (await canLaunchUrlString(whatsappUrl)) {
-                                  await launchUrlString(
-                                    whatsappUrl,
-                                    mode: LaunchMode.externalApplication,
-                                  );
-                                }
-                              },
+                              onSupportTap: _handleSupportTap,
                               onAboutTap: () => Navigator.push(
                                 context,
                                 MaterialPageRoute(
