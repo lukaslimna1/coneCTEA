@@ -15,7 +15,6 @@ import 'package:conectea/features/account/edit_profile_view.dart';
 import 'package:conectea/features/account/security_view.dart';
 import 'package:conectea/features/home/about_conectea_view.dart';
 import 'package:conectea/features/home/family_tea_view.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/widgets/premium/premium_card.dart';
 import 'package:conectea/features/home/widgets/banners/highlight_banner.dart';
@@ -24,7 +23,8 @@ import 'package:conectea/features/home/widgets/acesso_rapido/home_quick_access_s
 import 'package:conectea/features/home/widgets/outros_servicos/home_services_section.dart';
 import 'package:conectea/features/home/widgets/informacoes/home_information_section.dart';
 import 'package:conectea/features/home/utils/home_status_helper.dart';
- 
+import 'package:conectea/features/home/widgets/header/home_greeting_header.dart';
+
 class HomeView extends StatefulWidget {
   final Function(int) onNavigate;
 
@@ -263,18 +263,24 @@ class _HomeViewState extends State<HomeView> {
           );
         }
 
-        final members = (memberSnapshot.data ?? []).whereType<Member>().toList();
+        final members = (memberSnapshot.data ?? [])
+            .whereType<Member>()
+            .toList();
         final selectedMember = _getSelectedMember(members);
 
         return StreamBuilder<List<CardRequest>>(
           stream: _databaseService.cardRequestsStream(userId),
           builder: (context, requestSnapshot) {
-            final requests = (requestSnapshot.data ?? []).whereType<CardRequest>().toList();
+            final requests = (requestSnapshot.data ?? [])
+                .whereType<CardRequest>()
+                .toList();
 
             return StreamBuilder<List<DigitalCard>>(
               stream: _databaseService.digitalCardsStream(userId),
               builder: (context, cardSnapshot) {
-                final digitalCards = (cardSnapshot.data ?? []).whereType<DigitalCard>().toList();
+                final digitalCards = (cardSnapshot.data ?? [])
+                    .whereType<DigitalCard>()
+                    .toList();
 
                 return Scaffold(
                   backgroundColor: Colors.transparent,
@@ -291,7 +297,10 @@ class _HomeViewState extends State<HomeView> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _buildGreeting(),
+                            HomeGreetingHeader(
+                              displayName: _displayName,
+                              onQrTap: () => context.push('/qr-scanner'),
+                            ),
                             const SizedBox(height: 12),
                             _buildOngoingRequestSection(requests),
                             const SizedBox(height: 12),
@@ -307,14 +316,17 @@ class _HomeViewState extends State<HomeView> {
                             HomeQuickAccessSection(
                               onOpenDigitalCard: () {
                                 if (selectedMember != null &&
-                                    (selectedMember.status.toLowerCase() == 'ativa' ||
-                                     selectedMember.status.toLowerCase() == 'active')) {
+                                    (selectedMember.status.toLowerCase() ==
+                                            'ativa' ||
+                                        selectedMember.status.toLowerCase() ==
+                                            'active')) {
                                   widget.onNavigate(1);
                                 } else {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
                                       content: Text(
-                                          'Carteirinha ainda não disponível.'),
+                                        'Carteirinha ainda não disponível.',
+                                      ),
                                     ),
                                   );
                                 }
@@ -339,19 +351,21 @@ class _HomeViewState extends State<HomeView> {
                               onAboutTap: () => Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) =>
-                                        const AboutConecteaView()),
+                                  builder: (context) =>
+                                      const AboutConecteaView(),
+                                ),
                               ),
                               onSecurityTap: () => Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) => const SecurityView()),
+                                  builder: (context) => const SecurityView(),
+                                ),
                               ),
                               onFamilyTeaTap: () => Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) =>
-                                        const FamilyTeaView()),
+                                  builder: (context) => const FamilyTeaView(),
+                                ),
                               ),
                             ),
                             const SizedBox(height: 24),
@@ -404,60 +418,6 @@ class _HomeViewState extends State<HomeView> {
     if (request == null) return const SizedBox.shrink();
 
     return _buildOngoingRequest(request);
-  }
-
-  Widget _buildGreeting() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Olá, $_displayName!',
-                  style: GoogleFonts.inter(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.cardTitle,
-                    letterSpacing: -0.5,
-                  ),
-                ),
-                Text(
-                  'Que bom te ver por aqui.',
-                  style: GoogleFonts.inter(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.cardSubtitle,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          GestureDetector(
-            onTap: () => context.push('/qr-scanner'),
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.1),
-                  width: 1,
-                ),
-              ),
-              child: const Icon(
-                PhosphorIconsBold.qrCode,
-                color: AppColors.cardTitle,
-                size: 28,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   Widget _buildMembersSection(List<Member> members, Member? selectedMember) {
@@ -689,14 +649,17 @@ class _HomeViewState extends State<HomeView> {
       memberRequest = null;
     }
 
-    final String rawStatus =
-        (memberRequest?.status ?? member.status).toLowerCase();
+    final String rawStatus = (memberRequest?.status ?? member.status)
+        .toLowerCase();
 
     final lastUpdate = memberRequest?.updatedAt ?? member.updatedAt;
     final isExpired =
         rawStatus == 'active' &&
         DateTime.now().difference(lastUpdate).inDays >= 365;
-    final statusInfo = HomeStatusHelper.digitalCardStatus(rawStatus, isExpired: isExpired);
+    final statusInfo = HomeStatusHelper.digitalCardStatus(
+      rawStatus,
+      isExpired: isExpired,
+    );
     final status = isExpired ? 'expired' : rawStatus;
     final effectiveStatus = status;
 
@@ -1308,4 +1271,3 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 }
-
