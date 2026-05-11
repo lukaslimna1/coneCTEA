@@ -22,7 +22,13 @@ class RequestPageHeader extends StatelessWidget {
           child: Row(
             children: [
               IconButton(
-                onPressed: () => context.pop(),
+                onPressed: () {
+                  if (context.canPop()) {
+                    context.pop();
+                  } else {
+                    context.go('/home');
+                  }
+                },
                 icon: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(

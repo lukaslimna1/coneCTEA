@@ -50,10 +50,7 @@ class RequestsView extends StatelessWidget {
             final ongoing = requests.where((r) => _isOngoing(r.status)).toList();
             final history = requests.where((r) => !_isOngoing(r.status)).toList();
 
-            return RefreshIndicator(
-              onRefresh: () async {},
-              color: AppColors.primary,
-              child: CustomScrollView(
+            return CustomScrollView(
                 physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
                 slivers: [
                   SliverToBoxAdapter(
@@ -128,8 +125,7 @@ class RequestsView extends StatelessWidget {
                   
                   const SliverToBoxAdapter(child: SizedBox(height: 100)),
                 ],
-              ),
-            );
+              );
           },
         ),
       ),
@@ -219,23 +215,25 @@ class RequestsView extends StatelessWidget {
     final databaseService = DatabaseService();
     final ui = _getStatusUI(request.status);
     final dateFormatted = DateFormat('dd/MM/yyyy').format(request.createdAt);
-    
+
+    bool isActionable = request.status == 'reviewing_data' || request.status == 'waiting_docs';
+
     return PremiumCard(
       hasGradient: true,
-      onTap: () async {
-            if (request.status == 'reviewing_data' || request.status == 'waiting_docs') {
-              final member = await databaseService.getMember(request.memberId);
-              if (member != null && context.mounted) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => AddMemberPage(
-                      member: member,
-                      request: request,
-                    ),
+      onTap: !isActionable
+        ? null
+        : () async {
+            final member = await databaseService.getMember(request.memberId);
+            if (member != null && context.mounted) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AddMemberPage(
+                    member: member,
+                    request: request,
                   ),
-                );
-              }
+                ),
+              );
             }
           },
       child: Column(
@@ -393,6 +391,7 @@ class RequestsView extends StatelessWidget {
   _StatusUI _getStatusUI(String status) {
     switch (status.toLowerCase()) {
       case 'waiting_approval':
+      case 'under_review':
         return _StatusUI('Em análise', AppColors.alertOrange, 0.25);
       case 'reviewing_data':
         return _StatusUI('Revisar Dados', AppColors.alertOrange, 0.45);

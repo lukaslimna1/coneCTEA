@@ -73,7 +73,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
         widget.request!.status == 'waiting_docs') {
       final notes = widget.request!.adminNotes;
       if (!notes.contains('Pendência:')) {
-        return true; // Unlock all if admin didn't use checkboxes
+        return true; // Desbloqueia tudo se o administrador não usou os checkboxes de pendência
       }
       return notes.toLowerCase().contains(fieldName.toLowerCase());
     }
