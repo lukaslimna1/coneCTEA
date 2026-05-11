@@ -18,11 +18,11 @@ import 'package:conectea/features/home/family_tea_view.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/widgets/premium/premium_card.dart';
-import 'package:conectea/features/home/widgets/quick_access_card.dart';
-import 'package:conectea/features/home/widgets/em_breve_service_card.dart';
-import 'package:conectea/features/home/widgets/info_action_card.dart';
-import 'package:conectea/features/home/widgets/highlight_banner.dart';
-import 'package:conectea/features/home/widgets/home_section_header.dart';
+import 'package:conectea/features/home/widgets/banners/highlight_banner.dart';
+import 'package:conectea/features/home/widgets/comum/home_section_header.dart';
+import 'package:conectea/features/home/widgets/acesso_rapido/home_quick_access_section.dart';
+import 'package:conectea/features/home/widgets/outros_servicos/home_services_section.dart';
+import 'package:conectea/features/home/widgets/informacoes/home_information_section.dart';
  
 class HomeView extends StatefulWidget {
   final Function(int) onNavigate;
@@ -293,11 +293,63 @@ class _HomeViewState extends State<HomeView> {
                             const SizedBox(height: 24),
                             _buildCarteirinhaSection(),
                             const SizedBox(height: 32),
-                            _buildBlock1(),
+                            HomeQuickAccessSection(
+                              onOpenDigitalCard: () {
+                                if (_members.isNotEmpty &&
+                                    _selectedMemberIndex < _members.length &&
+                                    (_members[_selectedMemberIndex]
+                                                .status
+                                                .toLowerCase() ==
+                                            'ativa' ||
+                                        _members[_selectedMemberIndex]
+                                                .status
+                                                .toLowerCase() ==
+                                            'active')) {
+                                  widget.onNavigate(1);
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                          'Carteirinha ainda não disponível.'),
+                                    ),
+                                  );
+                                }
+                              },
+                              onRequestCard: _handleRequestCard,
+                              onOpenMural: () => widget.onNavigate(2),
+                            ),
                             const SizedBox(height: 24),
-                            _buildBlock2(),
+                            const HomeServicesSection(),
                             const SizedBox(height: 24),
-                            _buildBlock3(),
+                            HomeInformationSection(
+                              onSupportTap: () async {
+                                const whatsappUrl =
+                                    "https://wa.me/5514997728448";
+                                if (await canLaunchUrlString(whatsappUrl)) {
+                                  await launchUrlString(
+                                    whatsappUrl,
+                                    mode: LaunchMode.externalApplication,
+                                  );
+                                }
+                              },
+                              onAboutTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        const AboutConecteaView()),
+                              ),
+                              onSecurityTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => const SecurityView()),
+                              ),
+                              onFamilyTeaTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        const FamilyTeaView()),
+                              ),
+                            ),
                             const SizedBox(height: 24),
                             HighlightBanner(
                               eyebrow: 'Família TEA Bauru',
@@ -992,169 +1044,6 @@ class _HomeViewState extends State<HomeView> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildBlock1() {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final cardWidth = (screenWidth * 0.72).clamp(280.0, 305.0);
-
-    return _buildCarouselSection(
-      title: 'Acesso Rápido',
-      height: 168,
-      items: [
-        QuickAccessCard(
-          width: cardWidth,
-          icon: PhosphorIcons.identificationCard(PhosphorIconsStyle.light),
-          title: 'Ver carteirinha',
-          subtitle: 'Acesse sua carteirinha digital.',
-          ctaLabel: 'Abrir',
-          accentColor: const Color(0xFF8B5CF6),
-          onTap: () {
-            if (_members.isNotEmpty &&
-                _selectedMemberIndex < _members.length &&
-                (_members[_selectedMemberIndex].status.toLowerCase() ==
-                        'ativa' ||
-                    _members[_selectedMemberIndex].status.toLowerCase() ==
-                        'active')) {
-              widget.onNavigate(1);
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Carteirinha ainda não disponível.'),
-                ),
-              );
-            }
-          },
-        ),
-        QuickAccessCard(
-          width: cardWidth,
-          icon: PhosphorIcons.filePlus(PhosphorIconsStyle.light),
-          title: 'Solicitar',
-          subtitle: 'Peça sua carteirinha ou atualize dados.',
-          ctaLabel: 'Solicitar',
-          accentColor: const Color(0xFF22D3EE),
-          onTap: _handleRequestCard,
-        ),
-        QuickAccessCard(
-          width: cardWidth,
-          icon: PhosphorIcons.chatCircleDots(PhosphorIconsStyle.light),
-          title: 'Meu mural',
-          subtitle: 'Acompanhe avisos e comunicados.',
-          ctaLabel: 'Acessar',
-          accentColor: const Color(0xFF60A5FA),
-          onTap: () => widget.onNavigate(2),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBlock2() {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final cardWidth = (screenWidth * 0.78).clamp(300.0, 340.0);
-
-    return _buildCarouselSection(
-      title: 'Outros Serviços',
-      height: 185,
-      items: [
-        EmBreveServiceCard(
-          width: cardWidth,
-          accentColor: const Color(0xFF8B5CF6),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBlock3() {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final cardWidth = (screenWidth * 0.75).clamp(280.0, 320.0);
-
-    return _buildCarouselSection(
-      title: 'Informações',
-      height: 80,
-      titleSpacing: 10,
-      items: [
-        InfoActionCard(
-          width: cardWidth,
-          icon: PhosphorIcons.headset(PhosphorIconsStyle.fill),
-          title: 'Suporte',
-          subtitle: 'Fale conosco pelo WhatsApp.',
-          accentColor: const Color(0xFF34D399),
-          onTap: () async {
-            const whatsappUrl = "https://wa.me/5514997728448";
-            if (await canLaunchUrlString(whatsappUrl)) {
-              await launchUrlString(
-                whatsappUrl,
-                mode: LaunchMode.externalApplication,
-              );
-            }
-          },
-        ),
-        InfoActionCard(
-          width: cardWidth,
-          icon: PhosphorIcons.info(PhosphorIconsStyle.fill),
-          title: 'Sobre o app',
-          subtitle: 'Entenda o ConeCTEA.',
-          accentColor: const Color(0xFFF59E0B),
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const AboutConecteaView()),
-          ),
-        ),
-        InfoActionCard(
-          width: cardWidth,
-          icon: PhosphorIcons.shieldCheck(PhosphorIconsStyle.fill),
-          title: 'Segurança',
-          subtitle: 'Dados e privacidade.',
-          accentColor: const Color(0xFF818CF8),
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const SecurityView()),
-          ),
-        ),
-        InfoActionCard(
-          width: cardWidth,
-          icon: PhosphorIcons.users(PhosphorIconsStyle.fill),
-          title: 'Família TEA',
-          subtitle: 'Conheça a organização.',
-          accentColor: const Color(0xFF22D3EE),
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const FamilyTeaView()),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCarouselSection({
-    required String title,
-    required List<Widget> items,
-    double height = 185,
-    double titleSpacing = 16,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        HomeSectionHeader(
-          title: title,
-          horizontalPadding: 24,
-          bottomSpacing: 0,
-        ),
-        SizedBox(height: titleSpacing),
-        SizedBox(
-          height: height,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            clipBehavior: Clip.none,
-            itemCount: items.length,
-            separatorBuilder: (_, index) => const SizedBox(width: 14),
-            itemBuilder: (context, index) => items[index],
-          ),
-        ),
-      ],
     );
   }
 
