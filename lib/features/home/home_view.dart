@@ -18,13 +18,13 @@ import 'package:conectea/features/home/family_tea_view.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/widgets/premium/premium_card.dart';
 import 'package:conectea/features/home/widgets/banners/highlight_banner.dart';
-import 'package:conectea/features/home/widgets/comum/home_section_header.dart';
 import 'package:conectea/features/home/widgets/acesso_rapido/home_quick_access_section.dart';
 import 'package:conectea/features/home/widgets/outros_servicos/home_services_section.dart';
 import 'package:conectea/features/home/widgets/informacoes/home_information_section.dart';
 import 'package:conectea/features/home/utils/home_status_helper.dart';
 import 'package:conectea/features/home/widgets/header/home_greeting_header.dart';
 import 'package:conectea/features/home/widgets/solicitacoes/home_ongoing_request_section.dart';
+import 'package:conectea/features/home/widgets/membros/home_members_section.dart';
 
 class HomeView extends StatefulWidget {
   final Function(int) onNavigate;
@@ -308,7 +308,19 @@ class _HomeViewState extends State<HomeView> {
                               onDetailsTap: () => widget.onNavigate(2),
                             ),
                             const SizedBox(height: 12),
-                            _buildMembersSection(members, selectedMember),
+                            HomeMembersSection(
+                              members: members,
+                              selectedMember: selectedMember,
+                              onViewAllTap: () =>
+                                  context.push('/member-selection'),
+                              onMemberSelected: (member) {
+                                if (mounted) {
+                                  setState(() {
+                                    _selectedMemberId = member.id;
+                                  });
+                                }
+                              },
+                            ),
                             const SizedBox(height: 24),
                             _buildCarteirinhaSection(
                               members: members,
@@ -404,141 +416,6 @@ class _HomeViewState extends State<HomeView> {
           },
         );
       },
-    );
-  }
-
-  Widget _buildMembersSection(List<Member> members, Member? selectedMember) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        HomeSectionHeader(
-          title: '${members.length} membros vinculados',
-          subtitle: 'Selecione um membro para visualizar.',
-          actionLabel: 'Ver todos',
-          onActionTap: () => context.push('/member-selection'),
-        ),
-        const SizedBox(height: 12),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          physics: const BouncingScrollPhysics(),
-          clipBehavior: Clip.none,
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Row(
-            children: List.generate(members.length, (index) {
-              final member = members[index];
-              final isSelected = member.id == selectedMember?.id;
-              final initials = member.initials;
-              final statusInfo = HomeStatusHelper.memberStatus(member.status);
-
-              return GestureDetector(
-                onTap: () {
-                  if (mounted) {
-                    setState(() {
-                      _selectedMemberId = member.id;
-                    });
-                  }
-                },
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  margin: const EdgeInsets.only(right: 12),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? Colors.white.withValues(alpha: 0.1)
-                        : Colors.white.withValues(alpha: 0.03),
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(
-                      color: isSelected
-                          ? AppColors.primary
-                          : Colors.white.withValues(alpha: 0.1),
-                      width: isSelected ? 2 : 1,
-                    ),
-                    boxShadow: [
-                      if (isSelected)
-                        BoxShadow(
-                          color: AppColors.primary.withValues(alpha: 0.2),
-                          blurRadius: 15,
-                          offset: const Offset(0, 4),
-                        ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          gradient: isSelected
-                              ? AppColors.premiumGradient
-                              : LinearGradient(
-                                  colors: [
-                                    Colors.white.withValues(alpha: 0.1),
-                                    Colors.white.withValues(alpha: 0.05),
-                                  ],
-                                ),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Center(
-                          child: Text(
-                            initials,
-                            style: GoogleFonts.inter(
-                              color: Colors.white,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            member.name.split(' ').first,
-                            style: GoogleFonts.inter(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.cardTitle,
-                            ),
-                          ),
-                          Row(
-                            children: [
-                              Container(
-                                width: 6,
-                                height: 6,
-                                decoration: BoxDecoration(
-                                  color: statusInfo.isActive
-                                      ? AppColors.statusGreen
-                                      : AppColors.alertOrange,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                statusInfo.shortLabel,
-                                style: GoogleFonts.inter(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                  color: statusInfo.isActive
-                                      ? AppColors.statusGreen
-                                      : AppColors.alertOrange,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }),
-          ),
-        ),
-      ],
     );
   }
 
