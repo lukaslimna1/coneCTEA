@@ -44,7 +44,17 @@ class _HomeViewState extends State<HomeView> {
   List<DigitalCard> _digitalCards = [];
   bool _isLoading = true;
   DateTime? _lastResetRequest;
-  int _selectedMemberIndex = 0;
+  String? _selectedMemberId;
+
+  Member? get _selectedMember {
+    if (_members.isEmpty) return null;
+    if (_selectedMemberId == null) return null;
+    try {
+      return _members.firstWhere((m) => m.id == _selectedMemberId);
+    } catch (_) {
+      return null;
+    }
+  }
 
   @override
   void initState() {
@@ -259,6 +269,19 @@ class _HomeViewState extends State<HomeView> {
         final members = memberSnapshot.data ?? [];
         _members = members.whereType<Member>().toList();
 
+        if (_members.isNotEmpty) {
+          if (_selectedMemberId == null) {
+            _selectedMemberId = _members.first.id;
+          } else {
+            final exists = _members.any((m) => m.id == _selectedMemberId);
+            if (!exists) {
+              _selectedMemberId = _members.first.id;
+            }
+          }
+        } else {
+          _selectedMemberId = null;
+        }
+
         return StreamBuilder<List<CardRequest>>(
           stream: _databaseService.cardRequestsStream(userId),
           builder: (context, requestSnapshot) {
@@ -296,16 +319,10 @@ class _HomeViewState extends State<HomeView> {
                             const SizedBox(height: 32),
                             HomeQuickAccessSection(
                               onOpenDigitalCard: () {
-                                if (_members.isNotEmpty &&
-                                    _selectedMemberIndex < _members.length &&
-                                    (_members[_selectedMemberIndex]
-                                                .status
-                                                .toLowerCase() ==
-                                            'ativa' ||
-                                        _members[_selectedMemberIndex]
-                                                .status
-                                                .toLowerCase() ==
-                                            'active')) {
+                                final selected = _selectedMember;
+                                if (selected != null &&
+                                    (selected.status.toLowerCase() == 'ativa' ||
+                                     selected.status.toLowerCase() == 'active')) {
                                   widget.onNavigate(1);
                                 } else {
                                   ScaffoldMessenger.of(context).showSnackBar(
@@ -475,8 +492,8 @@ class _HomeViewState extends State<HomeView> {
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Row(
             children: List.generate(_members.length, (index) {
-              final isSelected = index == _selectedMemberIndex;
               final member = _members[index];
+              final isSelected = member.id == _selectedMemberId;
               final initials = member.initials;
               final statusInfo = HomeStatusHelper.memberStatus(member.status);
 
@@ -484,7 +501,7 @@ class _HomeViewState extends State<HomeView> {
                 onTap: () {
                   if (mounted) {
                     setState(() {
-                      _selectedMemberIndex = index;
+                      _selectedMemberId = member.id;
                     });
                   }
                 },
@@ -661,11 +678,11 @@ class _HomeViewState extends State<HomeView> {
       );
     }
 
-    if (_members.isEmpty || _selectedMemberIndex >= _members.length) {
+    if (_members.isEmpty || _selectedMember == null) {
       return const SizedBox.shrink();
     }
 
-    final member = _members[_selectedMemberIndex];
+    final member = _selectedMember!;
     
     DigitalCard? digitalCard;
     try {
