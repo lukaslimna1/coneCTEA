@@ -20,6 +20,7 @@ import 'package:conectea/features/requests/widgets/request_input_field.dart';
 import 'package:conectea/features/requests/widgets/request_dropdown_field.dart';
 import 'package:conectea/features/requests/widgets/request_searchable_dropdown.dart';
 import 'package:conectea/features/requests/widgets/request_upload_field.dart';
+import 'package:conectea/features/requests/widgets/request_admin_notes_banner.dart';
 
 class AddMemberPage extends StatefulWidget {
   final Member? member;
@@ -592,47 +593,8 @@ class _AddMemberPageState extends State<AddMemberPage> {
                               if (widget.request != null &&
                                   (widget.request!.status == 'reviewing_data' ||
                                       widget.request!.status == 'waiting_docs'))
-                                Container(
-                                  margin: const EdgeInsets.only(bottom: 24),
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: Colors.orange[50],
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color: Colors.orange[200]!,
-                                    ),
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Icon(
-                                            PhosphorIconsRegular.warningCircle,
-                                            color: Colors.orange[800],
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Text(
-                                            'Ajuste solicitado pelo Administrador',
-                                            style: GoogleFonts.inter(
-                                              fontWeight: FontWeight.w800,
-                                              color: Colors.orange[900],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        widget.request!.adminNotes,
-                                        style: GoogleFonts.inter(
-                                          fontSize: 14,
-                                          color: Colors.orange[900],
-                                          height: 1.5,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                                RequestAdminNotesBanner(
+                                  adminNotes: widget.request!.adminNotes,
                                 ),
 
                               const SizedBox(height: 12),
