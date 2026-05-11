@@ -39,20 +39,17 @@ class _HomeViewState extends State<HomeView> {
   final AuthService _authService = AuthService();
 
   AppUser? _user;
-  List<Member> _members = [];
-  List<CardRequest> _requests = [];
-  List<DigitalCard> _digitalCards = [];
   bool _isLoading = true;
   DateTime? _lastResetRequest;
   String? _selectedMemberId;
 
-  Member? get _selectedMember {
-    if (_members.isEmpty) return null;
-    if (_selectedMemberId == null) return null;
+  Member? _getSelectedMember(List<Member> members) {
+    if (members.isEmpty) return null;
+    if (_selectedMemberId == null) return members.first;
     try {
-      return _members.firstWhere((m) => m.id == _selectedMemberId);
+      return members.firstWhere((m) => m.id == _selectedMemberId);
     } catch (_) {
-      return null;
+      return members.first;
     }
   }
 
@@ -266,33 +263,18 @@ class _HomeViewState extends State<HomeView> {
           );
         }
 
-        final members = memberSnapshot.data ?? [];
-        _members = members.whereType<Member>().toList();
-
-        if (_members.isNotEmpty) {
-          if (_selectedMemberId == null) {
-            _selectedMemberId = _members.first.id;
-          } else {
-            final exists = _members.any((m) => m.id == _selectedMemberId);
-            if (!exists) {
-              _selectedMemberId = _members.first.id;
-            }
-          }
-        } else {
-          _selectedMemberId = null;
-        }
+        final members = (memberSnapshot.data ?? []).whereType<Member>().toList();
+        final selectedMember = _getSelectedMember(members);
 
         return StreamBuilder<List<CardRequest>>(
           stream: _databaseService.cardRequestsStream(userId),
           builder: (context, requestSnapshot) {
-            final requests = requestSnapshot.data ?? [];
-            _requests = requests.whereType<CardRequest>().toList();
+            final requests = (requestSnapshot.data ?? []).whereType<CardRequest>().toList();
 
             return StreamBuilder<List<DigitalCard>>(
               stream: _databaseService.digitalCardsStream(userId),
               builder: (context, cardSnapshot) {
-                final cards = cardSnapshot.data ?? [];
-                _digitalCards = cards.whereType<DigitalCard>().toList();
+                final digitalCards = (cardSnapshot.data ?? []).whereType<DigitalCard>().toList();
 
                 return Scaffold(
                   backgroundColor: Colors.transparent,
@@ -311,18 +293,22 @@ class _HomeViewState extends State<HomeView> {
                           children: [
                             _buildGreeting(),
                             const SizedBox(height: 12),
-                            _buildOngoingRequestSection(_requests),
+                            _buildOngoingRequestSection(requests),
                             const SizedBox(height: 12),
-                            _buildMembersSection(),
+                            _buildMembersSection(members, selectedMember),
                             const SizedBox(height: 24),
-                            _buildCarteirinhaSection(),
+                            _buildCarteirinhaSection(
+                              members: members,
+                              requests: requests,
+                              digitalCards: digitalCards,
+                              selectedMember: selectedMember,
+                            ),
                             const SizedBox(height: 32),
                             HomeQuickAccessSection(
                               onOpenDigitalCard: () {
-                                final selected = _selectedMember;
-                                if (selected != null &&
-                                    (selected.status.toLowerCase() == 'ativa' ||
-                                     selected.status.toLowerCase() == 'active')) {
+                                if (selectedMember != null &&
+                                    (selectedMember.status.toLowerCase() == 'ativa' ||
+                                     selectedMember.status.toLowerCase() == 'active')) {
                                   widget.onNavigate(1);
                                 } else {
                                   ScaffoldMessenger.of(context).showSnackBar(
@@ -474,12 +460,12 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
-  Widget _buildMembersSection() {
+  Widget _buildMembersSection(List<Member> members, Member? selectedMember) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         HomeSectionHeader(
-          title: '${_members.length} membros vinculados',
+          title: '${members.length} membros vinculados',
           subtitle: 'Selecione um membro para visualizar.',
           actionLabel: 'Ver todos',
           onActionTap: () => context.push('/member-selection'),
@@ -491,9 +477,9 @@ class _HomeViewState extends State<HomeView> {
           clipBehavior: Clip.none,
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Row(
-            children: List.generate(_members.length, (index) {
-              final member = _members[index];
-              final isSelected = member.id == _selectedMemberId;
+            children: List.generate(members.length, (index) {
+              final member = members[index];
+              final isSelected = member.id == selectedMember?.id;
               final initials = member.initials;
               final statusInfo = HomeStatusHelper.memberStatus(member.status);
 
@@ -609,8 +595,13 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
-  Widget _buildCarteirinhaSection() {
-    if (_members.isEmpty) {
+  Widget _buildCarteirinhaSection({
+    required List<Member> members,
+    required List<CardRequest> requests,
+    required List<DigitalCard> digitalCards,
+    required Member? selectedMember,
+  }) {
+    if (members.isEmpty) {
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24),
         child: PremiumCard(
@@ -678,22 +669,22 @@ class _HomeViewState extends State<HomeView> {
       );
     }
 
-    if (_members.isEmpty || _selectedMember == null) {
+    if (selectedMember == null) {
       return const SizedBox.shrink();
     }
 
-    final member = _selectedMember!;
-    
+    final member = selectedMember;
+
     DigitalCard? digitalCard;
     try {
-      digitalCard = _digitalCards.firstWhere((c) => c.memberId == member.id);
+      digitalCard = digitalCards.firstWhere((c) => c.memberId == member.id);
     } catch (_) {
       digitalCard = null;
     }
 
     CardRequest? memberRequest;
     try {
-      memberRequest = _requests.firstWhere((r) => r.memberId == member.id);
+      memberRequest = requests.firstWhere((r) => r.memberId == member.id);
     } catch (_) {
       memberRequest = null;
     }
