@@ -8,21 +8,66 @@
 -- ============================================================
 
 -- ─────────────────────────────────────────────────────────────
--- LIMPEZA DE POLICIES LEGADAS
--- Garante que permissões antigas sejam removidas antes de aplicar as novas.
+-- GARANTIR RLS HABILITADO
 -- ─────────────────────────────────────────────────────────────
-DROP POLICY IF EXISTS "Profiles are viewable by everyone" ON public.profiles;
-DROP POLICY IF EXISTS "Admins can update any profile" ON public.profiles;
-DROP POLICY IF EXISTS "Admins can view all digital cards" ON public.digital_cards;
-DROP POLICY IF EXISTS "Admins can upsert all digital cards" ON public.digital_cards;
-DROP POLICY IF EXISTS "Digital cards are viewable by admins" ON public.digital_cards;
-DROP POLICY IF EXISTS "Digital cards are manageable by admins" ON public.digital_cards;
-DROP POLICY IF EXISTS "Notifications are viewable by owner" ON public.notifications;
+ALTER TABLE public.card_requests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.members ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.digital_cards ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
+
+-- ─────────────────────────────────────────────────────────────
+-- LIMPEZA DE POLICIES LEGADAS (SANEAMENTO COMPLETO)
+-- Garante que permissões antigas/duplicadas sejam removidas.
+-- ─────────────────────────────────────────────────────────────
+
+-- Tabela: card_requests
+DROP POLICY IF EXISTS "Admins can update all card requests" ON public.card_requests;
+DROP POLICY IF EXISTS "Admins can update requests" ON public.card_requests;
 DROP POLICY IF EXISTS "Admins can view all card requests" ON public.card_requests;
+DROP POLICY IF EXISTS "Admins can view all requests" ON public.card_requests;
+DROP POLICY IF EXISTS "Users can insert own card requests" ON public.card_requests;
+DROP POLICY IF EXISTS "Users can manage own requests" ON public.card_requests;
+DROP POLICY IF EXISTS "Users can update own card requests" ON public.card_requests;
 DROP POLICY IF EXISTS "Users can view own card requests" ON public.card_requests;
 DROP POLICY IF EXISTS "Enable insert for authenticated users only" ON public.card_requests;
 DROP POLICY IF EXISTS "Enable update for authenticated users only" ON public.card_requests;
 DROP POLICY IF EXISTS "Enable delete for authenticated users only" ON public.card_requests;
+
+-- Tabela: digital_cards
+DROP POLICY IF EXISTS "Admins can upsert all digital cards" ON public.digital_cards;
+DROP POLICY IF EXISTS "Admins can view all digital cards" ON public.digital_cards;
+DROP POLICY IF EXISTS "Admins podem atualizar carteirinhas" ON public.digital_cards;
+DROP POLICY IF EXISTS "Admins podem inserir carteirinhas" ON public.digital_cards;
+DROP POLICY IF EXISTS "Admins podem ver todas as carteirinhas" ON public.digital_cards;
+DROP POLICY IF EXISTS "Users can view own cards" ON public.digital_cards;
+DROP POLICY IF EXISTS "Users can view own digital cards" ON public.digital_cards;
+DROP POLICY IF EXISTS "Usuarios podem ver suas carteirinhas" ON public.digital_cards;
+DROP POLICY IF EXISTS "Digital cards are viewable by admins" ON public.digital_cards;
+DROP POLICY IF EXISTS "Digital cards are manageable by admins" ON public.digital_cards;
+
+-- Tabela: members
+DROP POLICY IF EXISTS "Admins can update all members" ON public.members;
+DROP POLICY IF EXISTS "Admins can view all members" ON public.members;
+DROP POLICY IF EXISTS "Users can manage own members" ON public.members;
+DROP POLICY IF EXISTS "Users can view own members" ON public.members;
+
+-- Tabela: notifications
+DROP POLICY IF EXISTS "Admins can insert notifications" ON public.notifications;
+DROP POLICY IF EXISTS "Users can insert notifications to admins" ON public.notifications;
+DROP POLICY IF EXISTS "Users can manage own notifications" ON public.notifications;
+DROP POLICY IF EXISTS "Users can update own notifications" ON public.notifications;
+DROP POLICY IF EXISTS "Users can view own notifications" ON public.notifications;
+DROP POLICY IF EXISTS "Notifications are viewable by owner" ON public.notifications;
+
+-- Tabela: profiles
+DROP POLICY IF EXISTS "Admins can update all profiles" ON public.profiles;
+DROP POLICY IF EXISTS "Admins can update any profile" ON public.profiles;
+DROP POLICY IF EXISTS "Admins can view all profiles" ON public.profiles;
+DROP POLICY IF EXISTS "Profiles are viewable by everyone" ON public.profiles;
+DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Users can view admin profiles" ON public.profiles;
+DROP POLICY IF EXISTS "Users can view own profile" ON public.profiles;
 
 -- ─────────────────────────────────────────────────────────────
 -- FUNÇÃO HELPER: verifica se o usuário atual é admin
@@ -62,6 +107,31 @@ $$;
 REVOKE ALL ON FUNCTION public.get_admin_notification_targets() FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.get_admin_notification_targets() FROM anon;
 GRANT EXECUTE ON FUNCTION public.get_admin_notification_targets() TO authenticated;
+
+
+-- ─────────────────────────────────────────────────────────────
+-- FUNÇÃO HELPER: verifica se um perfil específico é de admin
+-- Objetivo: Validar destinatários de notificações sem expor perfis.
+-- ─────────────────────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION public.is_admin_profile(target_user_id uuid)
+RETURNS boolean
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM public.profiles
+    WHERE id = target_user_id
+    AND role IN ('admin', 'admin_master', 'admin_dev')
+  );
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.is_admin_profile(uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.is_admin_profile(uuid) FROM anon;
+GRANT EXECUTE ON FUNCTION public.is_admin_profile(uuid) TO authenticated;
 
 
 -- ╔══════════════════════════════════════════════════════════╗
@@ -161,6 +231,13 @@ CREATE POLICY "Admins can view all members"
   ON public.members
   FOR SELECT
   USING (public.is_admin());
+
+-- Usuários inserem os próprios membros
+DROP POLICY IF EXISTS "Users can insert own members" ON public.members;
+CREATE POLICY "Users can insert own members"
+  ON public.members
+  FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
 
 -- Usuários atualizam apenas os próprios membros
 DROP POLICY IF EXISTS "Users can update own members" ON public.members;
@@ -304,13 +381,7 @@ DROP POLICY IF EXISTS "Users can insert notifications to admins" ON public.notif
 CREATE POLICY "Users can insert notifications to admins"
   ON public.notifications
   FOR INSERT
-  WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM public.profiles
-      WHERE id = user_id
-      AND role IN ('admin', 'admin_master', 'admin_dev')
-    )
-  );
+  WITH CHECK (public.is_admin_profile(user_id));
 
 -- Usuários marcam as próprias notificações como lidas
 DROP POLICY IF EXISTS "Users can update own notifications" ON public.notifications;
@@ -319,6 +390,13 @@ CREATE POLICY "Users can update own notifications"
   FOR UPDATE
   USING (auth.uid() = user_id)
   WITH CHECK (auth.uid() = user_id);
+
+-- Usuários deletam as próprias notificações (limpar inbox)
+DROP POLICY IF EXISTS "Users can delete own notifications" ON public.notifications;
+CREATE POLICY "Users can delete own notifications"
+  ON public.notifications
+  FOR DELETE
+  USING (auth.uid() = user_id);
 
 
 -- ─────────────────────────────────────────────────────────────
