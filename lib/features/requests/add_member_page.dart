@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:go_router/go_router.dart';
@@ -17,6 +16,9 @@ import 'package:conectea/models/card_request.dart';
 import 'package:intl/intl.dart';
 import 'package:conectea/core/widgets/premium_auth_background.dart';
 import 'package:conectea/core/widgets/premium/premium_button.dart';
+import 'package:conectea/features/requests/widgets/request_input_field.dart';
+import 'package:conectea/features/requests/widgets/request_dropdown_field.dart';
+import 'package:conectea/features/requests/widgets/request_searchable_dropdown.dart';
 
 class AddMemberPage extends StatefulWidget {
   final Member? member;
@@ -41,11 +43,11 @@ class _AddMemberPageState extends State<AddMemberPage> {
   final _responsavelController = TextEditingController();
   final _nascimentoController = TextEditingController();
   final _cidController = TextEditingController();
-  
+
   String? _selectedBloodType;
   String? _selectedState;
   String? _selectedCity;
-  
+
   List<Map<String, dynamic>> _states = [];
   List<String> _cities = [];
   bool _isLoadingCities = false;
@@ -62,10 +64,12 @@ class _AddMemberPageState extends State<AddMemberPage> {
 
   bool _isFieldEnabled(String fieldName) {
     if (widget.request == null) return true;
-    if (widget.request!.status == 'reviewing_data' || 
+    if (widget.request!.status == 'reviewing_data' ||
         widget.request!.status == 'waiting_docs') {
       final notes = widget.request!.adminNotes;
-      if (!notes.contains('Pendência:')) return true; // Unlock all if admin didn't use checkboxes
+      if (!notes.contains('Pendência:')) {
+        return true; // Unlock all if admin didn't use checkboxes
+      }
       return notes.toLowerCase().contains(fieldName.toLowerCase());
     }
     return false;
@@ -102,8 +106,12 @@ class _AddMemberPageState extends State<AddMemberPage> {
       _selectedState = m.state.isNotEmpty ? m.state : null;
       _selectedCity = m.city.isNotEmpty ? m.city : null;
       _documentUrl = m.documentUrl.isNotEmpty ? m.documentUrl : null;
-      _medicalReportUrl = m.medicalReportUrl.isNotEmpty ? m.medicalReportUrl : null;
-      if (_selectedState != null) _fetchCities(_selectedState!, resetCity: false);
+      _medicalReportUrl = m.medicalReportUrl.isNotEmpty
+          ? m.medicalReportUrl
+          : null;
+      if (_selectedState != null) {
+        _fetchCities(_selectedState!, resetCity: false);
+      }
     }
     _fetchStates();
   }
@@ -111,17 +119,23 @@ class _AddMemberPageState extends State<AddMemberPage> {
   Future<void> _fetchStates() async {
     try {
       final response = await http.get(
-        Uri.parse('https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome'),
+        Uri.parse(
+          'https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome',
+        ),
       );
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         if (mounted) {
           setState(() {
-            _states = data.map((s) => {
-              'id': s['id'],
-              'sigla': s['sigla'],
-              'nome': s['nome'],
-            }).toList();
+            _states = data
+                .map(
+                  (s) => {
+                    'id': s['id'],
+                    'sigla': s['sigla'],
+                    'nome': s['nome'],
+                  },
+                )
+                .toList();
           });
         }
       }
@@ -140,7 +154,9 @@ class _AddMemberPageState extends State<AddMemberPage> {
     });
     try {
       final response = await http.get(
-        Uri.parse('https://servicodados.ibge.gov.br/api/v1/localidades/estados/$stateSigla/municipios?orderBy=nome'),
+        Uri.parse(
+          'https://servicodados.ibge.gov.br/api/v1/localidades/estados/$stateSigla/municipios?orderBy=nome',
+        ),
       );
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
@@ -172,9 +188,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
   }
 
   Future<void> _pickAndUploadFile({required bool isDocument}) async {
-    final result = await FilePicker.platform.pickFiles(
-      withData: true,
-    );
+    final result = await FilePicker.platform.pickFiles(withData: true);
     if (result == null || result.files.isEmpty) return;
 
     final file = result.files.first;
@@ -191,7 +205,10 @@ class _AddMemberPageState extends State<AddMemberPage> {
     });
 
     try {
-      final url = await _driveService.uploadFile(file: file, fileName: fileName);
+      final url = await _driveService.uploadFile(
+        file: file,
+        fileName: fileName,
+      );
       if (url != null) {
         if (mounted) {
           setState(() {
@@ -207,14 +224,20 @@ class _AddMemberPageState extends State<AddMemberPage> {
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Falha no upload. Tente novamente.'), backgroundColor: Colors.red),
+            const SnackBar(
+              content: Text('Falha no upload. Tente novamente.'),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro no upload: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Erro no upload: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } finally {
@@ -234,7 +257,10 @@ class _AddMemberPageState extends State<AddMemberPage> {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedState == null || _selectedCity == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor, selecione Estado e Cidade'), backgroundColor: Colors.red),
+        const SnackBar(
+          content: Text('Por favor, selecione Estado e Cidade'),
+          backgroundColor: Colors.red,
+        ),
       );
       return;
     }
@@ -259,13 +285,20 @@ class _AddMemberPageState extends State<AddMemberPage> {
       final cleanCpf = _cpfController.text.replaceAll(RegExp(r'[^0-9]'), '');
 
       // Verifica CPF duplicado apenas ao criar novo ou alterar o CPF atual
-      if (!isEditing || (isEditing && widget.member!.cpf.replaceAll(RegExp(r'[^0-9]'), '') != cleanCpf)) {
-        final cpfExists = await _databaseService.isMemberCpfRegistered(cleanCpf);
+      if (!isEditing ||
+          (isEditing &&
+              widget.member!.cpf.replaceAll(RegExp(r'[^0-9]'), '') !=
+                  cleanCpf)) {
+        final cpfExists = await _databaseService.isMemberCpfRegistered(
+          cleanCpf,
+        );
         if (cpfExists) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Este CPF já possui uma carteirinha cadastrada ou solicitação em andamento.'),
+                content: Text(
+                  'Este CPF já possui uma carteirinha cadastrada ou solicitação em andamento.',
+                ),
                 backgroundColor: Colors.red,
               ),
             );
@@ -300,11 +333,13 @@ class _AddMemberPageState extends State<AddMemberPage> {
       String generatedProtocol = '';
       if (isEditing) {
         await _databaseService.updateMember(member);
-        
+
         // Retorna o status da solicitação associada para 'waiting_approval' após edição
         final requests = await _databaseService.getCardRequests(userId);
-        final memberRequest = requests.where((r) => r.memberId == member.id).toList();
-        
+        final memberRequest = requests
+            .where((r) => r.memberId == member.id)
+            .toList();
+
         if (memberRequest.isNotEmpty) {
           final req = memberRequest.first;
           final updatedRequest = req.copyWith(
@@ -479,9 +514,15 @@ class _AddMemberPageState extends State<AddMemberPage> {
                           decoration: BoxDecoration(
                             color: Colors.white.withValues(alpha: 0.05),
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.1),
+                            ),
                           ),
-                          child: const Icon(PhosphorIconsRegular.caretLeft, color: Colors.white, size: 20),
+                          child: const Icon(
+                            PhosphorIconsRegular.caretLeft,
+                            color: Colors.white,
+                            size: 20,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -504,7 +545,9 @@ class _AddMemberPageState extends State<AddMemberPage> {
                     children: [
                       const SizedBox(height: 24),
                       Text(
-                        widget.member != null ? 'Editar Dependente' : 'Novo Dependente',
+                        widget.member != null
+                            ? 'Editar Dependente'
+                            : 'Novo Dependente',
                         style: GoogleFonts.outfit(
                           fontSize: 32,
                           fontWeight: FontWeight.w800,
@@ -529,7 +572,9 @@ class _AddMemberPageState extends State<AddMemberPage> {
                         decoration: BoxDecoration(
                           color: const Color(0xFF0E1B31).withValues(alpha: 0.8),
                           borderRadius: BorderRadius.circular(28),
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.08),
+                          ),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withValues(alpha: 0.3),
@@ -543,439 +588,295 @@ class _AddMemberPageState extends State<AddMemberPage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              if (widget.request != null && (widget.request!.status == 'reviewing_data' || widget.request!.status == 'waiting_docs'))
-                Container(
-                  margin: const EdgeInsets.only(bottom: 24),
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.orange[50],
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.orange[200]!),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(PhosphorIconsRegular.warningCircle, color: Colors.orange[800]),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Ajuste solicitado pelo Administrador',
-                            style: GoogleFonts.inter(
-                              fontWeight: FontWeight.w800,
-                              color: Colors.orange[900],
-                            ),
+                              if (widget.request != null &&
+                                  (widget.request!.status == 'reviewing_data' ||
+                                      widget.request!.status == 'waiting_docs'))
+                                Container(
+                                  margin: const EdgeInsets.only(bottom: 24),
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: Colors.orange[50],
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: Colors.orange[200]!,
+                                    ),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            PhosphorIconsRegular.warningCircle,
+                                            color: Colors.orange[800],
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            'Ajuste solicitado pelo Administrador',
+                                            style: GoogleFonts.inter(
+                                              fontWeight: FontWeight.w800,
+                                              color: Colors.orange[900],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        widget.request!.adminNotes,
+                                        style: GoogleFonts.inter(
+                                          fontSize: 14,
+                                          color: Colors.orange[900],
+                                          height: 1.5,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+
+                              const SizedBox(height: 12),
+
+                              RequestInputField(
+                                label: 'Nome completo do Beneficiário*',
+                                controller: _nomeController,
+                                hint: 'Digite o nome completo',
+                                icon: PhosphorIconsRegular.user,
+                                validator: (v) =>
+                                    v!.isEmpty ? 'Campo obrigatório' : null,
+                                enabled: _isFieldEnabled('Nome Completo'),
+                              ),
+                              const SizedBox(height: 20),
+
+                              RequestInputField(
+                                label: 'CPF*',
+                                controller: _cpfController,
+                                hint: '000.000.000-00',
+                                icon: PhosphorIconsRegular.identificationCard,
+                                inputFormatters: [cpfMask],
+                                keyboardType: TextInputType.number,
+                                validator: (v) {
+                                  if (v == null || v.isEmpty) {
+                                    return 'Campo obrigatório';
+                                  }
+                                  if (!_isValidCPF(v)) {
+                                    return 'CPF inválido';
+                                  }
+                                  return null;
+                                },
+                                enabled: _isFieldEnabled('CPF'),
+                              ),
+                              const SizedBox(height: 20),
+
+                              RequestInputField(
+                                label: 'Data de Nascimento*',
+                                controller: _nascimentoController,
+                                hint: 'DD/MM/AAAA',
+                                icon: PhosphorIconsRegular.calendar,
+                                inputFormatters: [dateMask],
+                                keyboardType: TextInputType.datetime,
+                                validator: (v) =>
+                                    v!.length < 10 ? 'Data incompleta' : null,
+                                enabled: _isFieldEnabled('Data de Nascimento'),
+                              ),
+                              const SizedBox(height: 20),
+
+                              Row(
+                                children: [
+                                  Expanded(
+                                    flex: 2,
+                                    child: RequestSearchableDropdown(
+                                      label: 'Estado*',
+                                      value: _selectedState,
+                                      items: _states
+                                          .map((s) => s['sigla'] as String)
+                                          .toList(),
+                                      onChanged: (val) {
+                                        setState(() => _selectedState = val);
+                                        _fetchCities(val);
+                                      },
+                                      icon: PhosphorIconsRegular.mapPin,
+                                      enabled: _isFieldEnabled('Estado'),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    flex: 5,
+                                    child: RequestSearchableDropdown(
+                                      label: 'Cidade*',
+                                      value: _selectedCity,
+                                      items: _cities,
+                                      onChanged: (val) =>
+                                          setState(() => _selectedCity = val),
+                                      icon:
+                                          PhosphorIconsRegular.navigationArrow,
+                                      hint: _isLoadingCities
+                                          ? 'Carregando...'
+                                          : 'Selecione',
+                                      enabled: _isFieldEnabled('Cidade'),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 20),
+
+                              RequestInputField(
+                                label: 'Telefone',
+                                controller: _telefoneController,
+                                hint: '(00) 00000-0000',
+                                icon: PhosphorIconsRegular.phone,
+                                inputFormatters: [phoneMask],
+                                keyboardType: TextInputType.phone,
+                                enabled: _isFieldEnabled('Telefone'),
+                              ),
+                              const SizedBox(height: 20),
+
+                              RequestInputField(
+                                label: 'Contato de Emergência (Opcional)',
+                                controller: _contatoEmergenciaController,
+                                hint: 'Nome e Telefone',
+                                icon: PhosphorIconsRegular.firstAid,
+                                enabled: _isFieldEnabled(
+                                  'Contato de Emergência',
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+
+                              RequestInputField(
+                                label: 'Contato do Responsável (Opcional)',
+                                controller: _responsavelController,
+                                hint: 'Nome e Telefone (se menor)',
+                                icon: PhosphorIconsRegular.users,
+                                enabled: _isFieldEnabled('Responsável'),
+                              ),
+                              const SizedBox(height: 20),
+
+                              _buildUploadField(
+                                label: 'Documento com Foto (RG/CNH)',
+                                fileName: _documentFileName,
+                                isUploading: _isUploadingDoc,
+                                isUploaded: _documentUrl != null,
+                                onTap: () =>
+                                    _pickAndUploadFile(isDocument: true),
+                                icon: PhosphorIconsRegular.image,
+                                enabled: _isFieldEnabled(
+                                  'Documento com Foto (RG/CNH)',
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+
+                              _buildUploadField(
+                                label: 'Laudo Médico',
+                                fileName: _medicalReportFileName,
+                                isUploading: _isUploadingReport,
+                                isUploaded: _medicalReportUrl != null,
+                                onTap: () =>
+                                    _pickAndUploadFile(isDocument: false),
+                                icon: PhosphorIconsRegular.stethoscope,
+                                enabled: _isFieldEnabled('Laudo Médico'),
+                              ),
+                              const SizedBox(height: 12),
+
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: AppColors.alertOrange.withValues(
+                                    alpha: 0.1,
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: AppColors.alertOrange.withValues(
+                                      alpha: 0.3,
+                                    ),
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      PhosphorIconsRegular.info,
+                                      color: AppColors.alertOrange,
+                                      size: 20,
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text(
+                                        'Os documentos são opcionais agora. Podemos solicitar documentação complementar durante a análise.',
+                                        style: GoogleFonts.inter(
+                                          fontSize: 12,
+                                          color: AppColors.textPrimary
+                                              .withValues(alpha: 0.8),
+                                          height: 1.4,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+
+                              RequestDropdownField<String>(
+                                label: 'Tipo Sanguíneo (Opcional)',
+                                value: _selectedBloodType,
+                                items:
+                                    [
+                                          'A+',
+                                          'A-',
+                                          'B+',
+                                          'B-',
+                                          'AB+',
+                                          'AB-',
+                                          'O+',
+                                          'O-',
+                                          'Não sei',
+                                          'Prefiro não informar',
+                                        ]
+                                        .map(
+                                          (t) => DropdownMenuItem(
+                                            value: t,
+                                            child: Text(
+                                              t,
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ),
+                                        )
+                                        .toList(),
+                                onChanged: (val) =>
+                                    setState(() => _selectedBloodType = val),
+                                icon: PhosphorIconsRegular.drop,
+                                enabled: _isFieldEnabled('Tipo Sanguíneo'),
+                              ),
+                              const SizedBox(height: 20),
+
+                              RequestInputField(
+                                label: 'CID (Opcional)',
+                                controller: _cidController,
+                                hint: 'Ex: F84.0',
+                                icon: PhosphorIconsRegular.clipboardText,
+                                enabled: _isFieldEnabled('Laudo Médico'),
+                              ),
+
+                              const SizedBox(height: 40),
+
+                              PremiumButton(
+                                text: 'Salvar e Continuar',
+                                onPressed: _handleSave,
+                                isLoading: _isLoading,
+                              ),
+                              const SizedBox(height: 20),
+                            ],
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        widget.request!.adminNotes,
-                        style: GoogleFonts.inter(
-                          fontSize: 14,
-                          color: Colors.orange[900],
-                          height: 1.5,
                         ),
                       ),
+                      const SizedBox(height: 140), // Espaço para a ilustração
                     ],
                   ),
                 ),
-
-              const SizedBox(height: 12),
-
-              _buildInputField(
-                label: 'Nome completo do Beneficiário*',
-                controller: _nomeController,
-                hint: 'Digite o nome completo',
-                icon: PhosphorIconsRegular.user,
-                validator: (v) => v!.isEmpty ? 'Campo obrigatório' : null,
-                enabled: _isFieldEnabled('Nome Completo'),
               ),
-              const SizedBox(height: 20),
-
-              _buildInputField(
-                label: 'CPF*',
-                controller: _cpfController,
-                hint: '000.000.000-00',
-                icon: PhosphorIconsRegular.identificationCard,
-                inputFormatters: [cpfMask],
-                keyboardType: TextInputType.number,
-                validator: (v) {
-                  if (v == null || v.isEmpty) return 'Campo obrigatório';
-                  if (!_isValidCPF(v)) return 'CPF inválido';
-                  return null;
-                },
-                enabled: _isFieldEnabled('CPF'),
-              ),
-              const SizedBox(height: 20),
-
-              _buildInputField(
-                label: 'Data de Nascimento*',
-                controller: _nascimentoController,
-                hint: 'DD/MM/AAAA',
-                icon: PhosphorIconsRegular.calendar,
-                inputFormatters: [dateMask],
-                keyboardType: TextInputType.datetime,
-                validator: (v) => v!.length < 10 ? 'Data incompleta' : null,
-                enabled: _isFieldEnabled('Data de Nascimento'),
-              ),
-              const SizedBox(height: 20),
-
-              Row(
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: _buildSearchableDropdown(
-                      label: 'Estado*',
-                      value: _selectedState,
-                      items: _states.map((s) => s['sigla'] as String).toList(),
-                      onChanged: (val) {
-                        setState(() => _selectedState = val);
-                        _fetchCities(val);
-                      },
-                      icon: PhosphorIconsRegular.mapPin,
-                      enabled: _isFieldEnabled('Estado'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    flex: 5,
-                    child: _buildSearchableDropdown(
-                      label: 'Cidade*',
-                      value: _selectedCity,
-                      items: _cities,
-                      onChanged: (val) => setState(() => _selectedCity = val),
-                      icon: PhosphorIconsRegular.navigationArrow,
-                      hint: _isLoadingCities ? 'Carregando...' : 'Selecione',
-                      enabled: _isFieldEnabled('Cidade'),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-
-              _buildInputField(
-                label: 'Telefone',
-                controller: _telefoneController,
-                hint: '(00) 00000-0000',
-                icon: PhosphorIconsRegular.phone,
-                inputFormatters: [phoneMask],
-                keyboardType: TextInputType.phone,
-                enabled: _isFieldEnabled('Telefone'),
-              ),
-              const SizedBox(height: 20),
-
-              _buildInputField(
-                label: 'Contato de Emergência (Opcional)',
-                controller: _contatoEmergenciaController,
-                hint: 'Nome e Telefone',
-                icon: PhosphorIconsRegular.firstAid,
-                enabled: _isFieldEnabled('Contato de Emergência'),
-              ),
-              const SizedBox(height: 20),
-
-              _buildInputField(
-                label: 'Contato do Responsável (Opcional)',
-                controller: _responsavelController,
-                hint: 'Nome e Telefone (se menor)',
-                icon: PhosphorIconsRegular.users,
-                enabled: _isFieldEnabled('Responsável'),
-              ),
-              const SizedBox(height: 20),
-
-              _buildUploadField(
-                label: 'Documento com Foto (RG/CNH)',
-                fileName: _documentFileName,
-                isUploading: _isUploadingDoc,
-                isUploaded: _documentUrl != null,
-                onTap: () => _pickAndUploadFile(isDocument: true),
-                icon: PhosphorIconsRegular.image,
-                enabled: _isFieldEnabled('Documento com Foto (RG/CNH)'),
-              ),
-              const SizedBox(height: 20),
-
-              _buildUploadField(
-                label: 'Laudo Médico',
-                fileName: _medicalReportFileName,
-                isUploading: _isUploadingReport,
-                isUploaded: _medicalReportUrl != null,
-                onTap: () => _pickAndUploadFile(isDocument: false),
-                icon: PhosphorIconsRegular.stethoscope,
-                enabled: _isFieldEnabled('Laudo Médico'),
-              ),
-              const SizedBox(height: 12),
-
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.alertOrange.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.alertOrange.withValues(alpha: 0.3)),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(PhosphorIconsRegular.info, color: AppColors.alertOrange, size: 20),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'Os documentos são opcionais agora. Podemos solicitar documentação complementar durante a análise.',
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          color: AppColors.textPrimary.withValues(alpha: 0.8),
-                          height: 1.4,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              _buildDropdownField<String>(
-                label: 'Tipo Sanguíneo (Opcional)',
-                value: _selectedBloodType,
-                items: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Não sei', 'Prefiro não informar']
-                    .map((t) => DropdownMenuItem(value: t, child: Text(t, style: const TextStyle(color: Colors.white)))).toList(),
-                onChanged: (val) =>
-                    setState(() => _selectedBloodType = val),
-                icon: PhosphorIconsRegular.drop,
-                enabled: _isFieldEnabled('Tipo Sanguíneo'),
-              ),
-              const SizedBox(height: 20),
-
-              _buildInputField(
-                label: 'CID (Opcional)',
-                controller: _cidController,
-                hint: 'Ex: F84.0',
-                icon: PhosphorIconsRegular.clipboardText,
-                enabled: _isFieldEnabled('Laudo Médico'),
-              ),
-
-              const SizedBox(height: 40),
-
-              PremiumButton(
-                text: 'Salvar e Continuar',
-                onPressed: _handleSave,
-                isLoading: _isLoading,
-              ),
-              const SizedBox(height: 20),
             ],
           ),
         ),
       ),
-      const SizedBox(height: 140), // Espaço para a ilustração
-    ],
-  ),
-),
-),
-],
-),
-),
-),
-);
-  }
-
-  Widget _buildInputField({
-    required String label,
-    required TextEditingController controller,
-    required String hint,
-    required IconData icon,
-    String? Function(String?)? validator,
-    List<TextInputFormatter>? inputFormatters,
-    TextInputType? keyboardType,
-    bool enabled = true,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: GoogleFonts.inter(
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-            fontSize: 13,
-          ),
-        ),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: controller,
-          validator: validator,
-          inputFormatters: inputFormatters,
-          keyboardType: keyboardType,
-          enabled: enabled,
-          style: GoogleFonts.inter(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            color: enabled ? Colors.white : Colors.white.withValues(alpha: 0.5),
-          ),
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: GoogleFonts.inter(color: AppColors.textSecondary.withValues(alpha: 0.3), fontSize: 14),
-            prefixIcon: Icon(icon, color: enabled ? AppColors.primary : AppColors.textSecondary.withValues(alpha: 0.5), size: 22),
-            filled: true,
-            fillColor: enabled ? const Color(0xFF071B3A).withValues(alpha: 0.5) : Colors.black.withValues(alpha: 0.2),
-            contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
-            ),
-            disabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.02)),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: AppColors.primary, width: 2),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  
-  Widget _buildSearchableDropdown({
-    required String label,
-    required String? value,
-    required List<String> items,
-    required IconData icon,
-    required Function(String) onChanged,
-    bool enabled = true,
-    String? hint,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: GoogleFonts.inter(
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-            fontSize: 13,
-          ),
-        ),
-        const SizedBox(height: 8),
-        SearchAnchor(
-          builder: (context, controller) {
-            return InkWell(
-              onTap: enabled ? () => controller.openView() : null,
-              borderRadius: BorderRadius.circular(16),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                decoration: BoxDecoration(
-                  color: enabled ? const Color(0xFF071B3A).withValues(alpha: 0.5) : Colors.black.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-                ),
-                child: Row(
-                  children: [
-                    Icon(icon, color: enabled ? AppColors.primary : AppColors.textSecondary.withValues(alpha: 0.5), size: 22),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        value ?? hint ?? 'Selecione',
-                        style: GoogleFonts.inter(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: value == null ? AppColors.textSecondary.withValues(alpha: 0.3) : (enabled ? Colors.white : Colors.white.withValues(alpha: 0.5)),
-                        ),
-                      ),
-                    ),
-                    Icon(PhosphorIconsRegular.caretDown, color: AppColors.textSecondary.withValues(alpha: 0.5), size: 16),
-                  ],
-                ),
-              ),
-            );
-          },
-          viewBackgroundColor: const Color(0xFF071B3A),
-          viewSurfaceTintColor: const Color(0xFF071B3A),
-          viewHintText: 'Digite para buscar...',
-          viewLeading: IconButton(
-            icon: const Icon(PhosphorIconsRegular.arrowLeft, color: Colors.white),
-            onPressed: () => Navigator.pop(context),
-          ),
-          suggestionsBuilder: (context, controller) {
-            final keyword = controller.text.toLowerCase();
-            final filtered = items
-                .where((item) => item.toLowerCase().contains(keyword))
-                .toList();
-
-            return filtered.map((item) => ListTile(
-              title: Text(item, style: GoogleFonts.inter(fontWeight: FontWeight.w500, color: Colors.white)),
-              onTap: () {
-                controller.closeView(item);
-                onChanged(item);
-              },
-            ));
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDropdownField<T>({
-    required String label,
-    required T? value,
-    required List<DropdownMenuItem<T>> items,
-    required ValueChanged<T?> onChanged,
-    required IconData icon,
-    String? hint,
-    bool enabled = true,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: GoogleFonts.inter(
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-            fontSize: 13,
-          ),
-        ),
-        const SizedBox(height: 8),
-        DropdownButtonFormField<T>(
-          initialValue: items.any((item) => item.value == value) ? value : null,
-          items: items,
-          onChanged: enabled ? onChanged : null,
-          isExpanded: true,
-          dropdownColor: const Color(0xFF0C2445),
-          icon: const Icon(PhosphorIconsRegular.caretDown, color: AppColors.textSecondary, size: 16),
-          style: GoogleFonts.inter(
-            color: enabled ? Colors.white : Colors.white.withValues(alpha: 0.5),
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-          ),
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: GoogleFonts.inter(color: AppColors.textSecondary.withValues(alpha: 0.3), fontSize: 14),
-            prefixIcon: Icon(icon, color: enabled ? AppColors.primary : AppColors.textSecondary.withValues(alpha: 0.5), size: 22),
-            filled: true,
-            fillColor: enabled ? const Color(0xFF071B3A).withValues(alpha: 0.5) : Colors.black.withValues(alpha: 0.2),
-            contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
-            ),
-            disabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.02)),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: AppColors.primary, width: 2),
-            ),
-          ),
-        ),
-      ],
     );
   }
 
@@ -1006,14 +907,18 @@ class _AddMemberPageState extends State<AddMemberPage> {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
             decoration: BoxDecoration(
-              color: isUploaded 
-                  ? AppColors.primary.withValues(alpha: 0.15) 
-                  : (enabled ? const Color(0xFF071B3A).withValues(alpha: 0.5) : Colors.black.withValues(alpha: 0.2)),
+              color: isUploaded
+                  ? AppColors.primary.withValues(alpha: 0.15)
+                  : (enabled
+                        ? const Color(0xFF071B3A).withValues(alpha: 0.5)
+                        : Colors.black.withValues(alpha: 0.2)),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: isUploaded 
-                    ? AppColors.primary 
-                    : (enabled ? Colors.white.withValues(alpha: 0.05) : Colors.white.withValues(alpha: 0.02)),
+                color: isUploaded
+                    ? AppColors.primary
+                    : (enabled
+                          ? Colors.white.withValues(alpha: 0.05)
+                          : Colors.white.withValues(alpha: 0.02)),
                 width: isUploaded ? 2 : 1,
               ),
             ),
@@ -1021,9 +926,11 @@ class _AddMemberPageState extends State<AddMemberPage> {
               children: [
                 Icon(
                   isUploaded ? PhosphorIconsRegular.checkCircle : icon,
-                  color: isUploaded 
-                      ? AppColors.statusGreen 
-                      : (enabled ? AppColors.primary : AppColors.textSecondary.withValues(alpha: 0.5)),
+                  color: isUploaded
+                      ? AppColors.statusGreen
+                      : (enabled
+                            ? AppColors.primary
+                            : AppColors.textSecondary.withValues(alpha: 0.5)),
                   size: 22,
                 ),
                 const SizedBox(width: 12),
@@ -1032,26 +939,48 @@ class _AddMemberPageState extends State<AddMemberPage> {
                       ? Row(
                           children: [
                             const SizedBox(
-                              width: 16, height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
                             ),
                             const SizedBox(width: 10),
-                            Text('Enviando...', style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary)),
+                            Text(
+                              'Enviando...',
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
                           ],
                         )
                       : Text(
-                          isUploaded ? fileName ?? 'Arquivo enviado' : (enabled ? 'Toque para enviar arquivo' : 'Campo bloqueado'),
+                          isUploaded
+                              ? fileName ?? 'Arquivo enviado'
+                              : (enabled
+                                    ? 'Toque para enviar arquivo'
+                                    : 'Campo bloqueado'),
                           style: GoogleFonts.inter(
                             fontSize: 14,
-                            color: isUploaded ? Colors.white : (enabled ? Colors.white.withValues(alpha: 0.7) : AppColors.textSecondary),
-                            fontWeight: isUploaded ? FontWeight.w600 : FontWeight.w400,
+                            color: isUploaded
+                                ? Colors.white
+                                : (enabled
+                                      ? Colors.white.withValues(alpha: 0.7)
+                                      : AppColors.textSecondary),
+                            fontWeight: isUploaded
+                                ? FontWeight.w600
+                                : FontWeight.w400,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
                 ),
                 if (!isUploading && enabled)
                   Icon(
-                    isUploaded ? PhosphorIconsRegular.arrowsClockwise : PhosphorIconsRegular.uploadSimple,
+                    isUploaded
+                        ? PhosphorIconsRegular.arrowsClockwise
+                        : PhosphorIconsRegular.uploadSimple,
                     color: AppColors.primary,
                     size: 20,
                   ),
