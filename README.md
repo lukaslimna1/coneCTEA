@@ -1,82 +1,115 @@
 <p align="center">
   <img src="assets/images/conectea_logo.png" alt="ConeCTEA Logo" width="130">
   <br><br>
-  <strong>Tecnologia, Acolhimento e Inclusão na Palma da Mão.</strong>
-  <br>
-  <em>Desenvolvido com carinho para a rede de apoio <strong>Família TEA Bauru</strong>.</em>
+  <strong>ConeCTEA</strong><br>
+  <em>Tecnologia, Acolhimento e Inclusão na Palma da Mão.</em>
+  <br><br>
+  <strong>App oficial da Família TEA Bauru para conexão, identificação digital e acompanhamento de solicitações.</strong>
 </p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/Flutter-3.41.9-02569B?logo=flutter" alt="Flutter">
   <img src="https://img.shields.io/badge/Dart-3.11.5-0175C2?logo=dart" alt="Dart">
   <img src="https://img.shields.io/badge/Supabase-PostgreSQL-3FCF8E?logo=supabase" alt="Supabase">
-  <img src="https://img.shields.io/badge/Versão-3.3.0-8B3DFF?logo=flutter" alt="Versão">
-  <img src="https://img.shields.io/badge/LGPD-Compliant-10B981" alt="LGPD">
+  <img src="https://img.shields.io/badge/Versão-3.5.0-8B3DFF?logo=flutter" alt="Versão">
+  <img src="https://img.shields.io/badge/Privacidade-LGPD--Oriented-10B981" alt="Privacidade">
 </p>
 
 ---
 
+## 🌟 Visão Geral
+O **ConeCTEA** é uma solução tecnológica mobile criada para apoiar a comunidade vinculada à **Família TEA Bauru**. Mais do que um aplicativo, é uma ponte de conexão que organiza a identidade digital dos membros, simplifica processos internos e garante que o acolhimento chegue de forma ágil e segura a quem precisa.
 
-| Área | Funcionalidade |
-|---|---|
-| 🌙 **Design** | Night Blue Premium System — Estética institucional e calma |
-| 🪪 **Identificação** | Carteirinha Digital com QR Code seguro e validação em tempo real |
-| 👨‍👩‍👧 **Dependentes** | Cadastro e gerenciamento de membros da família |
-| 📋 **Solicitações** | Fluxo completo de solicitação e acompanhamento de carteirinhas |
-| 🛡️ **Admin** | Painel administrativo com filtros, aprovações e gestão de documentos |
-| 🔐 **Segurança** | RBAC multinível, RLS no banco, validação de CPF, LGPD compliant |
-| 📱 **Scanner** | Leitura de QR Code interno para validação em eventos |
+## 🛑 O Problema
+Famílias com pessoas neurodivergentes frequentemente enfrentam dificuldades na identificação rápida em eventos, na gestão de documentos sensíveis e no acompanhamento de benefícios. A falta de um sistema centralizado gera ansiedade e atrasos no acesso a direitos e projetos da associação.
+
+## ✅ A Solução
+O ConeCTEA centraliza tudo em uma interface calma e intuitiva. Através do app, o usuário gerencia seu perfil e de seus familiares, solicita a carteirinha de identificação interna e acompanha cada etapa do processo em tempo real, com a segurança de um ecossistema moderno e robusto.
+
+## 👥 Público Beneficiado
+*   **Famílias e Autistas:** Autonomia e facilidade no acesso a serviços.
+*   **Associação:** Gestão eficiente da rede de membros e validação de identidades.
+*   **Parceiros e Apoiadores:** Mais clareza, organização e segurança operacional para parcerias e benefícios.
+
+---
+
+## 🚀 Principais Funcionalidades
+
+*   🔐 **Cadastro e Login Seguro:** Acesso autenticado via e-mail e senha, com dados de perfil protegidos.
+*   👤 **Perfil do Usuário:** Governança completa de dados com proteção de campos críticos.
+*   👨‍👩‍👧 **Membros Vinculados:** Gestão centralizada de dependentes e titulares da mesma família.
+*   🪪 **Solicitação de Carteirinha:** Fluxo orientado para cadastro, envio de informações e apoio documental quando necessário.
+*   📊 **Acompanhamento de Status:** Visibilidade total do processo (em análise, aprovado, pendente).
+*   💎 **Carteirinha Digital:** Documento digital com estética premium e validade garantida.
+*   🔍 **QR Code / Validação:** Sistema interno para leitura e confirmação de membros em eventos.
+*   📢 **Mural e Notificações:** Avisos importantes e novidades da associação.
+*   🛡️ **Área Administrativa:** Painel completo para gestão de solicitações e auditoria.
+*   ℹ️ **Informações Institucionais:** Conheça os projetos e a história da Família TEA Bauru.
+
+---
+
+## 💎 Diferenciais do Projeto
+
+*   **Mobile-First:** Projetado especificamente para o uso no dia a dia, com foco inicial em Android.
+*   **Acessibilidade Visual:** Paleta "Night Blue" desenhada para reduzir sobrecarga sensorial e fadiga cognitiva.
+*   **UX Baseada em CAA:** Interfaces que seguem princípios de Comunicação Alternativa e Ampliada para máxima clareza.
+*   **Arquitetura Leve:** Desempenho fluido mesmo em dispositivos com hardware limitado.
+*   **Segurança e Privacidade:** Proteção de dados em nível de banco de dados (RLS) e boas práticas de privacidade por design.
+*   **Home Modular:** Informações organizadas por relevância, separando o que é estático do que é dinâmico.
+
+---
+
+## 🛤️ Roadmap Comercial
+
+### ✅ Concluído
+- Design System Night Blue Premium.
+- Fluxo completo de autenticação e perfil.
+- Módulo de gestão de membros e solicitações.
+- Carteirinha digital com QR Code seguro.
+
+### 🚧 Em Andamento
+- Auditoria de performance e otimização de fluxos.
+- Refinamento de acessibilidade para diversos perfis neurodivergentes.
+- Reorganização arquitetural para escalabilidade.
+
+### 📅 Próximas Melhorias
+- Módulo de Benefícios (Catálogo de descontos e parcerias).
+- Notificações push ativas para alertas de renovação.
+- Exportação de carteirinha para formato PDF de alta definição.
+
+### 🔮 Futuro
+- Integração com o projeto "Fada do Dente".
+- Funcionalidades offline para identificação em locais sem sinal.
+- Expansão para suporte a outras neurodivergências específicas.
+
+---
+
+## 🛠️ Tecnologias Usadas
+*   **Frontend:** Flutter & Dart.
+*   **Backend:** Supabase (PostgreSQL, Auth, Realtime, RLS/RPC).
+*   **Design:** Google Fonts (Outfit & Inter), Phosphor Icons.
+*   **Integrações:** OneSignal, Google Apps Script (limpeza de documentos).
+
+---
+
+## 📘 Documentação Técnica
+Para detalhes sobre arquitetura, Supabase, RLS, fluxos internos e roadmap técnico, consulte a [Documentação Técnica](DOCTecnico.md).
 
 ---
 
 > [!IMPORTANT]
-> **Aviso Legal:** O ConeCTEA é uma iniciativa da Família TEA Bauru para facilitar a identificação e acesso a serviços. Ele **não é a CIPTEA oficial** (Carteira de Identificação da Pessoa com Transtorno do Espectro Autista) e não substitui documentos de identificação emitidos por órgãos governamentais.
+> **Observação Importante:** A carteirinha emitida pelo ConeCTEA é um documento de identificação **interno** para uso exclusivo nos projetos e parcerias da Família TEA Bauru. Ela **não substitui a CIPTEA oficial** emitida pelos órgãos governamentais.
 
 ---
 
-## 🛤️ Histórico de Versões
+## 💙 Sobre a Família TEA Bauru
+A Família TEA Bauru é uma associação sem fins lucrativos dedicada ao acolhimento, orientação e defesa dos direitos das pessoas com autismo e suas famílias na região de Bauru-SP.
 
-### 🌙 v3.3.0 — Night Blue Premium Design System *(atual)*
-- **Identidade Visual**: Migração total para o Dark Mode "Azul Noite" como padrão institucional.
-- **Background Premium**: Novo sistema de fundos com gradientes profundos e padrões geométricos sutis.
-- **Bottom Navigation**: Barra de navegação premium expansível com animações em cápsula (pill-style).
-- **Refinamento Global**: Padronização de cards glassmorphism, botões com gradientes e inputs de alto contraste.
-- **Acessibilidade Neurodivergente**: Interface otimizada para pessoas autistas e TDAH (calma, organizada e previsível).
-- **Avatar Unificado**: Novo componente de Avatar premium padronizado em todo o ecossistema.
-
-### 💎 v3.2.0 — UX Refinement & Profile Governance
-- **Home UI Refresh**: Card digital com animação de flutuação premium e foco na "Carteirinha Ativa".
-- **Governança de Perfil**: Campos bloqueados por padrão com "Modo de Edição" protegido.
-- **Segurança Crítica**: CPF e E-mail permanentemente bloqueados para edição direta.
+## 👨‍💻 Desenvolvimento
+Projeto desenvolvido por **Lucas Lima**.
+Portfólio: [lucaslimadigital.vercel.app](https://lucaslimadigital.vercel.app)
 
 ---
 
-## 🔮 Roadmap
-
-- [x] 🌙 Design System Night Blue Premium
-- [x] 🌍 Scanner de QR Code funcional
-- [x] 🛡️ Hardening de Segurança (CPF, unicidade, RLS)
-- [ ] 🎁 Módulo de Benefícios — catálogo de descontos e parcerias
-- [ ] 🔔 Notificações Ativas — alertas de renovação de laudo
-- [ ] 📄 Exportação PDF — via para impressão em alta definição
-
----
-
-## 🛠️ Stack Tecnológica
-
-| Camada | Tecnologia |
-|---|---|
-| **Front-end** | Flutter 3.41.9 (Dart 3.11.5) — Material 3 |
-| **Navegação** | `go_router` — Rotas declarativas e tipadas |
-| **Back-end** | Supabase (PostgreSQL, Auth, Storage, Realtime) |
-| **UI Kit** | Phosphor Icons, Google Fonts (Outfit & Inter) |
-| **Notificações** | OneSignal (Push Notifications mobile) |
-| **Localização** | API IBGE — cidades e estados |
-
----
-
-<p align="center">
-  Desenvolvido com 💙 para a <strong>Família TEA Bauru</strong>
-  <br>
-  <sub>ConeCTEA v3.3.0 — 2026</sub>
-</p>
+Desenvolvido com dedicação para a **Família TEA Bauru**.
+ConeCTEA v3.5.0 — 2026
