@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
-import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
@@ -22,6 +21,7 @@ import 'package:conectea/features/requests/widgets/request_searchable_dropdown.d
 import 'package:conectea/features/requests/widgets/request_upload_field.dart';
 import 'package:conectea/features/requests/widgets/request_admin_notes_banner.dart';
 import 'package:conectea/features/requests/widgets/request_success_dialog.dart';
+import 'package:conectea/features/requests/widgets/request_page_header.dart';
 
 class AddMemberPage extends StatefulWidget {
   final Member? member;
@@ -428,39 +428,8 @@ class _AddMemberPageState extends State<AddMemberPage> {
             physics: const BouncingScrollPhysics(),
             slivers: [
               SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        onPressed: () => context.pop(),
-                        icon: Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.05),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.1),
-                            ),
-                          ),
-                          child: const Icon(
-                            PhosphorIconsRegular.caretLeft,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Voltar',
-                        style: GoogleFonts.inter(
-                          color: Colors.white.withValues(alpha: 0.6),
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
+                child: RequestPageHeader(
+                  isEditing: widget.member != null,
                 ),
               ),
               SliverToBoxAdapter(
@@ -468,29 +437,6 @@ class _AddMemberPageState extends State<AddMemberPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 24.0),
                   child: Column(
                     children: [
-                      const SizedBox(height: 24),
-                      Text(
-                        widget.member != null
-                            ? 'Editar Dependente'
-                            : 'Novo Dependente',
-                        style: GoogleFonts.outfit(
-                          fontSize: 32,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                          letterSpacing: -0.8,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Cadastre quem receberá a carteirinha.\nPode ser você mesmo ou um dependente.',
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.inter(
-                          fontSize: 15,
-                          color: AppColors.textSecondary.withValues(alpha: 0.7),
-                          height: 1.4,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
                       const SizedBox(height: 32),
                       Container(
                         padding: const EdgeInsets.all(24),
