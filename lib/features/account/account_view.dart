@@ -9,17 +9,13 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:conectea/models/app_user.dart';
 import 'package:conectea/features/account/security_view.dart';
 import 'package:conectea/features/account/edit_profile_view.dart';
-import 'package:conectea/features/home/about_conectea_view.dart';
+import 'package:conectea/features/account/about_conectea_view.dart';
 
 class AccountView extends StatelessWidget {
   final AppUser? user;
   final String initials;
 
-  const AccountView({
-    super.key,
-    this.user,
-    this.initials = 'U',
-  });
+  const AccountView({super.key, this.user, this.initials = 'U'});
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +38,9 @@ class AccountView extends StatelessWidget {
                   title: 'Dados Pessoais',
                   onTap: (ctx) => Navigator.push(
                     ctx,
-                    MaterialPageRoute(builder: (context) => const EditProfileView()),
+                    MaterialPageRoute(
+                      builder: (context) => const EditProfileView(),
+                    ),
                   ),
                 ),
                 _MenuItem(
@@ -50,7 +48,9 @@ class AccountView extends StatelessWidget {
                   title: 'Segurança',
                   onTap: (ctx) => Navigator.push(
                     ctx,
-                    MaterialPageRoute(builder: (context) => const SecurityView()),
+                    MaterialPageRoute(
+                      builder: (context) => const SecurityView(),
+                    ),
                   ),
                 ),
                 _MenuItem(
@@ -63,7 +63,9 @@ class AccountView extends StatelessWidget {
                   title: 'Sobre o ConeCTEA',
                   onTap: (ctx) => Navigator.push(
                     ctx,
-                    MaterialPageRoute(builder: (context) => const AboutConecteaView()),
+                    MaterialPageRoute(
+                      builder: (context) => const AboutConecteaView(),
+                    ),
                   ),
                 ),
               ]),
@@ -80,8 +82,8 @@ class AccountView extends StatelessWidget {
   }
 
   Widget _buildProfileHeader(AppUser? user) {
-    final displayName = user?.name.isNotEmpty == true 
-        ? user!.name 
+    final displayName = user?.name.isNotEmpty == true
+        ? user!.name
         : (user?.email ?? 'Usuário');
 
     return Column(
@@ -186,7 +188,11 @@ class AccountView extends StatelessWidget {
           fontSize: 15,
         ),
       ),
-      trailing: const Icon(PhosphorIconsRegular.caretRight, color: AppColors.cardMutedText, size: 20),
+      trailing: const Icon(
+        PhosphorIconsRegular.caretRight,
+        color: AppColors.cardMutedText,
+        size: 20,
+      ),
       onTap: () => item.onTap?.call(context),
     );
   }
@@ -198,7 +204,10 @@ class AccountView extends StatelessWidget {
         onPressed: () async {
           await authService.signOut();
         },
-        icon: const Icon(PhosphorIconsRegular.signOut, color: AppColors.errorRed),
+        icon: const Icon(
+          PhosphorIconsRegular.signOut,
+          color: AppColors.errorRed,
+        ),
         label: Text(
           'Sair da Conta',
           style: GoogleFonts.inter(
@@ -212,7 +221,10 @@ class AccountView extends StatelessWidget {
           backgroundColor: AppColors.errorRed.withValues(alpha: 0.1),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
-            side: BorderSide(color: AppColors.errorRed.withValues(alpha: 0.2), width: 1),
+            side: BorderSide(
+              color: AppColors.errorRed.withValues(alpha: 0.2),
+              width: 1,
+            ),
           ),
         ),
       ),
@@ -266,23 +278,23 @@ class _SocialButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PremiumCard(
-        onTap: onTap,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: color, size: 22),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: GoogleFonts.inter(
-                color: color,
-                fontWeight: FontWeight.w700,
-                fontSize: 15,
-              ),
+      onTap: onTap,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: color, size: 22),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: GoogleFonts.inter(
+              color: color,
+              fontWeight: FontWeight.w700,
+              fontSize: 15,
             ),
-          ],
-        ),
+          ),
+        ],
+      ),
     );
   }
 }

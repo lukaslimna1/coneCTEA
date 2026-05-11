@@ -12,8 +12,8 @@ import 'package:url_launcher/url_launcher_string.dart';
 
 import 'package:conectea/features/account/edit_profile_view.dart';
 import 'package:conectea/features/account/security_view.dart';
-import 'package:conectea/features/home/about_conectea_view.dart';
-import 'package:conectea/features/home/family_tea_view.dart';
+import 'package:conectea/features/account/about_conectea_view.dart';
+import 'package:conectea/features/account/family_tea_view.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 
 import 'package:conectea/features/home/widgets/banners/highlight_banner.dart';

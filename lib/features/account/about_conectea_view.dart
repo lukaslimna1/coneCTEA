@@ -26,7 +26,11 @@ class AboutConecteaView extends StatelessWidget {
               border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
             ),
             child: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 18),
+              icon: const Icon(
+                Icons.arrow_back_ios_new_rounded,
+                color: AppColors.textPrimary,
+                size: 18,
+              ),
               onPressed: () => Navigator.pop(context),
             ),
           ),
@@ -49,7 +53,7 @@ class AboutConecteaView extends StatelessWidget {
               title: 'Sobre o ConeCTEA',
               subtitle: 'O aplicativo oficial da Família TEA Bauru.',
             ),
-            
+
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Column(
@@ -85,7 +89,7 @@ class AboutConecteaView extends StatelessWidget {
             'O ConeCTEA é o aplicativo oficial da Família TEA Bauru, criado para aproximar famílias, responsáveis, participantes e a associação em um ambiente digital mais organizado, acessível e seguro.\n\n'
             'A proposta do app é facilitar o acesso a informações, acompanhar solicitações, centralizar comunicados e apoiar os programas, projetos, benefícios, ações e atendimentos realizados pela Família TEA Bauru.\n\n'
             'A carteirinha digital disponível no ConeCTEA faz parte desse ecossistema. Ela funciona como uma identificação interna, voltada ao uso dentro dos projetos, programas e ações vinculados à Família TEA Bauru.\n\n'
-            'Ela pode ajudar na organização dos participantes, na validação de vínculos com a associação e no acesso a iniciativas internas ou parcerias cadastradas dentro do projeto.'
+            'Ela pode ajudar na organização dos participantes, na validação de vínculos com a associação e no acesso a iniciativas internas ou parcerias cadastradas dentro do projeto.',
           ),
         ],
       ),
@@ -95,13 +99,19 @@ class AboutConecteaView extends StatelessWidget {
   Widget _buildImportantSection() {
     return PremiumCard(
       backgroundColor: AppColors.errorRed.withValues(alpha: 0.05),
-      borderOverride: Border.all(color: AppColors.errorRed.withValues(alpha: 0.2)),
+      borderOverride: Border.all(
+        color: AppColors.errorRed.withValues(alpha: 0.2),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(PhosphorIconsFill.warningCircle, color: AppColors.errorRed, size: 20),
+              const Icon(
+                PhosphorIconsFill.warningCircle,
+                color: AppColors.errorRed,
+                size: 20,
+              ),
               const SizedBox(width: 8),
               Text(
                 'Importante',
@@ -133,16 +143,20 @@ class AboutConecteaView extends StatelessWidget {
         children: [
           _buildRichText(
             'O ConeCTEA foi criado para apoiar a Família TEA Bauru na organização e comunicação dos seus projetos.\n\n'
-            'Dentro do app, a família ou participante poderá acompanhar informações importantes, solicitações, comunicados, dados da carteirinha interna e futuras funcionalidades ligadas aos programas da associação.'
+            'Dentro do app, a família ou participante poderá acompanhar informações importantes, solicitações, comunicados, dados da carteirinha interna e futuras funcionalidades ligadas aos programas da associação.',
           ),
           const SizedBox(height: 16),
           _buildBulletPoint('Acompanhar solicitações;'),
           _buildBulletPoint('Acessar a carteirinha digital interna;'),
           _buildBulletPoint('Receber comunicados e orientações;'),
           _buildBulletPoint('Consultar informações sobre o app;'),
-          _buildBulletPoint('Apoiar a organização dos projetos da Família TEA Bauru;'),
+          _buildBulletPoint(
+            'Apoiar a organização dos projetos da Família TEA Bauru;',
+          ),
           _buildBulletPoint('Facilitar o contato com a associação;'),
-          _buildBulletPoint('Futuramente, acessar novos programas e serviços integrados ao app.'),
+          _buildBulletPoint(
+            'Futuramente, acessar novos programas e serviços integrados ao app.',
+          ),
         ],
       ),
     );
@@ -157,7 +171,7 @@ class AboutConecteaView extends StatelessWidget {
           _buildRichText(
             'A carteirinha digital do ConeCTEA é uma identificação interna da Família TEA Bauru.\n\n'
             'Ela é voltada ao uso nos projetos, programas, ações, benefícios e parcerias vinculados à associação.\n\n'
-            'Seu objetivo é facilitar a organização e a comunicação dentro do ecossistema da Família TEA Bauru, sem substituir documentos oficiais.'
+            'Seu objetivo é facilitar a organização e a comunicação dentro do ecossistema da Família TEA Bauru, sem substituir documentos oficiais.',
           ),
           const SizedBox(height: 16),
           Container(
@@ -169,7 +183,11 @@ class AboutConecteaView extends StatelessWidget {
             ),
             child: Row(
               children: [
-                const Icon(PhosphorIconsRegular.shieldCheck, color: AppColors.primary, size: 20),
+                const Icon(
+                  PhosphorIconsRegular.shieldCheck,
+                  color: AppColors.primary,
+                  size: 20,
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
@@ -194,7 +212,7 @@ class AboutConecteaView extends StatelessWidget {
       title: 'Sobre a Família TEA Bauru',
       child: _buildRichText(
         'A Família TEA Bauru é uma rede de apoio voltada ao acolhimento, inclusão, orientação e fortalecimento de famílias atípicas, pessoas autistas e comunidade.\n\n'
-        'O ConeCTEA nasce como uma ferramenta digital para apoiar essa missão, trazendo mais organização, comunicação e acesso aos projetos desenvolvidos pela Família TEA Bauru.'
+        'O ConeCTEA nasce como uma ferramenta digital para apoiar essa missão, trazendo mais organização, comunicação e acesso aos projetos desenvolvidos pela Família TEA Bauru.',
       ),
     );
   }
@@ -207,7 +225,7 @@ class AboutConecteaView extends StatelessWidget {
         'O ConeCTEA é uma ferramenta digital da Família TEA Bauru para apoiar a comunidade acompanhada pela associação.\n\n'
         'Ele ajuda a organizar informações, acompanhar solicitações, facilitar o acesso à carteirinha interna e preparar o caminho para novos programas e projetos dentro do app.\n\n'
         'A carteirinha digital é interna e vinculada à Família TEA Bauru.\n\n'
-        'Ela não é uma CIPTEA e não substitui documentos oficiais.'
+        'Ela não é uma CIPTEA e não substitui documentos oficiais.',
       ),
     );
   }

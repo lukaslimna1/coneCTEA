@@ -26,7 +26,11 @@ class FamilyTeaView extends StatelessWidget {
               border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
             ),
             child: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 18),
+              icon: const Icon(
+                Icons.arrow_back_ios_new_rounded,
+                color: AppColors.textPrimary,
+                size: 18,
+              ),
               onPressed: () => Navigator.pop(context),
             ),
           ),
@@ -49,7 +53,7 @@ class FamilyTeaView extends StatelessWidget {
               title: 'Família TEA Bauru',
               subtitle: 'Rede de apoio, inclusão e acolhimento.',
             ),
-            
+
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Column(
@@ -88,7 +92,7 @@ class FamilyTeaView extends StatelessWidget {
         'A Família TEA Bauru é uma rede de apoio criada para acolher, orientar e fortalecer famílias atípicas, pessoas autistas e a comunidade.\n\n'
         'Sua atuação nasce da escuta, da troca de experiências e da necessidade de construir caminhos mais humanos, acessíveis e inclusivos para quem vive a realidade do Transtorno do Espectro Autista e de outras deficiências.\n\n'
         'A Família TEA Bauru reúne famílias, voluntários, profissionais, parceiros e pessoas comprometidas com a inclusão, promovendo informação, acolhimento, conscientização e apoio prático no dia a dia.\n\n'
-        'Mais do que uma iniciativa, a Família TEA Bauru representa uma rede viva de cuidado, união e pertencimento.'
+        'Mais do que uma iniciativa, a Família TEA Bauru representa uma rede viva de cuidado, união e pertencimento.',
       ),
     );
   }
@@ -99,7 +103,7 @@ class FamilyTeaView extends StatelessWidget {
       child: _buildRichText(
         'A Família TEA Bauru surgiu a partir da necessidade de unir famílias, compartilhar informações e criar espaços de apoio para pessoas autistas, familiares e cuidadores.\n\n'
         'Com o tempo, essa rede foi crescendo e fortalecendo sua atuação por meio de rodas de conversa, eventos presenciais, lives, palestras, ações comunitárias e parcerias com pessoas e instituições comprometidas com a inclusão.\n\n'
-        'A essência da Família TEA Bauru está na união entre famílias e na construção de uma comunidade mais acolhedora, informada e preparada para respeitar as diferenças.'
+        'A essência da Família TEA Bauru está na união entre famílias e na construção de uma comunidade mais acolhedora, informada e preparada para respeitar as diferenças.',
       ),
     );
   }
@@ -112,17 +116,23 @@ class FamilyTeaView extends StatelessWidget {
         children: [
           _buildRichText(
             'A Família TEA Bauru atua para apoiar famílias atípicas e promover inclusão por meio de informação, acolhimento, orientação e ações práticas.\n\n'
-            'Entre suas frentes de atuação estão:'
+            'Entre suas frentes de atuação estão:',
           ),
           const SizedBox(height: 16),
           _buildBulletPoint('Acolhimento e escuta de famílias;'),
-          _buildBulletPoint('Compartilhamento de informações sobre autismo e inclusão;'),
+          _buildBulletPoint(
+            'Compartilhamento de informações sobre autismo e inclusão;',
+          ),
           _buildBulletPoint('Rodas de conversa e encontros;'),
           _buildBulletPoint('Lives e palestras informativas;'),
           _buildBulletPoint('Eventos presenciais de conscientização;'),
           _buildBulletPoint('Apoio a projetos e ações sociais;'),
-          _buildBulletPoint('Fortalecimento de redes entre famílias, profissionais e parceiros;'),
-          _buildBulletPoint('Incentivo ao acesso a direitos, cuidado e inclusão.'),
+          _buildBulletPoint(
+            'Fortalecimento de redes entre famílias, profissionais e parceiros;',
+          ),
+          _buildBulletPoint(
+            'Incentivo ao acesso a direitos, cuidado e inclusão.',
+          ),
         ],
       ),
     );
@@ -134,7 +144,7 @@ class FamilyTeaView extends StatelessWidget {
       child: _buildRichText(
         'O Movimento Todos Pelo Autismo nasceu como uma iniciativa ligada à atuação da Família TEA Bauru, ampliando o alcance das ações de conscientização, inclusão e mobilização social.\n\n'
         'O movimento reúne pessoas, famílias, voluntários e parceiros que acreditam na construção de espaços mais acessíveis, respeitosos e preparados para acolher pessoas autistas e pessoas com deficiência.\n\n'
-        'Seu propósito é fortalecer a informação, combater barreiras e estimular uma sociedade mais consciente e inclusiva.'
+        'Seu propósito é fortalecer a informação, combater barreiras e estimular uma sociedade mais consciente e inclusiva.',
       ),
     );
   }
@@ -145,7 +155,7 @@ class FamilyTeaView extends StatelessWidget {
       child: _buildRichText(
         'O Fada do Dente é um projeto voltado ao cuidado odontológico de crianças com deficiência, com atenção especial às crianças autistas.\n\n'
         'A iniciativa surge da necessidade de acolher crianças que enfrentam barreiras sensoriais, medo, dificuldade de adaptação ou falta de profissionais preparados para compreender suas necessidades.\n\n'
-        'O projeto busca promover um atendimento mais humanizado, acessível e acolhedor, além de orientar famílias sobre cuidados de saúde bucal e construção de rotinas mais tranquilas.'
+        'O projeto busca promover um atendimento mais humanizado, acessível e acolhedor, além de orientar famílias sobre cuidados de saúde bucal e construção de rotinas mais tranquilas.',
       ),
     );
   }
@@ -158,7 +168,7 @@ class FamilyTeaView extends StatelessWidget {
         children: [
           _buildRichText(
             'A missão da Família TEA Bauru é apoiar famílias, ampliar o acesso à informação, fortalecer a inclusão e criar uma rede de acolhimento para pessoas autistas, pessoas com deficiência e seus familiares.\n\n'
-            'A atuação da Família TEA Bauru é guiada por valores como:'
+            'A atuação da Família TEA Bauru é guiada por valores como:',
           ),
           const SizedBox(height: 16),
           _buildBulletPoint('Acolhimento;'),
@@ -180,7 +190,7 @@ class FamilyTeaView extends StatelessWidget {
       child: _buildRichText(
         'Muitas famílias atípicas enfrentam dúvidas, sobrecarga, falta de informação, dificuldades de acesso e ausência de uma rede de apoio próxima.\n\n'
         'A Família TEA Bauru atua para que essas famílias não caminhem sozinhas.\n\n'
-        'Através da troca, da informação e da mobilização coletiva, a rede ajuda a transformar experiências individuais em força comunitária.'
+        'Através da troca, da informação e da mobilização coletiva, a rede ajuda a transformar experiências individuais em força comunitária.',
       ),
     );
   }
@@ -191,7 +201,7 @@ class FamilyTeaView extends StatelessWidget {
       child: _buildRichText(
         'O ConeCTEA nasce como o aplicativo oficial da Família TEA Bauru.\n\n'
         'Ele foi criado para apoiar a organização digital da rede, facilitar o acesso a informações, acompanhar solicitações, centralizar comunicados e preparar o caminho para novos projetos e serviços dentro do app.\n\n'
-        'A tecnologia entra como uma ponte entre a Família TEA Bauru e a comunidade acompanhada, ajudando a tornar processos mais simples, acessíveis e organizados.'
+        'A tecnologia entra como uma ponte entre a Família TEA Bauru e a comunidade acompanhada, ajudando a tornar processos mais simples, acessíveis e organizados.',
       ),
     );
   }
@@ -203,7 +213,7 @@ class FamilyTeaView extends StatelessWidget {
       child: _buildRichText(
         'A Família TEA Bauru é uma rede de apoio que acolhe, orienta e fortalece famílias atípicas, pessoas autistas e comunidade.\n\n'
         'Sua atuação envolve informação, encontros, ações, projetos, conscientização e parcerias.\n\n'
-        'O ConeCTEA é uma ferramenta digital criada para apoiar essa missão, aproximando a comunidade dos projetos, comunicados e serviços vinculados à Família TEA Bauru.'
+        'O ConeCTEA é uma ferramenta digital criada para apoiar essa missão, aproximando a comunidade dos projetos, comunicados e serviços vinculados à Família TEA Bauru.',
       ),
     );
   }
