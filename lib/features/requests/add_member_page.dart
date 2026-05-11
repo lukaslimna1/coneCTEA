@@ -22,6 +22,7 @@ import 'package:conectea/features/requests/widgets/request_upload_field.dart';
 import 'package:conectea/features/requests/widgets/request_admin_notes_banner.dart';
 import 'package:conectea/features/requests/widgets/request_success_dialog.dart';
 import 'package:conectea/features/requests/widgets/request_page_header.dart';
+import 'package:conectea/features/requests/widgets/request_form_section.dart';
 
 class AddMemberPage extends StatefulWidget {
   final Member? member;
@@ -438,22 +439,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                   child: Column(
                     children: [
                       const SizedBox(height: 32),
-                      Container(
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF0E1B31).withValues(alpha: 0.8),
-                          borderRadius: BorderRadius.circular(28),
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.08),
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.3),
-                              blurRadius: 40,
-                              offset: const Offset(0, 20),
-                            ),
-                          ],
-                        ),
+                      RequestFormSection(
                         child: Form(
                           key: _formKey,
                           child: Column(
