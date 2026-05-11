@@ -857,7 +857,7 @@ class _BackCard extends StatelessWidget {
                   
                   // Legal Text
                   Text(
-                    'Este documento é pessoal e intransferível.\nA autenticidade pode ser verificada via QR Code.\nVálido em todo território nacional.',
+                    'Documento de identificação digital para uso exclusivo nos programas da Família TEA Bauru.\nNão substitui a CIPTEA oficial (Lei 13.977/20) ou outros documentos de identidade legais.\nA autenticidade pode ser verificada via QR Code.',
                     style: GoogleFonts.inter(
                       color: Colors.white.withValues(alpha: 0.55),
                       fontSize: 7,
