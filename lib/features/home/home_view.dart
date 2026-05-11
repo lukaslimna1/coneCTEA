@@ -17,15 +17,12 @@ import 'package:conectea/features/home/family_tea_view.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 
 import 'package:conectea/features/home/widgets/banners/highlight_banner.dart';
-import 'package:conectea/features/home/widgets/acesso_rapido/home_quick_access_section.dart';
 import 'package:conectea/features/home/widgets/outros_servicos/home_services_section.dart';
 import 'package:conectea/features/home/widgets/informacoes/home_information_section.dart';
 
 import 'package:conectea/features/home/widgets/header/home_greeting_header.dart';
-import 'package:conectea/features/home/widgets/solicitacoes/home_ongoing_request_section.dart';
-import 'package:conectea/features/home/widgets/membros/home_members_section.dart';
-import 'package:conectea/features/home/widgets/carteirinha/home_digital_card_section.dart';
 import 'package:conectea/features/requests/add_member_page.dart';
+import 'package:conectea/features/home/widgets/dinamico/home_dynamic_content.dart';
 
 class HomeView extends StatefulWidget {
   final Function(int) onNavigate;
@@ -265,65 +262,66 @@ class _HomeViewState extends State<HomeView> {
       return const Center(child: Text('Por favor, faça login'));
     }
 
-    return StreamBuilder<List<Member>>(
-      stream: _databaseService.membersStream(userId),
-      builder: (context, memberSnapshot) {
-        if (memberSnapshot.connectionState == ConnectionState.waiting &&
-            _isLoading) {
-          return const Center(
-            child: CircularProgressIndicator(color: AppColors.primary),
-          );
-        }
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      extendBodyBehindAppBar: true,
+      body: AppBackground(
+        child: RefreshIndicator(
+          onRefresh: _loadData,
+          color: AppColors.primary,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: BouncingScrollPhysics(),
+            ),
+            padding: const EdgeInsets.fromLTRB(0, 100, 0, 48),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                HomeGreetingHeader(
+                  displayName: _displayName,
+                  onQrTap: () => context.push('/qr-scanner'),
+                ),
+                const SizedBox(height: 12),
 
-        final members = (memberSnapshot.data ?? [])
-            .whereType<Member>()
-            .toList();
-        final selectedMember = _getSelectedMember(members);
-
-        return StreamBuilder<List<CardRequest>>(
-          stream: _databaseService.cardRequestsStream(userId),
-          builder: (context, requestSnapshot) {
-            final requests = (requestSnapshot.data ?? [])
-                .whereType<CardRequest>()
-                .toList();
-
-            return StreamBuilder<List<DigitalCard>>(
-              stream: _databaseService.digitalCardsStream(userId),
-              builder: (context, cardSnapshot) {
-                final digitalCards = (cardSnapshot.data ?? [])
-                    .whereType<DigitalCard>()
-                    .toList();
-
-                return Scaffold(
-                  backgroundColor: Colors.transparent,
-                  extendBodyBehindAppBar: true,
-                  body: AppBackground(
-                    child: RefreshIndicator(
-                      onRefresh: _loadData,
-                      color: AppColors.primary,
-                      child: SingleChildScrollView(
-                        physics: const AlwaysScrollableScrollPhysics(
-                          parent: BouncingScrollPhysics(),
+                // Bloco Dinâmico Reativo
+                StreamBuilder<List<Member>>(
+                  stream: _databaseService.membersStream(userId),
+                  builder: (context, memberSnapshot) {
+                    if (memberSnapshot.connectionState ==
+                            ConnectionState.waiting &&
+                        _isLoading) {
+                      return const Center(
+                        child: CircularProgressIndicator(
+                          color: AppColors.primary,
                         ),
-                        padding: const EdgeInsets.fromLTRB(0, 100, 0, 48),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            HomeGreetingHeader(
-                              displayName: _displayName,
-                              onQrTap: () => context.push('/qr-scanner'),
-                            ),
-                            const SizedBox(height: 12),
-                            HomeOngoingRequestSection(
-                              requests: requests,
-                              onDetailsTap: () => widget.onNavigate(2),
-                            ),
-                            const SizedBox(height: 12),
-                            HomeMembersSection(
+                      );
+                    }
+
+                    final members = (memberSnapshot.data ?? [])
+                        .whereType<Member>()
+                        .toList();
+                    final selectedMember = _getSelectedMember(members);
+
+                    return StreamBuilder<List<CardRequest>>(
+                      stream: _databaseService.cardRequestsStream(userId),
+                      builder: (context, requestSnapshot) {
+                        final requests = (requestSnapshot.data ?? [])
+                            .whereType<CardRequest>()
+                            .toList();
+
+                        return StreamBuilder<List<DigitalCard>>(
+                          stream: _databaseService.digitalCardsStream(userId),
+                          builder: (context, cardSnapshot) {
+                            final digitalCards = (cardSnapshot.data ?? [])
+                                .whereType<DigitalCard>()
+                                .toList();
+
+                            return HomeDynamicContent(
                               members: members,
+                              requests: requests,
+                              digitalCards: digitalCards,
                               selectedMember: selectedMember,
-                              onViewAllTap: () =>
-                                  context.push('/member-selection'),
+                              onDetailsTap: () => widget.onNavigate(2),
                               onMemberSelected: (member) {
                                 if (mounted) {
                                   setState(() {
@@ -331,13 +329,6 @@ class _HomeViewState extends State<HomeView> {
                                   });
                                 }
                               },
-                            ),
-                            const SizedBox(height: 24),
-                            HomeDigitalCardSection(
-                              members: members,
-                              requests: requests,
-                              digitalCards: digitalCards,
-                              selectedMember: selectedMember,
                               onRequestCard: _handleRequestCard,
                               onOpenDigitalCard: () => widget.onNavigate(1),
                               onEditPendingRequest: (member, request) =>
@@ -352,86 +343,67 @@ class _HomeViewState extends State<HomeView> {
                                   ).then((_) => _loadData()),
                               onRequestRenewal: _handleRenewalRequest,
                               onSupportTap: _handleSupportTap,
-                            ),
-                            const SizedBox(height: 32),
-                            HomeQuickAccessSection(
-                              onOpenDigitalCard: () {
-                                if (selectedMember != null &&
-                                    (selectedMember.status.toLowerCase() ==
-                                            'ativa' ||
-                                        selectedMember.status.toLowerCase() ==
-                                            'active')) {
-                                  widget.onNavigate(1);
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'Carteirinha ainda não disponível.',
-                                      ),
-                                    ),
-                                  );
-                                }
-                              },
-                              onRequestCard: _handleRequestCard,
                               onOpenMural: () => widget.onNavigate(2),
-                            ),
-                            const SizedBox(height: 24),
-                            const HomeServicesSection(),
-                            const SizedBox(height: 24),
-                            HomeInformationSection(
-                              onSupportTap: _handleSupportTap,
-                              onAboutTap: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const AboutConecteaView(),
-                                ),
-                              ),
-                              onSecurityTap: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const SecurityView(),
-                                ),
-                              ),
-                              onFamilyTeaTap: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const FamilyTeaView(),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 24),
-                            HighlightBanner(
-                              eyebrow: 'Família TEA Bauru',
-                              title: 'Acompanhe novidades e projetos',
-                              subtitle:
-                                  'Conheça projetos, ações e atualizações da Família TEA Bauru.',
-                              ctaLabel: 'Ver Instagram',
-                              eyebrowColor: const Color(0xFFA855F7),
-                              illustration: Icons.volunteer_activism_rounded,
-                              onTap: () async {
-                                const instagramUrl =
-                                    "https://www.instagram.com/familiateabauru/";
-                                if (await canLaunchUrlString(instagramUrl)) {
-                                  await launchUrlString(
-                                    instagramUrl,
-                                    mode: LaunchMode.externalApplication,
-                                  );
-                                }
-                              },
-                            ),
-                            const SizedBox(height: 40),
-                          ],
-                        ),
-                      ),
+                              onViewAllMembers: () =>
+                                  context.push('/member-selection'),
+                            );
+                          },
+                        );
+                      },
+                    );
+                  },
+                ),
+
+                const SizedBox(height: 24),
+                const HomeServicesSection(),
+                const SizedBox(height: 24),
+                HomeInformationSection(
+                  onSupportTap: _handleSupportTap,
+                  onAboutTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AboutConecteaView(),
                     ),
                   ),
-                );
-              },
-            );
-          },
-        );
-      },
+                  onSecurityTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SecurityView(),
+                    ),
+                  ),
+                  onFamilyTeaTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const FamilyTeaView(),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                HighlightBanner(
+                  eyebrow: 'Família TEA Bauru',
+                  title: 'Acompanhe novidades e projetos',
+                  subtitle:
+                      'Conheça projetos, ações e atualizações da Família TEA Bauru.',
+                  ctaLabel: 'Ver Instagram',
+                  eyebrowColor: const Color(0xFFA855F7),
+                  illustration: Icons.volunteer_activism_rounded,
+                  onTap: () async {
+                    const instagramUrl =
+                        "https://www.instagram.com/familiateabauru/";
+                    if (await canLaunchUrlString(instagramUrl)) {
+                      await launchUrlString(
+                        instagramUrl,
+                        mode: LaunchMode.externalApplication,
+                      );
+                    }
+                  },
+                ),
+                const SizedBox(height: 40),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
