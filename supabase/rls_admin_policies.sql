@@ -1,10 +1,9 @@
 -- ============================================================
 -- ConeCTEA — Políticas RLS e Funções de Segurança
 -- 
--- STATUS: Fase 10 (Preparação de Hardening)
--- IMPORTANTE: Este script está preparado localmente.
--- NÃO deve ser aplicado no Supabase real antes das Fases 10B e 10C.
--- A policy temporária de admin profiles ainda expõe dados pessoais de admins.
+-- STATUS: Fase 10 (Hardening Completo)
+-- O acesso a perfis agora é restrito ao próprio usuário ou admins.
+-- Notificações utilizam RPCs seguras e helpers de validação.
 -- ============================================================
 
 -- ─────────────────────────────────────────────────────────────
@@ -318,16 +317,9 @@ CREATE POLICY "Users can view own profile"
   FOR SELECT
   USING (auth.uid() = id);
 
--- [TEMPORÁRIO] Usuários veem perfis de administradores
--- ATENÇÃO: Esta policy expõe LINHAS COMPLETAS dos perfis administrativos.
--- Existe apenas para compatibilidade temporária com o Dart atual (DatabaseService).
--- NÃO deve ser considerada uma solução final.
--- DEVE ser removida assim que o DatabaseService usar get_admin_notification_targets().
-DROP POLICY IF EXISTS "Users can view admin profiles" ON public.profiles;
-CREATE POLICY "Users can view admin profiles"
-  ON public.profiles
-  FOR SELECT
-  USING (role IN ('admin', 'admin_master', 'admin_dev'));
+-- [FECHADO] A visualização de perfis administrativos por usuários comuns
+-- foi desativada. O sistema agora utiliza a RPC get_admin_notification_targets()
+-- e o helper is_admin_profile() para manter a segurança dos dados sensíveis.
 
 -- Admins veem TODOS os perfis
 DROP POLICY IF EXISTS "Admins can view all profiles" ON public.profiles;

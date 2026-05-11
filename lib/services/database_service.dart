@@ -254,30 +254,15 @@ class DatabaseService {
 
   Future<void> _notifyAdmins(String title, String message, String type, {String memberId = ''}) async {
     try {
-      List<dynamic> adminTargets = [];
+      // Busca os IDs dos administradores via RPC segura.
+      // Este método evita a leitura direta da tabela profiles por usuários comuns.
+      final List<dynamic> adminTargets = await _supabase.rpc('get_admin_notification_targets');
 
-      try {
-        // Tenta buscar os IDs dos administradores via RPC segura (Fase 10B).
-        // Este é o caminho preferencial que evita leitura direta da tabela profiles.
-        final List<dynamic> rpcResult = await _supabase.rpc('get_admin_notification_targets');
-        adminTargets = rpcResult;
-        debugPrint('🔔 NOTIFY_ADMINS: Alvos obtidos via RPC (Total: ${adminTargets.length})');
-      } catch (rpcError) {
-        // Fallback temporário: Caso a RPC ainda não exista no Supabase real (scripts SQL pendentes).
-        // Este bloco será removido após a aplicação definitiva do hardening SQL.
-        debugPrint('⚠️ NOTIFY_ADMINS: RPC falhou ou não existe no banco. Usando fallback temporário.');
-        final legacyAdmins = await _supabase
-            .from('profiles')
-            .select('id')
-            .inFilter('role', ['admin', 'admin_master', 'admin_dev']);
-        adminTargets = legacyAdmins;
-      }
-
-      debugPrint('🔔 NOTIFY_ADMINS: Encontrados ${adminTargets.length} administradores para notificar.');
+      debugPrint('🔔 NOTIFY_ADMINS: Alvos obtidos via RPC (Total: ${adminTargets.length})');
 
       for (var target in adminTargets) {
-        // Normaliza o ID: RPC retorna 'admin_id', consulta direta retorna 'id'.
-        final String? adminId = target is Map ? (target['admin_id'] ?? target['id']) : null;
+        // A RPC retorna o campo 'admin_id'
+        final String? adminId = target is Map ? target['admin_id'] : null;
 
         if (adminId != null) {
           await createNotification(NotificationItem(
@@ -295,7 +280,7 @@ class DatabaseService {
         }
       }
     } catch (e) {
-      debugPrint('Erro ao notificar administradores: $e');
+      debugPrint('Erro ao notificar administradores via RPC: $e');
     }
   }
 
