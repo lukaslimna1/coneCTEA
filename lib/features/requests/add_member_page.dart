@@ -23,6 +23,7 @@ import 'package:conectea/features/requests/widgets/request_admin_notes_banner.da
 import 'package:conectea/features/requests/widgets/request_success_dialog.dart';
 import 'package:conectea/features/requests/widgets/request_page_header.dart';
 import 'package:conectea/features/requests/widgets/request_form_section.dart';
+import 'package:conectea/features/requests/utils/request_cpf_validator.dart';
 
 class AddMemberPage extends StatefulWidget {
   final Member? member;
@@ -412,13 +413,6 @@ class _AddMemberPageState extends State<AddMemberPage> {
     );
   }
 
-  bool _isValidCPF(String cpf) {
-    String cleanCpf = cpf.replaceAll(RegExp(r'[^0-9]'), '');
-    if (cleanCpf.length != 11) return false;
-    if (RegExp(r'^(\d)\1{10}$').hasMatch(cleanCpf)) return false;
-    return true;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -476,7 +470,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                                   if (v == null || v.isEmpty) {
                                     return 'Campo obrigatório';
                                   }
-                                  if (!_isValidCPF(v)) {
+                                  if (!isValidCpf(v)) {
                                     return 'CPF inválido';
                                   }
                                   return null;
