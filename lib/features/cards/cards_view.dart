@@ -16,6 +16,7 @@ import 'package:conectea/features/cards/widgets/digital_card_widget.dart';
 import 'package:conectea/features/cards/full_screen_card_page.dart';
 import 'package:conectea/models/app_user.dart';
 import 'package:conectea/features/account/edit_profile_view.dart';
+import 'package:conectea/features/cards/widgets/cards_member_selector.dart';
 import 'package:conectea/features/requests/add_member_page.dart';
 
 class CardsView extends StatefulWidget {
@@ -278,11 +279,17 @@ class _CardsViewState extends State<CardsView> {
                         const SizedBox(height: 16),
 
                         // Novo Seletor Horizontal de Membros (Padão Home)
-                        _buildMembersSelector(
-                          members,
-                          activeCardsMap,
-                          selIdx,
-                          requests,
+                        CardsMemberSelector(
+                          members: members,
+                          activeCardsMap: activeCardsMap,
+                          selectedIdx: selIdx,
+                          requests: requests,
+                          onMemberSelected: (idx) {
+                            setState(() {
+                              _selectedMemberIndex = idx;
+                              _showBack = false;
+                            });
+                          },
                         ),
 
                         const SizedBox(height: 24),
@@ -426,197 +433,6 @@ class _CardsViewState extends State<CardsView> {
     );
   }
 
-  Widget _buildMembersSelector(
-    List<Member> members,
-    Map<String, DigitalCard> activeCardsMap,
-    int selectedIdx,
-    List<CardRequest> requests,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Text(
-            '${members.length} MEMBROS',
-            style: GoogleFonts.inter(
-              fontSize: 12,
-              fontWeight: FontWeight.w900,
-              color: AppColors.cardMutedText,
-              letterSpacing: 1.2,
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          physics: const BouncingScrollPhysics(),
-          clipBehavior: Clip.none,
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Row(
-            children: List.generate(members.length, (index) {
-              final member = members[index];
-              final hasActiveCard = activeCardsMap.containsKey(member.id);
-              final request = requests
-                  .where((r) => r.memberId == member.id)
-                  .firstOrNull;
-
-              final activeMembers = members
-                  .where((m) => activeCardsMap.containsKey(m.id))
-                  .toList();
-              final isSelected =
-                  hasActiveCard && activeMembers.indexOf(member) == selectedIdx;
-
-              return GestureDetector(
-                onTap: () {
-                  if (hasActiveCard) {
-                    final idx = activeMembers.indexOf(member);
-                    setState(() {
-                      _selectedMemberIndex = idx;
-                      _showBack = false;
-                    });
-                  } else {
-                    String message =
-                        '${member.name} não possui carteirinha ativa.';
-                    if (request != null) {
-                      message =
-                          'Carteirinha de ${member.name} está em análise.';
-                    }
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(message),
-                        backgroundColor: AppColors.alertOrange,
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        duration: const Duration(seconds: 2),
-                      ),
-                    );
-                  }
-                },
-                behavior: HitTestBehavior.opaque,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  margin: const EdgeInsets.only(right: 12),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 18,
-                    vertical: 12,
-                  ), // Preenchimento aumentado
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? AppColors.primary.withValues(alpha: 0.15)
-                        : const Color(0xA60F172A),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: isSelected
-                          ? AppColors.primary.withValues(alpha: 0.5)
-                          : const Color(0x2E94A3B8),
-                      width: 1.5,
-                    ),
-                    boxShadow: isSelected
-                        ? [
-                            BoxShadow(
-                              color: AppColors.primary.withValues(alpha: 0.25),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
-                            ),
-                            BoxShadow(
-                              color: Colors.white.withValues(alpha: 0.1),
-                              blurRadius: 0,
-                              spreadRadius: 0.5,
-                            ),
-                          ]
-                        : [],
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          gradient: isSelected
-                              ? AppColors.premiumGradient
-                              : null,
-                          color: isSelected ? null : const Color(0xFF1E293B),
-                          shape: BoxShape.circle,
-                          border: isSelected
-                              ? Border.all(
-                                  color: Colors.white.withValues(alpha: 0.2),
-                                  width: 1,
-                                )
-                              : null,
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          member.initials,
-                          style: GoogleFonts.inter(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w800,
-                            color: isSelected
-                                ? Colors.white
-                                : AppColors.primary,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            member.name.split(' ').first,
-                            style: GoogleFonts.inter(
-                              fontSize: 14,
-                              fontWeight: isSelected
-                                  ? FontWeight.w800
-                                  : FontWeight.w600,
-                              color: isSelected
-                                  ? Colors.white
-                                  : AppColors.cardSubtitle,
-                            ),
-                          ),
-                          if (isSelected)
-                            Container(
-                              height: 2,
-                              width: 12,
-                              margin: const EdgeInsets.only(top: 2),
-                              decoration: BoxDecoration(
-                                color: AppColors.statusGreen,
-                                borderRadius: BorderRadius.circular(1),
-                              ),
-                            )
-                          else if (request != null && !hasActiveCard)
-                            Text(
-                              'Em análise',
-                              style: GoogleFonts.inter(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.alertOrange,
-                              ),
-                            ),
-                        ],
-                      ),
-                      if (hasActiveCard && !isSelected)
-                        Padding(
-                          padding: const EdgeInsets.only(left: 8),
-                          child: Icon(
-                            PhosphorIconsFill.checkCircle,
-                            size: 14,
-                            color: AppColors.statusGreen.withValues(alpha: 0.5),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              );
-            }),
-          ),
-        ),
-      ],
-    );
-  }
 
   Widget _buildInfoBlock({
     required IconData icon,
