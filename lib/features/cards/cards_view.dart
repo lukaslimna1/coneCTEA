@@ -17,6 +17,8 @@ import 'package:conectea/features/cards/full_screen_card_page.dart';
 import 'package:conectea/models/app_user.dart';
 import 'package:conectea/features/account/edit_profile_view.dart';
 import 'package:conectea/features/cards/widgets/cards_member_selector.dart';
+import 'package:conectea/features/cards/widgets/cards_pending_state.dart';
+import 'package:conectea/features/cards/widgets/cards_empty_state.dart';
 import 'package:conectea/features/requests/add_member_page.dart';
 
 class CardsView extends StatefulWidget {
@@ -190,11 +192,15 @@ class _CardsViewState extends State<CardsView> {
                     );
 
                     if (members.isEmpty) {
-                      return _buildEmptyState();
+                      return CardsEmptyState(onAddMember: _handleRequestNewCard);
                     }
 
                     if (activeMembers.isEmpty) {
-                      return _buildPendingState(pendingMembers, requests);
+                      return CardsPendingState(
+                        pendingMembers: pendingMembers,
+                        requests: requests,
+                        statusLabelBuilder: _getStatusLabel,
+                      );
                     }
 
                     final selectedMember = activeMembers[selIdx];
@@ -493,197 +499,7 @@ class _CardsViewState extends State<CardsView> {
     );
   }
 
-  Widget _buildPendingState(List<Member> pending, List<CardRequest> requests) {
-    return ListView(
-      padding: const EdgeInsets.all(24),
-      children: [
-        Text(
-          'Carteirinhas',
-          style: GoogleFonts.inter(
-            fontSize: 28,
-            fontWeight: FontWeight.w800,
-            color: AppColors.cardTitle,
-            letterSpacing: -0.5,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          'Gerencie as carteirinhas vinculadas à sua conta.',
-          style: GoogleFonts.inter(
-            fontSize: 14,
-            color: AppColors.cardSubtitle,
-          ),
-        ),
-        const SizedBox(height: 48),
-        Center(
-          child: Container(
-            padding: const EdgeInsets.all(32),
-            decoration: BoxDecoration(
-              color: AppColors.alertOrange.withValues(alpha: 0.08),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              PhosphorIconsRegular.clockClockwise,
-              size: 72,
-              color: AppColors.alertOrange,
-            ),
-          ),
-        ),
-        const SizedBox(height: 24),
-        Text(
-          'Solicitação em Andamento',
-          textAlign: TextAlign.center,
-          style: GoogleFonts.inter(
-            fontSize: 20,
-            fontWeight: FontWeight.w800,
-            color: AppColors.cardTitle,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Sua solicitação está sendo verificada.\nEm breve sua carteirinha aparecerá aqui!',
-          textAlign: TextAlign.center,
-          style: GoogleFonts.inter(
-            fontSize: 14,
-            color: AppColors.cardSubtitle,
-            height: 1.5,
-          ),
-        ),
-        const SizedBox(height: 40),
-        Text(
-          'Solicitações em Andamento',
-          style: GoogleFonts.inter(
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-            color: AppColors.cardTitle,
-          ),
-        ),
-        const SizedBox(height: 12),
-        ...pending.map((m) {
-          final req = requests.firstWhere(
-            (r) => r.memberId == m.id,
-            orElse: () => CardRequest(
-              id: '',
-              userId: '',
-              memberId: m.id,
-              type: '',
-              status: 'waiting_approval',
-              protocol: '',
-              adminNotes: '',
-              driveFolderUrl: '',
-              documentUrl: '',
-              medicalReportUrl: '',
-              createdAt: DateTime.now(),
-              updatedAt: DateTime.now(),
-            ),
-          );
-          return PremiumCard(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: AppColors.alertOrange.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    m.initials,
-                    style: GoogleFonts.inter(
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.alertOrange,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        m.name,
-                        style: GoogleFonts.inter(
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.cardTitle,
-                        ),
-                      ),
-                      Text(
-                        _getStatusLabel(req.status),
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          color: AppColors.cardSubtitle,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Icon(
-                  PhosphorIconsRegular.clock,
-                  color: AppColors.alertOrange,
-                  size: 20,
-                ),
-              ],
-            ),
-          );
-        }),
-      ],
-    );
-  }
 
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(32),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.05),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              PhosphorIconsRegular.identificationCard,
-              size: 72,
-              color: AppColors.primary,
-            ),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            'Nenhuma carteira emitida',
-            style: GoogleFonts.inter(
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
-              color: AppColors.cardTitle,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 40),
-            child: Text(
-              'Cadastre um membro e envie a documentação\npara receber sua identificação digital.',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.inter(
-                color: AppColors.cardSubtitle,
-                height: 1.5,
-              ),
-            ),
-          ),
-          const SizedBox(height: 32),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 48),
-            child: PremiumButton(
-              text: 'Cadastrar membro',
-              onPressed: _handleRequestNewCard,
-              icon: PhosphorIconsRegular.plusCircle,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   String _getStatusLabel(String status) {
     switch (status) {
