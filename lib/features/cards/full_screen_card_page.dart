@@ -101,61 +101,9 @@ class _FullScreenCardPageState extends State<FullScreenCardPage> with SingleTick
             child: OrientationBuilder(
               builder: (context, orientation) {
                 if (orientation == Orientation.landscape) {
-                  return Column(
-                    children: [
-                      _buildHeader(),
-                      Expanded(
-                        child: Row(
-                          children: [
-                            // Lado esquerdo: O Cartão (Ocupa mais espaço)
-                            Expanded(
-                              flex: 3,
-                              child: _buildCardDisplay(member, card),
-                            ),
-                            // Lado direito: Controles e Seletor
-                            Expanded(
-                              flex: 2,
-                              child: SingleChildScrollView(
-                                child: Padding(
-                                  padding: const EdgeInsets.only(right: 24, bottom: 16),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      if (widget.members.length > 1) ...[
-                                        _buildMemberSelector(padding: EdgeInsets.zero),
-                                        const SizedBox(height: 24),
-                                      ],
-                                      _buildControls(compact: true),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-                  );
+                  return _buildLandscapeLayout(member, card);
                 }
-
-                // Layout Portrait (Original)
-                return Column(
-                  children: [
-                    _buildHeader(),
-                    const SizedBox(height: 24),
-                    _buildMemberSelector(),
-
-                    const Spacer(),
-
-                    _buildCardDisplay(member, card),
-
-                    const Spacer(),
-
-                    _buildControls(),
-                    const SizedBox(height: 48),
-                  ],
-                );
+                return _buildPortraitLayout(member, card);
               },
             ),
           ),
@@ -164,50 +112,132 @@ class _FullScreenCardPageState extends State<FullScreenCardPage> with SingleTick
     );
   }
 
+  Widget _buildPortraitLayout(Member member, DigitalCard card) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Column(
+              children: [
+                _buildHeader(),
+                const SizedBox(height: 16),
+                _buildMemberSelector(),
+                const SizedBox(height: 24),
+                _buildCardDisplay(member, card),
+                const SizedBox(height: 24),
+                _buildControls(),
+                const SizedBox(height: 32),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildLandscapeLayout(Member member, DigitalCard card) {
+    return Column(
+      children: [
+        _buildHeader(),
+        Expanded(
+          child: Row(
+            children: [
+              // Lado esquerdo: O Cartão (Com restrição de altura)
+              Expanded(
+                flex: 3,
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return ConstrainedBox(
+                      constraints: BoxConstraints(maxHeight: constraints.maxHeight),
+                      child: _buildCardDisplay(member, card),
+                    );
+                  },
+                ),
+              ),
+              // Lado direito: Controles e Seletor (Com scroll)
+              Expanded(
+                flex: 2,
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 24, bottom: 16),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (widget.members.length > 1) ...[
+                          _buildMemberSelector(padding: EdgeInsets.zero),
+                          const SizedBox(height: 20),
+                        ],
+                        _buildControls(compact: true),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+      ],
+    );
+  }
+
   Widget _buildCardDisplay(Member member, DigitalCard card) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
       child: Center(
-        child: Hero(
-          tag: 'card_${member.id}',
-          child: Material(
-            type: MaterialType.transparency,
-            child: AnimatedBuilder(
-              animation: _animation,
-              builder: (context, child) {
-                final value = _animation.value;
-                final isBack = value > 0.5;
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 500),
+          child: FittedBox(
+            fit: BoxFit.contain,
+            child: SizedBox(
+              width: 450,
+              height: 450 / 1.58,
+              child: Hero(
+                tag: 'card_${member.id}',
+                child: Material(
+                  type: MaterialType.transparency,
+                  child: AnimatedBuilder(
+                    animation: _animation,
+                    builder: (context, child) {
+                      final value = _animation.value;
+                      final isBack = value > 0.5;
 
-                return Transform(
-                  transform: Matrix4.identity()
-                    ..setEntry(3, 2, 0.001)
-                    ..rotateY(value * pi),
-                  alignment: Alignment.center,
-                  child: isBack
-                      ? Transform(
-                          transform: Matrix4.identity()..rotateY(pi),
-                          alignment: Alignment.center,
-                          child: DigitalCardWidget(
-                            member: member,
-                            card: card,
-                            showBack: true,
-                            enableParallax: false,
-                            enableEntryAnimation: false,
-                            showCpf: _showCpf,
-                            onToggleCpf: () => setState(() => _showCpf = !_showCpf),
-                          ),
-                        )
-                      : DigitalCardWidget(
-                          member: member,
-                          card: card,
-                          showBack: false,
-                          enableParallax: false,
-                          enableEntryAnimation: false,
-                          showCpf: _showCpf,
-                          onToggleCpf: () => setState(() => _showCpf = !_showCpf),
-                        ),
-                );
-              },
+                      return Transform(
+                        transform: Matrix4.identity()
+                          ..setEntry(3, 2, 0.001)
+                          ..rotateY(value * pi),
+                        alignment: Alignment.center,
+                        child: isBack
+                            ? Transform(
+                                transform: Matrix4.identity()..rotateY(pi),
+                                alignment: Alignment.center,
+                                child: DigitalCardWidget(
+                                  member: member,
+                                  card: card,
+                                  showBack: true,
+                                  enableParallax: false,
+                                  enableEntryAnimation: false,
+                                  showCpf: _showCpf,
+                                  onToggleCpf: () => setState(() => _showCpf = !_showCpf),
+                                ),
+                              )
+                            : DigitalCardWidget(
+                                member: member,
+                                card: card,
+                                showBack: false,
+                                enableParallax: false,
+                                enableEntryAnimation: false,
+                                showCpf: _showCpf,
+                                onToggleCpf: () => setState(() => _showCpf = !_showCpf),
+                              ),
+                      );
+                    },
+                  ),
+                ),
+              ),
             ),
           ),
         ),
@@ -327,14 +357,20 @@ class _FullScreenCardPageState extends State<FullScreenCardPage> with SingleTick
             shadowColor: Colors.black.withValues(alpha: 0.3),
           ),
         ),
-        SizedBox(height: compact ? 12 : 24),
-        Text(
-          'USE O BOTÃO PARA GIRAR A CARTEIRINHA',
-          style: GoogleFonts.inter(
-            color: Colors.white.withValues(alpha: 0.5),
-            fontSize: compact ? 9 : 10,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 2,
+        SizedBox(height: compact ? 12 : 20),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Text(
+            'USE O BOTÃO PARA GIRAR A CARTEIRINHA',
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.inter(
+              color: Colors.white.withValues(alpha: 0.5),
+              fontSize: compact ? 8 : 10,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 2,
+            ),
           ),
         ),
       ],
