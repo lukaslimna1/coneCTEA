@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import '../../core/constants/colors.dart';
+import '../../../core/constants/colors.dart';
 import 'package:conectea/core/widgets/premium/premium_hero.dart';
-import '../../core/widgets/premium/premium_card.dart';
+import '../../../core/widgets/premium/premium_card.dart';
 
 class AboutConecteaView extends StatelessWidget {
   const AboutConecteaView({super.key});

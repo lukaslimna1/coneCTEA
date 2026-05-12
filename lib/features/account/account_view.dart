@@ -7,9 +7,9 @@ import 'package:conectea/services/auth_service.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:conectea/models/app_user.dart';
-import 'package:conectea/features/account/security_view.dart';
-import 'package:conectea/features/account/edit_profile_view.dart';
-import 'package:conectea/features/account/about_conectea_view.dart';
+import 'package:conectea/features/account/security/security_view.dart';
+import 'package:conectea/features/account/profile/edit_profile_view.dart';
+import 'package:conectea/features/account/institutional/about_conectea_view.dart';
 
 class AccountView extends StatelessWidget {
   final AppUser? user;

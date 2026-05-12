@@ -12,7 +12,7 @@ import 'package:go_router/go_router.dart';
 import 'package:conectea/features/cards/widgets/carteirinha_digital/digital_card_widget.dart';
 import 'package:conectea/features/cards/full_screen_card_page.dart';
 import 'package:conectea/models/app_user.dart';
-import 'package:conectea/features/account/edit_profile_view.dart';
+import 'package:conectea/features/account/profile/edit_profile_view.dart';
 import 'package:conectea/features/cards/widgets/tela_carteirinhas/cards_member_selector.dart';
 import 'package:conectea/features/cards/widgets/tela_carteirinhas/cards_pending_state.dart';
 import 'package:conectea/features/cards/widgets/tela_carteirinhas/cards_empty_state.dart';
