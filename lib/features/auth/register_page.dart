@@ -576,40 +576,38 @@ class _RegisterPageState extends State<RegisterPage> {
                                        icon: PhosphorIcons.identificationBadge(),
                                     ),
                                     const SizedBox(height: 16),
-                                    Row(
+                                    Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Expanded(
-                                          child: _buildDropdownField<String>(
-                                            label: 'Gênero',
-                                            value: _generoSelecionado,
-                                            items: const [
-                                              'Feminino',
-                                              'Masculino',
-                                              'Não binário',
-                                              'Outro',
-                                              'Prefiro não informar',
-                                            ].map((t) => DropdownMenuItem(value: t, child: Text(t, style: const TextStyle(fontSize: 12, color: Colors.white)))).toList(),
-                                             icon: PhosphorIcons.genderIntersex(),
-                                            onChanged: (v) => setState(() => _generoSelecionado = v),
-                                          ),
+                                        _buildDropdownField<String>(
+                                          label: 'Gênero',
+                                          value: _generoSelecionado,
+                                          hint: 'Selecione',
+                                          items: const [
+                                            'Feminino',
+                                            'Masculino',
+                                            'Não binário',
+                                            'Outro',
+                                            'Prefiro não informar',
+                                          ].map((t) => DropdownMenuItem(value: t, child: Text(t, style: const TextStyle(fontSize: 14, color: Colors.white)))).toList(),
+                                          icon: PhosphorIcons.genderIntersex(),
+                                          onChanged: (v) => setState(() => _generoSelecionado = v),
                                         ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: _buildDropdownField<String>(
-                                            label: 'Raça / Cor',
-                                            value: _racaSelecionada,
-                                            items: const [
-                                              'Branca',
-                                              'Preta',
-                                              'Parda',
-                                              'Amarela',
-                                              'Indígena',
-                                              'Prefiro não informar',
-                                            ].map((t) => DropdownMenuItem(value: t, child: Text(t, style: const TextStyle(fontSize: 12, color: Colors.white)))).toList(),
-                                             icon: PhosphorIcons.usersThree(),
-                                            onChanged: (v) => setState(() => _racaSelecionada = v),
-                                          ),
+                                        const SizedBox(height: 16),
+                                        _buildDropdownField<String>(
+                                          label: 'Raça / Cor',
+                                          value: _racaSelecionada,
+                                          hint: 'Selecione',
+                                          items: const [
+                                            'Branca',
+                                            'Preta',
+                                            'Parda',
+                                            'Amarela',
+                                            'Indígena',
+                                            'Prefiro não informar',
+                                          ].map((t) => DropdownMenuItem(value: t, child: Text(t, style: const TextStyle(fontSize: 14, color: Colors.white)))).toList(),
+                                          icon: PhosphorIcons.usersThree(),
+                                          onChanged: (v) => setState(() => _racaSelecionada = v),
                                         ),
                                       ],
                                     ),
@@ -1107,46 +1105,66 @@ Ao criar uma conta, acessar ou utilizar o aplicativo, o usuário declara estar c
   }
 
   Widget _buildScrollableDialog({required String title, required String content}) {
+    final isTerms = title.contains('Termos');
     return AlertDialog(
       backgroundColor: const Color(0xFF0C2445),
-      surfaceTintColor: const Color(0xFF0C2445),
+      surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(28),
         side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
       ),
-      title: Text(
-        title, 
-        style: GoogleFonts.outfit(
-          fontWeight: FontWeight.w800,
-          color: Colors.white,
-          letterSpacing: -0.5,
-        ),
+      title: Row(
+        children: [
+          Icon(
+            isTerms ? PhosphorIcons.fileText() : PhosphorIcons.shieldCheck(),
+            color: AppColors.primary,
+            size: 24,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              title,
+              style: GoogleFonts.outfit(
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+                fontSize: 20,
+                letterSpacing: -0.5,
+              ),
+            ),
+          ),
+        ],
       ),
       content: SizedBox(
         width: double.maxFinite,
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: Text(
-            content,
-            style: GoogleFonts.inter(
-              fontSize: 14, 
-              height: 1.6,
-              color: Colors.white.withValues(alpha: 0.7),
-              fontWeight: FontWeight.w500,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.2),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+          ),
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Text(
+              content,
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                height: 1.6,
+                color: Colors.white.withValues(alpha: 0.7),
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ),
       ),
+      actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
       actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text(
-            'Compreendido',
-            style: GoogleFonts.inter(
-              fontWeight: FontWeight.w800,
-              fontSize: 14,
-              color: AppColors.primary,
-            ),
+        SizedBox(
+          width: double.infinity,
+          child: PremiumButton(
+            text: 'Compreendido',
+            onPressed: () => Navigator.pop(context),
+            icon: PhosphorIcons.check(),
           ),
         ),
       ],

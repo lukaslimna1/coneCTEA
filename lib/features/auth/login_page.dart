@@ -276,15 +276,15 @@ class _LoginPageState extends State<LoginPage> {
                         Padding(
                           padding: const EdgeInsets.only(top: 8),
                           child: Wrap(
+                            spacing: 16,
+                            runSpacing: 4,
                             alignment: WrapAlignment.spaceBetween,
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            runSpacing: 8,
                             children: [
                               TextButton(
                                 onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ForgotEmailPage())),
                                 style: TextButton.styleFrom(
                                   padding: EdgeInsets.zero,
-                                  minimumSize: const Size(0, 30),
+                                  minimumSize: const Size(0, 36),
                                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                 ),
                                 child: Text(
@@ -300,7 +300,7 @@ class _LoginPageState extends State<LoginPage> {
                                 onPressed: () => context.push('/forgot-password'),
                                 style: TextButton.styleFrom(
                                   padding: EdgeInsets.zero,
-                                  minimumSize: const Size(0, 30),
+                                  minimumSize: const Size(0, 36),
                                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                 ),
                                 child: Text(
