@@ -275,11 +275,18 @@ class _LoginPageState extends State<LoginPage> {
                         // Links de recuperação de acesso
                         Padding(
                           padding: const EdgeInsets.only(top: 8),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          child: Wrap(
+                            alignment: WrapAlignment.spaceBetween,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            runSpacing: 8,
                             children: [
                               TextButton(
                                 onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ForgotEmailPage())),
+                                style: TextButton.styleFrom(
+                                  padding: EdgeInsets.zero,
+                                  minimumSize: const Size(0, 30),
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                ),
                                 child: Text(
                                   'Esqueci meu e-mail',
                                   style: GoogleFonts.inter(
@@ -291,6 +298,11 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                               TextButton(
                                 onPressed: () => context.push('/forgot-password'),
+                                style: TextButton.styleFrom(
+                                  padding: EdgeInsets.zero,
+                                  minimumSize: const Size(0, 30),
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                ),
                                 child: Text(
                                   'Esqueci minha senha',
                                   style: GoogleFonts.inter(
@@ -361,7 +373,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   
                   // Espaçamento para o conteúdo inferior do background
-                  const SizedBox(height: 140),
+                  const SizedBox(height: 40),
                     ],
                   ),
                 ),

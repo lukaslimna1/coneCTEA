@@ -17,16 +17,15 @@ class PremiumAuthBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppBackground(
-      child: Stack(
+      child: Column(
         children: [
-          // 1. Conteúdo Principal da Tela
-          child,
+          // 1. Conteúdo Principal da Tela (Rolável)
+          Expanded(child: child),
 
           // 2. Barra de Segurança/Informação Inferior (Trust Badge)
-          Positioned(
-            bottom: 24,
-            left: 24,
-            right: 24,
+          // Agora fora do Stack para não sobrepor o conteúdo em telas pequenas
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(20),
               child: Container(

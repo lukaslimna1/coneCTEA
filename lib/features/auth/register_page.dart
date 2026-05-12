@@ -474,33 +474,27 @@ class _RegisterPageState extends State<RegisterPage> {
                               const SizedBox(height: 32),
                                _buildSectionTitle(PhosphorIcons.mapPin(), 'Localização'),
                               const SizedBox(height: 20),
-                              Row(
+                              Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Expanded(
-                                    flex: 2,
-                                    child: _buildSearchableDropdown(
-                                      label: 'Estado*',
-                                      value: _selectedState,
-                                      items: _states.map((s) => s['sigla'] as String).toList(),
-                                       icon: PhosphorIcons.mapTrifold(),
-                                      onChanged: (v) {
-                                        setState(() => _selectedState = v);
-                                        _fetchCities(v);
-                                      },
-                                    ),
+                                  _buildSearchableDropdown(
+                                    label: 'Estado*',
+                                    value: _selectedState,
+                                    items: _states.map((s) => s['sigla'] as String).toList(),
+                                    icon: PhosphorIcons.mapTrifold(),
+                                    onChanged: (v) {
+                                      setState(() => _selectedState = v);
+                                      _fetchCities(v);
+                                    },
                                   ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    flex: 4,
-                                    child: _buildSearchableDropdown(
-                                      label: 'Cidade*',
-                                      value: _selectedCity,
-                                      items: _cities,
-                                       icon: PhosphorIcons.mapPin(),
-                                      hint: _isLoadingCities ? 'Buscando...' : 'Selecione',
-                                      onChanged: (v) => setState(() => _selectedCity = v),
-                                    ),
+                                  const SizedBox(height: 20),
+                                  _buildSearchableDropdown(
+                                    label: 'Cidade*',
+                                    value: _selectedCity,
+                                    items: _cities,
+                                    icon: PhosphorIcons.mapPin(),
+                                    hint: _isLoadingCities ? 'Buscando...' : 'Selecione',
+                                    onChanged: (v) => setState(() => _selectedCity = v),
                                   ),
                                 ],
                               ),
@@ -741,7 +735,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 140), // Espaço para a ilustração do background
+                      const SizedBox(height: 40), // Espaço reduzido pois o rodapé agora tem espaço próprio no Column
                     ],
                   ),
                 ),
@@ -912,6 +906,8 @@ class _RegisterPageState extends State<RegisterPage> {
                     Expanded(
                       child: Text(
                         value ?? hint ?? 'Selecione',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.inter(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
