@@ -18,6 +18,7 @@ import 'package:conectea/features/auth/utils/auth_cpf_validator.dart';
 import 'package:conectea/features/auth/widgets/registro/register_section_title.dart';
 import 'package:conectea/features/auth/widgets/registro/register_input_field.dart';
 import 'package:conectea/features/auth/widgets/registro/register_dropdown_field.dart';
+import 'package:conectea/features/auth/widgets/registro/register_terms_checkbox.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -619,7 +620,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                 ),
                               ),
                               const Divider(height: 48, color: Colors.white10),
-                              _buildTermsCheckbox(
+                              RegisterTermsCheckbox(
                                 value: _concordaTermos,
                                 onChanged: (v) => setState(() => _concordaTermos = v!),
                                 text: Text.rich(
@@ -678,7 +679,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                 ),
                               ),
                               const SizedBox(height: 16),
-                              _buildTermsCheckbox(
+                              RegisterTermsCheckbox(
                                 value: _autorizaDados,
                                 onChanged: (v) => setState(() => _autorizaDados = v!),
                                 text: Text(
@@ -690,7 +691,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                 ),
                               ),
                               const SizedBox(height: 12),
-                              _buildTermsCheckbox(
+                              RegisterTermsCheckbox(
                                 value: _autorizaSaude,
                                 onChanged: (v) => setState(() => _autorizaSaude = v!),
                                 text: Text(
@@ -822,32 +823,6 @@ class _RegisterPageState extends State<RegisterPage> {
             ));
           },
         ),
-      ],
-    );
-  }
-
-  Widget _buildTermsCheckbox({
-    required bool value,
-    required ValueChanged<bool?> onChanged,
-    required Widget text,
-  }) {
-    return Row(
-      children: [
-        SizedBox(
-          height: 24,
-          width: 24,
-          child: Checkbox(
-            value: value,
-            onChanged: onChanged,
-            activeColor: AppColors.primary,
-            side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(6),
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(child: text),
       ],
     );
   }
