@@ -10,7 +10,6 @@ import 'package:conectea/services/database_service.dart';
 import 'package:conectea/models/app_user.dart';
 import 'package:conectea/core/widgets/premium_auth_background.dart';
 import 'package:conectea/core/widgets/premium/premium_button.dart';
-import 'package:conectea/features/auth/forgot_email_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -281,7 +280,7 @@ class _LoginPageState extends State<LoginPage> {
                             alignment: WrapAlignment.spaceBetween,
                             children: [
                               TextButton(
-                                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ForgotEmailPage())),
+                                onPressed: () => context.push('/forgot-email'),
                                 style: TextButton.styleFrom(
                                   padding: EdgeInsets.zero,
                                   minimumSize: const Size(0, 36),

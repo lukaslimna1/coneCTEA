@@ -2,6 +2,7 @@ import 'package:go_router/go_router.dart';
 import 'package:conectea/features/auth/login_page.dart';
 import 'package:conectea/features/auth/register_page.dart';
 import 'package:conectea/features/auth/forgot_password_page.dart';
+import 'package:conectea/features/auth/forgot_email_page.dart';
 import 'package:conectea/features/home/home_page.dart';
 import 'package:conectea/features/requests/add_member_page.dart';
 import 'package:conectea/features/admin/admin_dashboard_page.dart';
@@ -25,9 +26,10 @@ class AppRoutes {
       final isLoggingIn = location.startsWith('/login');
       final isRegistering = location.startsWith('/register');
       final isForgotPassword = location.startsWith('/forgot-password');
+      final isForgotEmail = location.startsWith('/forgot-email');
 
       if (!isAuthenticated) {
-        if (isLoggingIn || isRegistering || isForgotPassword) return null;
+        if (isLoggingIn || isRegistering || isForgotPassword || isForgotEmail) return null;
         return '/login';
       }
 
@@ -57,6 +59,10 @@ class AppRoutes {
       GoRoute(
         path: '/forgot-password',
         builder: (context, state) => const ForgotPasswordPage(),
+      ),
+      GoRoute(
+        path: '/forgot-email',
+        builder: (context, state) => const ForgotEmailPage(),
       ),
       GoRoute(
         path: '/admin-dashboard',

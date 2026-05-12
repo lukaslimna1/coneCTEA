@@ -16,16 +16,54 @@ class DatabaseService {
   Future<String?> getEmailByCpf(String cpf) async {
     try {
       final cleanCpf = cpf.replaceAll(RegExp(r'[^0-9]'), '');
-      final data = await _supabase
-          .from('profiles')
-          .select('email')
-          .eq('cpf', cleanCpf)
-          .maybeSingle();
       
+      String? formattedCpf;
+      if (cleanCpf.length == 11) {
+        formattedCpf = '${cleanCpf.substring(0, 3)}.${cleanCpf.substring(3, 6)}.${cleanCpf.substring(6, 9)}-${cleanCpf.substring(9)}';
+      }
+      var query = _supabase.from('profiles').select('email');
+
+      if (formattedCpf != null && formattedCpf != cleanCpf) {
+        query = query.or('cpf.eq.$cleanCpf,cpf.eq.$formattedCpf');
+      } else {
+        query = query.eq('cpf', cleanCpf);
+      }
+
+      final data = await query.maybeSingle();
       return data?['email']?.toString();
     } catch (e) {
-      debugPrint('Erro ao buscar e-mail por CPF: $e');
+      debugPrint('Erro na consulta de e-mail por CPF');
       return null;
+    }
+  }
+
+  /// Recupera o e-mail de forma segura via Edge Function.
+  /// Retorna um mapa com: found, maskedEmail, emailSent e error.
+  Future<Map<String, dynamic>> recoverEmailByCpf(String cpf) async {
+    try {
+      final cleanCpf = cpf.replaceAll(RegExp(r'[^0-9]'), '');
+
+      final response = await _supabase.functions.invoke(
+        'recover-email-by-cpf',
+        body: {'cpf': cleanCpf},
+      );
+
+      final data = response.data as Map<String, dynamic>;
+
+      return {
+        'found': data['found'] ?? false,
+        'maskedEmail': data['masked_email'],
+        'emailSent': data['email_sent'] ?? false,
+        'error': null,
+      };
+    } catch (e) {
+      debugPrint('Erro ao chamar Edge Function recover-email-by-cpf: $e');
+      return {
+        'found': false,
+        'maskedEmail': null,
+        'emailSent': false,
+        'error': e.toString(),
+      };
     }
   }
 
