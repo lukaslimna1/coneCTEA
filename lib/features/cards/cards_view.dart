@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:conectea/core/constants/colors.dart';
 import 'package:conectea/models/digital_card.dart';
@@ -8,8 +7,6 @@ import 'package:conectea/models/member.dart';
 import 'package:conectea/models/card_request.dart';
 import 'package:conectea/services/auth_service.dart';
 import 'package:conectea/services/database_service.dart';
-import 'package:conectea/core/widgets/premium/premium_button.dart';
-import 'package:conectea/core/widgets/premium/premium_card.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:go_router/go_router.dart';
 import 'package:conectea/features/cards/widgets/digital_card_widget.dart';
@@ -19,6 +16,7 @@ import 'package:conectea/features/account/edit_profile_view.dart';
 import 'package:conectea/features/cards/widgets/cards_member_selector.dart';
 import 'package:conectea/features/cards/widgets/cards_pending_state.dart';
 import 'package:conectea/features/cards/widgets/cards_empty_state.dart';
+import 'package:conectea/features/cards/widgets/cards_details_section.dart';
 import 'package:conectea/features/requests/add_member_page.dart';
 
 class CardsView extends StatefulWidget {
@@ -351,79 +349,18 @@ class _CardsViewState extends State<CardsView> {
 
                         const SizedBox(height: 20),
 
-                        // Datas e Status
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: _buildInfoBlock(
-                                  icon: PhosphorIconsRegular.calendarCheck,
-                                  label: 'Válida até',
-                                  value: DateFormat(
-                                    'dd/MM/yyyy',
-                                  ).format(selectedCard.validUntil),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _buildInfoBlock(
-                                  icon: PhosphorIconsRegular.checkCircle,
-                                  label: 'Situação',
-                                  value: 'ATIVA',
-                                  isStatus: true,
-                                ),
-                              ),
-                            ],
+                        // Detalhes e Ações da Carteirinha
+                        CardsDetailsSection(
+                          validUntil: selectedCard.validUntil,
+                          showBack: _showBack,
+                          onToggleBack: () =>
+                              setState(() => _showBack = !_showBack),
+                          onOpenFullScreen: () => _openFullScreen(
+                            selectedMember,
+                            activeMembers,
+                            activeCardsMap,
                           ),
-                        ),
-
-                        const SizedBox(height: 24),
-
-                        // Botões de Ação
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: PremiumButton(
-                                  text: 'Ver carteirinha',
-                                  variant: PremiumButtonVariant.primary,
-                                  icon:
-                                      PhosphorIconsRegular.identificationCard,
-                                  onPressed: () => _openFullScreen(
-                                    selectedMember,
-                                    activeMembers,
-                                    activeCardsMap,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: PremiumButton(
-                                  text: _showBack ? 'Ver frente' : 'Ver verso',
-                                  variant: PremiumButtonVariant.outline,
-                                  textColor: Colors.white,
-                                  icon: PhosphorIconsRegular.arrowsClockwise,
-                                  onPressed: () =>
-                                      setState(() => _showBack = !_showBack),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        const SizedBox(height: 12),
-
-                        // Botão Secundário: Cadastrar novo dependente
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
-                          child: PremiumButton(
-                            text: 'Cadastrar novo dependente',
-                            variant: PremiumButtonVariant.glass,
-                            icon: PhosphorIconsRegular.userPlus,
-                            onPressed: _handleRequestNewCard,
-                          ),
+                          onAddDependent: _handleRequestNewCard,
                         ),
 
                         const SizedBox(height: 40),
@@ -440,47 +377,7 @@ class _CardsViewState extends State<CardsView> {
   }
 
 
-  Widget _buildInfoBlock({
-    required IconData icon,
-    required String label,
-    required String value,
-    bool isStatus = false,
-  }) {
-    return PremiumCard(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Icon(
-            icon,
-            color: isStatus ? AppColors.statusGreen : AppColors.primary,
-            size: 24,
-          ),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: GoogleFonts.inter(
-                  fontSize: 11,
-                  color: AppColors.cardSubtitle,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              Text(
-                value,
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                  color: isStatus ? AppColors.statusGreen : AppColors.cardTitle,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+
 
   void _openFullScreen(
     Member member,
