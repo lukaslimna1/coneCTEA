@@ -106,7 +106,7 @@ class DigitalCardBack extends StatelessWidget {
                   
                   const Spacer(),
                   
-                  // Legal Text
+                  // Texto legal
                   Text(
                     'Documento de identificação digital para uso exclusivo nos programas da Família TEA Bauru.\nNão substitui a CIPTEA oficial (Lei 13.977/20) ou outros documentos de identidade legais.\nA autenticidade pode ser verificada via QR Code.',
                     style: GoogleFonts.inter(
@@ -122,7 +122,7 @@ class DigitalCardBack extends StatelessWidget {
 
             const SizedBox(width: 20),
 
-            // QR Code Section
+            // Seção do QR Code
             Expanded(
               flex: 4,
               child: Column(

@@ -67,11 +67,11 @@ class DigitalCardFront extends StatelessWidget {
                   ),
                 ),
                 
-                // Pills side by side
+                // Pílulas lado a lado
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Validity Pill — Estilo Glassmorphism Refinado
+                    // Pílula de Validade — Estilo Glassmorphism Refinado
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                       decoration: BoxDecoration(
@@ -107,7 +107,7 @@ class DigitalCardFront extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    // Status Pill — Dinâmico e Vibrante
+                    // Pílula de Status — Dinâmico e Vibrante
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                       decoration: BoxDecoration(
