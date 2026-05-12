@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
@@ -17,6 +16,7 @@ import 'package:conectea/core/widgets/premium/premium_card.dart';
 import 'package:conectea/app/routes.dart';
 import 'package:conectea/features/auth/utils/auth_cpf_validator.dart';
 import 'package:conectea/features/auth/widgets/registro/register_section_title.dart';
+import 'package:conectea/features/auth/widgets/registro/register_input_field.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -409,37 +409,37 @@ class _RegisterPageState extends State<RegisterPage> {
                             children: [
                               RegisterSectionTitle(icon: PhosphorIcons.user(), title: 'Dados Pessoais'),
                               const SizedBox(height: 20),
-                              _buildInputField(
+                              RegisterInputField(
                                 label: 'Nome Completo*',
                                 controller: _nomeController,
                                 hint: 'Digite seu nome completo',
-                                 icon: PhosphorIcons.user(),
+                                icon: PhosphorIcons.user(),
                                 validator: (v) => v!.isEmpty ? 'Campo obrigatório' : null,
                               ),
                               const SizedBox(height: 20),
-                              _buildInputField(
+                              RegisterInputField(
                                 label: 'CPF*',
                                 controller: _cpfController,
                                 hint: '000.000.000-00',
-                                 icon: PhosphorIcons.identificationCard(),
+                                icon: PhosphorIcons.identificationCard(),
                                 inputFormatters: [cpfMask],
                                 keyboardType: TextInputType.number,
-                                  validator: (v) {
-                                    if (v == null || v.isEmpty) return 'Campo obrigatório';
-                                    if (!isValidAuthCpf(v)) return 'CPF inválido';
-                                    return null;
-                                  },
+                                validator: (v) {
+                                  if (v == null || v.isEmpty) return 'Campo obrigatório';
+                                  if (!isValidAuthCpf(v)) return 'CPF inválido';
+                                  return null;
+                                },
                               ),
                               const SizedBox(height: 20),
                               Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Expanded(
-                                    child: _buildInputField(
+                                    child: RegisterInputField(
                                       label: 'Telefone*',
                                       controller: _telefoneController,
                                       hint: '(00) 00000-0000',
-                                       icon: PhosphorIcons.phone(),
+                                      icon: PhosphorIcons.phone(),
                                       inputFormatters: [phoneMask],
                                       keyboardType: TextInputType.phone,
                                       validator: (v) => v!.length < 14 ? 'Telefone inválido' : null,
@@ -447,11 +447,11 @@ class _RegisterPageState extends State<RegisterPage> {
                                   ),
                                   const SizedBox(width: 12),
                                   Expanded(
-                                    child: _buildInputField(
+                                    child: RegisterInputField(
                                       label: 'Nascimento*',
                                       controller: _dataNascimentoController,
                                       hint: 'DD/MM/AAAA',
-                                       icon: PhosphorIcons.calendar(),
+                                      icon: PhosphorIcons.calendar(),
                                       inputFormatters: [dateMask],
                                       keyboardType: TextInputType.datetime,
                                       validator: (v) => v!.length < 10 ? 'Data inválida' : null,
@@ -460,11 +460,11 @@ class _RegisterPageState extends State<RegisterPage> {
                                 ],
                               ),
                               const SizedBox(height: 20),
-                              _buildInputField(
+                              RegisterInputField(
                                 label: 'E-mail*',
                                 controller: _emailController,
                                 hint: 'Digite seu e-mail',
-                                 icon: PhosphorIcons.envelopeSimple(),
+                                icon: PhosphorIcons.envelopeSimple(),
                                 keyboardType: TextInputType.emailAddress,
                                 helper: 'Será usado para login no aplicativo.',
                                 validator: (v) {
@@ -503,16 +503,16 @@ class _RegisterPageState extends State<RegisterPage> {
                               const SizedBox(height: 32),
                                 RegisterSectionTitle(icon: PhosphorIcons.shieldCheck(), title: 'Segurança'),
                               const SizedBox(height: 20),
-                              _buildInputField(
+                              RegisterInputField(
                                 label: 'Senha*',
                                 controller: _passwordController,
                                 hint: 'Crie uma senha',
-                                 icon: PhosphorIcons.lock(),
-                                obscure: _obscurePassword,
+                                icon: PhosphorIcons.lock(),
+                                obscureText: _obscurePassword,
                                 validator: (v) => v!.length < 6 ? 'Mínimo 6 caracteres' : null,
                                 suffixIcon: IconButton(
                                   icon: Icon(
-                                     _obscurePassword ? PhosphorIcons.eyeSlash() : PhosphorIcons.eye(),
+                                    _obscurePassword ? PhosphorIcons.eyeSlash() : PhosphorIcons.eye(),
                                     color: AppColors.textSecondary.withValues(alpha: 0.5),
                                     size: 20,
                                   ),
@@ -520,16 +520,16 @@ class _RegisterPageState extends State<RegisterPage> {
                                 ),
                               ),
                               const SizedBox(height: 20),
-                              _buildInputField(
+                              RegisterInputField(
                                 label: 'Confirmar Senha*',
                                 controller: _confirmPasswordController,
                                 hint: 'Repita sua senha',
-                                 icon: PhosphorIcons.lockKey(),
-                                obscure: _obscureConfirmPassword,
+                                icon: PhosphorIcons.lockKey(),
+                                obscureText: _obscureConfirmPassword,
                                 validator: (v) => v != _passwordController.text ? 'Senhas não conferem' : null,
                                 suffixIcon: IconButton(
                                   icon: Icon(
-                                     _obscureConfirmPassword ? PhosphorIcons.eyeSlash() : PhosphorIcons.eye(),
+                                    _obscureConfirmPassword ? PhosphorIcons.eyeSlash() : PhosphorIcons.eye(),
                                     color: AppColors.textSecondary.withValues(alpha: 0.5),
                                     size: 20,
                                   ),
@@ -563,19 +563,19 @@ class _RegisterPageState extends State<RegisterPage> {
                                     ),
                                     if (_indicacaoInstituicao == 'Sim') ...[
                                       const SizedBox(height: 16),
-                                      _buildInputField(
+                                      RegisterInputField(
                                         label: 'Nome da instituição',
                                         controller: _nomeInstituicaoController,
                                         hint: 'Digite o nome da instituição',
-                                         icon: PhosphorIcons.buildings(),
+                                        icon: PhosphorIcons.buildings(),
                                       ),
                                     ],
                                     const SizedBox(height: 16),
-                                    _buildInputField(
+                                    RegisterInputField(
                                       label: 'Nome Social',
                                       controller: _nomeSocialController,
                                       hint: 'Como você gostaria de ser chamado(a)',
-                                       icon: PhosphorIcons.identificationBadge(),
+                                      icon: PhosphorIcons.identificationBadge(),
                                     ),
                                     const SizedBox(height: 16),
                                     Column(
@@ -744,82 +744,6 @@ class _RegisterPageState extends State<RegisterPage> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildInputField({
-    required String label,
-    required TextEditingController controller,
-    required String hint,
-    required IconData icon,
-    String? helper,
-    bool obscure = false,
-    Widget? suffixIcon,
-    String? Function(String?)? validator,
-    List<TextInputFormatter>? inputFormatters,
-    TextInputType? keyboardType,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: GoogleFonts.inter(
-            fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
-            fontSize: 13,
-          ),
-        ),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: controller,
-          obscureText: obscure,
-          validator: validator,
-          inputFormatters: inputFormatters,
-          keyboardType: keyboardType,
-          style: GoogleFonts.inter(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600),
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: GoogleFonts.inter(color: AppColors.textSecondary.withValues(alpha: 0.3), fontSize: 14),
-            prefixIcon: Icon(icon, color: AppColors.primary, size: 22),
-            suffixIcon: suffixIcon,
-            filled: true,
-            fillColor: const Color(0xFF071B3A).withValues(alpha: 0.5),
-            contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: AppColors.primary, width: 2),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: Colors.redAccent, width: 1),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: Colors.redAccent, width: 2),
-            ),
-            errorStyle: GoogleFonts.inter(fontSize: 12, color: Colors.redAccent),
-          ),
-        ),
-        if (helper != null) ...[
-          const SizedBox(height: 6),
-          Text(
-            helper,
-            style: GoogleFonts.inter(
-              fontSize: 11,
-              color: AppColors.textSecondary.withValues(alpha: 0.5),
-            ),
-          ),
-        ],
-      ],
     );
   }
 
