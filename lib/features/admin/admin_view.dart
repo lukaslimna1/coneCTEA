@@ -59,10 +59,7 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
     if (user != null) {
       final profile = await _databaseService.getUserProfile(user.id);
       if (mounted) {
-        final dbRole = profile?.role.dbValue ?? 'desconhecido';
-        debugPrint('🛡️ ADMIN_VIEW: Usuário logado com ID: ${user.id}');
-        debugPrint('🛡️ ADMIN_VIEW: Cargo lido do Banco: $dbRole');
-        debugPrint('🛡️ ADMIN_VIEW: Permissão isAdmin: ${profile?.role.isAdmin}');
+        // Logs de auditoria interna removidos por segurança na Fase 18B
         
         setState(() => _currentUser = profile);
       }

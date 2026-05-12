@@ -61,7 +61,7 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao carregar detalhes: $e')),
+          const SnackBar(content: Text('Não foi possível carregar os detalhes agora. Tente novamente.')),
         );
       }
     }
@@ -115,8 +115,8 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
         Navigator.of(context, rootNavigator: true).pop();
         
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erro ao atualizar: $e'),
+          const SnackBar(
+            content: Text('Não foi possível atualizar o status agora. Tente novamente.'),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
           ),
@@ -437,7 +437,7 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
           }
         } catch (e) {
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro ao atualizar banco: $e')));
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Arquivo removido, mas não foi possível atualizar o registro agora.')));
           }
         }
       } else {
