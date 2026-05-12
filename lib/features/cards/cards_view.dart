@@ -17,6 +17,7 @@ import 'package:conectea/features/cards/widgets/cards_member_selector.dart';
 import 'package:conectea/features/cards/widgets/cards_pending_state.dart';
 import 'package:conectea/features/cards/widgets/cards_empty_state.dart';
 import 'package:conectea/features/cards/widgets/cards_details_section.dart';
+import 'package:conectea/features/cards/widgets/cards_error_state.dart';
 import 'package:conectea/features/requests/add_member_page.dart';
 
 class CardsView extends StatefulWidget {
@@ -152,6 +153,13 @@ class _CardsViewState extends State<CardsView> {
                 return StreamBuilder<List<CardRequest>>(
                   stream: _databaseService.cardRequestsStream(userId),
                   builder: (ctx2, requestSnap) {
+                    // Verificação de Erros nas Streams
+                    if (memberSnap.hasError || cardSnap.hasError || requestSnap.hasError) {
+                      return CardsErrorState(
+                        onRetry: () => setState(() {}),
+                      );
+                    }
+
                     if (memberSnap.connectionState == ConnectionState.waiting ||
                         cardSnap.connectionState == ConnectionState.waiting) {
                       return const Center(
@@ -282,7 +290,7 @@ class _CardsViewState extends State<CardsView> {
 
                         const SizedBox(height: 16),
 
-                        // Novo Seletor Horizontal de Membros (Padão Home)
+                        // Novo Seletor Horizontal de Membros (padrão Home)
                         CardsMemberSelector(
                           members: members,
                           activeCardsMap: activeCardsMap,

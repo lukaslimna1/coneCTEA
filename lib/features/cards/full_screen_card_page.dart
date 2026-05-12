@@ -73,7 +73,7 @@ class _FullScreenCardPageState extends State<FullScreenCardPage> with SingleTick
       backgroundColor: AppColors.background,
       body: Stack(
         children: [
-          // Background Gradient & Grid
+          // Gradiente de Fundo e Grade
           Positioned.fill(
             child: Container(
               decoration: const BoxDecoration(
@@ -106,7 +106,7 @@ class _FullScreenCardPageState extends State<FullScreenCardPage> with SingleTick
                 
                 const Spacer(),
                 
-                // Card Container with Padding
+                // Container do Cartão com Espaçamento
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Center(
@@ -187,7 +187,7 @@ class _FullScreenCardPageState extends State<FullScreenCardPage> with SingleTick
               filterQuality: FilterQuality.high,
             ),
           ),
-          const SizedBox(width: 48), // Spacer for balance
+          const SizedBox(width: 48), // Espaçador para equilíbrio visual
         ],
       ),
     );
@@ -279,7 +279,7 @@ class _FullScreenCardPageState extends State<FullScreenCardPage> with SingleTick
         ),
         const SizedBox(height: 24),
         Text(
-          'TOQUE PARA GIRAR E VER DETALHES',
+          'USE O BOTÃO PARA GIRAR A CARTEIRINHA',
           style: GoogleFonts.inter(
             color: Colors.white.withValues(alpha: 0.5),
             fontSize: 10,
