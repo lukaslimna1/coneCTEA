@@ -405,20 +405,34 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
                   'state': stateController.text,
                   'gender': selectedGenero,
                 };
-                await _databaseService.updateAnyUserProfile(user.id, data);
-              if (context.mounted) {
-                Navigator.pop(context);
-                _usersTabKey.currentState?.refreshUsers();
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Perfil atualizado!')));
-              }
-            },
-            child: const Text('Salvar'),
-          ),
-        ],
+
+                try {
+                  await _databaseService.updateAnyUserProfile(user.id, data);
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    _usersTabKey.currentState?.refreshUsers();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Perfil atualizado com sucesso!')),
+                    );
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Não foi possível atualizar o perfil agora. Tente novamente.'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              },
+              child: const Text('Salvar'),
+            ),
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Future<void> _changeUserRole(AppUser user, UserRole newRole) async {
     if (user.role == newRole) return;
@@ -504,7 +518,7 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Erro ao atualizar cargo: $e'),
+          content: const Text('Não foi possível atualizar o cargo agora. Tente novamente.'),
           backgroundColor: AppColors.errorRed,
           behavior: SnackBarBehavior.floating,
         ),
