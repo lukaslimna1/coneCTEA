@@ -20,6 +20,7 @@ import 'package:conectea/features/auth/widgets/registro/register_input_field.dar
 import 'package:conectea/features/auth/widgets/registro/register_dropdown_field.dart';
 import 'package:conectea/features/auth/widgets/registro/register_terms_checkbox.dart';
 import 'package:conectea/features/auth/widgets/registro/register_scrollable_dialog.dart';
+import 'package:conectea/features/auth/widgets/registro/register_searchable_dropdown.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -482,7 +483,7 @@ class _RegisterPageState extends State<RegisterPage> {
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  _buildSearchableDropdown(
+                                  RegisterSearchableDropdown(
                                     label: 'Estado*',
                                     value: _selectedState,
                                     items: _states.map((s) => s['sigla'] as String).toList(),
@@ -493,7 +494,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                     },
                                   ),
                                   const SizedBox(height: 20),
-                                  _buildSearchableDropdown(
+                                  RegisterSearchableDropdown(
                                     label: 'Cidade*',
                                     value: _selectedCity,
                                     items: _cities,
@@ -750,83 +751,6 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  Widget _buildSearchableDropdown({
-    required String label,
-    required String? value,
-    required List<String> items,
-    required IconData icon,
-    required Function(String) onChanged,
-    String? hint,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: GoogleFonts.inter(
-            fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
-            fontSize: 13,
-          ),
-        ),
-        const SizedBox(height: 8),
-        SearchAnchor(
-          builder: (context, controller) {
-            return InkWell(
-              onTap: () => controller.openView(),
-              borderRadius: BorderRadius.circular(16),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF071B3A).withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-                ),
-                child: Row(
-                  children: [
-                    Icon(icon, color: AppColors.primary, size: 22),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        value ?? hint ?? 'Selecione',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.inter(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: value == null ? AppColors.textSecondary.withValues(alpha: 0.3) : Colors.white,
-                        ),
-                      ),
-                    ),
-                    const Icon(PhosphorIconsRegular.caretDown, color: AppColors.textSecondary, size: 16),
-                  ],
-                ),
-              ),
-            );
-          },
-          viewBackgroundColor: const Color(0xFF071B3A),
-          viewSurfaceTintColor: const Color(0xFF071B3A),
-          viewHintText: 'Digite para buscar...',
-          viewLeading: IconButton(
-            icon: const Icon(PhosphorIconsRegular.arrowLeft, color: Colors.white),
-            onPressed: () => Navigator.pop(context),
-          ),
-          suggestionsBuilder: (context, controller) {
-            final keyword = controller.text.toLowerCase();
-            final filtered = items.where((item) => item.toLowerCase().contains(keyword)).toList();
-
-            return filtered.map((item) => ListTile(
-              title: Text(item, style: GoogleFonts.inter(fontWeight: FontWeight.w500, color: Colors.white)),
-              onTap: () {
-                controller.closeView(item);
-                onChanged(item);
-              },
-            ));
-          },
-        ),
-      ],
-    );
-  }
 
   void _showTermsOfUse() {
     showDialog(
