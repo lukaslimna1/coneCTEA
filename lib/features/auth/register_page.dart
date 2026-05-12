@@ -16,6 +16,7 @@ import 'package:conectea/core/widgets/premium/premium_button.dart';
 import 'package:conectea/core/widgets/premium/premium_card.dart';
 import 'package:conectea/app/routes.dart';
 import 'package:conectea/features/auth/utils/auth_cpf_validator.dart';
+import 'package:conectea/features/auth/widgets/registro/register_section_title.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -406,7 +407,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildSectionTitle(PhosphorIcons.user(), 'Dados Pessoais'),
+                              RegisterSectionTitle(icon: PhosphorIcons.user(), title: 'Dados Pessoais'),
                               const SizedBox(height: 20),
                               _buildInputField(
                                 label: 'Nome Completo*',
@@ -473,7 +474,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                 },
                               ),
                               const SizedBox(height: 32),
-                               _buildSectionTitle(PhosphorIcons.mapPin(), 'Localização'),
+                               RegisterSectionTitle(icon: PhosphorIcons.mapPin(), title: 'Localização'),
                               const SizedBox(height: 20),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -500,7 +501,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                 ],
                               ),
                               const SizedBox(height: 32),
-                               _buildSectionTitle(PhosphorIcons.shieldCheck(), 'Segurança'),
+                                RegisterSectionTitle(icon: PhosphorIcons.shieldCheck(), title: 'Segurança'),
                               const SizedBox(height: 20),
                               _buildInputField(
                                 label: 'Senha*',
@@ -743,24 +744,6 @@ class _RegisterPageState extends State<RegisterPage> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildSectionTitle(IconData icon, String title) {
-    return Row(
-      children: [
-        Icon(icon, size: 20, color: AppColors.primary),
-        const SizedBox(width: 8),
-        Text(
-          title,
-          style: GoogleFonts.outfit(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-            letterSpacing: 0.2,
-          ),
-        ),
-      ],
     );
   }
 
