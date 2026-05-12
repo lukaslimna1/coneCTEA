@@ -15,6 +15,7 @@ import 'package:conectea/core/widgets/premium_auth_background.dart';
 import 'package:conectea/core/widgets/premium/premium_button.dart';
 import 'package:conectea/core/widgets/premium/premium_card.dart';
 import 'package:conectea/app/routes.dart';
+import 'package:conectea/features/auth/utils/auth_cpf_validator.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -422,11 +423,11 @@ class _RegisterPageState extends State<RegisterPage> {
                                  icon: PhosphorIcons.identificationCard(),
                                 inputFormatters: [cpfMask],
                                 keyboardType: TextInputType.number,
-                                validator: (v) {
-                                  if (v == null || v.isEmpty) return 'Campo obrigatório';
-                                  if (!_isValidCPF(v)) return 'CPF inválido';
-                                  return null;
-                                },
+                                  validator: (v) {
+                                    if (v == null || v.isEmpty) return 'Campo obrigatório';
+                                    if (!isValidAuthCpf(v)) return 'CPF inválido';
+                                    return null;
+                                  },
                               ),
                               const SizedBox(height: 20),
                               Row(
@@ -743,32 +744,6 @@ class _RegisterPageState extends State<RegisterPage> {
         ),
       ),
     );
-  }
-
-  bool _isValidCPF(String cpf) {
-    cpf = cpf.replaceAll(RegExp(r'[^0-9]'), '');
-    if (cpf.length != 11) return false;
-    if (RegExp(r'^(\d)\1{10}$').hasMatch(cpf)) return false;
-
-    List<int> digits = cpf.split('').map((e) => int.parse(e)).toList();
-
-    int sum = 0;
-    for (int i = 0; i < 9; i++) {
-      sum += digits[i] * (10 - i);
-    }
-    int firstDigit = (sum * 10) % 11;
-    if (firstDigit == 10) firstDigit = 0;
-    if (firstDigit != digits[9]) return false;
-
-    sum = 0;
-    for (int i = 0; i < 10; i++) {
-      sum += digits[i] * (11 - i);
-    }
-    int secondDigit = (sum * 10) % 11;
-    if (secondDigit == 10) secondDigit = 0;
-    if (secondDigit != digits[10]) return false;
-
-    return true;
   }
 
   Widget _buildSectionTitle(IconData icon, String title) {
