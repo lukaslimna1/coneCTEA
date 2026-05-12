@@ -6,7 +6,7 @@ import 'dart:math';
 import '../../core/constants/colors.dart';
 import '../../models/digital_card.dart';
 import '../../models/member.dart';
-import 'widgets/digital_card_widget.dart';
+import 'widgets/carteirinha_digital/digital_card_widget.dart';
 
 class FullScreenCardPage extends StatefulWidget {
   final List<Member> members;
