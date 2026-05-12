@@ -310,7 +310,7 @@ class _RegisterPageState extends State<RegisterPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erro ao criar conta: $e'),
+            content: const Text('Não foi possível criar sua conta agora. Verifique os dados e tente novamente.'),
             backgroundColor: Colors.red,
           ),
         );
