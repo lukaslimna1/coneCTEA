@@ -11,6 +11,7 @@ import 'package:conectea/services/database_service.dart';
 import 'package:conectea/features/account/profile/widgets/profile_section_header.dart';
 import 'package:conectea/features/account/profile/widgets/profile_locked_field.dart';
 import 'package:conectea/features/account/profile/widgets/profile_input_field.dart';
+import 'package:conectea/features/account/profile/widgets/profile_dropdown_field.dart';
 import 'package:conectea/features/account/profile/utils/profile_string_utils.dart';
 
 class EditProfileView extends StatefulWidget {
@@ -465,7 +466,7 @@ class _EditProfileViewState extends State<EditProfileView> {
             const ProfileSectionHeader(title: '🧬 Dados Complementares'),
             const SizedBox(height: 16),
 
-            _buildDropdownField<String>(
+            ProfileDropdownField<String>(
               label: 'Indicado por instituição?',
               value: _hasInstitution,
               items: const ['Não', 'Sim'].map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
@@ -474,6 +475,7 @@ class _EditProfileViewState extends State<EditProfileView> {
                 _hasInstitution = v!;
                 if (v == 'Não') _institutionController.clear();
               }) : null,
+              enabled: _isEditMode,
             ),
             if (_hasInstitution == 'Sim') ...[
               const SizedBox(height: 12),
@@ -494,7 +496,7 @@ class _EditProfileViewState extends State<EditProfileView> {
             ),
             const SizedBox(height: 12),
 
-            _buildDropdownField<String>(
+            ProfileDropdownField<String>(
               label: 'Gênero',
               value: _selectedGender,
               items: _genderOptions
@@ -502,9 +504,10 @@ class _EditProfileViewState extends State<EditProfileView> {
                   .toList(),
               icon: Icons.wc_outlined,
               onChanged: _isEditMode ? (v) => setState(() => _selectedGender = v) : null,
+              enabled: _isEditMode,
             ),
             const SizedBox(height: 12),
-            _buildDropdownField<String>(
+            ProfileDropdownField<String>(
               label: 'Raça / Cor',
               value: _selectedRace,
               items: _raceOptions
@@ -512,6 +515,7 @@ class _EditProfileViewState extends State<EditProfileView> {
                   .toList(),
               icon: Icons.groups_outlined,
               onChanged: _isEditMode ? (v) => setState(() => _selectedRace = v) : null,
+              enabled: _isEditMode,
             ),
 
             const SizedBox(height: 40),
@@ -535,31 +539,6 @@ class _EditProfileViewState extends State<EditProfileView> {
             const SizedBox(height: 32),
           ],
         ),
-      ),
-    );
-  }
-
-  // ─── Helpers ────────────────────────────────────────────────────────────────
-
-  Widget _buildDropdownField<T>({
-    required String label,
-    required IconData icon,
-    required T? value,
-    required List<DropdownMenuItem<T>> items,
-    required void Function(T?)? onChanged,
-  }) {
-    return DropdownButtonFormField<T>(
-      initialValue: items.any((item) => item.value == value) ? value : null,
-      items: items,
-      onChanged: onChanged,
-      style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon, color: AppColors.primary, size: 20),
-        filled: true,
-        fillColor: AppColors.cardBackground,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: AppColors.borderLight)),
       ),
     );
   }
