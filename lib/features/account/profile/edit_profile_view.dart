@@ -12,6 +12,7 @@ import 'package:conectea/features/account/profile/widgets/profile_section_header
 import 'package:conectea/features/account/profile/widgets/profile_locked_field.dart';
 import 'package:conectea/features/account/profile/widgets/profile_input_field.dart';
 import 'package:conectea/features/account/profile/widgets/profile_dropdown_field.dart';
+import 'package:conectea/features/account/profile/widgets/profile_searchable_dropdown.dart';
 import 'package:conectea/features/account/profile/utils/profile_string_utils.dart';
 
 class EditProfileView extends StatefulWidget {
@@ -421,7 +422,7 @@ class _EditProfileViewState extends State<EditProfileView> {
             const SizedBox(height: 16),
 
             if (_isEditMode) ...[
-              _buildSearchableDropdown(
+              ProfileSearchableDropdown(
                 label: 'Estado*',
                 value: _selectedState,
                 items: _states.map((s) => s['sigla'] as String).toList(),
@@ -431,16 +432,17 @@ class _EditProfileViewState extends State<EditProfileView> {
                     _selectedState = v;
                     _selectedCity = null;
                   });
-                  _fetchCities(v!);
+                  if (v != null) _fetchCities(v);
                 },
               ),
               const SizedBox(height: 12),
-              _buildSearchableDropdown(
+              ProfileSearchableDropdown(
                 label: 'Cidade*',
                 value: _selectedCity,
                 items: _cities,
                 icon: Icons.location_on_outlined,
                 hint: _isLoadingCities ? 'Buscando...' : 'Selecione',
+                isLoading: _isLoadingCities,
                 onChanged: (v) => setState(() => _selectedCity = v),
               ),
             ] else
@@ -539,31 +541,6 @@ class _EditProfileViewState extends State<EditProfileView> {
             const SizedBox(height: 32),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildSearchableDropdown({
-    required String label,
-    required String? value,
-    required List<String> items,
-    required IconData icon,
-    String? hint,
-    required ValueChanged<String?> onChanged,
-  }) {
-    return DropdownButtonFormField<String>(
-      initialValue: items.contains(value) ? value : null,
-      items: items.map((i) => DropdownMenuItem(value: i, child: Text(i, style: const TextStyle(fontSize: 12)))).toList(),
-      onChanged: onChanged,
-      hint: Text(hint ?? 'Selecione', style: const TextStyle(fontSize: 12)),
-      style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon, color: AppColors.primary, size: 20),
-        filled: true,
-        fillColor: AppColors.cardBackground,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
       ),
     );
   }
