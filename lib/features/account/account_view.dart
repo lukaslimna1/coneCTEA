@@ -10,6 +10,8 @@ import 'package:conectea/models/app_user.dart';
 import 'package:conectea/features/account/security/security_view.dart';
 import 'package:conectea/features/account/profile/edit_profile_view.dart';
 import 'package:conectea/features/account/institutional/about_conectea_view.dart';
+import 'package:conectea/features/account/support/help_support_view.dart';
+
 
 class AccountView extends StatelessWidget {
   final AppUser? user;
@@ -192,8 +194,9 @@ class AccountView extends StatelessWidget {
           icon: PhosphorIconsRegular.headset,
           title: 'Ajuda',
           description: 'Suporte e dúvidas.',
-          onTap: () => _showComingSoonSnackBar(context, 'Ajuda e Suporte'),
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const HelpSupportView())),
         ),
+
         _buildMenuCard(
           context,
           icon: PhosphorIconsRegular.buildings,
@@ -263,18 +266,9 @@ class AccountView extends StatelessWidget {
     );
   }
 
-  void _showComingSoonSnackBar(BuildContext context, String feature) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('$feature estará disponível em breve!'),
-        backgroundColor: AppColors.surfaceDark,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
-  }
 
   void _showVersionDialog(BuildContext context) {
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
