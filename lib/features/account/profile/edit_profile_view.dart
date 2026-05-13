@@ -417,56 +417,41 @@ class _EditProfileViewState extends State<EditProfileView> {
             const SizedBox(height: 16),
 
             if (_isEditMode) ...[
-              Row(
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: _buildSearchableDropdown(
-                      label: 'Estado*',
-                      value: _selectedState,
-                      items: _states.map((s) => s['sigla'] as String).toList(),
-                      icon: Icons.map_outlined,
-                      onChanged: (v) {
-                        setState(() {
-                          _selectedState = v;
-                          _selectedCity = null;
-                        });
-                        _fetchCities(v!);
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    flex: 4,
-                    child: _buildSearchableDropdown(
-                      label: 'Cidade*',
-                      value: _selectedCity,
-                      items: _cities,
-                      icon: Icons.location_on_outlined,
-                      hint: _isLoadingCities ? 'Buscando...' : 'Selecione',
-                      onChanged: (v) => setState(() => _selectedCity = v),
-                    ),
-                  ),
-                ],
+              _buildSearchableDropdown(
+                label: 'Estado*',
+                value: _selectedState,
+                items: _states.map((s) => s['sigla'] as String).toList(),
+                icon: Icons.map_outlined,
+                onChanged: (v) {
+                  setState(() {
+                    _selectedState = v;
+                    _selectedCity = null;
+                  });
+                  _fetchCities(v!);
+                },
+              ),
+              const SizedBox(height: 12),
+              _buildSearchableDropdown(
+                label: 'Cidade*',
+                value: _selectedCity,
+                items: _cities,
+                icon: Icons.location_on_outlined,
+                hint: _isLoadingCities ? 'Buscando...' : 'Selecione',
+                onChanged: (v) => setState(() => _selectedCity = v),
               ),
             ] else
-              Row(
+              Column(
                 children: [
-                  Expanded(
-                    child: _buildLockedField(
-                      label: 'Estado',
-                      value: _user!.state ?? '—',
-                      icon: Icons.map_outlined,
-                    ),
+                  _buildLockedField(
+                    label: 'Estado',
+                    value: _user!.state ?? '—',
+                    icon: Icons.map_outlined,
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    flex: 2,
-                    child: _buildLockedField(
-                      label: 'Cidade',
-                      value: _user!.city ?? '—',
-                      icon: Icons.location_on_outlined,
-                    ),
+                  const SizedBox(height: 12),
+                  _buildLockedField(
+                    label: 'Cidade',
+                    value: _user!.city ?? '—',
+                    icon: Icons.location_on_outlined,
                   ),
                 ],
               ),
@@ -506,32 +491,24 @@ class _EditProfileViewState extends State<EditProfileView> {
             ),
             const SizedBox(height: 12),
 
-            Row(
-              children: [
-                Expanded(
-                  child: _buildDropdownField<String>(
-                    label: 'Gênero',
-                    value: _selectedGender,
-                    items: _genderOptions
-                        .map((g) => DropdownMenuItem(value: g, child: Text(g, style: const TextStyle(fontSize: 12))))
-                        .toList(),
-                    icon: Icons.wc_outlined,
-                    onChanged: _isEditMode ? (v) => setState(() => _selectedGender = v) : null,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildDropdownField<String>(
-                    label: 'Raça / Cor',
-                    value: _selectedRace,
-                    items: _raceOptions
-                        .map((r) => DropdownMenuItem(value: r, child: Text(r, style: const TextStyle(fontSize: 12))))
-                        .toList(),
-                    icon: Icons.groups_outlined,
-                    onChanged: _isEditMode ? (v) => setState(() => _selectedRace = v) : null,
-                  ),
-                ),
-              ],
+            _buildDropdownField<String>(
+              label: 'Gênero',
+              value: _selectedGender,
+              items: _genderOptions
+                  .map((g) => DropdownMenuItem(value: g, child: Text(g, style: const TextStyle(fontSize: 14))))
+                  .toList(),
+              icon: Icons.wc_outlined,
+              onChanged: _isEditMode ? (v) => setState(() => _selectedGender = v) : null,
+            ),
+            const SizedBox(height: 12),
+            _buildDropdownField<String>(
+              label: 'Raça / Cor',
+              value: _selectedRace,
+              items: _raceOptions
+                  .map((r) => DropdownMenuItem(value: r, child: Text(r, style: const TextStyle(fontSize: 14))))
+                  .toList(),
+              icon: Icons.groups_outlined,
+              onChanged: _isEditMode ? (v) => setState(() => _selectedRace = v) : null,
             ),
 
             const SizedBox(height: 40),
