@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
@@ -11,6 +10,7 @@ import 'package:conectea/models/app_user.dart';
 import 'package:conectea/services/database_service.dart';
 import 'package:conectea/features/account/profile/widgets/profile_section_header.dart';
 import 'package:conectea/features/account/profile/widgets/profile_locked_field.dart';
+import 'package:conectea/features/account/profile/widgets/profile_input_field.dart';
 import 'package:conectea/features/account/profile/utils/profile_string_utils.dart';
 
 class EditProfileView extends StatefulWidget {
@@ -366,7 +366,7 @@ class _EditProfileViewState extends State<EditProfileView> {
             const ProfileSectionHeader(title: '👤 Dados Principais'),
             const SizedBox(height: 16),
 
-            _buildInputField(
+            ProfileInputField(
               controller: _nameController,
               label: 'Nome Completo*',
               icon: Icons.person_outline,
@@ -384,23 +384,23 @@ class _EditProfileViewState extends State<EditProfileView> {
             ),
             const SizedBox(height: 12),
 
-            _buildInputField(
+            ProfileInputField(
               controller: _phoneController,
               label: 'Telefone*',
               icon: Icons.phone_outlined,
-              inputFormatters: [phoneMask],
-              keyboardType: TextInputType.phone,
               enabled: _isEditMode,
+              keyboardType: TextInputType.phone,
+              inputFormatters: [phoneMask],
             ),
             const SizedBox(height: 12),
 
-            _buildInputField(
+            ProfileInputField(
               controller: _dobController,
               label: 'Nascimento*',
               icon: Icons.calendar_today_outlined,
-              inputFormatters: [dateMask],
-              keyboardType: TextInputType.datetime,
               enabled: _isEditMode,
+              keyboardType: TextInputType.datetime,
+              inputFormatters: [dateMask],
             ),
             const SizedBox(height: 12),
 
@@ -477,7 +477,7 @@ class _EditProfileViewState extends State<EditProfileView> {
             ),
             if (_hasInstitution == 'Sim') ...[
               const SizedBox(height: 12),
-              _buildInputField(
+              ProfileInputField(
                 controller: _institutionController,
                 label: 'Nome da Instituição',
                 icon: Icons.business_outlined,
@@ -486,7 +486,7 @@ class _EditProfileViewState extends State<EditProfileView> {
             ],
             const SizedBox(height: 12),
 
-            _buildInputField(
+            ProfileInputField(
               controller: _socialNameController,
               label: 'Nome Social (opcional)',
               icon: Icons.badge_outlined,
@@ -540,35 +540,6 @@ class _EditProfileViewState extends State<EditProfileView> {
   }
 
   // ─── Helpers ────────────────────────────────────────────────────────────────
-
-  Widget _buildInputField({
-    required TextEditingController controller,
-    required String label,
-    required IconData icon,
-    bool enabled = true,
-    TextInputType? keyboardType,
-    List<TextInputFormatter>? inputFormatters,
-  }) {
-    if (!enabled) {
-      return ProfileLockedField(label: label, value: controller.text.isEmpty ? '—' : controller.text, icon: icon);
-    }
-    return TextFormField(
-      controller: controller,
-      keyboardType: keyboardType,
-      inputFormatters: inputFormatters,
-      style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon, color: AppColors.primary, size: 20),
-        filled: true,
-        fillColor: AppColors.cardBackground,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: AppColors.borderLight)),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: AppColors.borderLight)),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: AppColors.primary, width: 2)),
-      ),
-    );
-  }
 
   Widget _buildDropdownField<T>({
     required String label,
