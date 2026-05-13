@@ -4,7 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:url_launcher/url_launcher_string.dart';
+import 'package:conectea/features/account/profile/widgets/profile_support_dialog.dart';
 import 'package:conectea/core/constants/colors.dart';
 import 'package:conectea/models/app_user.dart';
 import 'package:conectea/services/database_service.dart';
@@ -172,57 +172,6 @@ class _EditProfileViewState extends State<EditProfileView> {
     }
   }
 
-  void _showSupportDialog(String field) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Row(
-          children: [
-            const Icon(Icons.support_agent_rounded, color: AppColors.alertOrange),
-            const SizedBox(width: 8),
-            Text('Alterar $field', style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Para sua segurança, campos de identificação crítica como $field não podem ser editados diretamente no aplicativo.',
-              style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary, height: 1.5),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Entre em contato com o suporte da ConeCTEA para solicitar esta alteração.',
-              style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text('Fechar', style: GoogleFonts.inter(color: AppColors.textSecondary)),
-          ),
-          ElevatedButton.icon(
-            onPressed: () async {
-              const url = 'https://wa.me/5514997728448';
-              if (await canLaunchUrlString(url)) {
-                await launchUrlString(url, mode: LaunchMode.externalApplication);
-              }
-              if (ctx.mounted) Navigator.pop(ctx);
-            },
-            icon: const Icon(Icons.chat_rounded, size: 18, color: Colors.white),
-            label: const Text('Falar no WhatsApp', style: TextStyle(color: Colors.white)),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF25D366), // WhatsApp Green
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   void _confirmEditMode() {
     showDialog(
@@ -382,7 +331,7 @@ class _EditProfileViewState extends State<EditProfileView> {
               value: _user!.cpf.isNotEmpty ? ProfileStringUtils.formatCpf(_user!.cpf) : '—',
               icon: Icons.badge_outlined,
               alwaysLocked: true,
-              onTap: () => _showSupportDialog('CPF'),
+              onTap: () => ProfileSupportDialog.show(context, 'CPF'),
             ),
             const SizedBox(height: 12),
 
@@ -412,7 +361,7 @@ class _EditProfileViewState extends State<EditProfileView> {
               value: _user!.email,
               icon: Icons.email_outlined,
               alwaysLocked: true,
-              onTap: () => _showSupportDialog('E-mail'),
+              onTap: () => ProfileSupportDialog.show(context, 'E-mail'),
             ),
 
             const SizedBox(height: 24),
