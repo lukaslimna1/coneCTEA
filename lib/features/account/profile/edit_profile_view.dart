@@ -10,6 +10,7 @@ import 'package:conectea/core/constants/colors.dart';
 import 'package:conectea/models/app_user.dart';
 import 'package:conectea/services/database_service.dart';
 import 'package:conectea/features/account/profile/widgets/profile_section_header.dart';
+import 'package:conectea/features/account/profile/widgets/profile_locked_field.dart';
 import 'package:conectea/features/account/profile/utils/profile_string_utils.dart';
 
 class EditProfileView extends StatefulWidget {
@@ -374,7 +375,7 @@ class _EditProfileViewState extends State<EditProfileView> {
             const SizedBox(height: 12),
 
             // CPF — SEMPRE BLOQUEADO
-            _buildLockedField(
+            ProfileLockedField(
               label: 'CPF',
               value: _user!.cpf.isNotEmpty ? ProfileStringUtils.formatCpf(_user!.cpf) : '—',
               icon: Icons.badge_outlined,
@@ -404,7 +405,7 @@ class _EditProfileViewState extends State<EditProfileView> {
             const SizedBox(height: 12),
 
             // E-MAIL — SEMPRE BLOQUEADO
-            _buildLockedField(
+            ProfileLockedField(
               label: 'E-mail',
               value: _user!.email,
               icon: Icons.email_outlined,
@@ -444,13 +445,13 @@ class _EditProfileViewState extends State<EditProfileView> {
             ] else
               Column(
                 children: [
-                  _buildLockedField(
+                  ProfileLockedField(
                     label: 'Estado',
                     value: _user!.state ?? '—',
                     icon: Icons.map_outlined,
                   ),
                   const SizedBox(height: 12),
-                  _buildLockedField(
+                  ProfileLockedField(
                     label: 'Cidade',
                     value: _user!.city ?? '—',
                     icon: Icons.location_on_outlined,
@@ -540,56 +541,6 @@ class _EditProfileViewState extends State<EditProfileView> {
 
   // ─── Helpers ────────────────────────────────────────────────────────────────
 
-  Widget _buildLockedField({
-    required String label,
-    required String value,
-    required IconData icon,
-    bool alwaysLocked = false,
-    VoidCallback? onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          color: AppColors.cardBackground,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.borderLight),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, color: AppColors.textSecondary, size: 20),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(label,
-                      style: GoogleFonts.inter(
-                          fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
-                  const SizedBox(height: 2),
-                  Text(value,
-                      style: GoogleFonts.inter(
-                          fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
-                ],
-              ),
-            ),
-            if (alwaysLocked)
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('Alterar via Suporte', 
-                    style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.alertOrange)),
-                  const SizedBox(width: 4),
-                  const Icon(Icons.lock_rounded, size: 14, color: AppColors.alertOrange),
-                ],
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildInputField({
     required TextEditingController controller,
     required String label,
@@ -599,7 +550,7 @@ class _EditProfileViewState extends State<EditProfileView> {
     List<TextInputFormatter>? inputFormatters,
   }) {
     if (!enabled) {
-      return _buildLockedField(label: label, value: controller.text.isEmpty ? '—' : controller.text, icon: icon);
+      return ProfileLockedField(label: label, value: controller.text.isEmpty ? '—' : controller.text, icon: icon);
     }
     return TextFormField(
       controller: controller,
