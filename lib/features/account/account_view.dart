@@ -26,58 +26,59 @@ class AccountView extends StatelessWidget {
       extendBodyBehindAppBar: true,
       body: AppBackground(
         child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
             children: [
-              const SizedBox(height: 100),
+              const SizedBox(height: 80),
               _buildProfileHeader(user),
-              const SizedBox(height: 32),
-              _buildMenuSection(context, [
-                _MenuItem(
-                  icon: PhosphorIconsRegular.user,
-                  title: 'Dados Pessoais',
-                  onTap: (ctx) => Navigator.push(
-                    ctx,
-                    MaterialPageRoute(
-                      builder: (context) => const EditProfileView(),
-                    ),
-                  ),
-                ),
-                _MenuItem(
-                  icon: PhosphorIconsRegular.shieldCheck,
-                  title: 'Segurança',
-                  onTap: (ctx) => Navigator.push(
-                    ctx,
-                    MaterialPageRoute(
-                      builder: (context) => const SecurityView(),
-                    ),
-                  ),
-                ),
-                _MenuItem(
-                  icon: PhosphorIconsRegular.question,
-                  title: 'Ajuda e Suporte',
-                  onTap: (ctx) {},
-                ),
-                _MenuItem(
-                  icon: PhosphorIconsRegular.info,
-                  title: 'Sobre o ConeCTEA',
-                  onTap: (ctx) => Navigator.push(
-                    ctx,
-                    MaterialPageRoute(
-                      builder: (context) => const AboutConecteaView(),
-                    ),
-                  ),
-                ),
-              ]),
+              const SizedBox(height: 40),
+              
+              _buildSectionHeader('CENTRAL DO USUÁRIO', 'Gerencie sua conta, privacidade e suporte.'),
+              const SizedBox(height: 16),
+              
+              _buildGridMenu(context),
+              
               const SizedBox(height: 32),
               _buildLogoutButton(context, authService),
+              
               const SizedBox(height: 32),
               _buildSocialSection(),
-              const SizedBox(height: 32),
+              const SizedBox(height: 40),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title, String subtitle) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 4),
+          child: Text(
+            title,
+            style: GoogleFonts.inter(
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              color: AppColors.textSecondary.withValues(alpha: 0.6),
+              letterSpacing: 1.2,
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(
+            subtitle,
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              color: AppColors.textSecondary.withValues(alpha: 0.8),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -89,8 +90,8 @@ class AccountView extends StatelessWidget {
     return Column(
       children: [
         Container(
-          width: 100,
-          height: 100,
+          width: 90,
+          height: 90,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             gradient: const LinearGradient(
@@ -98,102 +99,217 @@ class AccountView extends StatelessWidget {
               end: Alignment.bottomRight,
               colors: [
                 AppColors.primary,
-                Color(0xFF0C2445), // Azul mais escuro
+                Color(0xFF0C2445),
               ],
             ),
             boxShadow: [
               BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.3),
+                color: AppColors.primary.withValues(alpha: 0.2),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),
             ],
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.25),
-              width: 3,
+              color: Colors.white.withValues(alpha: 0.15),
+              width: 2,
             ),
           ),
           child: Center(
             child: Text(
               initials,
-              style: const TextStyle(
+              style: GoogleFonts.outfit(
                 color: Colors.white,
-                fontSize: 36,
+                fontSize: 32,
                 fontWeight: FontWeight.w800,
                 letterSpacing: 1,
               ),
             ),
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 20),
         Text(
           displayName,
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w800,
-            color: AppColors.cardTitle,
+          textAlign: TextAlign.center,
+          style: GoogleFonts.outfit(
+            fontSize: 22,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimary,
           ),
         ),
         const SizedBox(height: 4),
-        const Text(
-          'Perfil do Titular',
-          style: TextStyle(
-            color: AppColors.cardSubtitle,
-            fontWeight: FontWeight.w500,
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+          ),
+          child: Text(
+            'Perfil do Titular',
+            style: GoogleFonts.inter(
+              fontSize: 11,
+              color: AppColors.primary,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildMenuSection(BuildContext context, List<_MenuItem> items) {
+  Widget _buildGridMenu(BuildContext context) {
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 2,
+      mainAxisSpacing: 16,
+      crossAxisSpacing: 16,
+      childAspectRatio: 0.95,
+      children: [
+        _buildMenuCard(
+          context,
+          icon: PhosphorIconsRegular.userCircle,
+          title: 'Meus Dados',
+          description: 'Editar perfil e informações.',
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const EditProfileView())),
+        ),
+        _buildMenuCard(
+          context,
+          icon: PhosphorIconsRegular.shieldCheck,
+          title: 'Segurança',
+          description: 'Senha e proteção de conta.',
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SecurityView())),
+        ),
+        _buildMenuCard(
+          context,
+          icon: PhosphorIconsRegular.database,
+          title: 'Privacidade',
+          description: 'Dados e LGPD.',
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SecurityView())),
+        ),
+        _buildMenuCard(
+          context,
+          icon: PhosphorIconsRegular.headset,
+          title: 'Ajuda',
+          description: 'Suporte e dúvidas.',
+          onTap: () => _showComingSoonSnackBar(context, 'Ajuda e Suporte'),
+        ),
+        _buildMenuCard(
+          context,
+          icon: PhosphorIconsRegular.buildings,
+          title: 'Institucional',
+          description: 'Sobre o ConeCTEA.',
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const AboutConecteaView())),
+        ),
+        _buildMenuCard(
+          context,
+          icon: PhosphorIconsRegular.appWindow,
+          title: 'Aplicativo',
+          description: 'Versão e ajustes.',
+          onTap: () => _showVersionDialog(context),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMenuCard(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String description,
+    required VoidCallback onTap,
+  }) {
     return PremiumCard(
+      onTap: onTap,
+      padding: const EdgeInsets.all(16),
       child: Column(
-        children: items.map((item) {
-          final isLast = items.last == item;
-          return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: AppColors.primary, size: 24),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildMenuTile(context, item),
-              if (!isLast)
-                Divider(
-                  height: 1,
-                  thickness: 1,
-                  color: AppColors.borderLight.withValues(alpha: 0.5),
-                  indent: 56,
-                  endIndent: 20,
+              Text(
+                title,
+                style: GoogleFonts.outfit(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
                 ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                description,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.inter(
+                  fontSize: 11,
+                  color: AppColors.textSecondary.withValues(alpha: 0.7),
+                  height: 1.3,
+                ),
+              ),
             ],
-          );
-        }).toList(),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildMenuTile(BuildContext context, _MenuItem item) {
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: AppColors.surfaceDark,
-          borderRadius: BorderRadius.circular(12),
+  void _showComingSoonSnackBar(BuildContext context, String feature) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('$feature estará disponível em breve!'),
+        backgroundColor: AppColors.surfaceDark,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
+  void _showVersionDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF0B1D3A),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text('Informações do App', style: GoogleFonts.outfit(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildVersionItem('Versão', '1.0.0'),
+            _buildVersionItem('Build', '2026.05.13'),
+            _buildVersionItem('Ambiente', 'Produção'),
+          ],
         ),
-        child: Icon(item.icon, color: AppColors.cardTitle, size: 22),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Fechar', style: TextStyle(color: AppColors.primary)),
+          ),
+        ],
       ),
-      title: Text(
-        item.title,
-        style: GoogleFonts.inter(
-          fontWeight: FontWeight.w600,
-          color: AppColors.cardTitle,
-          fontSize: 15,
-        ),
+    );
+  }
+
+  Widget _buildVersionItem(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 13)),
+          Text(value, style: GoogleFonts.inter(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 13)),
+        ],
       ),
-      trailing: const Icon(
-        PhosphorIconsRegular.caretRight,
-        color: AppColors.cardMutedText,
-        size: 20,
-      ),
-      onTap: () => item.onTap?.call(context),
     );
   }
 
@@ -204,10 +320,7 @@ class AccountView extends StatelessWidget {
         onPressed: () async {
           await authService.signOut();
         },
-        icon: const Icon(
-          PhosphorIconsRegular.signOut,
-          color: AppColors.errorRed,
-        ),
+        icon: const Icon(PhosphorIconsRegular.signOut, color: AppColors.errorRed, size: 20),
         label: Text(
           'Sair da Conta',
           style: GoogleFonts.inter(
@@ -217,14 +330,11 @@ class AccountView extends StatelessWidget {
           ),
         ),
         style: TextButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          padding: const EdgeInsets.symmetric(vertical: 18),
           backgroundColor: AppColors.errorRed.withValues(alpha: 0.1),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
-            side: BorderSide(
-              color: AppColors.errorRed.withValues(alpha: 0.2),
-              width: 1,
-            ),
+            side: BorderSide(color: AppColors.errorRed.withValues(alpha: 0.2)),
           ),
         ),
       ),
@@ -235,74 +345,44 @@ class AccountView extends StatelessWidget {
     return Column(
       children: [
         Text(
-          'Acompanhe nossa comunidade',
+          'Comunidade Família TEA Bauru',
           style: GoogleFonts.inter(
-            fontSize: 14,
+            fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: AppColors.cardMutedText,
+            color: AppColors.textSecondary.withValues(alpha: 0.5),
           ),
         ),
         const SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _SocialButton(
-              icon: PhosphorIconsRegular.instagramLogo,
-              label: 'Instagram',
-              color: const Color(0xFFE4405F),
-              onTap: () => launchUrlString(
-                'https://www.instagram.com/familiateabauru/',
-                mode: LaunchMode.externalApplication,
-              ),
+        GestureDetector(
+          onTap: () => launchUrlString(
+            'https://www.instagram.com/familiateabauru/',
+            mode: LaunchMode.externalApplication,
+          ),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFE4405F).withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE4405F).withValues(alpha: 0.2)),
             ),
-          ],
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(PhosphorIconsRegular.instagramLogo, color: Color(0xFFE4405F), size: 22),
+                const SizedBox(width: 10),
+                Text(
+                  'Seguir no Instagram',
+                  style: GoogleFonts.inter(
+                    color: const Color(0xFFE4405F),
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ],
     );
   }
-}
-
-class _SocialButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final Color color;
-  final VoidCallback onTap;
-
-  const _SocialButton({
-    required this.icon,
-    required this.label,
-    required this.color,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return PremiumCard(
-      onTap: onTap,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: color, size: 22),
-          const SizedBox(width: 8),
-          Text(
-            label,
-            style: GoogleFonts.inter(
-              color: color,
-              fontWeight: FontWeight.w700,
-              fontSize: 15,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _MenuItem {
-  final IconData icon;
-  final String title;
-  final Function(BuildContext)? onTap;
-
-  _MenuItem({required this.icon, required this.title, this.onTap});
 }
