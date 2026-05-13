@@ -236,7 +236,10 @@ class _EditProfileViewState extends State<EditProfileView> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao salvar: $e'), backgroundColor: AppColors.errorRed),
+          const SnackBar(
+            content: Text('Não foi possível salvar seus dados agora. Verifique sua conexão e tente novamente.'),
+            backgroundColor: AppColors.errorRed,
+          ),
         );
       }
     } finally {
