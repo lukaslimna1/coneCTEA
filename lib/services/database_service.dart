@@ -152,7 +152,7 @@ class DatabaseService {
 
   Future<DigitalCard?> getCardByNumber(String cardNumber) async {
     try {
-      debugPrint('DatabaseService: Procurando por card_number = "$cardNumber"');
+      debugPrint('DatabaseService: Procurando por carteirinha pelo número.');
       final data = await _supabase
           .from('digital_cards')
           .select('*, members(*)')
@@ -160,10 +160,10 @@ class DatabaseService {
           .maybeSingle();
       
       if (data == null) {
-        debugPrint('DatabaseService: Nenhuma carteirinha encontrada para "$cardNumber"');
+        debugPrint('DatabaseService: Nenhuma carteirinha encontrada.');
         return null;
       }
-      debugPrint('DatabaseService: Carteirinha encontrada! ID: ${data['id']}');
+      debugPrint('DatabaseService: Carteirinha encontrada com sucesso.');
       return DigitalCard.fromJson(data);
     } catch (e) {
       debugPrint('Erro no DatabaseService: $e');
@@ -507,7 +507,7 @@ class DatabaseService {
     required String message,
   }) async {
     // Registro em debug para rastrear a intenção de envio
-    debugPrint('🔔 PUSH_PENDING: Notificação remota para $userId ("$title").');
+    debugPrint('🔔 PUSH_PENDING: Enviando notificação remota.');
     debugPrint('Nota: O disparo real deve ser implementado via Edge Function.');
     
     // As notificações internas (NotificationItem) continuam sendo criadas no banco
@@ -616,7 +616,7 @@ class DatabaseService {
   Future<void> createNotification(NotificationItem notification) async {
     try {
       await _supabase.from('notifications').insert(notification.toJson());
-      debugPrint('✅ NOTIFICATION_CREATED: Sucesso para o usuário ${notification.userId} (Título: ${notification.title})');
+      debugPrint('✅ NOTIFICATION_CREATED: Notificação criada com sucesso no banco.');
     } catch (e) {
       debugPrint('Erro ao criar notificação: $e');
     }

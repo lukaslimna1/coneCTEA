@@ -52,9 +52,7 @@ class _ScannerViewState extends State<ScannerView> {
         }
 
         final String cardNumber = extracted.trim();
-        debugPrint('ScannerView: Original Code: "$code"');
-        debugPrint('ScannerView: Extracted Token: "$cardNumber"'); 
-        
+        debugPrint('ScannerView: QR Code lido para validação.');
         _validateCard(cardNumber);
         break;
       }
@@ -96,7 +94,9 @@ class _ScannerViewState extends State<ScannerView> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao validar: $e')),
+          const SnackBar(
+            content: Text('Não foi possível validar a carteirinha agora. Tente novamente.'),
+          ),
         );
       }
       setState(() {

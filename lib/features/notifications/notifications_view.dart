@@ -209,7 +209,10 @@ class _NotificationsViewState extends State<NotificationsView> {
               } catch (e) {
                 if (mounted) {
                   scaffold.showSnackBar(
-                    SnackBar(content: Text('Erro: $e'), backgroundColor: AppColors.errorRed),
+                    const SnackBar(
+                      content: Text('Não foi possível limpar as notificações agora. Tente novamente.'),
+                      backgroundColor: AppColors.errorRed,
+                    ),
                   );
                 }
               }
