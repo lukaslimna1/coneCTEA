@@ -145,7 +145,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
         }
       }
     } catch (e) {
-      debugPrint('Erro ao buscar estados: $e');
+      debugPrint('Erro ao buscar estados');
     }
   }
 
@@ -172,7 +172,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
         }
       }
     } catch (e) {
-      debugPrint('Erro ao buscar cidades: $e');
+      debugPrint('Erro ao buscar cidades');
     } finally {
       if (mounted) {
         setState(() => _isLoadingCities = false);
@@ -240,7 +240,9 @@ class _AddMemberPageState extends State<AddMemberPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erro no upload: $e'),
+            content: const Text(
+              'Não foi possível enviar o arquivo agora. Verifique sua conexão e tente novamente.',
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -395,7 +397,9 @@ class _AddMemberPageState extends State<AddMemberPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erro ao adicionar dependente: $e'),
+            content: const Text(
+              'Não foi possível salvar a solicitação agora. Verifique os dados e tente novamente.',
+            ),
             backgroundColor: Colors.red,
           ),
         );
