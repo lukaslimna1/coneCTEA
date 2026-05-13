@@ -9,6 +9,8 @@ import 'package:url_launcher/url_launcher_string.dart';
 import 'package:conectea/core/constants/colors.dart';
 import 'package:conectea/models/app_user.dart';
 import 'package:conectea/services/database_service.dart';
+import 'package:conectea/features/account/profile/widgets/profile_section_header.dart';
+import 'package:conectea/features/account/profile/utils/profile_string_utils.dart';
 
 class EditProfileView extends StatefulWidget {
   const EditProfileView({super.key});
@@ -360,7 +362,7 @@ class _EditProfileViewState extends State<EditProfileView> {
               ),
 
             // ─── SEÇÃO: DADOS PRINCIPAIS ────────────────────────────────
-            _buildSectionTitle('👤 Dados Principais'),
+            const ProfileSectionHeader(title: '👤 Dados Principais'),
             const SizedBox(height: 16),
 
             _buildInputField(
@@ -374,7 +376,7 @@ class _EditProfileViewState extends State<EditProfileView> {
             // CPF — SEMPRE BLOQUEADO
             _buildLockedField(
               label: 'CPF',
-              value: _user!.cpf.isNotEmpty ? _formatCpf(_user!.cpf) : '—',
+              value: _user!.cpf.isNotEmpty ? ProfileStringUtils.formatCpf(_user!.cpf) : '—',
               icon: Icons.badge_outlined,
               alwaysLocked: true,
               onTap: () => _showSupportDialog('CPF'),
@@ -413,7 +415,7 @@ class _EditProfileViewState extends State<EditProfileView> {
             const SizedBox(height: 24),
 
             // ─── SEÇÃO: LOCALIZAÇÃO ─────────────────────────────────────
-            _buildSectionTitle('📍 Localização'),
+            const ProfileSectionHeader(title: '📍 Localização'),
             const SizedBox(height: 16),
 
             if (_isEditMode) ...[
@@ -459,7 +461,7 @@ class _EditProfileViewState extends State<EditProfileView> {
             const SizedBox(height: 24),
 
             // ─── SEÇÃO: DADOS COMPLEMENTARES ────────────────────────────
-            _buildSectionTitle('🧬 Dados Complementares'),
+            const ProfileSectionHeader(title: '🧬 Dados Complementares'),
             const SizedBox(height: 16),
 
             _buildDropdownField<String>(
@@ -537,17 +539,6 @@ class _EditProfileViewState extends State<EditProfileView> {
   }
 
   // ─── Helpers ────────────────────────────────────────────────────────────────
-
-  String _formatCpf(String cpf) {
-    final d = cpf.replaceAll(RegExp(r'[^0-9]'), '');
-    if (d.length != 11) return cpf;
-    return '${d.substring(0, 3)}.${d.substring(3, 6)}.${d.substring(6, 9)}-${d.substring(9)}';
-  }
-
-  Widget _buildSectionTitle(String title) {
-    return Text(title,
-        style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary));
-  }
 
   Widget _buildLockedField({
     required String label,
