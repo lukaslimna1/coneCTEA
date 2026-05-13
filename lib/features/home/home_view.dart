@@ -214,7 +214,9 @@ class _HomeViewState extends State<HomeView> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erro ao solicitar renovação: $e'),
+            content: const Text(
+              'Não foi possível solicitar a renovação agora. Tente novamente em instantes.',
+            ),
             backgroundColor: AppColors.errorRed,
           ),
         );
