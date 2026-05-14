@@ -1,5 +1,7 @@
 # 📘 Documentação Técnica — ConeCTEA
-**Versão:** 4.0.0 | **Atualizado em:** 13/05/2026
+**App:** 0.4.0-dev | **Documentação:** 4.0.0 | **Status:** Desenvolvimento
+<br>
+**Atualizado em:** 14/05/2026
 
 ---
 
@@ -19,7 +21,11 @@ O **ConeCTEA** é um ecossistema mobile-first preparado para evolução contínu
     *   Phosphor Icons & Flutter SVG.
     *   Shimmer para estados de carregamento.
 *   **Utilidades:** `go_router` (navegação), `url_launcher` (links externos), `sensors_plus` (parallax).
-*   **Plataforma Alvo:** Android (Prioridade total). O uso do Chrome DevTools é restrito a testes rápidos de layout; a validação final ocorre obrigatoriamente em dispositivos Android reais.
+*   **Plataforma Alvo:**
+    *   Android é a prioridade total do ecossistema.
+    *   O Chrome DevTools é utilizado apenas como fallback visual inicial e testes rápidos de layout.
+    *   A validação principal ocorre em emuladores Android e perfis Samsung-like (A05/A55).
+    *   Testes em dispositivo físico são pontuais e realizados conforme disponibilidade.
 
 ---
 
@@ -70,11 +76,19 @@ O padrão **Night Blue Premium** é a identidade oficial do app, focada em confo
 ## 5. Fluxos de Negócio
 
 ### 5.1 Autenticação e Onboarding (Auth)
-O fluxo de autenticação foi totalmente revisado e modularizado:
-*   **Modularização do Registro:** A `RegisterPage` utiliza widgets especializados (em `widgets/registro/`) para cada etapa do formulário, garantindo manutenibilidade.
-*   **Recuperação de Senha:** Fluxo nativo via Supabase Auth com link de reset enviado por e-mail.
-*   **Recuperação de E-mail (Edge Function):** Implementado fluxo seguro onde o usuário informa o CPF e a Edge Function `recover-email-by-cpf` realiza a busca no backend usando `service_role`. O app recebe apenas uma confirmação mascarada (ex: `l***@email.com`), garantindo que o e-mail completo nunca seja exposto no frontend antes da autenticação.
+O fluxo de autenticação foi refinado visualmente, estabilizado e modularizado:
+*   **Login:** Interface com scroll natural, contraste aprimorado em ícones e links, e fundo Night Blue Premium consistente.
+*   **Recuperação de Senha:** Fluxo nativo via Supabase Auth com mensagens seguras/neutras e botões no padrão premium.
+*   **Recuperação de E-mail (Edge Function):** Implementado fluxo seguro via CPF e Edge Function `recover-email-by-cpf`. A interface foi personalizada com a logo ConeCTEA, Hero `app_logo`, campos com ícones brancos e foco em roxo.
+*   **Cadastro (Criar conta):**
+    *   Textos otimizados para legibilidade e links em ciano.
+    *   Botão "Criar minha conta" em estilo `premiumCard` com `greenAccent`.
+    *   Inputs e dropdowns padronizados com ícones brancos.
+    *   Seções organizadas por cores semânticas: Dados Pessoais (ciano/oceano), Localização (verde), Segurança (azul claro) e Dados complementares (branco discreto).
+*   **Modais Legais:** Leitura de Termos de Uso e Política de Privacidade organizada por blocos/cards internos para melhor escaneabilidade.
+*   **Consentimentos:** Checkboxes (LGPD) com bordas desmarcadas mais visíveis e estados claros.
 *   **Segurança:** Mensagens técnicas conhecidas foram substituídas por feedbacks amigáveis.
+*   **Responsividade:** A responsividade global de textos segue como um ponto de atenção para ciclos futuros.
 
 ### 5.2 Painel Administrativo (Admin)
 Área restrita para gestão da associação, organizada por abas:
@@ -142,8 +156,19 @@ Documentação de funções serverless implementadas:
 
 ## 7. Regras de Desenvolvimento e Validação
 *   **Idioma:** Toda a comunicação, comentários e documentação em **Português Brasileiro (PT-BR)**.
-*   **Validação Android:** Priorizar validação em dispositivos físicos Android ou emuladores. O Chrome DevTools pode ser usado apenas como fallback visual inicial e não substitui QA Android real.
+*   **Validação Android:** Priorizar validação em emuladores Android e perfis Samsung-like. O Chrome DevTools pode ser usado apenas como fallback visual inicial. Testes em hardware real são pontuais.
 *   **Padrão de Código:** Proibido o uso de `git add .`. Commits devem ser descritivos e em português.
+
+### 7.1 Infraestrutura de QA Android Local
+O projeto mantém scripts de automação em `tools/qa/android/` para agilizar a validação em diferentes perfis:
+*   **Perfis/Emuladores do Ciclo Atual:**
+    *   `Android_Small_360dp_QA` (Referência de layout compacto).
+    *   `Android_Medium_412dp_QA` (Referência de layout médio).
+    *   `Samsung_A05_Small` (Perfil de entrada).
+    *   `Samsung_A55_Like` (Perfil moderno/premium).
+*   **Protocolo Técnico:**
+    *   Uso da flag `-no-snapshot-load` nos scripts para garantir um "Cold Boot" limpo e evitar travamentos por snapshots corrompidos.
+    *   Atenção redobrada ao abrir múltiplos emuladores, pois os IDs de dispositivo (ex: `emulator-5554`) podem alternar entre os perfis abertos.
 
 ---
 
@@ -158,11 +183,10 @@ Documentação de funções serverless implementadas:
 *   **Requests v2:** Fluxo de `AddMemberPage` blindado e simplificado nas áreas auditadas.
 
 ### 🏗️ Próxima Direção (Prioridades)
-*   **Design System:** Padronização final de componentes (botões, inputs, cards) para consistência global.
-*   **Home & Header:** Refino estético do cabeçalho, Navbar e navegação principal.
-*   **Cards:** Refino de componentes compartilhados e visualização.
-*   **Solicitações & Notificações:** Refino visual e fluxos de acompanhamento.
-*   **QA & Estabilidade:** Testes no Chrome (layout) e Android (físico/emulador), focando em responsividade e acessibilidade.
+*   **Home, Header & Navbar:** Refino estético completo do cabeçalho, barra de navegação e dashboard principal.
+*   **Design System Global:** Padronização final de componentes (botões, inputs, cards) e centralização de estilos.
+*   **QA Android:** Manutenção da matriz de emuladores e scripts de automação.
+*   **Responsividade de Textos:** Estudo de solução global para escalonamento de fontes.
 
 ### ⏳ Futuro / Backlog
 *   **Saúde:** Projeto Fada do Dente e integração de serviços.
@@ -170,7 +194,8 @@ Documentação de funções serverless implementadas:
 *   **Geolocalização:** Implementação de `LocationService` (IBGE).
 *   **Arquitetura:** Refatoração de lógica para Controllers/Services dedicados.
 *   **Suporte:** Canal de suporte interno integrado ao app.
-*   **Privacidade:** Persistência real e granular de consentimentos (histórico/revogação).
+*   **Revisão Jurídica:** Atualização profunda dos textos legais (Termos e Privacidade) e integração com fluxos de GAS/Sheets/Drive para gestão de documentos (laudos, RG, CNH).
+*   **Privacidade:** Persistência real e granular de consentimentos com histórico de aceites e revogações.
 *   **Admin:** Edge Functions/RPC administrativas e audit log de ações.
 *   **Conteúdo:** Módulos de eventos, projetos, parceiros e consultas.
 *   **BI:** Relatórios estatísticos agregados para a gestão.
@@ -188,4 +213,4 @@ Antes de finalizar qualquer tarefa:
 6.  **Sem Commits/Push Automáticos:** O assistente nunca faz commit ou push sem autorização.
 
 ---
-*Documentação Técnica v4.0.0 — Família TEA Bauru 💙*
+*ConeCTEA App 0.4.0-dev | Documentação Técnica 4.0.0 — Família TEA Bauru 💙*
