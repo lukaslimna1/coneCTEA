@@ -24,7 +24,7 @@ class RegisterTermsCheckbox extends StatelessWidget {
             value: value,
             onChanged: onChanged,
             activeColor: AppColors.primary,
-            side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+            side: BorderSide(color: Colors.white.withValues(alpha: 0.5), width: 1.5),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(6),
             ),
