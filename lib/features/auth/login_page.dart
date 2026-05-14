@@ -204,7 +204,7 @@ class _LoginPageState extends State<LoginPage> {
                           decoration: InputDecoration(
                             hintText: 'Digite seu e-mail',
                             hintStyle: GoogleFonts.inter(color: AppColors.textSecondary.withValues(alpha: 0.3), fontSize: 15),
-                            prefixIcon: Icon(PhosphorIcons.envelope(), color: const Color(0xFF7C3AED), size: 22),
+                            prefixIcon: Icon(PhosphorIcons.envelope(), color: Colors.white, size: 22),
                             filled: true,
                             fillColor: const Color(0xA60F172A),
                             border: OutlineInputBorder(
@@ -240,7 +240,7 @@ class _LoginPageState extends State<LoginPage> {
                           decoration: InputDecoration(
                             hintText: 'Digite sua senha',
                             hintStyle: GoogleFonts.inter(color: AppColors.textSecondary.withValues(alpha: 0.3), fontSize: 15),
-                            prefixIcon: Icon(PhosphorIcons.lock(), color: const Color(0xFF7C3AED), size: 22),
+                            prefixIcon: Icon(PhosphorIcons.lock(), color: Colors.white, size: 22),
                             filled: true,
                             fillColor: const Color(0xA60F172A),
                             border: OutlineInputBorder(
@@ -288,7 +288,7 @@ class _LoginPageState extends State<LoginPage> {
                                     child: Text(
                                       'Recuperar e-mail',
                                       style: GoogleFonts.inter(
-                                        color: AppColors.primary,
+                                        color: Colors.white.withValues(alpha: 0.7),
                                         fontWeight: FontWeight.w700,
                                         fontSize: 13,
                                       ),
@@ -303,7 +303,7 @@ class _LoginPageState extends State<LoginPage> {
                                     child: Text(
                                       'Recuperar senha',
                                       style: GoogleFonts.inter(
-                                        color: AppColors.primary,
+                                        color: Colors.white.withValues(alpha: 0.7),
                                         fontWeight: FontWeight.w700,
                                         fontSize: 13,
                                       ),
@@ -326,7 +326,7 @@ class _LoginPageState extends State<LoginPage> {
                                     child: Text(
                                       'Recuperar e-mail',
                                       style: GoogleFonts.inter(
-                                        color: AppColors.primary,
+                                        color: Colors.white.withValues(alpha: 0.7),
                                         fontWeight: FontWeight.w700,
                                         fontSize: 13,
                                       ),
@@ -345,7 +345,7 @@ class _LoginPageState extends State<LoginPage> {
                                     child: Text(
                                       'Recuperar senha',
                                       style: GoogleFonts.inter(
-                                        color: AppColors.primary,
+                                        color: Colors.white.withValues(alpha: 0.7),
                                         fontWeight: FontWeight.w700,
                                         fontSize: 13,
                                       ),
