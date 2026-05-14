@@ -19,8 +19,12 @@ class AppBackground extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // 1. Fundo Base (Azul Noite Profundo)
-        Container(color: AppColors.background),
+        // 1. Fundo Base (Azul Noite Profundo - Gradiente Oficial)
+        Container(
+          decoration: const BoxDecoration(
+            gradient: AppColors.nightGradient,
+          ),
+        ),
 
         if (showGlows) ...[
           // 2. Brilho Radial no Topo Direito (Glow Azul)
@@ -34,7 +38,7 @@ class AppBackground extends StatelessWidget {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    AppColors.cardElevated.withValues(alpha: 0.12),
+                    AppColors.cardElevated.withValues(alpha: 0.20), // Aumentado para visibilidade mobile
                     AppColors.background.withValues(alpha: 0.0),
                   ],
                 ),
@@ -53,7 +57,7 @@ class AppBackground extends StatelessWidget {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    AppColors.primary.withValues(alpha: 0.08),
+                    AppColors.primary.withValues(alpha: 0.15), // Aumentado para profundidade
                     AppColors.primary.withValues(alpha: 0.0),
                   ],
                 ),

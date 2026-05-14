@@ -96,8 +96,7 @@ class _LoginPageState extends State<LoginPage> {
           child: CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
-              SliverFillRemaining(
-                hasScrollBody: false,
+              SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24.0),
                   child: Column(
@@ -271,48 +270,91 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                         
-                        // Links de recuperação de acesso
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: Wrap(
-                            spacing: 16,
-                            runSpacing: 4,
-                            alignment: WrapAlignment.spaceBetween,
-                            children: [
-                              TextButton(
-                                onPressed: () => context.push('/forgot-email'),
-                                style: TextButton.styleFrom(
-                                  padding: EdgeInsets.zero,
-                                  minimumSize: const Size(0, 36),
-                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                ),
-                                child: Text(
-                                  'Esqueci meu e-mail',
-                                  style: GoogleFonts.inter(
-                                    color: AppColors.primary,
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 13,
+                        // Links de recuperação de acesso (Responsivo)
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            final bool isSmall = constraints.maxWidth < 300;
+                            
+                            if (isSmall) {
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  TextButton(
+                                    onPressed: () => context.push('/forgot-email'),
+                                    style: TextButton.styleFrom(
+                                      padding: EdgeInsets.zero,
+                                      alignment: Alignment.centerLeft,
+                                    ),
+                                    child: Text(
+                                      'Recuperar e-mail',
+                                      style: GoogleFonts.inter(
+                                        color: AppColors.primary,
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ),
+                                  TextButton(
+                                    onPressed: () => context.push('/forgot-password'),
+                                    style: TextButton.styleFrom(
+                                      padding: EdgeInsets.zero,
+                                      alignment: Alignment.centerLeft,
+                                    ),
+                                    child: Text(
+                                      'Recuperar senha',
+                                      style: GoogleFonts.inter(
+                                        color: AppColors.primary,
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            }
+
+                            return Row(
+                              children: [
+                                Expanded(
+                                  flex: 4,
+                                  child: TextButton(
+                                    onPressed: () => context.push('/forgot-email'),
+                                    style: TextButton.styleFrom(
+                                      padding: EdgeInsets.zero,
+                                      alignment: Alignment.centerLeft,
+                                    ),
+                                    child: Text(
+                                      'Recuperar e-mail',
+                                      style: GoogleFonts.inter(
+                                        color: AppColors.primary,
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 13,
+                                      ),
+                                    ),
                                   ),
                                 ),
-                              ),
-                              TextButton(
-                                onPressed: () => context.push('/forgot-password'),
-                                style: TextButton.styleFrom(
-                                  padding: EdgeInsets.zero,
-                                  minimumSize: const Size(0, 36),
-                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                ),
-                                child: Text(
-                                  'Esqueci minha senha',
-                                  style: GoogleFonts.inter(
-                                    color: AppColors.primary,
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 13,
+                                const Spacer(flex: 2),
+                                Expanded(
+                                  flex: 4,
+                                  child: TextButton(
+                                    onPressed: () => context.push('/forgot-password'),
+                                    style: TextButton.styleFrom(
+                                      padding: EdgeInsets.zero,
+                                      alignment: Alignment.centerRight,
+                                    ),
+                                    child: Text(
+                                      'Recuperar senha',
+                                      style: GoogleFonts.inter(
+                                        color: AppColors.primary,
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 13,
+                                      ),
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
+                              ],
+                            );
+                          },
                         ),
                         const SizedBox(height: 24),
 
@@ -327,7 +369,7 @@ class _LoginPageState extends State<LoginPage> {
 
                         // Botão para novos usuários (Outlined)
                         PremiumButton(
-                          text: 'Primeiro acesso / Criar conta',
+                          text: 'Criar conta',
                           onPressed: () => context.push('/register'),
                           variant: PremiumButtonVariant.outline,
                           icon: PhosphorIcons.userPlus(),
@@ -362,6 +404,33 @@ class _LoginPageState extends State<LoginPage> {
                                     height: 1.5,
                                     fontWeight: FontWeight.w600,
                                   ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Aviso de Segurança (Centralização Total e Flexível)
+                        Center(
+                          child: Wrap(
+                            alignment: WrapAlignment.center,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            spacing: 8,
+                            runSpacing: 4,
+                            children: [
+                              Icon(
+                                PhosphorIcons.shieldCheck(PhosphorIconsStyle.fill),
+                                color: AppColors.cyan.withValues(alpha: 0.5),
+                                size: 16,
+                              ),
+                              Text(
+                                'Ambiente seguro. Dados protegidos.',
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.inter(
+                                  color: AppColors.textSecondary.withValues(alpha: 0.5),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ],

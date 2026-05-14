@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:conectea/core/constants/colors.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 
 /// Wrapper de fundo especializado para telas de autenticação.
@@ -17,44 +14,8 @@ class PremiumAuthBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppBackground(
-      child: Column(
-        children: [
-          // 1. Conteúdo Principal da Tela (Rolável)
-          Expanded(child: child),
-
-          // 2. Barra de Segurança/Informação Inferior (Trust Badge)
-          // Agora fora do Stack para não sobrepor o conteúdo em telas pequenas
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(20),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0E1B31).withValues(alpha: 0.4),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-                ),
-                child: Row(
-                  children: [
-                    Icon(PhosphorIcons.shieldCheck(), color: AppColors.cyan, size: 18),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'Ambiente seguro e criptografado para seus dados.',
-                        style: GoogleFonts.inter(
-                          color: AppColors.textSecondary.withValues(alpha: 0.6),
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
+      showGlows: true,
+      child: child,
     );
   }
 }
