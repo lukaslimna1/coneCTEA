@@ -127,20 +127,17 @@ class _ForgotEmailPageState extends State<ForgotEmailPage> {
                     children: [
                       const SizedBox(height: 20),
 
-                      // Logo ou Ícone de E-mail
+                      // Logo principal
                       Hero(
-                        tag: 'auth_icon',
-                        child: Container(
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.1),
-                            shape: BoxShape.circle,
-                            border: Border.all(color: AppColors.primary.withValues(alpha: 0.2), width: 2),
-                          ),
-                          child: Icon(
-                            PhosphorIcons.envelopeSimple(PhosphorIconsStyle.fill),
+                        tag: 'app_logo',
+                        child: Image.asset(
+                          'assets/images/conectea_logo.png',
+                          width: 260,
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) => Icon(
+                            PhosphorIcons.infinity(PhosphorIconsStyle.fill),
                             color: AppColors.primary,
-                            size: 40,
+                            size: 60,
                           ),
                         ),
                       ),
@@ -224,7 +221,7 @@ class _ForgotEmailPageState extends State<ForgotEmailPage> {
                                 decoration: InputDecoration(
                                   hintText: '000.000.000-00',
                                   hintStyle: GoogleFonts.inter(color: AppColors.textSecondary.withValues(alpha: 0.3), fontSize: 15),
-                                  prefixIcon: Icon(PhosphorIcons.identificationCard(), color: const Color(0xFF7C3AED), size: 22),
+                                  prefixIcon: Icon(PhosphorIcons.identificationCard(), color: Colors.white, size: 22),
                                   filled: true,
                                   fillColor: const Color(0xA60F172A),
                                   border: OutlineInputBorder(
@@ -249,6 +246,7 @@ class _ForgotEmailPageState extends State<ForgotEmailPage> {
                                 isLoading: _isLoading,
                                 icon: PhosphorIcons.magnifyingGlass(),
                                 variant: PremiumButtonVariant.premiumCard,
+                                colorOverride: Colors.greenAccent,
                               ),
                             ],
                           ),
@@ -343,6 +341,7 @@ class _ForgotEmailPageState extends State<ForgotEmailPage> {
                                 onPressed: () => context.pop(),
                                 icon: PhosphorIcons.signIn(),
                                 variant: PremiumButtonVariant.premiumCard,
+                                colorOverride: AppColors.cyan,
                               ),
                             ],
                           ),
