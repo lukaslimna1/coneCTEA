@@ -11,8 +11,9 @@
   <img src="https://img.shields.io/badge/Flutter-3.41.9-02569B?logo=flutter" alt="Flutter">
   <img src="https://img.shields.io/badge/Dart-3.11.5-0175C2?logo=dart" alt="Dart">
   <img src="https://img.shields.io/badge/Supabase-PostgreSQL-3FCF8E?logo=supabase" alt="Supabase">
-  <img src="https://img.shields.io/badge/Versão-4.0.0-8B3DFF?logo=flutter" alt="Versão">
-  <img src="https://img.shields.io/badge/Segurança-Protegida-success?logo=google-cloud" alt="Segurança">
+  <img src="https://img.shields.io/badge/App-0.4.0--dev-8B3DFF?logo=flutter" alt="App">
+  <img src="https://img.shields.io/badge/Docs-4.0.0-02569B?logo=read-the-docs" alt="Docs">
+  <img src="https://img.shields.io/badge/Status-Desenvolvimento-orange" alt="Status">
 </p>
 
 ---
@@ -25,7 +26,7 @@ O **ConeCTEA** é uma solução tecnológica mobile-first criada para apoiar a c
 
 ## 🚀 Principais Funcionalidades
 
-*   🔐 **Autenticação Modular:** Fluxos de Login, Registro e Recuperação totalmente revisados e protegidos.
+*   🔐 **Autenticação Refinada:** Fluxos de Login, Cadastro, Recuperação de Senha e E-mail, Modais Legais e Consentimentos (LGPD) visualmente sincronizados.
 *   👤 **Central do Usuário (Account v2):** Experiência organizada em 6 cards principais: Meus Dados, Segurança, Privacidade, Ajuda, Institucional e Aplicativo.
 *   🛡️ **Blindagem contra exposição de erros técnicos:** Interface protegida onde erros brutos de banco ou rede não são exibidos ao usuário. Logs sensíveis foram higienizados para preservar a privacidade do ambiente.
 *   ⚖️ **Transparência de Dados (LGPD):** Área dedicada à clareza sobre dados necessários, preferências e autorizações. A persistência real com histórico de revogação é um item de roadmap futuro.
@@ -41,7 +42,7 @@ O **ConeCTEA** é uma solução tecnológica mobile-first criada para apoiar a c
 *   **Design Night Blue:** Paleta profunda e interfaces suaves desenhadas para reduzir sobrecarga sensorial.
 *   **Arquitetura por Features:** Organização modular que isola domínios de negócio, facilitando a manutenção.
 *   **Privacidade por Design:** Governança rigorosa via Supabase Row Level Security (RLS).
-*   **Android-First:** Validação rigorosa em dispositivos físicos para garantir estabilidade real.
+*   **Android-First:** Validação em emuladores Android, perfis Samsung-like A05/A55, matriz 360dp–412dp e testes pontuais em dispositivo físico quando disponível. O projeto inclui scripts de automação para QA em `tools/qa/android/`.
 
 ---
 
@@ -50,7 +51,7 @@ O **ConeCTEA** é uma solução tecnológica mobile-first criada para apoiar a c
 ### ✅ Concluído (Maturidade Estabilizada)
 - **Segurança da UI:** Blindagem de mensagens de erro e higienização de logs.
 - **Central do Usuário:** Reestruturação modular da área de conta e perfil.
-- **Módulo Auth:** Modularização e refino visual dos fluxos de acesso.
+- **Módulo Auth:** Refino visual e sincronização dos fluxos de Login, Cadastro, Recuperação e Modais Legais.
 - **Admin & Scanner:** Implementação da visão administrativa e validador de QR Code.
 - **Digital Card:** Consolidação da carteirinha modular (Frente/Verso/Motion).
 
@@ -58,7 +59,7 @@ O **ConeCTEA** é uma solução tecnológica mobile-first criada para apoiar a c
 - **Design System Global:** Padronização final de componentes de UI, cards, botões e inputs.
 - **Refino de Layout:** Ajustes na Home, Header e Navbar.
 - **Fluxos de Operação:** Melhorias em Solicitações e Notificações.
-- **QA & Responsividade:** Testes extensivos no Chrome e em dispositivos Android (emuladores e físicos).
+- **QA & Responsividade:** Testes extensivos no Chrome, emuladores Android, perfis Samsung-like e dispositivos físicos quando disponíveis.
 
 ### 🔮 Futuro (Backlog Técnico e Produto)
 - **Governança LGPD:** Persistência real de consentimentos com histórico e gestão de versões.
@@ -93,4 +94,4 @@ Projeto desenvolvido por **Lucas Lima**.
 Portfólio: [lucaslimadigital.vercel.app](https://lucaslimadigital.vercel.app)
 
 ---
-*ConeCTEA v4.0.0 — 2026*
+*ConeCTEA App 0.4.0-dev | Documentação 4.0.0 — 2026*
