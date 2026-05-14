@@ -412,7 +412,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              RegisterSectionTitle(icon: PhosphorIcons.user(), title: 'Dados Pessoais'),
+                              RegisterSectionTitle(icon: PhosphorIcons.user(), title: 'Dados Pessoais', iconColor: AppColors.cyan),
                               const SizedBox(height: 20),
                               RegisterInputField(
                                 label: 'Nome Completo*',
@@ -479,7 +479,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                 },
                               ),
                               const SizedBox(height: 32),
-                               RegisterSectionTitle(icon: PhosphorIcons.mapPin(), title: 'Localização'),
+                               RegisterSectionTitle(icon: PhosphorIcons.mapPin(), title: 'Localização', iconColor: Colors.greenAccent),
                               const SizedBox(height: 20),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -506,7 +506,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                 ],
                               ),
                               const SizedBox(height: 32),
-                                RegisterSectionTitle(icon: PhosphorIcons.shieldCheck(), title: 'Segurança'),
+                                RegisterSectionTitle(icon: PhosphorIcons.shieldCheck(), title: 'Segurança', iconColor: Colors.lightBlueAccent),
                               const SizedBox(height: 20),
                               RegisterInputField(
                                 label: 'Senha*',
@@ -551,10 +551,10 @@ class _RegisterPageState extends State<RegisterPage> {
                                     style: GoogleFonts.outfit(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w700,
-                                      color: AppColors.cyan,
+                                      color: Colors.white.withValues(alpha: 0.5),
                                     ),
                                   ),
-                                   leading: Icon(PhosphorIcons.dna(), color: AppColors.cyan, size: 20),
+                                   leading: Icon(PhosphorIcons.dna(), color: Colors.white.withValues(alpha: 0.5), size: 20),
                                   children: [
                                     const SizedBox(height: 12),
                                     RegisterDropdownField<String>(
@@ -637,9 +637,9 @@ class _RegisterPageState extends State<RegisterPage> {
                                           child: const Text(
                                             'Termos de Uso',
                                             style: TextStyle(
-                                              color: AppColors.primary,
+                                              color: AppColors.cyan,
                                               fontWeight: FontWeight.w700,
-                                              fontSize: 13,
+                                              fontSize: 14,
                                             ),
                                           ),
                                         ),
@@ -652,9 +652,9 @@ class _RegisterPageState extends State<RegisterPage> {
                                           child: const Text(
                                             'Política de Privacidade',
                                             style: TextStyle(
-                                              color: AppColors.primary,
+                                              color: AppColors.cyan,
                                               fontWeight: FontWeight.w700,
-                                              fontSize: 13,
+                                              fontSize: 14,
                                             ),
                                           ),
                                         ),
@@ -663,7 +663,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                     ],
                                   ),
                                   style: GoogleFonts.inter(
-                                    fontSize: 13,
+                                    fontSize: 14,
                                     fontWeight: FontWeight.w500,
                                     color: Colors.white,
                                   ),
@@ -688,8 +688,8 @@ class _RegisterPageState extends State<RegisterPage> {
                                 text: Text(
                                   'Autorizo o tratamento de meus dados pessoais.',
                                   style: GoogleFonts.inter(
-                                    fontSize: 13,
-                                    color: Colors.white.withValues(alpha: 0.8),
+                                    fontSize: 14,
+                                    color: Colors.white.withValues(alpha: 0.9),
                                   ),
                                 ),
                               ),
@@ -700,8 +700,8 @@ class _RegisterPageState extends State<RegisterPage> {
                                 text: Text(
                                   'Autorizo o tratamento de meus dados de saúde e laudos médicos.',
                                   style: GoogleFonts.inter(
-                                    fontSize: 13,
-                                    color: Colors.white.withValues(alpha: 0.8),
+                                    fontSize: 14,
+                                    color: Colors.white.withValues(alpha: 0.9),
                                   ),
                                 ),
                               ),
@@ -711,6 +711,9 @@ class _RegisterPageState extends State<RegisterPage> {
                                 text: 'Criar minha conta',
                                 onPressed: _handleRegister,
                                 isLoading: _isLoading,
+                                variant: PremiumButtonVariant.premiumCard,
+                                colorOverride: Colors.greenAccent,
+                                icon: PhosphorIcons.userCirclePlus(),
                               ),
                               const SizedBox(height: 24),
                               Center(
@@ -723,7 +726,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                         TextSpan(
                                           text: 'Entrar agora',
                                           style: TextStyle(
-                                            color: AppColors.primary,
+                                            color: AppColors.cyan,
                                             fontWeight: FontWeight.w800,
                                           ),
                                         ),
@@ -731,7 +734,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                     ),
                                     style: GoogleFonts.inter(
                                       fontSize: 14,
-                                      color: AppColors.textSecondary.withValues(alpha: 0.7),
+                                      color: Colors.white.withValues(alpha: 0.7),
                                     ),
                                   ),
                                 ),

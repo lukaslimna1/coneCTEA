@@ -62,7 +62,7 @@ class RegisterInputField extends StatelessWidget {
               color: AppColors.textSecondary.withValues(alpha: 0.3),
               fontSize: 14,
             ),
-            prefixIcon: Icon(icon, color: AppColors.primary, size: 22),
+            prefixIcon: Icon(icon, color: Colors.white, size: 22),
             suffixIcon: suffixIcon,
             filled: true,
             fillColor: const Color(0xFF071B3A).withValues(alpha: 0.5),

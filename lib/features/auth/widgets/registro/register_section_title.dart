@@ -7,18 +7,20 @@ import 'package:conectea/core/constants/colors.dart';
 class RegisterSectionTitle extends StatelessWidget {
   final IconData icon;
   final String title;
+  final Color? iconColor;
 
   const RegisterSectionTitle({
     super.key,
     required this.icon,
     required this.title,
+    this.iconColor,
   });
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, size: 20, color: AppColors.primary),
+        Icon(icon, size: 20, color: iconColor ?? AppColors.cyan),
         const SizedBox(width: 8),
         Text(
           title,

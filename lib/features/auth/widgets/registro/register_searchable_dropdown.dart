@@ -49,7 +49,7 @@ class RegisterSearchableDropdown extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    Icon(icon, color: AppColors.primary, size: 22),
+                    Icon(icon, color: Colors.white, size: 22),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
