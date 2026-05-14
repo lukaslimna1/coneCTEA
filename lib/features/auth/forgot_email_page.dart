@@ -245,9 +245,10 @@ class _ForgotEmailPageState extends State<ForgotEmailPage> {
 
                               PremiumButton(
                                 text: 'Buscar E-mail Cadastrado',
-                                onPressed: _isLoading ? null : _lookupEmail,
+                                onPressed: _lookupEmail,
                                 isLoading: _isLoading,
                                 icon: PhosphorIcons.magnifyingGlass(),
+                                variant: PremiumButtonVariant.premiumCard,
                               ),
                             ],
                           ),
@@ -341,6 +342,7 @@ class _ForgotEmailPageState extends State<ForgotEmailPage> {
                                 text: 'Ir para o Login',
                                 onPressed: () => context.pop(),
                                 icon: PhosphorIcons.signIn(),
+                                variant: PremiumButtonVariant.premiumCard,
                               ),
                             ],
                           ),

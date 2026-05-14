@@ -203,7 +203,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                 decoration: InputDecoration(
                                   hintText: 'exemplo@email.com',
                                   hintStyle: GoogleFonts.inter(color: AppColors.textSecondary.withValues(alpha: 0.3), fontSize: 15),
-                                  prefixIcon: Icon(PhosphorIcons.envelope(), color: const Color(0xFF7C3AED), size: 22),
+                                  prefixIcon: Icon(PhosphorIcons.envelope(), color: Colors.white, size: 22),
                                   filled: true,
                                   fillColor: const Color(0xA60F172A),
                                   border: OutlineInputBorder(
@@ -224,9 +224,11 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
                               PremiumButton(
                                 text: 'Enviar Instruções',
-                                onPressed: _isLoading ? null : _handleResetPassword,
+                                onPressed: _handleResetPassword,
                                 isLoading: _isLoading,
                                 icon: PhosphorIcons.paperPlaneTilt(),
+                                variant: PremiumButtonVariant.premiumCard,
+                                colorOverride: Colors.greenAccent,
                               ),
                             ],
                           ),
@@ -245,7 +247,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                         ),
                         const SizedBox(height: 32),
                         Text(
-                          'E-mail Enviado!',
+                          'Solicitação recebida',
                           style: GoogleFonts.outfit(
                             fontSize: 28,
                             fontWeight: FontWeight.w800,
@@ -256,7 +258,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 24),
                           child: Text(
-                            'Verifique sua caixa de entrada. Se não encontrar nada, cheque a pasta de spam.',
+                            'Se este e-mail estiver cadastrado, enviaremos as instruções de recuperação.',
                             style: GoogleFonts.inter(
                               fontSize: 16,
                               color: AppColors.textSecondary.withValues(alpha: 0.7),
@@ -268,9 +270,11 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                         ),
                         const SizedBox(height: 40),
                         PremiumButton(
-                          text: 'Voltar para Login',
+                          text: 'Voltar para o Login',
                           onPressed: () => context.pop(),
                           icon: PhosphorIcons.arrowLeft(),
+                          variant: PremiumButtonVariant.premiumCard,
+                          colorOverride: AppColors.cyan,
                         ),
                       ],
                       const SizedBox(height: 40),

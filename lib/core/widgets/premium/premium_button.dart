@@ -4,7 +4,7 @@ import 'package:conectea/core/constants/design_tokens.dart';
 import 'package:conectea/core/constants/text_styles.dart';
 
 /// Variantes de estilo disponíveis para o PremiumButton.
-enum PremiumButtonVariant { primary, secondary, outline, ghost, danger, premium, glass }
+enum PremiumButtonVariant { primary, secondary, outline, ghost, danger, premium, glass, premiumCard }
 
 /// Botão customizado seguindo o design system Premium do ConeCTEA.
 /// Suporta múltiplos estados (carregando, desabilitado) e variantes visuais.
@@ -49,44 +49,50 @@ class PremiumButton extends StatelessWidget {
         child: AnimatedOpacity(
           duration: const Duration(milliseconds: 200),
           opacity: isEnabled ? 1.0 : 0.6,
-          child: _buildButtonBody(),
+          child: _buildButtonBody(isEnabled),
         ),
       ),
     );
   }
 
-  Widget _buildButtonBody() {
+  Widget _buildButtonBody(bool isEnabled) {
     switch (variant) {
       case PremiumButtonVariant.premium:
         return _buildGradientButton(
           colors: AppColors.premiumGradient.colors,
+          isEnabled: isEnabled,
         );
       case PremiumButtonVariant.primary:
         return _buildGradientButton(
           colors: colorOverride != null 
             ? [colorOverride!, colorOverride!.withValues(alpha: 0.8)] 
             : [AppColors.primary, const Color(0xFF1E3A8A)], // Azul profundo
+          isEnabled: isEnabled,
         );
       case PremiumButtonVariant.secondary:
         return _buildSolidButton(
           color: colorOverride ?? AppColors.surfaceCard,
           textColor: textColor ?? (colorOverride != null ? Colors.white : AppColors.textPrimary),
+          isEnabled: isEnabled,
         );
       case PremiumButtonVariant.outline:
         return _buildOutlineButton(
           color: colorOverride ?? AppColors.cyan,
           textColor: textColor,
+          isEnabled: isEnabled,
         );
       case PremiumButtonVariant.ghost:
-        return _buildGhostButton(colorOverride: colorOverride);
+        return _buildGhostButton(colorOverride: colorOverride, isEnabled: isEnabled);
       case PremiumButtonVariant.danger:
-        return _buildOutlineButton(color: colorOverride ?? AppColors.errorRed);
+        return _buildOutlineButton(color: colorOverride ?? AppColors.errorRed, isEnabled: isEnabled);
       case PremiumButtonVariant.glass:
-        return _buildGlassButton();
+        return _buildGlassButton(isEnabled);
+      case PremiumButtonVariant.premiumCard:
+        return _buildPremiumCardButton(isEnabled);
     }
   }
 
-  Widget _buildGradientButton({required List<Color> colors}) {
+  Widget _buildGradientButton({required List<Color> colors, required bool isEnabled}) {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -108,7 +114,7 @@ class PremiumButton extends StatelessWidget {
         ],
       ),
       child: ElevatedButton(
-        onPressed: onPressed,
+        onPressed: isEnabled ? onPressed : null,
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.transparent,
           shadowColor: Colors.transparent,
@@ -120,9 +126,9 @@ class PremiumButton extends StatelessWidget {
     );
   }
 
-  Widget _buildOutlineButton({required Color color, Color? textColor}) {
+  Widget _buildOutlineButton({required Color color, Color? textColor, required bool isEnabled}) {
     return OutlinedButton(
-      onPressed: onPressed,
+      onPressed: isEnabled ? onPressed : null,
       style: OutlinedButton.styleFrom(
         side: BorderSide(color: color, width: 1.5),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.button)),
@@ -132,9 +138,9 @@ class PremiumButton extends StatelessWidget {
     );
   }
 
-  Widget _buildSolidButton({required Color color, required Color textColor}) {
+  Widget _buildSolidButton({required Color color, required Color textColor, required bool isEnabled}) {
     return ElevatedButton(
-      onPressed: onPressed,
+      onPressed: isEnabled ? onPressed : null,
       style: ElevatedButton.styleFrom(
         backgroundColor: color,
         foregroundColor: textColor,
@@ -146,10 +152,10 @@ class PremiumButton extends StatelessWidget {
     );
   }
 
-  Widget _buildGhostButton({Color? colorOverride}) {
+  Widget _buildGhostButton({Color? colorOverride, required bool isEnabled}) {
     final color = colorOverride ?? AppColors.cyan;
     return TextButton(
-      onPressed: onPressed,
+      onPressed: isEnabled ? onPressed : null,
       style: TextButton.styleFrom(
         foregroundColor: color,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.button)),
@@ -159,7 +165,7 @@ class PremiumButton extends StatelessWidget {
     );
   }
 
-  Widget _buildGlassButton() {
+  Widget _buildGlassButton(bool isEnabled) {
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xA60F172A), // Base Dark Glass
@@ -179,7 +185,7 @@ class PremiumButton extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: onPressed,
+          onTap: isEnabled ? onPressed : null,
           borderRadius: BorderRadius.circular(AppRadius.button),
           child: Container(
             alignment: Alignment.center,
@@ -190,7 +196,51 @@ class PremiumButton extends StatelessWidget {
     );
   }
 
-  Widget _buildContent(Color textColor) {
+  Widget _buildPremiumCardButton(bool isEnabled) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [
+            Color(0xFF0F172A),
+            Color(0xFF020617),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(AppRadius.button),
+        border: Border.all(
+          color: colorOverride?.withValues(alpha: 0.4) ?? Colors.white.withValues(alpha: 0.12),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.4),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+          if (colorOverride != null)
+            BoxShadow(
+              color: colorOverride!.withValues(alpha: 0.15),
+              blurRadius: 20,
+              spreadRadius: -5,
+            ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: isEnabled ? onPressed : null,
+          borderRadius: BorderRadius.circular(AppRadius.button),
+          child: Container(
+            alignment: Alignment.center,
+            child: _buildContent(Colors.white, iconColor: colorOverride ?? AppColors.primary),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContent(Color textColor, {Color? iconColor}) {
     if (isLoading) {
       return SizedBox(
         height: 20,
@@ -207,12 +257,16 @@ class PremiumButton extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         if (icon != null) ...[
-          Icon(icon, size: 20, color: textColor),
+          Icon(icon, size: 20, color: iconColor ?? textColor),
           const SizedBox(width: 8),
         ],
         Text(
           text,
-          style: AppTextStyles.buttonLabel.copyWith(color: textColor),
+          style: AppTextStyles.buttonLabel.copyWith(
+            color: textColor,
+            letterSpacing: 0.5,
+            fontWeight: FontWeight.w700,
+          ),
         ),
       ],
     );
