@@ -88,7 +88,6 @@ class _HomePageState extends State<HomePage> {
       extendBodyBehindAppBar: true,
       extendBody: true,
       appBar: AppTopHeader(
-        showAdmBadge: _user?.role.isAdmin ?? false,
         userName: _user?.name,
         userPhotoUrl: null, // Add if available
         notificationCount: _unreadCount,

@@ -293,6 +293,7 @@ class _HomeViewState extends State<HomeView> {
               children: [
                 HomeGreetingHeader(
                   displayName: _displayName,
+                  role: _user?.role,
                   onQrTap: () => context.push('/qr-scanner'),
                 ),
                 const SizedBox(height: 12),

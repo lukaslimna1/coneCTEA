@@ -4,7 +4,6 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 /// Cabeçalho superior padronizado do aplicativo.
 /// Exibe a logo, contador de notificações e avatar do usuário com suporte a badges de administrador.
 class AppTopHeader extends StatelessWidget implements PreferredSizeWidget {
-  final bool showAdmBadge;
   final String? userName;
   final String? userPhotoUrl;
   final int notificationCount;
@@ -13,7 +12,6 @@ class AppTopHeader extends StatelessWidget implements PreferredSizeWidget {
 
   const AppTopHeader({
     super.key,
-    this.showAdmBadge = false,
     this.userName,
     this.userPhotoUrl,
     this.notificationCount = 0,
@@ -64,12 +62,6 @@ class AppTopHeader extends StatelessWidget implements PreferredSizeWidget {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Botão ADM DEV (Pill compacto)
-                  if (showAdmBadge) ...[
-                    _buildAdmDevButton(),
-                    const SizedBox(width: 12),
-                  ],
-
                   // Botão de Notificações
                   _buildNotificationButton(),
                   
@@ -81,48 +73,6 @@ class AppTopHeader extends StatelessWidget implements PreferredSizeWidget {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAdmDevButton() {
-    return ScaleFeedback(
-      onTap: () {
-        // Ação do botão ADM
-      },
-      child: Container(
-        height: 38,
-        padding: const EdgeInsets.symmetric(horizontal: 14),
-        constraints: const BoxConstraints(minWidth: 92),
-        decoration: BoxDecoration(
-          color: const Color(0xB8071326), // rgba(7, 19, 38, 0.72)
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: const Color(0x3822D3EE), // rgba(34,211,238,0.22)
-            width: 1,
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              PhosphorIcons.code(PhosphorIconsStyle.bold),
-              color: const Color(0xFFD8F3FF),
-              size: 15,
-            ),
-            const SizedBox(width: 8),
-            const Text(
-              'ADM DEV',
-              style: TextStyle(
-                color: Color(0xFFBFEFFF),
-                fontSize: 11.5,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.6,
-              ),
-            ),
-          ],
         ),
       ),
     );
