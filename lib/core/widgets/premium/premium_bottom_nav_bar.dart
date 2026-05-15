@@ -17,9 +17,16 @@ class PremiumBottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final double systemBottomInset = MediaQuery.paddingOf(context).bottom;
+    // Aumentamos a margem de segurança inferior para 20 para garantir simetria com as laterais
+    // e evitar que a sombra seja "comida" pela barra de navegação do sistema no A55.
+    final double bottomMargin = systemBottomInset > 0 ? systemBottomInset : 20;
+
     return Container(
-      margin: const EdgeInsets.fromLTRB(12, 0, 12, 16),
-      height: 68,
+      // Margens laterais ajustadas para 20 para alinhar com o padding padrão da HomeView.
+      margin: EdgeInsets.fromLTRB(20, 0, 20, bottomMargin),
+      height: 72,
+      alignment: Alignment.center,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           begin: Alignment.topCenter,
@@ -29,29 +36,33 @@ class PremiumBottomNavBar extends StatelessWidget {
             Color(0xFF030B1A),
           ],
         ),
-        borderRadius: BorderRadius.circular(34),
+        borderRadius: BorderRadius.circular(36),
         border: Border.all(
           color: const Color(0xFF60A5FA).withValues(alpha: 0.12),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.35),
-            blurRadius: 24,
+            color: Colors.black.withValues(alpha: 0.45),
+            blurRadius: 20,
             offset: const Offset(0, 8),
           ),
         ],
       ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: items.asMap().entries.map((entry) {
-              return _buildNavItem(entry.key, entry.value);
-            }).toList(),
-          ),
+      // REMOVIDO: SafeArea interno. A margem externa já respeita o sistema.
+      // O SafeArea aqui causava "double padding" em alguns aparelhos Android,
+      // comprimindo o conteúdo e gerando o erro de aparecer apenas uma "faixa roxa".
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: items.asMap().entries.map((entry) {
+            final isSelected = currentIndex == entry.key;
+            return Expanded(
+              flex: isSelected ? 3 : 1, // Item selecionado ganha significativamente mais espaço
+              child: _buildNavItem(entry.key, entry.value),
+            );
+          }).toList(),
         ),
       ),
     );
@@ -60,15 +71,24 @@ class PremiumBottomNavBar extends StatelessWidget {
   Widget _buildNavItem(int index, PremiumNavItem item) {
     final isSelected = currentIndex == index;
     
+    // Transformação de labels para nomes curtos oficiais (Frente 23B-5)
+    String displayLabel = item.label;
+    if (displayLabel == 'Carteirinha' || displayLabel == 'Carteirinhas') {
+      displayLabel = 'Cartão';
+    } else if (displayLabel == 'Solicitações') {
+      displayLabel = 'Pedido';
+    }
+
     return GestureDetector(
       onTap: () => onTap(index),
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeOutCubic,
-        height: 46,
+        height: 48,
+        alignment: Alignment.center,
         padding: EdgeInsets.symmetric(
-          horizontal: isSelected ? 18 : 12,
+          horizontal: isSelected ? 14 : 8,
         ),
         decoration: BoxDecoration(
           gradient: isSelected ? const LinearGradient(
@@ -80,17 +100,18 @@ class PremiumBottomNavBar extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ) : null,
-          borderRadius: BorderRadius.circular(999),
+          borderRadius: BorderRadius.circular(24),
           boxShadow: isSelected ? [
             BoxShadow(
-              color: const Color(0xFF6D28D9).withValues(alpha: 0.15),
-              blurRadius: 8,
+              color: const Color(0xFF6D28D9).withValues(alpha: 0.25),
+              blurRadius: 10,
               offset: const Offset(0, 4),
             ),
           ] : null,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               isSelected ? item.activeIcon : item.inactiveIcon,
@@ -98,13 +119,18 @@ class PremiumBottomNavBar extends StatelessWidget {
               size: 24,
             ),
             if (isSelected) ...[
-              const SizedBox(width: 8),
-              Text(
-                item.label,
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  displayLabel,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.inter(
+                    fontSize: 12.5, // Reduzido levemente de 13 para 12.5 para garantir encaixe
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    letterSpacing: -0.2,
+                  ),
                 ),
               ),
             ],

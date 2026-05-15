@@ -275,11 +275,19 @@ class _HomeViewState extends State<HomeView> {
         child: RefreshIndicator(
           onRefresh: _loadData,
           color: AppColors.primary,
-          child: SingleChildScrollView(
+          child: Builder(
+            builder: (context) {
+              final topPadding = MediaQuery.paddingOf(context).top + 28;
+              final bottomInset = MediaQuery.paddingOf(context).bottom;
+              // 68dp navbar + 16dp margin inferior + área segura do sistema
+              const double navBarHeight = 68 + 16;
+              final double bottomPadding = navBarHeight + bottomInset + 16;
+
+              return SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(
               parent: BouncingScrollPhysics(),
             ),
-            padding: const EdgeInsets.fromLTRB(0, 100, 0, 48),
+            padding: EdgeInsets.fromLTRB(0, topPadding, 0, bottomPadding),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -408,6 +416,8 @@ class _HomeViewState extends State<HomeView> {
                 const SizedBox(height: 40),
               ],
             ),
+          );
+            },
           ),
         ),
       ),

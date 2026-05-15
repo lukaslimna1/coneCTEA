@@ -32,6 +32,8 @@ class HomeGreetingHeader extends StatelessWidget {
                     color: AppColors.cardTitle,
                     letterSpacing: -0.5,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 Text(
                   'Que bom te ver por aqui.',
