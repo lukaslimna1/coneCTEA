@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:conectea/core/constants/colors.dart';
-import 'package:go_router/go_router.dart';
+
 
 class RequestSuccessDialog extends StatelessWidget {
   final String protocol;
@@ -70,7 +70,8 @@ class RequestSuccessDialog extends StatelessWidget {
             height: 54,
             child: ElevatedButton(
               onPressed: () {
-                context.go('/home');
+                Navigator.of(context).pop(); // Fecha o modal
+                Navigator.of(context).pop(); // Fecha a página AddMemberPage e volta para a Home
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,

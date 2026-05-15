@@ -8,6 +8,7 @@ import 'package:conectea/models/app_user.dart';
 import 'package:conectea/models/member.dart';
 import 'package:conectea/models/card_request.dart';
 import 'package:conectea/models/digital_card.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 import 'package:conectea/features/account/profile/edit_profile_view.dart';
@@ -405,12 +406,19 @@ class _HomeViewState extends State<HomeView> {
                   eyebrowColor: const Color(0xFFA855F7),
                   illustration: Icons.volunteer_activism_rounded,
                   onTap: () async {
-                    const instagramUrl =
-                        "https://www.instagram.com/familiateabauru/";
-                    if (await canLaunchUrlString(instagramUrl)) {
-                      await launchUrlString(
-                        instagramUrl,
+                    final Uri instagramUri = Uri.parse("https://www.instagram.com/familiateabauru/");
+                    try {
+                      await launchUrl(
+                        instagramUri,
                         mode: LaunchMode.externalApplication,
+                      );
+                    } catch (e) {
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Não foi possível abrir o Instagram agora. Tente novamente em instantes.'),
+                          backgroundColor: AppColors.alertOrange,
+                        ),
                       );
                     }
                   },

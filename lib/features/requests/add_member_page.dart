@@ -193,7 +193,14 @@ class _AddMemberPageState extends State<AddMemberPage> {
   }
 
   Future<void> _pickAndUploadFile({required bool isDocument}) async {
-    final result = await FilePicker.platform.pickFiles(withData: true);
+    final result = await FilePicker.platform.pickFiles(
+      withData: true,
+      type: FileType.custom,
+      allowedExtensions: [
+        'pdf', 'jpg', 'jpeg', 'png', 'webp', 'heic', 'heif',
+        'txt', 'doc', 'docx', 'odt', 'rtf'
+      ],
+    );
     if (result == null || result.files.isEmpty) return;
 
     final file = result.files.first;
@@ -684,7 +691,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 140), // Espaço para a ilustração
+                      const SizedBox(height: 80), // Espaço reduzido para evitar overflow em telas menores
                     ],
                   ),
                 ),

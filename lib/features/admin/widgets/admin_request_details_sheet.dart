@@ -86,22 +86,34 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
         expiresAt: expiresAt,
       );
 
+      bool cleanupSuccess = true;
       if (newStatus == 'active') {
         // Limpeza automática de documentos sensíveis após aprovação (LGPD/Segurança)
-        await _cleanupDocumentsAfterApproval();
+        cleanupSuccess = await _cleanupDocumentsAfterApproval();
       }
       if (mounted) {
         // 1. Fechar o dialog de carregamento
         Navigator.of(context, rootNavigator: true).pop();
         
         // 2. Mostrar feedback de sucesso ANTES de fechar o sheet para garantir o contexto
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Status atualizado com sucesso!'),
-            backgroundColor: Colors.green,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        if (cleanupSuccess) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Status atualizado com sucesso!'),
+              backgroundColor: Colors.green,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Carteirinha aprovada, mas a limpeza automática dos documentos precisa ser revisada.'),
+              backgroundColor: Colors.orange,
+              behavior: SnackBarBehavior.floating,
+              duration: Duration(seconds: 5),
+            ),
+          );
+        }
         
         // 3. Fechar o sheet de detalhes
         Navigator.of(context).pop();
@@ -690,7 +702,8 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
   }
 
 
-  Future<void> _cleanupDocumentsAfterApproval() async {
+  Future<bool> _cleanupDocumentsAfterApproval() async {
+    bool allSuccess = true;
     try {
       // 1. Limpar Documento com Foto
       if (widget.request.documentUrl.isNotEmpty && 
@@ -702,6 +715,9 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
             'document_url', 
             '',
           );
+        } else {
+          allSuccess = false;
+          debugPrint('Falha ao deletar documento com foto no Drive: ${widget.request.documentUrl}');
         }
       }
 
@@ -715,12 +731,16 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
             'medical_report_url', 
             '',
           );
+        } else {
+          allSuccess = false;
+          debugPrint('Falha ao deletar laudo médico no Drive: ${widget.request.medicalReportUrl}');
         }
       }
     } catch (e) {
-      // Log genérico sem expor dados sensíveis
+      allSuccess = false;
       debugPrint('Erro durante limpeza automática de documentos: $e');
     }
+    return allSuccess;
   }
 
   Future<void> _openUrl(String url) async {
