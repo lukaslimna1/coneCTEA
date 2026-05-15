@@ -336,6 +336,7 @@ class _HomeViewState extends State<HomeView> {
                               requests: requests,
                               digitalCards: digitalCards,
                               selectedMember: selectedMember,
+                              paletteSeed: _user?.id,
                               onDetailsTap: () => widget.onNavigate(2),
                               onMemberSelected: (member) {
                                 if (mounted) {

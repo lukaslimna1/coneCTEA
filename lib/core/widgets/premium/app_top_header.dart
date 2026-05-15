@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'conectea_avatar.dart';
 
 /// Cabeçalho superior padronizado do aplicativo.
 /// Exibe a logo, contador de notificações e avatar do usuário com suporte a badges de administrador.
@@ -9,6 +10,7 @@ class AppTopHeader extends StatelessWidget implements PreferredSizeWidget {
   final int notificationCount;
   final VoidCallback? onNotificationTap;
   final VoidCallback? onAvatarTap;
+  final String? paletteSeed;
 
   const AppTopHeader({
     super.key,
@@ -17,6 +19,7 @@ class AppTopHeader extends StatelessWidget implements PreferredSizeWidget {
     this.notificationCount = 0,
     this.onNotificationTap,
     this.onAvatarTap,
+    this.paletteSeed,
   });
 
   @override
@@ -142,53 +145,24 @@ class AppTopHeader extends StatelessWidget implements PreferredSizeWidget {
   Widget _buildAvatar() {
     return ScaleFeedback(
       onTap: onAvatarTap,
-      child: Container(
-        width: 38,
-        height: 38,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF8B5CF6),
-              Color(0xFF60A5FA),
-              Color(0xFF22D3EE),
-            ],
-          ),
-          border: Border.all(
-            color: Colors.white.withValues(alpha: 0.20),
-            width: 1.5,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF8B5CF6).withValues(alpha: 0.28),
-              blurRadius: 15,
-              spreadRadius: 1,
-            ),
-          ],
-        ),
-        child: Center(
-          child: Text(
-            _getInitials(userName),
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
+      child: ConecteaAvatar(
+        initials: _getInitials(userName),
+        size: 38,
+        imageUrl: userPhotoUrl,
+        paletteSeed: paletteSeed,
+        showGlow: true,
       ),
     );
   }
 
   String _getInitials(String? name) {
     if (name == null || name.isEmpty || name == 'Usuário') return '--';
-    final parts = name.trim().split(RegExp(r'\s+'));
-    if (parts.length >= 2) {
-      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    final trimmedName = name.trim();
+    final parts = trimmedName.split(RegExp(r'\s+'));
+    if (parts.length > 1) {
+      return (parts.first[0] + parts.last[0]).toUpperCase();
     }
-    return parts[0][0].toUpperCase();
+    return parts.first[0].toUpperCase();
   }
 
   @override

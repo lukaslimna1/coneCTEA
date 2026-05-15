@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:conectea/core/constants/colors.dart';
+import 'package:conectea/core/widgets/premium/conectea_avatar.dart';
 import 'package:conectea/core/widgets/premium/premium_card.dart';
 import 'package:conectea/models/app_user.dart';
 
@@ -20,18 +21,7 @@ class AdminUserCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final initials = user.name.isNotEmpty 
-        ? user.name.trim().split(' ').map((e) => e.isNotEmpty ? e[0] : '').take(2).join('').toUpperCase()
-        : '?';
-
-    // Cores por cargo
-    Color roleColor;
-    switch (user.role) {
-      case UserRole.admin: roleColor = AppColors.primary; break;
-      case UserRole.adminMaster: roleColor = AppColors.alertOrange; break;
-      case UserRole.adminDev: roleColor = Colors.purple; break;
-      default: roleColor = AppColors.textSecondary;
-    }
+    final initials = user.initials;
 
     return PremiumCard(
       hasGradient: true,
@@ -39,41 +29,12 @@ class AdminUserCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       child: Row(
         children: [
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  roleColor.withValues(alpha: 0.8),
-                  roleColor.withValues(alpha: 0.2),
-                ],
-              ),
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.1),
-                width: 1,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: roleColor.withValues(alpha: 0.2),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Center(
-              child: Text(
-                initials,
-                style: GoogleFonts.inter(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 18,
-                ),
-              ),
-            ),
+          ConecteaAvatar(
+            initials: initials,
+            size: 50,
+            role: user.role.name,
+            paletteSeed: user.id,
+            showGlow: true,
           ),
           const SizedBox(width: 16),
           Expanded(

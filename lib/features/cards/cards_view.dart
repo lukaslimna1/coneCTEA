@@ -296,6 +296,7 @@ class _CardsViewState extends State<CardsView> {
                           activeCardsMap: activeCardsMap,
                           selectedIdx: selIdx,
                           requests: requests,
+                          paletteSeed: _user?.id,
                           onMemberSelected: (idx) {
                             setState(() {
                               _selectedMemberIndex = idx;

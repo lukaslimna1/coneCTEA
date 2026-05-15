@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/widgets/premium/conectea_avatar.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:conectea/core/constants/colors.dart';
 import 'package:conectea/models/member.dart';
@@ -12,6 +13,7 @@ class CardsMemberSelector extends StatelessWidget {
   final int selectedIdx;
   final List<CardRequest> requests;
   final Function(int) onMemberSelected;
+  final String? paletteSeed;
 
   const CardsMemberSelector({
     super.key,
@@ -20,6 +22,7 @@ class CardsMemberSelector extends StatelessWidget {
     required this.selectedIdx,
     required this.requests,
     required this.onMemberSelected,
+    this.paletteSeed,
   });
 
   @override
@@ -121,33 +124,12 @@ class CardsMemberSelector extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          gradient: isSelected
-                              ? AppColors.premiumGradient
-                              : null,
-                          color: isSelected ? null : const Color(0xFF1E293B),
-                          shape: BoxShape.circle,
-                          border: isSelected
-                              ? Border.all(
-                                  color: Colors.white.withValues(alpha: 0.2),
-                                  width: 1,
-                                )
-                              : null,
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          member.initials,
-                          style: GoogleFonts.inter(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w800,
-                            color: isSelected
-                                ? Colors.white
-                                : AppColors.primary,
-                          ),
-                        ),
+                      ConecteaAvatar(
+                        initials: member.initials,
+                        size: 32,
+                        isInactive: !isSelected,
+                        paletteSeed: paletteSeed,
+                        showGlow: isSelected,
                       ),
                       const SizedBox(width: 10),
                       Column(

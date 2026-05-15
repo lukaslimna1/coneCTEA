@@ -91,6 +91,7 @@ class _HomePageState extends State<HomePage> {
         userName: _user?.name,
         userPhotoUrl: null, // Add if available
         notificationCount: _unreadCount,
+        paletteSeed: _user?.id,
         onNotificationTap: () => setState(() => _currentIndex = 3),
         onAvatarTap: () => setState(() => _currentIndex = 4),
       ),

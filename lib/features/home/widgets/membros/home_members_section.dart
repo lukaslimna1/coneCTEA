@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/widgets/premium/conectea_avatar.dart';
 import 'package:conectea/core/constants/colors.dart';
 import 'package:conectea/models/member.dart';
 import 'package:conectea/features/home/widgets/comum/home_section_header.dart';
@@ -10,6 +11,7 @@ class HomeMembersSection extends StatelessWidget {
   final Member? selectedMember;
   final VoidCallback onViewAllTap;
   final ValueChanged<Member> onMemberSelected;
+  final String? paletteSeed;
 
   const HomeMembersSection({
     super.key,
@@ -17,6 +19,7 @@ class HomeMembersSection extends StatelessWidget {
     required this.selectedMember,
     required this.onViewAllTap,
     required this.onMemberSelected,
+    this.paletteSeed,
   });
 
   @override
@@ -74,30 +77,12 @@ class HomeMembersSection extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          gradient: isSelected
-                              ? AppColors.premiumGradient
-                              : LinearGradient(
-                                  colors: [
-                                    Colors.white.withValues(alpha: 0.1),
-                                    Colors.white.withValues(alpha: 0.05),
-                                  ],
-                                ),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Center(
-                          child: Text(
-                            initials,
-                            style: GoogleFonts.inter(
-                              color: Colors.white,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ),
+                      ConecteaAvatar(
+                        initials: initials,
+                        size: 38,
+                        isInactive: !isSelected,
+                        paletteSeed: paletteSeed,
+                        showGlow: isSelected,
                       ),
                       const SizedBox(width: 12),
                       Column(

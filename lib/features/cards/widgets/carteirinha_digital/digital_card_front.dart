@@ -185,6 +185,7 @@ class DigitalCardFront extends StatelessWidget {
                   initials: member.initials,
                   size: 90,
                   borderWidth: 3,
+                  paletteSeed: member.userId,
                 ),
                 const SizedBox(width: 24),
                 // Informação Principal

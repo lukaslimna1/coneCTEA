@@ -21,6 +21,7 @@ class HomeDynamicContent extends StatelessWidget {
   final VoidCallback onSupportTap;
   final VoidCallback onOpenMural;
   final VoidCallback onViewAllMembers;
+  final String? paletteSeed;
 
   const HomeDynamicContent({
     super.key,
@@ -37,6 +38,7 @@ class HomeDynamicContent extends StatelessWidget {
     required this.onSupportTap,
     required this.onOpenMural,
     required this.onViewAllMembers,
+    this.paletteSeed,
   });
 
   @override
@@ -54,6 +56,7 @@ class HomeDynamicContent extends StatelessWidget {
           selectedMember: selectedMember,
           onViewAllTap: onViewAllMembers,
           onMemberSelected: onMemberSelected,
+          paletteSeed: paletteSeed,
         ),
         const SizedBox(height: 24),
         HomeDigitalCardSection(

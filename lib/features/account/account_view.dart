@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher_string.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/widgets/premium/premium_card.dart';
 import 'package:conectea/core/constants/colors.dart';
+import 'package:conectea/core/widgets/premium/conectea_avatar.dart';
 import 'package:conectea/services/auth_service.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -13,12 +14,10 @@ import 'package:conectea/features/account/profile/edit_profile_view.dart';
 import 'package:conectea/features/account/institutional/about_conectea_view.dart';
 import 'package:conectea/features/account/support/help_support_view.dart';
 
-
 class AccountView extends StatelessWidget {
   final AppUser? user;
-  final String initials;
 
-  const AccountView({super.key, this.user, this.initials = 'U'});
+  const AccountView({super.key, this.user});
 
   @override
   Widget build(BuildContext context) {
@@ -89,45 +88,15 @@ class AccountView extends StatelessWidget {
     final displayName = user?.name.isNotEmpty == true
         ? user!.name
         : (user?.email ?? 'Usuário');
-
+        
     return Column(
       children: [
-        Container(
-          width: 90,
-          height: 90,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                AppColors.primary,
-                Color(0xFF0C2445),
-              ],
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.2),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
-              ),
-            ],
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.15),
-              width: 2,
-            ),
-          ),
-          child: Center(
-            child: Text(
-              initials,
-              style: GoogleFonts.outfit(
-                color: Colors.white,
-                fontSize: 32,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 1,
-              ),
-            ),
-          ),
+        ConecteaAvatar(
+          initials: user?.initials ?? '??',
+          size: 100,
+          role: user?.role.name,
+          paletteSeed: user?.id,
+          showGlow: true,
         ),
         const SizedBox(height: 20),
         Text(
@@ -267,9 +236,7 @@ class AccountView extends StatelessWidget {
     );
   }
 
-
   void _showVersionDialog(BuildContext context) {
-
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
