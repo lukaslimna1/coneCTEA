@@ -1,7 +1,7 @@
 # 📘 Documentação Técnica — ConeCTEA
 **App:** 0.4.0-dev | **Documentação:** 4.0.0 | **Status:** Desenvolvimento
 <br>
-**Atualizado em:** 14/05/2026
+**Atualizado em:** 15/05/2026
 
 ---
 
@@ -70,6 +70,12 @@ O padrão **Night Blue Premium** é a identidade oficial do app, focada em confo
 *   **Estética:** Glassmorphism, gradientes profundos, bordas suaves e sombras sutis.
 *   **Cores:** Centralizadas em `lib/core/constants/colors.dart` (`AppColors`).
 *   **Modularização da Home:** A `HomeView` isola seções estáticas de blocos reativos através do `HomeDynamicContent`.
+*   **Sistema de Avatares (ConecteaAvatar):**
+    *   **Identidade Visual:** Design circular estilo "Lunar Glass" com fundo dark glass e reflexos internos.
+    *   **Paletas Neon/Tech:** Coleção oficial de 15 paletas (P01 a P15), cada uma contendo cores `primary`, `harmonic` e `contrast` em gradientes premium (`SweepGradient`).
+    *   **Lógica Determinística:** A paleta é definida por uma `paletteSeed` baseada no ID estável da conta titular.
+    *   **Regra de Herança:** A identidade cromática pertence à conta titular. Todos os dependentes/membros vinculados herdam a paleta do titular, garantindo consistência familiar, enquanto as iniciais permanecem individuais.
+    *   **Wrapper de Compatibilidade:** O componente `PremiumAvatar` foi legado como um wrapper que delega a renderização para o novo sistema oficial.
 
 ---
 
@@ -100,7 +106,7 @@ O fluxo de autenticação foi refinado visualmente, estabilizado e modularizado:
 
 ### 5.3 Central do Usuário (Account)
 A `AccountView` foi consolidada como o hub de serviços do usuário, dividida em 6 cards principais:
-*   **Meus Dados:** acesso à `EditProfileView` modularizada.
+*   **Meus Dados:** acesso à `EditProfileView` modularizada. Exibe o `ConecteaAvatar` oficial com a paleta da conta e iniciais robustas (Primeira letra do nome + Primeira letra do último sobrenome).
 *   **Segurança:** gestão de credenciais e troca de senha.
 *   **Privacidade:** `ConsentsView` como tela de transparência sobre dados, consentimentos necessários e autorizações futuras.
 *   **Ajuda:** `HelpSupportView` com FAQ e canais oficiais.
@@ -120,14 +126,14 @@ O fluxo foi consolidado e modularizado:
 
 ### 5.5 Área de Carteirinhas (CardsView)
 A visualização de carteirinhas foi totalmente modularizada:
-*   **Orquestração:** `CardsView` gerencia streams, seleção de membros e troca de estados.
+*   **Orquestração:** `CardsView` gerencia streams, seleção de membros e troca de estados. Propaga a `paletteSeed` da conta titular para todos os avatares de dependentes no seletor (`CardsMemberSelector`).
 *   **Estados Extraídos:** Componentes específicos para estados de `empty`, `pending` (aguardando aprovação) e `error`.
 *   **Acessibilidade:** O CTA "Cadastrar novo dependente" foi reposicionado para garantir visibilidade fora do seletor de membros.
 
 ### 5.6 Carteirinha Digital (DigitalCardWidget)
 Componente modular e performático:
 *   `digital_card_widget.dart`: Orquestrador de flip, animação e controle de visibilidade do CPF.
-*   `digital_card_front.dart`: Interface frontal com dados principais e status.
+*   `digital_card_front.dart`: Interface frontal com dados principais e status. Utiliza o sistema oficial de avatar, preservando a identidade cromática da conta titular mesmo quando exibe dados de dependentes.
 *   `digital_card_back.dart`: Verso contendo QR Code para validação administrativa e texto legal.
 *   `digital_card_background.dart` e `digital_card_motion_wrapper.dart`: Estética premium e parallax.
 
@@ -166,6 +172,8 @@ O projeto mantém scripts de automação em `tools/qa/android/` para agilizar a 
     *   `Android_Medium_412dp_QA` (Referência de layout médio).
     *   `Samsung_A05_Small` (Perfil de entrada).
     *   `Samsung_A55_Like` (Perfil moderno/premium).
+*   **Validação em Hardware Real:**
+    *   Testes periódicos realizados em dispositivo físico **Samsung A55**, validando comportamento de `SafeArea`, `NavigationBar` nativa, densidade de pixels e performance de animações (avatares neon e carteirinha digital).
 *   **Protocolo Técnico:**
     *   Uso da flag `-no-snapshot-load` nos scripts para garantir um "Cold Boot" limpo e evitar travamentos por snapshots corrompidos.
     *   Atenção redobrada ao abrir múltiplos emuladores, pois os IDs de dispositivo (ex: `emulator-5554`) podem alternar entre os perfis abertos.
@@ -174,19 +182,19 @@ O projeto mantém scripts de automação em `tools/qa/android/` para agilizar a 
 
 ## 8. Roadmap Técnico
 
-### ✅ Concluído Recentemente (Ciclo de Segurança e Modularização)
+### ✅ Concluído Recentemente
+*   **Frente 23E (Avatares):** Sistema oficial `ConecteaAvatar` com 15 paletas neon/tech e herança cromática titular.
+*   **Frente 23B/C (Interface):** SafeArea, Navbar e Header compacto validados em Android físico (A55).
 *   **Blindagem UI:** Mensagens técnicas conhecidas substituídas por feedbacks amigáveis.
-*   **Higienização:** Logs sensíveis identificados na auditoria foram higienizados.
 *   **Auth v2:** Modularização do registro e recuperação de e-mail via Edge Functions.
 *   **Admin v2:** Painel administrativo por abas e scanner higienizado.
 *   **Account v2:** Central do Usuário consolidada com 6 cards principais.
-*   **Requests v2:** Fluxo de `AddMemberPage` blindado e simplificado nas áreas auditadas.
 
 ### 🏗️ Próxima Direção (Prioridades)
-*   **Home, Header & Navbar:** Refino estético completo do cabeçalho, barra de navegação e dashboard principal.
+*   **Home & Experiência:** Refino visual da página inicial, dashboard principal e responsividade global de layout.
 *   **Design System Global:** Padronização final de componentes (botões, inputs, cards) e centralização de estilos.
-*   **QA Android:** Manutenção da matriz de emuladores e scripts de automação.
-*   **Responsividade de Textos:** Estudo de solução global para escalonamento de fontes.
+*   **Legibilidade:** Ajustes finos de contraste e escalonamento de fontes.
+*   **QA Contínuo:** Manutenção da matriz de emuladores e scripts de automação.
 
 ### ⏳ Futuro / Backlog
 *   **Saúde:** Projeto Fada do Dente e integração de serviços.
