@@ -1,37 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:conectea/core/constants/colors.dart';
+import 'package:conectea/core/theme/status_visual_tokens.dart';
 
 class AdminStatusHelper {
   static Color getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'waiting_approval':
-      case 'under_review':
-      case 'em análise':
-        return AppColors.adminAnalysis;
-      case 'active':
-      case 'approved':
-      case 'aprovada':
-      case 'ativa':
-        return AppColors.adminPositive;
-      case 'waiting_docs':
-        return AppColors.adminRequest;
-      case 'reviewing_data':
-        return AppColors.adminAnalysis;
-      case 'rejected':
-      case 'rejeitada':
-        return AppColors.adminDanger;
-      case 'suspended':
-      case 'suspensa':
-        return AppColors.adminBlock;
-      case 'expired':
-      case 'expirada':
-        return Colors.brown;
-      case 'renewing':
-      case 'aguardando renovação':
-        return AppColors.primary;
-      default:
-        return Colors.grey;
-    }
+    return StatusVisualTokens.fromStatus(status).primary;
   }
 
   static String getStatusLabel(String status) {
@@ -62,27 +34,6 @@ class AdminStatusHelper {
   }
 
   static IconData getStatusIcon(String status) {
-    switch (status.toLowerCase()) {
-      case 'waiting_approval':
-      case 'under_review':
-        return Icons.hourglass_empty;
-      case 'approved':
-      case 'active':
-        return Icons.check_circle_outline;
-      case 'rejected':
-        return Icons.cancel_outlined;
-      case 'waiting_docs':
-        return Icons.description_outlined;
-      case 'reviewing_data':
-        return Icons.edit_note_outlined;
-      case 'suspended':
-        return Icons.pause_circle_outline;
-      case 'expired':
-        return Icons.event_busy_outlined;
-      case 'renewing':
-        return Icons.autorenew_outlined;
-      default:
-        return Icons.info_outline;
-    }
+    return StatusVisualTokens.fromStatus(status).icon;
   }
 }

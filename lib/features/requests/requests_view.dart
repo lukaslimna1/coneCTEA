@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:conectea/core/constants/colors.dart';
+import 'package:conectea/core/theme/status_visual_tokens.dart';
+import 'package:conectea/core/widgets/premium/status_action_button.dart';
 import 'package:conectea/services/database_service.dart';
 import 'package:conectea/services/auth_service.dart';
 import 'package:conectea/models/card_request.dart';
@@ -213,7 +215,7 @@ class RequestsView extends StatelessWidget {
 
   Widget _buildRequestCard(BuildContext context, CardRequest request, {bool isHistory = false}) {
     final databaseService = DatabaseService();
-    final ui = _getStatusUI(request.status);
+    final tokens = StatusVisualTokens.fromStatus(request.status);
     final dateFormatted = DateFormat('dd/MM/yyyy').format(request.createdAt);
 
     bool isActionable = request.status == 'reviewing_data' || request.status == 'waiting_docs';
@@ -275,7 +277,7 @@ class RequestsView extends StatelessWidget {
                         ],
                       ),
                     ),
-                    _buildStatusBadge(ui),
+                    _buildStatusBadge(tokens),
                   ],
                 ),
                 const SizedBox(height: 20),
@@ -291,14 +293,14 @@ class RequestsView extends StatelessWidget {
                           color: AppColors.cardSubtitle,
                         ),
                       ),
-                      Text(
-                        '${(ui.progress * 100).toInt()}%',
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w800,
-                          color: ui.color,
+                        Text(
+                          '${(_getProgress(request.status) * 100).toInt()}%',
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                            color: tokens.primary,
+                          ),
                         ),
-                      ),
                     ],
                   ),
                   const SizedBox(height: 8),
@@ -315,10 +317,10 @@ class RequestsView extends StatelessWidget {
                       AnimatedContainer(
                         duration: const Duration(milliseconds: 500),
                         height: 6,
-                        width: (MediaQuery.of(context).size.width - 88) * ui.progress,
+                        width: (MediaQuery.of(context).size.width - 88) * _getProgress(request.status),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
-                            colors: [ui.color.withValues(alpha: 0.6), ui.color],
+                            colors: [tokens.primary.withValues(alpha: 0.6), tokens.primary],
                           ),
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -345,21 +347,13 @@ class RequestsView extends StatelessWidget {
                       ],
                     ),
                     if (request.status == 'reviewing_data' || request.status == 'waiting_docs')
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: ui.color.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          'CORRIGIR',
-                          style: GoogleFonts.inter(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w900,
-                            color: ui.color,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
+                      StatusActionButton(
+                        label: 'CORRIGIR',
+                        statusKey: request.status,
+                        height: 28,
+                        fontSize: 9,
+                        iconSize: 14,
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
                       ),
                   ],
                 ),
@@ -368,18 +362,18 @@ class RequestsView extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusBadge(_StatusUI ui) {
+  Widget _buildStatusBadge(StatusVisualTokens tokens) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: ui.color.withValues(alpha: 0.1),
+        color: tokens.pillBackground,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: ui.color.withValues(alpha: 0.2)),
+        border: Border.all(color: tokens.border.withValues(alpha: 0.2)),
       ),
       child: Text(
-        ui.label.toUpperCase(),
+        tokens.label.toUpperCase(),
         style: GoogleFonts.inter(
-          color: ui.color,
+          color: tokens.primary,
           fontSize: 10,
           fontWeight: FontWeight.w900,
           letterSpacing: 0.5,
@@ -388,25 +382,25 @@ class RequestsView extends StatelessWidget {
     );
   }
 
-  _StatusUI _getStatusUI(String status) {
+  double _getProgress(String status) {
     switch (status.toLowerCase()) {
       case 'waiting_approval':
       case 'under_review':
-        return _StatusUI('Em análise', AppColors.alertOrange, 0.25);
+        return 0.25;
       case 'reviewing_data':
-        return _StatusUI('Revisar Dados', AppColors.alertOrange, 0.45);
+        return 0.45;
       case 'waiting_docs':
-        return _StatusUI('Docs Pendentes', AppColors.errorRed, 0.35);
+        return 0.35;
       case 'active':
-        return _StatusUI('Emitida', AppColors.statusGreen, 1.0);
+        return 1.0;
       case 'rejected':
-        return _StatusUI('Reprovada', AppColors.errorRed, 1.0);
+        return 1.0;
       case 'suspended':
-        return _StatusUI('Suspensa', AppColors.cardMutedText, 1.0);
+        return 1.0;
       case 'expired':
-        return _StatusUI('Expirada', AppColors.cardMutedText, 1.0);
+        return 1.0;
       default:
-        return _StatusUI('Processando', AppColors.primary, 0.1);
+        return 0.1;
     }
   }
 
@@ -440,12 +434,4 @@ class RequestsView extends StatelessWidget {
         return 'Solicitação';
     }
   }
-}
-
-class _StatusUI {
-  final String label;
-  final Color color;
-  final double progress;
-
-  _StatusUI(this.label, this.color, this.progress);
 }

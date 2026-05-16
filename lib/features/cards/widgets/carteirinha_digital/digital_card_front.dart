@@ -7,7 +7,7 @@ import 'digital_card_background.dart';
 import 'package:conectea/models/digital_card.dart';
 import 'package:conectea/models/member.dart';
 import 'package:conectea/core/widgets/premium_avatar.dart';
-import 'package:conectea/core/constants/colors.dart';
+import 'package:conectea/core/theme/status_visual_tokens.dart';
 
 /// Componente que renderiza a frente da carteirinha digital.
 /// Contém dados básicos do membro, foto, validade e status.
@@ -26,10 +26,13 @@ class DigitalCardFront extends StatelessWidget {
     final birthStr = _parseDate(member.dateOfBirth);
     final validStr = card != null ? _parseDate(card!.validUntil.toIso8601String()) : '--/--/----';
     final validationToken = card != null ? card!.cardNumber : '----';
-    
+
     final status = card?.status ?? 'pending';
-    final isActive = status == 'active';
     final isExpired = card != null && card!.validUntil.isBefore(DateTime.now());
+    
+    // Resolve tokens de status (se estiver expirado, força o token de expiração)
+    final effectiveStatus = isExpired ? 'expired' : status;
+    final tokens = StatusVisualTokens.fromStatus(effectiveStatus);
 
     final bool hasValidBloodType = member.bloodType.isNotEmpty && 
         !member.bloodType.toLowerCase().contains('não sei') && 
@@ -75,7 +78,7 @@ class DigitalCardFront extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF0C2445).withValues(alpha: 0.9), // Mais escuro para melhor contraste
+                        color: const Color(0xFF0C2445).withValues(alpha: 0.9),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
                         boxShadow: [
@@ -90,14 +93,14 @@ class DigitalCardFront extends StatelessWidget {
                         children: [
                           Icon(
                             PhosphorIconsBold.calendar, 
-                            color: isExpired ? AppColors.errorRed : const Color(0xFFA78BFA), // Roxo mais brilhante
+                            color: isExpired ? StatusVisualTokens.fromStatus('expired').primary : const Color(0xFFA78BFA),
                             size: 14,
                           ),
                           const SizedBox(width: 6),
                           Text(
                             validStr,
                             style: GoogleFonts.inter(
-                              color: isExpired ? AppColors.errorRed : Colors.white,
+                              color: isExpired ? StatusVisualTokens.fromStatus('expired').primary : Colors.white,
                               fontSize: 12,
                               fontWeight: FontWeight.w900,
                               letterSpacing: 0.5,
@@ -107,43 +110,47 @@ class DigitalCardFront extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    // Pílula de Status — Dinâmico e Vibrante
+                    // Pílula de Status — Dinâmico e Vibrante (Referência: Badge NOVO)
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                       decoration: BoxDecoration(
-                        color: (isActive ? AppColors.statusGreen : AppColors.alertOrange).withValues(alpha: 0.95), // Altamente visível
+                        color: const Color(0xFF020617).withValues(alpha: 0.75),
                         borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          BoxShadow(
-                            color: (isActive ? AppColors.statusGreen : AppColors.alertOrange).withValues(alpha: 0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
+                        border: Border.all(
+                          color: tokens.pillBorder,
+                          width: 1,
+                        ),
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
+                      child: Stack(
                         children: [
-                          Icon(
-                            isActive ? PhosphorIconsBold.checkCircle : PhosphorIconsBold.clockCounterClockwise, 
-                            color: Colors.white, // Alto contraste no fundo
-                            size: 14,
+                          // Overlay da cor do status sutil
+                          Positioned.fill(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: tokens.pillBackground,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
                           ),
-                          const SizedBox(width: 6),
-                          Text(
-                            isActive ? 'ATIVA' : (
-                              status == 'waiting_approval' || status == 'pending' ? 'PENDENTE' :
-                              status == 'reviewing_data' ? 'PENDENTE' :
-                              status == 'waiting_docs' ? 'DOCS PEND.' :
-                              status == 'suspended' ? 'SUSPENSA' :
-                              status == 'rejected' ? 'REPROVADA' : 'INATIVA'
-                            ),
-                            style: GoogleFonts.inter(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 0.5,
-                            ),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                tokens.icon,
+                                color: tokens.primary,
+                                size: 14,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                tokens.label.toUpperCase(),
+                                style: GoogleFonts.inter(
+                                  color: tokens.primary,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:conectea/core/constants/colors.dart';
+import 'package:conectea/core/widgets/premium/status_action_button.dart';
 import 'package:conectea/models/member.dart';
 import 'package:conectea/models/card_request.dart';
 import 'package:conectea/models/digital_card.dart';
@@ -219,13 +220,17 @@ class HomeDigitalCardSection extends StatelessWidget {
                             children: [
                               Icon(statusIcon, color: statusColor, size: 20),
                               const SizedBox(width: 10),
-                              Text(
-                                statusDisplay,
-                                style: GoogleFonts.inter(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w900,
-                                  color: statusColor,
-                                  letterSpacing: 0.5,
+                              Flexible(
+                                child: Text(
+                                  statusDisplay,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w900,
+                                    color: statusColor,
+                                    letterSpacing: 0.5,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                             ],
@@ -300,75 +305,46 @@ class HomeDigitalCardSection extends StatelessWidget {
                     ),
                   )
                 else
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        if (isActive) {
-                          onOpenDigitalCard();
-                        } else if (status == 'waiting_docs' ||
-                            status == 'reviewing_data') {
-                          onEditPendingRequest(member, memberRequest);
-                        } else if (status == 'expired' ||
-                            status == 'suspended') {
-                          if (memberRequest != null) {
-                            onRequestRenewal(memberRequest.id);
+                  StatusActionButton(
+                    isExpanded: true,
+                    height: 52,
+                    fontSize: 14,
+                    statusKey: isActive ? 'active' : (status.isEmpty ? 'waiting_approval' : status),
+                    label: isActive
+                        ? 'Abrir Carteira Digital'
+                        : (status == 'expired' || status == 'suspended'
+                              ? 'Solicitar Renovação'
+                              : (status == 'waiting_docs'
+                                    ? 'Enviar Documentos'
+                                    : (status == 'reviewing_data'
+                                          ? 'Revisar Dados'
+                                          : 'Aguardando Aprovação'))),
+                    iconOverride: isActive
+                        ? Icons.qr_code_scanner_rounded
+                        : (status == 'expired' || status == 'suspended'
+                              ? Icons.autorenew_rounded
+                              : (status == 'waiting_docs' ||
+                                        status == 'reviewing_data'
+                                    ? Icons.edit_document
+                                    : Icons.lock_outline_rounded)),
+                    onTap: (isActive || 
+                            status == 'waiting_docs' || 
+                            status == 'reviewing_data' || 
+                            ((status == 'expired' || status == 'suspended') && memberRequest != null))
+                        ? () {
+                            if (isActive) {
+                              onOpenDigitalCard();
+                            } else if (status == 'waiting_docs' ||
+                                status == 'reviewing_data') {
+                              onEditPendingRequest(member, memberRequest);
+                            } else if (status == 'expired' ||
+                                status == 'suspended') {
+                              if (memberRequest != null) {
+                                onRequestRenewal(memberRequest.id);
+                              }
+                            }
                           }
-                        }
-                      },
-                      icon: Icon(
-                        isActive
-                            ? Icons.qr_code_scanner_rounded
-                            : (status == 'expired' || status == 'suspended'
-                                  ? Icons.autorenew_rounded
-                                  : (status == 'waiting_docs' ||
-                                            status == 'reviewing_data'
-                                        ? Icons.edit_document
-                                        : Icons.lock_outline_rounded)),
-                        size: 20,
-                      ),
-                      label: Text(
-                        isActive
-                            ? 'Abrir Carteira Digital'
-                            : (status == 'expired' || status == 'suspended'
-                                  ? 'Solicitar Renovação'
-                                  : (status == 'waiting_docs'
-                                        ? 'Enviar Documentos'
-                                        : (status == 'reviewing_data'
-                                              ? 'Revisar Dados'
-                                              : 'Aguardando Aprovação'))),
-                        style: GoogleFonts.inter(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 15,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: isActive
-                            ? AppColors.primary
-                            : (status == 'waiting_docs' ||
-                                      status == 'reviewing_data'
-                                  ? AppColors.alertOrange
-                                  : (status == 'expired' ||
-                                            status == 'suspended'
-                                        ? Colors.purple
-                                        : AppColors.borderLight.withValues(
-                                            alpha: 0.2,
-                                          ))),
-                        foregroundColor:
-                            isActive ||
-                                status == 'waiting_docs' ||
-                                status == 'reviewing_data' ||
-                                status == 'expired' ||
-                                status == 'suspended'
-                            ? Colors.white
-                            : AppColors.textSecondary,
-                        elevation: isActive ? 4 : 0,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(18),
-                        ),
-                      ),
-                    ),
+                        : null,
                   ),
               ],
             ),

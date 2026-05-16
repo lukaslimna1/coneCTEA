@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:conectea/models/card_request.dart';
 import 'package:conectea/core/constants/colors.dart';
 import 'package:conectea/core/widgets/premium/premium_card.dart';
-import 'package:conectea/features/admin/utils/admin_status_helper.dart';
+import 'package:conectea/core/theme/status_visual_tokens.dart';
 
 class AdminRequestCard extends StatelessWidget {
   final CardRequest request;
@@ -17,8 +17,7 @@ class AdminRequestCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final statusColor = AdminStatusHelper.getStatusColor(request.status);
-    final statusLabel = AdminStatusHelper.getStatusLabel(request.status);
+    final tokens = StatusVisualTokens.fromStatus(request.status);
 
     return PremiumCard(
       hasGradient: true,
@@ -45,7 +44,7 @@ class AdminRequestCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                _buildStatusBadge(statusColor, statusLabel),
+                _buildStatusBadge(tokens),
               ],
             ),
             const SizedBox(height: 16),
@@ -105,33 +104,47 @@ class AdminRequestCard extends StatelessWidget {
       );
     }
 
-  Widget _buildStatusBadge(Color color, String label) {
+  Widget _buildStatusBadge(StatusVisualTokens tokens) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: const Color(0xFF020617).withValues(alpha: 0.75),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
+        border: Border.all(
+          color: tokens.pillBorder,
+          width: 1,
+        ),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
+      child: Stack(
         children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
+          // Overlay da cor do status sutil
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                color: tokens.pillBackground,
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
           ),
-          const SizedBox(width: 6),
-          Text(
-            label.toUpperCase(),
-            style: GoogleFonts.inter(
-              fontSize: 9,
-              fontWeight: FontWeight.w900,
-              color: color,
-            ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                tokens.icon,
+                color: tokens.primary,
+                size: 12,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                tokens.label.toUpperCase(),
+                style: GoogleFonts.inter(
+                  fontSize: 9,
+                  fontWeight: FontWeight.w900,
+                  color: tokens.primary,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
           ),
         ],
       ),

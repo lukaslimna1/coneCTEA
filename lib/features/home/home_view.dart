@@ -285,148 +285,154 @@ class _HomeViewState extends State<HomeView> {
               final double bottomPadding = navBarHeight + bottomInset + 16;
 
               return SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(
-              parent: BouncingScrollPhysics(),
-            ),
-            padding: EdgeInsets.fromLTRB(0, topPadding, 0, bottomPadding),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                HomeGreetingHeader(
-                  displayName: _displayName,
-                  role: _user?.role,
-                  onQrTap: () => context.push('/qr-scanner'),
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
                 ),
-                const SizedBox(height: 12),
+                padding: EdgeInsets.fromLTRB(0, topPadding, 0, bottomPadding),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    HomeGreetingHeader(
+                      displayName: _displayName,
+                      role: _user?.role,
+                      onQrTap: () => context.push('/qr-scanner'),
+                    ),
+                    const SizedBox(height: 12),
 
-                // Bloco Dinâmico Reativo
-                StreamBuilder<List<Member>>(
-                  stream: _databaseService.membersStream(userId),
-                  builder: (context, memberSnapshot) {
-                    if (memberSnapshot.connectionState ==
-                            ConnectionState.waiting &&
-                        _isLoading) {
-                      return const Center(
-                        child: CircularProgressIndicator(
-                          color: AppColors.primary,
-                        ),
-                      );
-                    }
+                    // Bloco Dinâmico Reativo
+                    StreamBuilder<List<Member>>(
+                      stream: _databaseService.membersStream(userId),
+                      builder: (context, memberSnapshot) {
+                        if (memberSnapshot.connectionState ==
+                                ConnectionState.waiting &&
+                            _isLoading) {
+                          return const Center(
+                            child: CircularProgressIndicator(
+                              color: AppColors.primary,
+                            ),
+                          );
+                        }
 
-                    final members = (memberSnapshot.data ?? [])
-                        .whereType<Member>()
-                        .toList();
-                    final selectedMember = _getSelectedMember(members);
-
-                    return StreamBuilder<List<CardRequest>>(
-                      stream: _databaseService.cardRequestsStream(userId),
-                      builder: (context, requestSnapshot) {
-                        final requests = (requestSnapshot.data ?? [])
-                            .whereType<CardRequest>()
+                        final members = (memberSnapshot.data ?? [])
+                            .whereType<Member>()
                             .toList();
+                        final selectedMember = _getSelectedMember(members);
 
-                        return StreamBuilder<List<DigitalCard>>(
-                          stream: _databaseService.digitalCardsStream(userId),
-                          builder: (context, cardSnapshot) {
-                            final digitalCards = (cardSnapshot.data ?? [])
-                                .whereType<DigitalCard>()
+                        return StreamBuilder<List<CardRequest>>(
+                          stream: _databaseService.cardRequestsStream(userId),
+                          builder: (context, requestSnapshot) {
+                            final requests = (requestSnapshot.data ?? [])
+                                .whereType<CardRequest>()
                                 .toList();
 
-                            return HomeDynamicContent(
-                              members: members,
-                              requests: requests,
-                              digitalCards: digitalCards,
-                              selectedMember: selectedMember,
-                              paletteSeed: _user?.id,
-                              onDetailsTap: () => widget.onNavigate(2),
-                              onMemberSelected: (member) {
-                                if (mounted) {
-                                  setState(() {
-                                    _selectedMemberId = member.id;
-                                  });
-                                }
+                            return StreamBuilder<List<DigitalCard>>(
+                              stream: _databaseService.digitalCardsStream(
+                                userId,
+                              ),
+                              builder: (context, cardSnapshot) {
+                                final digitalCards = (cardSnapshot.data ?? [])
+                                    .whereType<DigitalCard>()
+                                    .toList();
+
+                                return HomeDynamicContent(
+                                  members: members,
+                                  requests: requests,
+                                  digitalCards: digitalCards,
+                                  selectedMember: selectedMember,
+                                  paletteSeed: _user?.id,
+                                  onDetailsTap: () => widget.onNavigate(2),
+                                  onMemberSelected: (member) {
+                                    if (mounted) {
+                                      setState(() {
+                                        _selectedMemberId = member.id;
+                                      });
+                                    }
+                                  },
+                                  onRequestCard: _handleRequestCard,
+                                  onOpenDigitalCard: () => widget.onNavigate(1),
+                                  onEditPendingRequest: (member, request) =>
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => AddMemberPage(
+                                            member: member,
+                                            request: request,
+                                          ),
+                                        ),
+                                      ).then((_) => _loadData()),
+                                  onRequestRenewal: _handleRenewalRequest,
+                                  onSupportTap: _handleSupportTap,
+                                  onOpenMural: () => widget.onNavigate(2),
+                                  onViewAllMembers: () => widget.onNavigate(
+                                    1,
+                                  ), // Redireciona para aba Carteirinhas
+                                );
                               },
-                              onRequestCard: _handleRequestCard,
-                              onOpenDigitalCard: () => widget.onNavigate(1),
-                              onEditPendingRequest: (member, request) =>
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => AddMemberPage(
-                                        member: member,
-                                        request: request,
-                                      ),
-                                    ),
-                                  ).then((_) => _loadData()),
-                              onRequestRenewal: _handleRenewalRequest,
-                              onSupportTap: _handleSupportTap,
-                              onOpenMural: () => widget.onNavigate(2),
-                              onViewAllMembers: () => widget.onNavigate(
-                                1,
-                              ), // Redireciona para aba Carteirinhas
                             );
                           },
                         );
                       },
-                    );
-                  },
-                ),
+                    ),
 
-                const SizedBox(height: 24),
-                const HomeServicesSection(),
-                const SizedBox(height: 24),
-                HomeInformationSection(
-                  onSupportTap: _handleSupportTap,
-                  onAboutTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const AboutConecteaView(),
-                    ),
-                  ),
-                  onSecurityTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const SecurityView(),
-                    ),
-                  ),
-                  onFamilyTeaTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const FamilyTeaView(),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                HighlightBanner(
-                  eyebrow: 'Família TEA Bauru',
-                  title: 'Acompanhe novidades e projetos',
-                  subtitle:
-                      'Conheça projetos, ações e atualizações da Família TEA Bauru.',
-                  ctaLabel: 'Ver Instagram',
-                  eyebrowColor: const Color(0xFFA855F7),
-                  illustration: Icons.volunteer_activism_rounded,
-                  onTap: () async {
-                    final Uri instagramUri = Uri.parse("https://www.instagram.com/familiateabauru/");
-                    try {
-                      await launchUrl(
-                        instagramUri,
-                        mode: LaunchMode.externalApplication,
-                      );
-                    } catch (e) {
-                      if (!context.mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Não foi possível abrir o Instagram agora. Tente novamente em instantes.'),
-                          backgroundColor: AppColors.alertOrange,
+                    const SizedBox(height: 24),
+                    const HomeServicesSection(),
+                    const SizedBox(height: 24),
+                    HomeInformationSection(
+                      onSupportTap: _handleSupportTap,
+                      onAboutTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const AboutConecteaView(),
                         ),
-                      );
-                    }
-                  },
+                      ),
+                      onSecurityTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const SecurityView(),
+                        ),
+                      ),
+                      onFamilyTeaTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const FamilyTeaView(),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    HighlightBanner(
+                      eyebrow: 'Família TEA Bauru',
+                      title: 'Acompanhe novidades e projetos',
+                      subtitle:
+                          'Conheça projetos, ações e atualizações da Família TEA Bauru.',
+                      ctaLabel: 'Ver Instagram',
+                      eyebrowColor: const Color(0xFFA855F7),
+                      illustration: Icons.volunteer_activism_rounded,
+                      onTap: () async {
+                        final Uri instagramUri = Uri.parse(
+                          "https://www.instagram.com/familiateabauru/",
+                        );
+                        try {
+                          await launchUrl(
+                            instagramUri,
+                            mode: LaunchMode.externalApplication,
+                          );
+                        } catch (e) {
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Não foi possível abrir o Instagram agora. Tente novamente em instantes.',
+                              ),
+                              backgroundColor: AppColors.alertOrange,
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 40),
+                  ],
                 ),
-                const SizedBox(height: 40),
-              ],
-            ),
-          );
+              );
             },
           ),
         ),

@@ -10,6 +10,7 @@ import 'package:conectea/core/constants/colors.dart';
 import 'package:conectea/features/admin/utils/admin_status_helper.dart';
 import 'package:conectea/features/admin/widgets/admin_common_widgets.dart';
 import 'package:conectea/core/widgets/premium/premium_button.dart';
+import 'package:conectea/core/theme/status_visual_tokens.dart';
 
 class AdminRequestDetailsSheet extends StatefulWidget {
   final CardRequest request;
@@ -517,7 +518,56 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
                               ? 'Emissão Digital' 
                               : widget.request.type
                         ),
-                        AdminDetailRow(label: 'Status Atual', value: AdminStatusHelper.getStatusLabel(widget.request.status)),
+                        AdminDetailRow(
+                          label: 'Status Atual',
+                          customValue: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF020617).withValues(alpha: 0.75),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: StatusVisualTokens.fromStatus(widget.request.status).pillBorder,
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Stack(
+                                  children: [
+                                    Positioned.fill(
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: StatusVisualTokens.fromStatus(widget.request.status).pillBackground,
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                      ),
+                                    ),
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          StatusVisualTokens.fromStatus(widget.request.status).icon,
+                                          color: StatusVisualTokens.fromStatus(widget.request.status).primary,
+                                          size: 14,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          AdminStatusHelper.getStatusLabel(widget.request.status).toUpperCase(),
+                                          style: GoogleFonts.inter(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w900,
+                                            color: StatusVisualTokens.fromStatus(widget.request.status).primary,
+                                            letterSpacing: 0.5,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                         AdminDetailRow(
                           label: 'Data',
                           value: '${widget.request.createdAt.day}/${widget.request.createdAt.month}/${widget.request.createdAt.year}',
@@ -624,19 +674,17 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
           children: [
             // Só mostra aprovar se não estiver ativa e não for renovação
             if (widget.request.status != 'active' && widget.request.status != 'renewing')
-              AdminActionButton(
+              AdminStatusActionButton(
                 label: 'APROVAR',
-                icon: Icons.check_circle_rounded,
-                color: AppColors.adminPositive,
+                statusKey: 'active',
                 onTap: () => _confirmStatusUpdate('active', 'Aprovar'),
               ),
             
             // Só mostra renovar se o status for renovação (solicitado pelo user)
             if (widget.request.status == 'renewing')
-              AdminActionButton(
+              AdminStatusActionButton(
                 label: 'APROVAR RENOVAÇÃO',
-                icon: Icons.sync_rounded,
-                color: AppColors.adminPositive,
+                statusKey: 'renewing',
                 onTap: () => _confirmStatusUpdate('active', 'Renovar'),
               ),
           ],
@@ -654,17 +702,14 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
           spacing: 12,
           runSpacing: 12,
           children: [
-            AdminActionButton(
+            AdminStatusActionButton(
               label: 'SOLICITAR DOCS',
-              icon: Icons.file_present_rounded,
-              color: AppColors.adminRequest,
+              statusKey: 'waiting_docs',
               onTap: () => _confirmStatusUpdate('waiting_docs', 'Solicitar Documentos'),
             ),
-            AdminActionButton(
+            AdminStatusActionButton(
               label: 'REVISAR DADOS',
-              icon: Icons.edit_note_rounded,
-              color: AppColors.adminAnalysis,
-              isOutline: true,
+              statusKey: 'reviewing_data',
               onTap: () => _confirmStatusUpdate('reviewing_data', 'Revisar Dados'),
             ),
           ],
@@ -682,17 +727,14 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
           spacing: 12,
           runSpacing: 12,
           children: [
-            AdminActionButton(
+            AdminStatusActionButton(
               label: 'REPROVAR',
-              icon: Icons.cancel_outlined,
-              color: AppColors.adminDanger,
-              isOutline: true,
+              statusKey: 'rejected',
               onTap: () => _confirmStatusUpdate('rejected', 'Reprovar'),
             ),
-            AdminActionButton(
+            AdminStatusActionButton(
               label: 'SUSPENDER',
-              icon: Icons.block_outlined,
-              color: AppColors.adminBlock,
+              statusKey: 'suspended',
               onTap: () => _confirmStatusUpdate('suspended', 'Suspender'),
             ),
           ],

@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:conectea/core/constants/colors.dart';
 import 'package:conectea/core/widgets/premium/premium_button.dart';
-import 'package:conectea/features/admin/utils/admin_status_helper.dart';
+import 'package:conectea/core/theme/status_visual_tokens.dart';
+import 'package:conectea/core/widgets/premium/status_action_button.dart';
 
 class AdminSectionTitle extends StatelessWidget {
   final String title;
@@ -28,12 +29,14 @@ class AdminDetailRow extends StatefulWidget {
   final String label;
   final String value;
   final bool isSensitive;
+  final Widget? customValue;
 
   const AdminDetailRow({
     super.key, 
     required this.label, 
-    required this.value,
+    this.value = '',
     this.isSensitive = false,
+    this.customValue,
   });
 
   @override
@@ -77,7 +80,7 @@ class _AdminDetailRowState extends State<AdminDetailRow> {
             ),
           ),
           Expanded(
-            child: Row(
+            child: widget.customValue ?? Row(
               children: [
                 Expanded(
                   child: Text(
@@ -225,7 +228,7 @@ class AdminStatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = AdminStatusHelper.getStatusColor(status);
+    final tokens = StatusVisualTokens.fromStatus(status);
 
     return GestureDetector(
       onTap: isCurrent ? null : onTap,
@@ -233,36 +236,54 @@ class AdminStatusChip extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: isCurrent ? color : Colors.white,
+          color: isCurrent
+              ? const Color(0xFF020617).withValues(alpha: 0.90)
+              : Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isCurrent ? color : color.withValues(alpha: 0.3),
-            width: 1.5,
+            color: isCurrent ? tokens.pillBorder : tokens.primary.withValues(alpha: 0.2),
+            width: isCurrent ? 1.5 : 1,
           ),
           boxShadow: isCurrent
               ? [
                   BoxShadow(
-                    color: color.withValues(alpha: 0.3),
+                    color: tokens.primary.withValues(alpha: 0.2),
                     blurRadius: 8,
                     offset: const Offset(0, 4),
                   )
                 ]
               : [],
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
+        child: Stack(
           children: [
-            if (isCurrent) ...[
-              const Icon(Icons.check_circle, size: 14, color: Colors.white),
-              const SizedBox(width: 6),
-            ],
-            Text(
-              label,
-              style: GoogleFonts.inter(
-                fontSize: 12,
-                fontWeight: isCurrent ? FontWeight.w800 : FontWeight.w600,
-                color: isCurrent ? Colors.white : color,
+            if (isCurrent)
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: tokens.pillBackground,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
               ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (isCurrent) ...[
+                  Icon(tokens.icon, size: 14, color: tokens.primary),
+                  const SizedBox(width: 8),
+                ],
+                Text(
+                  label.toUpperCase(),
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w900,
+                    color: isCurrent
+                        ? tokens.primary
+                        : Colors.white.withValues(alpha: 0.5),
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -327,3 +348,29 @@ class AdminActionButton extends StatelessWidget {
     );
   }
 }
+
+class AdminStatusActionButton extends StatelessWidget {
+  final String label;
+  final String statusKey;
+  final VoidCallback onTap;
+  final IconData? iconOverride;
+
+  const AdminStatusActionButton({
+    super.key,
+    required this.label,
+    required this.statusKey,
+    required this.onTap,
+    this.iconOverride,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return StatusActionButton(
+      label: label,
+      statusKey: statusKey,
+      onTap: onTap,
+      iconOverride: iconOverride,
+    );
+  }
+}
+

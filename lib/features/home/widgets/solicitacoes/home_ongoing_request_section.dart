@@ -61,16 +61,17 @@ class HomeOngoingRequestSection extends StatelessWidget {
                 Row(
                   children: [
                     Container(
-                      width: 52,
-                      height: 52,
+                      width: 46,
+                      height: 46,
                       decoration: BoxDecoration(
-                        color: statusColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(18),
+                        color: const Color(0xFF020617).withValues(alpha: 0.90),
+                        borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                          color: statusColor.withValues(alpha: 0.1),
+                          color: statusColor.withValues(alpha: 0.25),
+                          width: 1,
                         ),
                       ),
-                      child: Icon(statusIcon, color: statusColor, size: 28),
+                      child: Icon(statusIcon, color: statusColor, size: 24),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -118,29 +119,43 @@ class HomeOngoingRequestSection extends StatelessWidget {
                         ],
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: statusColor,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: statusColor.withValues(alpha: 0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
+                    Flexible(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF020617).withValues(alpha: 0.75),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: statusInfo.pillBorder,
+                            width: 1,
                           ),
-                        ],
-                      ),
-                      child: Text(
-                        statusDisplay,
-                        style: GoogleFonts.inter(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
-                          letterSpacing: 0.5,
+                        ),
+                        child: Stack(
+                          children: [
+                            // Overlay da cor do status sutil
+                            Positioned.fill(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: statusInfo.pillBackground,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                            ),
+                            Text(
+                              statusDisplay,
+                              style: GoogleFonts.inter(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w900,
+                                color: statusColor,
+                                letterSpacing: 0.5,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
                         ),
                       ),
                     ),
