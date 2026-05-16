@@ -270,14 +270,12 @@ class _RegisterPageState extends State<RegisterPage> {
                 side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
               ),
               title: Text(
-                '📧 Verifique seu e-mail',
+                '🎉 Parabéns!',
                 style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.w800),
                 textAlign: TextAlign.center,
               ),
               content: Text(
-                'Cadastro realizado com sucesso! 🚀\n\n'
-                'Enviamos um e-mail de confirmação para você. '
-                'Por favor, verifique sua caixa de entrada (e a pasta de Spam) e clique no link de validação para ativar sua conta antes de fazer o login.',
+                'Sua conta foi criada com sucesso.\nVocê já pode fazer login com seu e-mail e senha.',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.8), height: 1.5),
               ),
@@ -285,10 +283,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      context.go('/login');
-                    },
+                    onPressed: () => context.go('/login'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       padding: const EdgeInsets.symmetric(vertical: 16),
