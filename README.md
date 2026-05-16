@@ -11,8 +11,8 @@
   <img src="https://img.shields.io/badge/Flutter-3.41.9-02569B?logo=flutter" alt="Flutter">
   <img src="https://img.shields.io/badge/Dart-3.11.5-0175C2?logo=dart" alt="Dart">
   <img src="https://img.shields.io/badge/Supabase-PostgreSQL-3FCF8E?logo=supabase" alt="Supabase">
-  <img src="https://img.shields.io/badge/App-0.4.0--dev-8B3DFF?logo=flutter" alt="App">
-  <img src="https://img.shields.io/badge/Docs-4.0.0-02569B?logo=read-the-docs" alt="Docs">
+  <img src="https://img.shields.io/badge/App-0.5.0--dev-8B3DFF?logo=flutter" alt="App">
+  <img src="https://img.shields.io/badge/Docs-4.1.0-02569B?logo=read-the-docs" alt="Docs">
   <img src="https://img.shields.io/badge/Status-Desenvolvimento-orange" alt="Status">
 </p>
 
@@ -36,7 +36,8 @@ O **ConeCTEA** é uma solução tecnológica mobile-first criada para apoiar a c
 *   💎 **Carteirinha Digital Premium:** Identidade visual premium com efeito flip 3D, sensor de movimento e QR Code para validação administrativa.
 *   📱 **Tela Cheia Adaptativa:** Visualização defensiva otimizada para os modos Retrato e Paisagem no Android.
 *   📢 **Painel Administrativo:** Gestão de solicitações, auditoria de usuários e Scanner de validação integrado.
-*   💠 **Padronização Visual:** Header compacto, insígnias administrativas, SafeArea refinada, Auth responsivo e navegação otimizada para diferentes perfis Android.
+*   🏷️ **Status Visuais Unificados:** Pills e botões de ação baseados em `StatusVisualTokens`, com padrão Dark Glass e cores semânticas consistentes entre Home, Solicitações, Admin e Carteirinha.
+*   💠 **Padronização Visual:** Header compacto, insígnias administrativas, SafeArea refinada, Auth responsivo e navegação unificada para diferentes perfis Android.
 
 ---
 
@@ -46,6 +47,7 @@ O **ConeCTEA** é uma solução tecnológica mobile-first criada para apoiar a c
 *   **Identidade Visual Determinística:** Sistema de avatares onde a paleta de cores pertence à conta titular e é herdada por todos os membros vinculados, garantindo consistência familiar em todo o app.
 *   **Arquitetura por Features:** Organização modular que isola domínios de negócio, facilitando a manutenção.
 *   **Privacidade por Design:** Governança rigorosa via Supabase Row Level Security (RLS).
+*   **Centralização de Design:** Sistema de status e botões de ação unificado via `StatusVisualTokens`, eliminando inconsistências visuais entre o painel administrativo e a área do usuário.
 *   **Android-First:** Validação em emuladores Android, perfis Samsung/Motorola/Xiaomi, telas estreitas/curvas, matriz 360dp–480dp e testes pontuais em dispositivo físico quando disponível. O projeto inclui scripts oficiais de automação para QA em `tools/qa/android/`.
 
 ---
@@ -62,6 +64,7 @@ O **ConeCTEA** é uma solução tecnológica mobile-first criada para apoiar a c
 - **Correções críticas pós-APK 23E (Frente 24C):** Instagram externo, CTA de retorno, upload mobile, limpeza de documentos no Drive e logs seguros.
 - **Cadastro interno sem OTP (Frente 24D.3):** Fluxo simplificado onde o cadastro finaliza dentro do app com diálogo de sucesso e login manual.
 - **Responsividade Auth + Bancada QA Android (Frente 25A):** Login/Cadastro ajustados para telas estreitas e scripts oficiais Samsung/Motorola/Xiaomi.
+- **Status Visuais e Ações Administrativas (Frente 25B.3):** Centralização de tokens visuais e botões por status no padrão Dark Glass.
 - **Digital Card:** Consolidação da carteirinha modular (Frente/Verso/Motion).
 
 ### 🏗️ Próxima Direção (Prioritário)
@@ -104,4 +107,4 @@ Projeto desenvolvido por **Lucas Lima**.
 Portfólio: [lucaslimadigital.vercel.app](https://lucaslimadigital.vercel.app)
 
 ---
-*ConeCTEA App 0.4.0-dev | Documentação 4.0.0 — 2026*
+*ConeCTEA App 0.5.0-dev | Documentação 4.1.0 — 2026*

@@ -1,7 +1,7 @@
 # 📘 Documentação Técnica — ConeCTEA
-**App:** 0.4.0-dev | **Documentação:** 4.0.0 | **Status:** Desenvolvimento
+**App:** 0.5.0-dev | **Documentação:** 4.1.0 | **Status:** Desenvolvimento
 <br>
-**Atualizado em:** 16/05/2026
+**Atualizado em:** 16/05/2026 (Frente 25B.3-DOC.1)
 
 ---
 
@@ -77,6 +77,11 @@ O padrão **Night Blue Premium** é a identidade oficial do app, focada em confo
     *   **Regra de Herança:** A identidade cromática pertence à conta titular. Todos os dependentes/membros vinculados herdam a paleta do titular, garantindo consistência familiar, enquanto as iniciais permanecem individuais.
     *   **Wrapper de Compatibilidade:** O componente `PremiumAvatar` foi legado como um wrapper que delega a renderização para o novo sistema oficial.
 *   **Proteção de Layout (PremiumButton):** Os botões premium receberam proteção visual global via `Flexible` e `TextOverflow.ellipsis` em seus rótulos de texto. O objetivo é garantir estabilidade em telas estreitas (320dp+) ou com zoom de fonte do sistema elevado, evitando RenderFlex overflows sem alterar a lógica de negócio.
+*   **Padronização de Status (StatusVisualTokens & StatusActionButton):**
+    *   **Identidade Unificada:** Criação de uma fonte única de verdade visual para status (`lib/core/theme/status_visual_tokens.dart`), centralizando cores, ícones e labels.
+    *   **Estética Dark Glass:** Implementação de pills de status e botões de ação no padrão premium: fundo dark glass profundo (`#020617` @ 85-90%), bordas neon sutis com a cor do status e ícones coloridos.
+    *   **StatusActionButton:** Widget centralizado (`lib/core/widgets/premium/status_action_button.dart`) que consome os tokens visuais. Os botões de ação administrativa e de fluxo de usuário agora herdam automaticamente o DNA visual do status correspondente, eliminando botões sólidos chapados e garantindo harmonia estética Lunar Glass.
+    *   **Escopo de Aplicação:** Admin (Ações e Chips), Home (Solicitações em andamento), Requests (Botão Corrigir) e Carteirinha Digital (Botões de ação e status).
 
 ---
 
@@ -102,9 +107,10 @@ O fluxo de autenticação foi refinado visualmente, estabilizado e modularizado:
 ### 5.2 Painel Administrativo (Admin)
 Área restrita para gestão da associação, organizada por abas:
 *   **Orquestração:** A `AdminView` gerencia a navegação entre as abas de solicitações e usuários.
-*   **Solicitações:** `AdminRequestsTab` lista processos pendentes com filtros de status.
+*   **Solicitações:** `AdminRequestsTab` lista processos pendentes com filtros de status. Utiliza os novos badges e pills padronizados via `StatusVisualTokens`.
 *   **Usuários:** `AdminUsersTab` permite a busca e gestão de permissões.
 *   **Scanner:** `ScannerView` higienizada, utilizada para validar a autenticidade das carteirinhas via QR Code.
+*   **Padronização de Ações:** Os botões de decisão administrativa (`APROVAR`, `REPROVAR`, `REVISAR DADOS`, `SOLICITAR DOCS`, `SUSPENDER`) no `AdminRequestDetailsSheet` foram migrados para o componente `StatusActionButton`. Eles preservam toda a lógica original de segurança e integração com banco, mas agora seguem a linguagem visual unificada.
 *   **Segurança:** Logs sensíveis identificados na auditoria foram higienizados (remoção de IDs ou códigos brutos).
 
 ### 5.3 Central do Usuário (Account)
@@ -123,7 +129,7 @@ A `AccountView` foi consolidada como o hub de serviços do usuário, dividida em
 O fluxo foi consolidado e modularizado:
 *   **Fluxo Direto:** Acesso via Home ou Cards diretamente para `AddMemberPage`.
 *   **Validação Real:** Implementada validação algorítmica de CPF (`request_cpf_validator.dart`).
-*   **Status Legado:** O sistema trata o status `under_review` e exibe feedbacks visuais apropriados na `RequestsView`.
+*   **Status Padronizado:** O sistema consome `StatusVisualTokens` para exibir feedbacks visuais apropriados na `RequestsView` e em cards de acompanhamento. O botão "CORRIGIR" (fluxo de revisão) foi unificado no padrão `StatusActionButton`.
 *   **Segurança:** Ciclo de segurança imediata executado nas áreas auditadas, com feedbacks seguros ao usuário.
 *   **Gestão de Documentos (Frente 24C):** Upload mobile via Google Apps Script (GAS) com suporte a bytes (Web fallback) e path (Mobile). Os logs do `GoogleDriveService` são mascarados (fileId omitido) para proteger a privacidade.
 *   **Limpeza Automática (LGPD):** Ao aprovar uma carteirinha, o sistema remove automaticamente os documentos (RG/Laudo) da pasta do Google Drive e os envia para a lixeira. Os campos `document_url` e `medical_report_url` são limpos no banco de dados após o sucesso da operação. Validação oficial em mobile/emulador.
@@ -138,7 +144,7 @@ A visualização de carteirinhas foi totalmente modularizada:
 ### 5.6 Carteirinha Digital (DigitalCardWidget)
 Componente modular e performático:
 *   `digital_card_widget.dart`: Orquestrador de flip, animação e controle de visibilidade do CPF.
-*   `digital_card_front.dart`: Interface frontal com dados principais e status. Utiliza o sistema oficial de avatar, preservando a identidade cromática da conta titular mesmo quando exibe dados de dependentes.
+*   `digital_card_front.dart`: Interface frontal com dados principais e status. Utiliza o sistema oficial de avatar e consome `StatusVisualTokens` para as pills de status, mantendo a consistência visual com o restante do app.
 *   `digital_card_back.dart`: Verso contendo QR Code para validação administrativa e texto legal.
 *   `digital_card_background.dart` e `digital_card_motion_wrapper.dart`: Estética premium e parallax.
 
@@ -159,6 +165,7 @@ Documentação de funções serverless implementadas:
 ## 6. Segurança e Dados
 *   **Blindagem de UI:** Mensagens técnicas conhecidas foram substituídas por feedbacks amigáveis nas áreas auditadas (Auth, Admin, Account, Home, Requests, Notifications).
 *   **Higienização de Logs:** Logs sensíveis identificados na auditoria foram higienizados (remoção de IDs, CPFs e códigos brutos de QR Code).
+*   **Governança Visual:** A centralização de tokens visuais via `StatusVisualTokens` reduz a duplicação de lógica de cores manuais e evita inconsistências entre Admin, Requests, Home e Carteirinha. Não houve mudança de dados, banco ou regras de negócio durante a padronização.
 *   **RLS (Row Level Security):** Políticas granulares no PostgreSQL garantem que usuários acessem apenas seus próprios dados.
 *   **Roles:** Hierarquia de acesso controlada (`user`, `admin`, `admin_master`, `admin_dev`).
 *   **Privacidade & LGPD:** A `ConsentsView` atua como tela de transparência. A limpeza automática de documentos sensíveis (RG, laudos) após aprovação administrativa é uma medida ativa de governança de dados para minimizar o armazenamento de PII (Personally Identifiable Information).
@@ -196,6 +203,8 @@ O projeto mantém scripts de automação em `tools/qa/android/` para agilizar a 
 *   **Frente 24C (Correções Críticas):** Correção do upload/delete Drive via GAS, Instagram e CTA de retorno.
 *   **Frente 24D.3 (Auth Interno):** Remoção do fluxo de OTP e simplificação do cadastro (100% interno).
 *   **Frente 25A (Responsividade & QA):** Blindagem responsiva de Auth e reorganização da bancada oficial de QA Android.
+*   **Frente 25B.3 (Status & Ações):** Padronização global de status visuais e ações administrativas com tokens unificados e padrão Dark Glass.
+*   **Versionamento:** Bump de versão de desenvolvimento para **0.5.0-dev** e documentação para **4.1.0**.
 *   **Account v2:** Central do Usuário consolidada com 6 cards principais.
 
 ### 🏗️ Próxima Direção (Prioridades)
@@ -229,4 +238,4 @@ Antes de finalizar qualquer tarefa:
 6.  **Sem Commits/Push Automáticos:** O assistente nunca faz commit ou push sem autorização.
 
 ---
-*ConeCTEA App 0.4.0-dev | Documentação Técnica 4.0.0 — Família TEA Bauru 💙*
+*ConeCTEA App 0.5.0-dev | Documentação Técnica 4.1.0 — Família TEA Bauru 💙*
