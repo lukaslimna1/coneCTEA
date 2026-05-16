@@ -109,7 +109,7 @@ class _LoginPageState extends State<LoginPage> {
                         tag: 'app_logo',
                         child: Image.asset(
                           'assets/images/conectea_logo.png',
-                          width: 300, // Premium size (260-320px)
+                          width: MediaQuery.sizeOf(context).width * 0.75, // Escalonamento responsivo
                           fit: BoxFit.contain,
                           errorBuilder: (context, error, stackTrace) => Icon(
                               PhosphorIcons.infinity(PhosphorIconsStyle.fill),
@@ -125,7 +125,7 @@ class _LoginPageState extends State<LoginPage> {
                   Text(
                     'Bem-vindo',
                     style: GoogleFonts.outfit(
-                      fontSize: 32,
+                      fontSize: MediaQuery.sizeOf(context).width < 360 ? 28 : 32, // Fonte adaptativa
                       fontWeight: FontWeight.w800,
                       color: AppColors.textPrimary,
                       letterSpacing: -0.8,

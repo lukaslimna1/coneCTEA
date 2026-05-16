@@ -260,12 +260,16 @@ class PremiumButton extends StatelessWidget {
           Icon(icon, size: 20, color: iconColor ?? textColor),
           const SizedBox(width: 8),
         ],
-        Text(
-          text,
-          style: AppTextStyles.buttonLabel.copyWith(
-            color: textColor,
-            letterSpacing: 0.5,
-            fontWeight: FontWeight.w700,
+        Flexible(
+          child: Text(
+            text,
+            style: AppTextStyles.buttonLabel.copyWith(
+              color: textColor,
+              letterSpacing: 0.5,
+              fontWeight: FontWeight.w700,
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
           ),
         ),
       ],

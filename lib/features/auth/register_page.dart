@@ -431,33 +431,67 @@ class _RegisterPageState extends State<RegisterPage> {
                                 },
                               ),
                               const SizedBox(height: 20),
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Expanded(
-                                    child: RegisterInputField(
-                                      label: 'Telefone*',
-                                      controller: _telefoneController,
-                                      hint: '(00) 00000-0000',
-                                      icon: PhosphorIcons.phone(),
-                                      inputFormatters: [phoneMask],
-                                      keyboardType: TextInputType.phone,
-                                      validator: (v) => v!.length < 14 ? 'Telefone inválido' : null,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: RegisterInputField(
-                                      label: 'Nascimento*',
-                                      controller: _dataNascimentoController,
-                                      hint: 'DD/MM/AAAA',
-                                      icon: PhosphorIcons.calendar(),
-                                      inputFormatters: [dateMask],
-                                      keyboardType: TextInputType.datetime,
-                                      validator: (v) => v!.length < 10 ? 'Data inválida' : null,
-                                    ),
-                                  ),
-                                ],
+                              LayoutBuilder(
+                                builder: (context, constraints) {
+                                  final bool useVerticalLayout = constraints.maxWidth < 340;
+
+                                  if (useVerticalLayout) {
+                                    return Column(
+                                      children: [
+                                        RegisterInputField(
+                                          label: 'Telefone (WhatsApp)',
+                                          controller: _telefoneController,
+                                          hint: '(00) 00000-0000',
+                                          icon: PhosphorIcons.phone(),
+                                          keyboardType: TextInputType.phone,
+                                          inputFormatters: [phoneMask],
+                                          validator: (v) => v == null || v.isEmpty ? 'Obrigatório' : null,
+                                        ),
+                                        const SizedBox(height: 20),
+                                        RegisterInputField(
+                                          label: 'Nascimento',
+                                          controller: _dataNascimentoController,
+                                          hint: 'DD/MM/AAAA',
+                                          icon: PhosphorIcons.calendar(),
+                                          keyboardType: TextInputType.datetime,
+                                          inputFormatters: [dateMask],
+                                          validator: (v) => v == null || v.isEmpty ? 'Obrigatório' : null,
+                                        ),
+                                      ],
+                                    );
+                                  }
+
+                                  return Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Expanded(
+                                        flex: 2,
+                                        child: RegisterInputField(
+                                          label: 'Telefone*',
+                                          controller: _telefoneController,
+                                          hint: '(00) 00000-0000',
+                                          icon: PhosphorIcons.phone(),
+                                          inputFormatters: [phoneMask],
+                                          keyboardType: TextInputType.phone,
+                                          validator: (v) => v!.length < 14 ? 'Telefone inválido' : null,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        flex: 1,
+                                        child: RegisterInputField(
+                                          label: 'Nascimento*',
+                                          controller: _dataNascimentoController,
+                                          hint: 'DD/MM/AAAA',
+                                          icon: PhosphorIcons.calendar(),
+                                          inputFormatters: [dateMask],
+                                          keyboardType: TextInputType.datetime,
+                                          validator: (v) => v!.length < 10 ? 'Data inválida' : null,
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
                               ),
                               const SizedBox(height: 20),
                               RegisterInputField(
