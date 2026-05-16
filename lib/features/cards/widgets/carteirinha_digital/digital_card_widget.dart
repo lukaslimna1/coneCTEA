@@ -15,6 +15,7 @@ class DigitalCardWidget extends StatefulWidget {
   final bool isStatic;
   final bool? showCpf;
   final VoidCallback? onToggleCpf;
+  final String? statusOverride;
 
   const DigitalCardWidget({
     super.key,
@@ -26,6 +27,7 @@ class DigitalCardWidget extends StatefulWidget {
     this.isStatic = false,
     this.showCpf,
     this.onToggleCpf,
+    this.statusOverride,
   });
 
   @override
@@ -75,7 +77,11 @@ class _DigitalCardWidgetState extends State<DigitalCardWidget> {
                       showCpf: _effectiveShowCpf,
                       onToggleCpf: _handleToggleCpf,
                     )
-                  : DigitalCardFront(member: widget.member, card: widget.card),
+                  : DigitalCardFront(
+                      member: widget.member,
+                      card: widget.card,
+                      statusOverride: widget.statusOverride,
+                    ),
             ),
           ),
         ),
@@ -114,7 +120,11 @@ class _DigitalCardWidgetState extends State<DigitalCardWidget> {
                           showCpf: _effectiveShowCpf,
                           onToggleCpf: _handleToggleCpf,
                         )
-                      : DigitalCardFront(member: widget.member, card: widget.card),
+                      : DigitalCardFront(
+                          member: widget.member,
+                          card: widget.card,
+                          statusOverride: widget.statusOverride,
+                        ),
                 ),
               );
             },

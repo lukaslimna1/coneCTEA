@@ -12,7 +12,7 @@
   <img src="https://img.shields.io/badge/Dart-3.11.5-0175C2?logo=dart" alt="Dart">
   <img src="https://img.shields.io/badge/Supabase-PostgreSQL-3FCF8E?logo=supabase" alt="Supabase">
   <img src="https://img.shields.io/badge/App-0.5.0--dev-8B3DFF?logo=flutter" alt="App">
-  <img src="https://img.shields.io/badge/Docs-4.1.0-02569B?logo=read-the-docs" alt="Docs">
+  <img src="https://img.shields.io/badge/Docs-4.2.0-02569B?logo=read-the-docs" alt="Docs">
   <img src="https://img.shields.io/badge/Status-Desenvolvimento-orange" alt="Status">
 </p>
 
@@ -36,8 +36,10 @@ O **ConeCTEA** é uma solução tecnológica mobile-first criada para apoiar a c
 *   💎 **Carteirinha Digital Premium:** Identidade visual premium com efeito flip 3D, sensor de movimento e QR Code para validação administrativa.
 *   📱 **Tela Cheia Adaptativa:** Visualização defensiva otimizada para os modos Retrato e Paisagem no Android.
 *   📢 **Painel Administrativo:** Gestão de solicitações, auditoria de usuários e Scanner de validação integrado.
-*   🏷️ **Status Visuais Unificados:** Pills e botões de ação baseados em `StatusVisualTokens`, com padrão Dark Glass e cores semânticas consistentes entre Home, Solicitações, Admin e Carteirinha.
-*   💠 **Padronização Visual:** Header compacto, insígnias administrativas, SafeArea refinada, Auth responsivo e navegação unificada para diferentes perfis Android.
+*   🔎 **QR Scanner Premium:** Botão de acesso ao scanner padronizado em Home, Cartões e Gestão/Admin com componente reutilizável em Dark Glass, garantindo consistência visual na validação de carteirinhas.
+*   🏷️ **Status Visuais Unificados:** Pills, badges e botões de ação baseados em `StatusVisualTokens`, com padrão Dark Glass, labels compactas e cores semânticas consistentes entre Home, Solicitações, Admin e Carteirinha.
+*   🏠 **Home Unificada:** Membros Vinculados atuam como seletor mestre e o Documento Digital concentra status, protocolo copiável, modais contextuais e ações do membro selecionado.
+*   💠 **Padronização Visual:** Header compacto, insígnias administrativas, SafeArea refinada nas áreas auditadas (com blindagem global de notch/navigation bar no roadmap), Auth responsivo e navegação unificada para diferentes perfis Android.
 
 ---
 
@@ -64,12 +66,16 @@ O **ConeCTEA** é uma solução tecnológica mobile-first criada para apoiar a c
 - **Correções críticas pós-APK 23E (Frente 24C):** Instagram externo, CTA de retorno, upload mobile, limpeza de documentos no Drive e logs seguros.
 - **Cadastro interno sem OTP (Frente 24D.3):** Fluxo simplificado onde o cadastro finaliza dentro do app com diálogo de sucesso e login manual.
 - **Responsividade Auth + Bancada QA Android (Frente 25A):** Login/Cadastro ajustados para telas estreitas e scripts oficiais Samsung/Motorola/Xiaomi.
-- **Status Visuais e Ações Administrativas (Frente 25B.3):** Centralização de tokens visuais e botões por status no padrão Dark Glass.
+- **QR Scanner Premium (Frente 25B.3A):** Criação e padronização do botão premium de scanner em Home, Cartões e Gestão/Admin.
+- **Status Visuais e Ações Administrativas (Frente 25B.3):** Centralização de tokens visuais, paleta semântica final, pills Dark Glass e botões administrativos por status.
 - **Digital Card:** Consolidação da carteirinha modular (Frente/Verso/Motion).
+- **Home Unificada (Frente 25B.5):** Membros Vinculados como seletor mestre, remoção da seção Solicitação em andamento, Documento Digital como painel principal do membro selecionado, protocolo copiável, modais contextuais por status e sincronização visual via status efetivo.
+- **Hotfix de Sincronização & Validação (Frente 25B.5-HOTFIX):** Sincronização do selo interno da carteirinha com o status efetivo da Home e validação condicional de CPF/Data em fluxos de revisão documental.
 
 ### 🏗️ Próxima Direção (Prioritário)
-- **Home & Experiência:** Refino visual da página inicial, responsividade/legibilidade da Home, cards de acesso rápido e validação em telas Android estreitas/curvas antes do próximo APK de testes.
+- **Home & Experiência:** Refino visual dos demais blocos da página inicial, responsividade/legibilidade da Home, cards de acesso rápido e validação em telas Android estreitas/curvas.
 - **Design System Global:** Padronização final de componentes de UI, cards, botões e inputs.
+- **Android Hardening:** Blindagem SafeArea/notch/navigation bar em dispositivos físicos e emuladores.
 - **Fluxos de Operação:** Melhorias em Solicitações e Notificações.
 - **QA Contínuo:** Testes extensivos no Chrome, emuladores Android, perfis Samsung/Motorola/Xiaomi e dispositivos físicos.
 
@@ -107,4 +113,4 @@ Projeto desenvolvido por **Lucas Lima**.
 Portfólio: [lucaslimadigital.vercel.app](https://lucaslimadigital.vercel.app)
 
 ---
-*ConeCTEA App 0.5.0-dev | Documentação 4.1.0 — 2026*
+*ConeCTEA App 0.5.0-dev | Documentação 4.2.0 — 2026*

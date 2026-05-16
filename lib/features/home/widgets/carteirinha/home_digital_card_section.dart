@@ -272,6 +272,7 @@ class HomeDigitalCardSection extends StatelessWidget {
                                   card: digitalCard,
                                   member: member,
                                   isStatic: true,
+                                  statusOverride: effectiveStatus,
                                 ),
                               ),
                               // Selo de Status Centralizado (Horizontal Pill)

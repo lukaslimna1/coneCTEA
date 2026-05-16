@@ -1,7 +1,11 @@
 # 📘 Documentação Técnica — ConeCTEA
-**App:** 0.5.0-dev | **Documentação:** 4.1.0 | **Status:** Desenvolvimento
+**App:** 0.5.0-dev | **Documentação:** 4.2.0 | **Status:** Desenvolvimento
 <br>
-**Atualizado em:** 16/05/2026 (Frente 25B.3-DOC.1)
+**Atualizado em:** 16/05/2026
+
+> [!IMPORTANT]
+> **Documentação Modular:** Este projeto utiliza uma estrutura profissional de documentação organizada por temas no diretório [/docs](docs/README.md). Para detalhes técnicos de rastreabilidade e histórico completo de frentes, consulte o [Histórico de Frentes](docs/historico/FRENTES.md).
+
 
 ---
 
@@ -238,4 +242,4 @@ Antes de finalizar qualquer tarefa:
 6.  **Sem Commits/Push Automáticos:** O assistente nunca faz commit ou push sem autorização.
 
 ---
-*ConeCTEA App 0.5.0-dev | Documentação Técnica 4.1.0 — Família TEA Bauru 💙*
+*ConeCTEA App 0.5.0-dev | Documentação Técnica 4.2.0 — Família TEA Bauru 💙*

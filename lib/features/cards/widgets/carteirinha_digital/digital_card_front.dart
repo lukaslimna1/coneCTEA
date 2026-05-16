@@ -14,11 +14,13 @@ import 'package:conectea/core/theme/status_visual_tokens.dart';
 class DigitalCardFront extends StatelessWidget {
   final Member member;
   final DigitalCard? card;
+  final String? statusOverride;
 
   const DigitalCardFront({
     super.key,
     required this.member,
     this.card,
+    this.statusOverride,
   });
 
   @override
@@ -27,10 +29,10 @@ class DigitalCardFront extends StatelessWidget {
     final validStr = card != null ? _parseDate(card!.validUntil.toIso8601String()) : '--/--/----';
     final validationToken = card != null ? card!.cardNumber : '----';
 
-    final status = card?.status ?? 'pending';
-    final isExpired = card != null && card!.validUntil.isBefore(DateTime.now());
+    final status = statusOverride ?? (card?.status ?? 'pending');
+    final isExpired = statusOverride == 'expired' || (card != null && card!.validUntil.isBefore(DateTime.now()));
     
-    // Resolve tokens de status (se estiver expirado, força o token de expiração)
+    // Resolve tokens de status (se estiver expirado ou forçado, usa o status correto)
     final effectiveStatus = isExpired ? 'expired' : status;
     final tokens = StatusVisualTokens.fromStatus(effectiveStatus);
 

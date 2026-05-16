@@ -478,6 +478,9 @@ class _AddMemberPageState extends State<AddMemberPage> {
                                 inputFormatters: [cpfMask],
                                 keyboardType: TextInputType.number,
                                 validator: (v) {
+                                  final isEnabled = _isFieldEnabled('CPF');
+                                  if (!isEnabled) return null;
+
                                   if (v == null || v.isEmpty) {
                                     return 'Campo obrigatório';
                                   }
@@ -497,8 +500,11 @@ class _AddMemberPageState extends State<AddMemberPage> {
                                 icon: PhosphorIconsRegular.calendar,
                                 inputFormatters: [dateMask],
                                 keyboardType: TextInputType.datetime,
-                                validator: (v) =>
-                                    v!.length < 10 ? 'Data incompleta' : null,
+                                validator: (v) {
+                                  final isEnabled = _isFieldEnabled('Data de Nascimento');
+                                  if (!isEnabled) return null;
+                                  return (v == null || v.length < 10) ? 'Data incompleta' : null;
+                                },
                                 enabled: _isFieldEnabled('Data de Nascimento'),
                               ),
                               const SizedBox(height: 20),
