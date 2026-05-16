@@ -26,16 +26,17 @@ O **ConeCTEA** é uma solução tecnológica mobile-first criada para apoiar a c
 
 ## 🚀 Principais Funcionalidades
 
-*   🔐 **Autenticação Refinada:** Fluxos de Login, Cadastro, Recuperação de Senha e E-mail, Modais Legais e Consentimentos (LGPD) visualmente sincronizados.
+*   🔐 **Autenticação Refinada:** Fluxos de Login, Cadastro interno sem OTP, Recuperação de Senha e E-mail, Modais Legais e Consentimentos (LGPD) visualmente sincronizados.
+*   🧾 **Gestão Segura de Documentos:** Upload mobile de documentos para análise, integração via Google Apps Script/Drive e limpeza automática dos anexos após aprovação.
 *   👤 **Central do Usuário (Account v2):** Experiência organizada em 6 cards principais: Meus Dados, Segurança, Privacidade, Ajuda, Institucional e Aplicativo.
 *   🎭 **Sistema de Avatares (ConecteaAvatar):** Identidade visual oficial baseada em "Lunar Glass" com 15 paletas neon/tech determinísticas vinculadas à conta titular.
 *   🛡️ **Blindagem contra exposição de erros técnicos:** Interface protegida onde erros brutos de banco ou rede não são exibidos ao usuário. Logs sensíveis foram higienizados para preservar a privacidade do ambiente.
 *   ⚖️ **Transparência de Dados (LGPD):** Área dedicada à clareza sobre dados necessários, preferências e autorizações. A persistência real com histórico de revogação é um item de roadmap futuro.
-*   👨‍👩‍👧 **Fluxo de Membros (Requests):** Cadastro de dependentes com validação real de CPF e acompanhamento de status em tempo real.
+*   👨‍👩‍👧 **Fluxo de Membros (Requests):** Cadastro de dependentes com validação real de CPF, upload/revisão documental e acompanhamento de status em tempo real.
 *   💎 **Carteirinha Digital Premium:** Identidade visual premium com efeito flip 3D, sensor de movimento e QR Code para validação administrativa.
 *   📱 **Tela Cheia Adaptativa:** Visualização defensiva otimizada para os modos Retrato e Paisagem no Android.
 *   📢 **Painel Administrativo:** Gestão de solicitações, auditoria de usuários e Scanner de validação integrado.
-*   💠 **Padronização Visual:** Header compacto com insígnias administrativas, SafeArea refinada e navegação otimizada para diferentes perfis Android.
+*   💠 **Padronização Visual:** Header compacto, insígnias administrativas, SafeArea refinada, Auth responsivo e navegação otimizada para diferentes perfis Android.
 
 ---
 
@@ -45,7 +46,7 @@ O **ConeCTEA** é uma solução tecnológica mobile-first criada para apoiar a c
 *   **Identidade Visual Determinística:** Sistema de avatares onde a paleta de cores pertence à conta titular e é herdada por todos os membros vinculados, garantindo consistência familiar em todo o app.
 *   **Arquitetura por Features:** Organização modular que isola domínios de negócio, facilitando a manutenção.
 *   **Privacidade por Design:** Governança rigorosa via Supabase Row Level Security (RLS).
-*   **Android-First:** Validação em emuladores Android, perfis Samsung-like A05/A55, matriz 360dp–412dp e testes pontuais em dispositivo físico quando disponível. O projeto inclui scripts de automação para QA em `tools/qa/android/`.
+*   **Android-First:** Validação em emuladores Android, perfis Samsung/Motorola/Xiaomi, telas estreitas/curvas, matriz 360dp–480dp e testes pontuais em dispositivo físico quando disponível. O projeto inclui scripts oficiais de automação para QA em `tools/qa/android/`.
 
 ---
 
@@ -56,15 +57,18 @@ O **ConeCTEA** é uma solução tecnológica mobile-first criada para apoiar a c
 - **Header & Navbar:** Refino do topo do app, insígnias administrativas e SafeArea para Android.
 - **Segurança da UI:** Blindagem de mensagens de erro e higienização de logs.
 - **Central do Usuário:** Reestruturação modular da área de conta e perfil.
-- **Módulo Auth:** Refino visual e sincronização dos fluxos de Login, Cadastro, Recuperação e Modais Legais.
+- **Módulo Auth:** Refino visual e sincronização dos fluxos de Login, Cadastro interno, Recuperação e Modais Legais.
 - **Admin & Scanner:** Implementação da visão administrativa e validador de QR Code.
+- **Correções críticas pós-APK 23E (Frente 24C):** Instagram externo, CTA de retorno, upload mobile, limpeza de documentos no Drive e logs seguros.
+- **Cadastro interno sem OTP (Frente 24D.3):** Fluxo simplificado onde o cadastro finaliza dentro do app com diálogo de sucesso e login manual.
+- **Responsividade Auth + Bancada QA Android (Frente 25A):** Login/Cadastro ajustados para telas estreitas e scripts oficiais Samsung/Motorola/Xiaomi.
 - **Digital Card:** Consolidação da carteirinha modular (Frente/Verso/Motion).
 
 ### 🏗️ Próxima Direção (Prioritário)
-- **Home & Experiência:** Refino visual da página inicial, responsividade global e ajustes finos de legibilidade.
+- **Home & Experiência:** Refino visual da página inicial, responsividade/legibilidade da Home, cards de acesso rápido e validação em telas Android estreitas/curvas antes do próximo APK de testes.
 - **Design System Global:** Padronização final de componentes de UI, cards, botões e inputs.
 - **Fluxos de Operação:** Melhorias em Solicitações e Notificações.
-- **QA Contínuo:** Testes extensivos no Chrome, emuladores Android, perfis Samsung-like e dispositivos físicos Samsung A55.
+- **QA Contínuo:** Testes extensivos no Chrome, emuladores Android, perfis Samsung/Motorola/Xiaomi e dispositivos físicos.
 
 ### 🔮 Futuro (Backlog Técnico e Produto)
 - **Governança LGPD:** Persistência real de consentimentos com histórico e gestão de versões.
@@ -80,7 +84,8 @@ O **ConeCTEA** é uma solução tecnológica mobile-first criada para apoiar a c
 ## 🛠️ Tecnologias Usadas
 *   **Frontend:** Flutter & Dart.
 *   **Backend:** Supabase (PostgreSQL, Auth, Realtime, RLS).
-*   **Serverless:** Supabase Edge Functions (Deno) para fluxos de e-mail.
+*   **Serverless:** Supabase Edge Functions (Deno) para fluxos auxiliares, como recuperação de e-mail por CPF.
+*   **Documentos:** Google Apps Script + Google Drive para upload e limpeza de anexos de análise.
 *   **Push:** OneSignal para notificações (inicialização e login implementados).
 *   **Design:** Google Fonts (Inter/Outfit), Phosphor Icons, Shimmer e componentes premium customizados.
 
