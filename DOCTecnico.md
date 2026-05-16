@@ -1,7 +1,7 @@
 # 📘 Documentação Técnica — ConeCTEA
 **App:** 0.4.0-dev | **Documentação:** 4.0.0 | **Status:** Desenvolvimento
 <br>
-**Atualizado em:** 15/05/2026
+**Atualizado em:** 16/05/2026
 
 ---
 
@@ -23,8 +23,8 @@ O **ConeCTEA** é um ecossistema mobile-first preparado para evolução contínu
 *   **Utilidades:** `go_router` (navegação), `url_launcher` (links externos), `sensors_plus` (parallax).
 *   **Plataforma Alvo:**
     *   Android é a prioridade total do ecossistema.
-    *   O Chrome DevTools é utilizado apenas como fallback visual inicial e testes rápidos de layout.
-    *   A validação principal ocorre em emuladores Android e perfis Samsung-like (A05/A55).
+    *   O Chrome DevTools é utilizado apenas como fallback visual inicial e testes rápidos de layout. Possui limitações conhecidas em operações diretas com Google Apps Script (Drive Delete) devido a restrições de CORS.
+    *   A validação principal ocorre em emuladores Android e perfis Samsung-like (A05/A55/S24). Mobile/emulador é o alvo oficial validado para fluxos de documentos.
     *   Testes em dispositivo físico são pontuais e realizados conforme disponibilidade.
 
 ---
@@ -76,6 +76,7 @@ O padrão **Night Blue Premium** é a identidade oficial do app, focada em confo
     *   **Lógica Determinística:** A paleta é definida por uma `paletteSeed` baseada no ID estável da conta titular.
     *   **Regra de Herança:** A identidade cromática pertence à conta titular. Todos os dependentes/membros vinculados herdam a paleta do titular, garantindo consistência familiar, enquanto as iniciais permanecem individuais.
     *   **Wrapper de Compatibilidade:** O componente `PremiumAvatar` foi legado como um wrapper que delega a renderização para o novo sistema oficial.
+*   **Proteção de Layout (PremiumButton):** Os botões premium receberam proteção visual global via `Flexible` e `TextOverflow.ellipsis` em seus rótulos de texto. O objetivo é garantir estabilidade em telas estreitas (320dp+) ou com zoom de fonte do sistema elevado, evitando RenderFlex overflows sem alterar a lógica de negócio.
 
 ---
 
@@ -91,6 +92,8 @@ O fluxo de autenticação foi refinado visualmente, estabilizado e modularizado:
     *   Botão "Criar minha conta" em estilo `premiumCard` com `greenAccent`.
     *   Inputs e dropdowns padronizados com ícones brancos.
     *   Seções organizadas por cores semânticas: Dados Pessoais (ciano/oceano), Localização (verde), Segurança (azul claro) e Dados complementares (branco discreto).
+    *   **Cadastro 100% Interno (Sem OTP):** O fluxo de confirmação por e-mail (OTP) foi removido. Após a criação da conta, o app realiza `signOut()` imediato para impedir o login automático, exibe um diálogo de sucesso ("🎉 Parabéns!") e direciona o usuário para o Login manual. A `ConfirmEmailPage` foi desativada.
+    *   **Recuperação de Senha:** Fluxo nativo via Supabase Auth preservado.
 *   **Modais Legais:** Leitura de Termos de Uso e Política de Privacidade organizada por blocos/cards internos para melhor escaneabilidade.
 *   **Consentimentos:** Checkboxes (LGPD) com bordas desmarcadas mais visíveis e estados claros.
 *   **Segurança:** Mensagens técnicas conhecidas foram substituídas por feedbacks amigáveis.
@@ -122,6 +125,8 @@ O fluxo foi consolidado e modularizado:
 *   **Validação Real:** Implementada validação algorítmica de CPF (`request_cpf_validator.dart`).
 *   **Status Legado:** O sistema trata o status `under_review` e exibe feedbacks visuais apropriados na `RequestsView`.
 *   **Segurança:** Ciclo de segurança imediata executado nas áreas auditadas, com feedbacks seguros ao usuário.
+*   **Gestão de Documentos (Frente 24C):** Upload mobile via Google Apps Script (GAS) com suporte a bytes (Web fallback) e path (Mobile). Os logs do `GoogleDriveService` são mascarados (fileId omitido) para proteger a privacidade.
+*   **Limpeza Automática (LGPD):** Ao aprovar uma carteirinha, o sistema remove automaticamente os documentos (RG/Laudo) da pasta do Google Drive e os envia para a lixeira. Os campos `document_url` e `medical_report_url` são limpos no banco de dados após o sucesso da operação. Validação oficial em mobile/emulador.
 *   **Depreciação:** `MemberSelectionPage` e `NewRequestPage` foram removidas em favor da `AddMemberPage`.
 
 ### 5.5 Área de Carteirinhas (CardsView)
@@ -156,7 +161,8 @@ Documentação de funções serverless implementadas:
 *   **Higienização de Logs:** Logs sensíveis identificados na auditoria foram higienizados (remoção de IDs, CPFs e códigos brutos de QR Code).
 *   **RLS (Row Level Security):** Políticas granulares no PostgreSQL garantem que usuários acessem apenas seus próprios dados.
 *   **Roles:** Hierarquia de acesso controlada (`user`, `admin`, `admin_master`, `admin_dev`).
-*   **Privacidade & LGPD:** A `ConsentsView` atua como tela de transparência sobre dados e autorizações. A persistência granular com histórico e revogação digital permanece como roadmap futuro.
+*   **Privacidade & LGPD:** A `ConsentsView` atua como tela de transparência. A limpeza automática de documentos sensíveis (RG, laudos) após aprovação administrativa é uma medida ativa de governança de dados para minimizar o armazenamento de PII (Personally Identifiable Information).
+*   **Logs Seguros:** O `GoogleDriveService` implementa mascaramento de IDs de arquivo e URLs completas, garantindo que logs de depuração não exponham dados sensíveis.
 
 ---
 
@@ -167,11 +173,14 @@ Documentação de funções serverless implementadas:
 
 ### 7.1 Infraestrutura de QA Android Local
 O projeto mantém scripts de automação em `tools/qa/android/` para agilizar a validação em diferentes perfis:
-*   **Perfis/Emuladores do Ciclo Atual:**
-    *   `Android_Small_360dp_QA` (Referência de layout compacto).
-    *   `Android_Medium_412dp_QA` (Referência de layout médio).
-    *   `Samsung_A05_Small` (Perfil de entrada).
-    *   `Samsung_A55_Like` (Perfil moderno/premium).
+*   **Perfis/Emuladores da Bancada Oficial (Frente 25A):**
+    *   **Samsung:** A05/A06 (360dp), A15/A16 (360dp), A35/A36 (384dp), A55/A56 (400dp), S24/S25 (360dp), S24 Ultra (480dp), ZFlip (412dp Tall).
+    *   **Motorola:** Edge 40 Neo (400dp), Edge Curved (384dp), Razr Open (412dp), Moto G FHD (432dp).
+    *   **Xiaomi:** Redmi/POCO 1.5K (438dp).
+*   **Scripts de Automação (`tools/qa/android/`):**
+    *   Scripts `.bat` padronizados para abertura de AVDs com `-gpu angle_indirect` e `-no-snapshot-load`.
+    *   Utilitários inclusos: `listar_avds.bat`, `fechar_emuladores_adb.bat` e `abrir_todos_qa_info.bat`.
+    *   Scripts antigos obsoletos foram removidos.
 *   **Validação em Hardware Real:**
     *   Testes periódicos realizados em dispositivo físico **Samsung A55**, validando comportamento de `SafeArea`, `NavigationBar` nativa, densidade de pixels e performance de animações (avatares neon e carteirinha digital).
 *   **Protocolo Técnico:**
@@ -184,17 +193,16 @@ O projeto mantém scripts de automação em `tools/qa/android/` para agilizar a 
 
 ### ✅ Concluído Recentemente
 *   **Frente 23E (Avatares):** Sistema oficial `ConecteaAvatar` com 15 paletas neon/tech e herança cromática titular.
-*   **Frente 23B/C (Interface):** SafeArea, Navbar e Header compacto validados em Android físico (A55).
-*   **Blindagem UI:** Mensagens técnicas conhecidas substituídas por feedbacks amigáveis.
-*   **Auth v2:** Modularização do registro e recuperação de e-mail via Edge Functions.
-*   **Admin v2:** Painel administrativo por abas e scanner higienizado.
+*   **Frente 24C (Correções Críticas):** Correção do upload/delete Drive via GAS, Instagram e CTA de retorno.
+*   **Frente 24D.3 (Auth Interno):** Remoção do fluxo de OTP e simplificação do cadastro (100% interno).
+*   **Frente 25A (Responsividade & QA):** Blindagem responsiva de Auth e reorganização da bancada oficial de QA Android.
 *   **Account v2:** Central do Usuário consolidada com 6 cards principais.
 
 ### 🏗️ Próxima Direção (Prioridades)
-*   **Home & Experiência:** Refino visual da página inicial, dashboard principal e responsividade global de layout.
-*   **Design System Global:** Padronização final de componentes (botões, inputs, cards) e centralização de estilos.
+*   **Home & Experiência:** Refino visual da página inicial, dashboard principal e responsividade global (Frente dedicada).
+*   **Home Layout:** Ajustes de layout em telas estreitas/curvas e cards de acesso rápido.
 *   **Legibilidade:** Ajustes finos de contraste e escalonamento de fontes.
-*   **QA Contínuo:** Manutenção da matriz de emuladores e scripts de automação.
+*   **QA Contínuo:** Manutenção da matriz de emuladores e validação em perfis Android estreitos (320dp+).
 
 ### ⏳ Futuro / Backlog
 *   **Saúde:** Projeto Fada do Dente e integração de serviços.
@@ -217,7 +225,7 @@ Antes de finalizar qualquer tarefa:
 2.  `flutter build apk --debug` (Sucesso na compilação).
 3.  `git diff --check` (Sem erros de formatação).
 4.  `git status --short` (Verificar arquivos modificados).
-5.  **Teste Visual:** Validar o fluxo afetado em modo Portrait e Landscape (Android).
+5.  **Teste Visual:** Validar o fluxo afetado em modo Portrait e Landscape (Android), priorizando perfis estreitos (320dp-360dp) quando a alteração for visual.
 6.  **Sem Commits/Push Automáticos:** O assistente nunca faz commit ou push sem autorização.
 
 ---
