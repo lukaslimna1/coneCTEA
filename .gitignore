@@ -54,3 +54,7 @@ analysis.txt
 analysis_output.txt
 analysis_output_full.txt
 analyze.txt
+
+# Local Releases
+releases/
+.vscode/
