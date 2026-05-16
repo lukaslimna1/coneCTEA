@@ -8,7 +8,7 @@ import 'package:conectea/models/card_request.dart';
 import 'package:conectea/services/auth_service.dart';
 import 'package:conectea/services/database_service.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
-import 'package:go_router/go_router.dart';
+import 'package:conectea/core/widgets/premium/premium_qr_button.dart';
 import 'package:conectea/features/cards/widgets/carteirinha_digital/digital_card_widget.dart';
 import 'package:conectea/features/cards/full_screen_card_page.dart';
 import 'package:conectea/models/app_user.dart';
@@ -249,41 +249,7 @@ class _CardsViewState extends State<CardsView> {
                                   ],
                                 ),
                               ),
-                              GestureDetector(
-                                onTap: () => context.push('/qr-scanner'),
-                                behavior: HitTestBehavior.opaque,
-                                child: Container(
-                                  padding: const EdgeInsets.all(
-                                    16,
-                                  ), // Aumentado de 14
-                                  decoration: BoxDecoration(
-                                    color: const Color(
-                                      0xA60F172A,
-                                    ), // Vidro Escuro
-                                    borderRadius: BorderRadius.circular(20),
-                                    border: Border.all(
-                                      color: const Color(
-                                        0x3D94A3B8,
-                                      ), // Borda de vidro
-                                      width: 1,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withValues(
-                                          alpha: 0.1,
-                                        ),
-                                        blurRadius: 10,
-                                        offset: const Offset(0, 4),
-                                      ),
-                                    ],
-                                  ),
-                                  child: const Icon(
-                                    PhosphorIconsRegular.qrCode,
-                                    color: Color(0xFFF8FAFC),
-                                    size: 28,
-                                  ),
-                                ),
-                              ),
+                              const PremiumQrButton(),
                             ],
                           ),
                         ),

@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'package:go_router/go_router.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
+import 'package:conectea/core/widgets/premium/premium_qr_button.dart';
 
 import 'package:conectea/core/constants/colors.dart';
 import 'package:conectea/core/widgets/premium/premium_card.dart';
@@ -149,25 +149,7 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
                       tooltip: 'Rodar Manutenções',
                     ),
                   const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: () => context.push('/qr-scanner'),
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.05),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.1),
-                          width: 1,
-                        ),
-                      ),
-                      child: const Icon(
-                        PhosphorIconsBold.qrCode,
-                        color: AppColors.textPrimary,
-                        size: 28,
-                      ),
-                    ),
-                  ),
+                  const PremiumQrButton(),
                 ],
               ),
             ],
