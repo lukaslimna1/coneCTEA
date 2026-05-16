@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:conectea/core/constants/colors.dart';
@@ -124,25 +125,26 @@ class HomeDigitalCardSection extends StatelessWidget {
       memberRequest = null;
     }
 
-    final String rawStatus = (memberRequest?.status ?? member.status)
-        .toLowerCase();
+    final String rawStatus = HomeStatusHelper.getEffectiveStatus(
+      memberStatus: member.status,
+      memberRequest: memberRequest,
+    );
 
     final lastUpdate = memberRequest?.updatedAt ?? member.updatedAt;
     final isExpired =
         rawStatus == 'active' &&
         DateTime.now().difference(lastUpdate).inDays >= 365;
+
     final statusInfo = HomeStatusHelper.digitalCardStatus(
-      rawStatus,
+      member.status,
+      memberRequest: memberRequest,
       isExpired: isExpired,
     );
-    final status = isExpired ? 'expired' : rawStatus;
-    final effectiveStatus = status;
+    final effectiveStatus = isExpired ? 'expired' : rawStatus;
 
     final String statusDisplay = statusInfo.fullLabel;
     final Color statusColor = statusInfo.color;
-    final IconData statusIcon = statusInfo.icon;
     final bool isActive = statusInfo.isActive;
-    final bool showJustification = statusInfo.showJustification;
     final bool isRejected = statusInfo.isRejected;
 
     final adminNotes = memberRequest?.adminNotes ?? '';
@@ -163,189 +165,345 @@ class HomeDigitalCardSection extends StatelessWidget {
               ),
             ),
           ),
-          PremiumCard(
-            padding: const EdgeInsets.all(24),
-            margin: EdgeInsets.zero,
-            child: Column(
+          // Container Principal com DNA Premium Card
+          Container(
+            width: double.infinity,
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              gradient: const LinearGradient(
+                colors: [
+                  Color(0xFF0A192F), // Tom de fundo profundo
+                  Color(0xFF060D1A), // Quase preto
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              border: Border.all(
+                color: const Color(0x2494A3B4), // Padrão premium borda
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.35),
+                  blurRadius: 28,
+                  offset: const Offset(0, 12),
+                ),
+                BoxShadow(
+                  color: statusColor.withValues(alpha: 0.08),
+                  blurRadius: 20,
+                  offset: Offset.zero,
+                ),
+              ],
+            ),
+            child: Stack(
               children: [
-                AspectRatio(
-                  aspectRatio: 1.58,
-                  child: Stack(
-                    alignment: Alignment.center,
-                    clipBehavior: Clip.none,
+                // Camada de vidro sutil
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.025),
+                    ),
+                  ),
+                ),
+
+                // Efeito de luz sutil no canto (Glow)
+                Positioned(
+                  bottom: -60,
+                  right: -40,
+                  child: Container(
+                    width: 200,
+                    height: 200,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          statusColor.withValues(alpha: 0.12),
+                          statusColor.withValues(alpha: 0.0),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+                // Borda superior colorida (Acento Premium)
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    height: 3,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          statusColor,
+                          statusColor.withValues(alpha: 0.4),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+                Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
                     children: [
-                      Container(
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(18),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.primary.withValues(alpha: 0.15),
-                              blurRadius: 25,
-                              offset: const Offset(0, 10),
-                            ),
-                          ],
-                        ),
-                        child: Opacity(
-                          opacity: isActive ? 1.0 : 0.6,
-                          child: DigitalCardWidget(
-                            card: digitalCard,
-                            member: member,
-                            isStatic: true,
+                      // Preview da Carteirinha
+                      AspectRatio(
+                        aspectRatio: 1.58,
+                        child: Container(
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(18),
+                            boxShadow: [
+                              BoxShadow(
+                                color: statusColor.withValues(alpha: 0.15),
+                                blurRadius: 40,
+                                offset: const Offset(0, 12),
+                              ),
+                            ],
+                          ),
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Opacity(
+                                opacity: isActive ? 1.0 : 0.6,
+                                child: DigitalCardWidget(
+                                  card: digitalCard,
+                                  member: member,
+                                  isStatic: true,
+                                ),
+                              ),
+                              // Selo de Status Centralizado (Horizontal Pill)
+                              if (!isActive)
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 8,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.black.withValues(alpha: 0.85),
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(
+                                        color: statusColor.withValues(alpha: 0.5),
+                                        width: 1.5,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: statusColor.withValues(alpha: 0.25),
+                                          blurRadius: 12,
+                                        ),
+                                      ],
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          statusInfo.icon,
+                                          size: 16,
+                                          color: statusColor,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          statusDisplay.toUpperCase(),
+                                          style: GoogleFonts.inter(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w900,
+                                            color: statusColor,
+                                            letterSpacing: 1.0,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                            ],
                           ),
                         ),
                       ),
-                      if (!isActive)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 12,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.background.withValues(alpha: 0.7),
-                            borderRadius: BorderRadius.circular(30),
-                            border: Border.all(
-                              color: statusColor.withValues(alpha: 0.5),
-                              width: 2,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: statusColor.withValues(alpha: 0.3),
-                                blurRadius: 15,
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(statusIcon, color: statusColor, size: 20),
-                              const SizedBox(width: 10),
-                              Flexible(
-                                child: Text(
-                                  statusDisplay,
-                                  style: GoogleFonts.inter(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w900,
-                                    color: statusColor,
-                                    letterSpacing: 0.5,
+
+                      // Linha Técnica de Requerimento (Discreta e Copiável)
+                      Builder(
+                        builder: (context) {
+                          final protocol = memberRequest?.protocol;
+                          if (isActive || protocol == null || protocol.isEmpty) {
+                            return const SizedBox.shrink();
+                          }
+
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 16),
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () {
+                                Clipboard.setData(ClipboardData(text: protocol));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Row(
+                                      children: [
+                                        const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+                                        const SizedBox(width: 10),
+                                        Text(
+                                          'Requerimento copiado',
+                                          style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                                        ),
+                                      ],
+                                    ),
+                                    behavior: SnackBarBehavior.floating,
+                                    backgroundColor: AppColors.primary,
+                                    duration: const Duration(seconds: 2),
+                                    margin: const EdgeInsets.all(20),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                   ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+                                );
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.copy_rounded,
+                                      size: 14,
+                                      color: AppColors.textSecondary.withValues(alpha: 0.4),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      protocol,
+                                      style: GoogleFonts.jetBrainsMono(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.textSecondary.withValues(alpha: 0.6),
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ],
+                            ),
+                          );
+                        }
+                      ),
+
+
+                      if (statusInfo.secondaryActionLabel != null) ...[
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          width: double.infinity,
+                          child: TextButton.icon(
+                            onPressed: () => _showJustificationDialog(
+                              context,
+                              statusInfo,
+                              adminNotes,
+                            ),
+                            icon: Icon(
+                              Icons.help_outline_rounded,
+                              size: 18,
+                              color: statusColor,
+                            ),
+                            label: Text(
+                              statusInfo.secondaryActionLabel!,
+                              style: GoogleFonts.inter(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: statusColor,
+                              ),
+                            ),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              backgroundColor: statusColor.withValues(alpha: 0.1),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
                           ),
+                        ),
+                      ],
+                      const SizedBox(height: 20),
+                      if (isRejected)
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: onSupportTap,
+                            icon: const Icon(
+                              Icons.support_agent_rounded,
+                              color: AppColors.errorRed,
+                            ),
+                            label: Text(
+                              'Falar com Suporte',
+                              style: GoogleFonts.inter(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 15,
+                                color: AppColors.errorRed,
+                              ),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              side: const BorderSide(
+                                color: AppColors.errorRed,
+                                width: 1.5,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(18),
+                              ),
+                            ),
+                          ),
+                        )
+                      else
+                        StatusActionButton(
+                          isExpanded: true,
+                          height: 52,
+                          fontSize: 14,
+                          statusKey: isActive
+                              ? 'active'
+                              : (effectiveStatus.isEmpty
+                                  ? 'waiting_approval'
+                                  : effectiveStatus),
+                          label: isActive
+                              ? 'Abrir Carteira Digital'
+                              : (effectiveStatus == 'expired' ||
+                                      effectiveStatus == 'suspended'
+                                  ? 'Solicitar Renovação'
+                                  : (effectiveStatus == 'waiting_docs'
+                                      ? 'Enviar Documentos'
+                                      : (effectiveStatus == 'reviewing_data'
+                                          ? 'Revisar Dados'
+                                          : 'Aguardando Aprovação'))),
+                          iconOverride: isActive
+                              ? Icons.qr_code_scanner_rounded
+                              : (effectiveStatus == 'expired' ||
+                                      effectiveStatus == 'suspended'
+                                  ? Icons.autorenew_rounded
+                                  : (effectiveStatus == 'waiting_docs' ||
+                                          effectiveStatus == 'reviewing_data'
+                                      ? Icons.edit_document
+                                      : Icons.lock_outline_rounded)),
+                          onTap: (isActive ||
+                                  effectiveStatus == 'waiting_docs' ||
+                                  effectiveStatus == 'reviewing_data' ||
+                                  ((effectiveStatus == 'expired' ||
+                                          effectiveStatus == 'suspended') &&
+                                      memberRequest != null))
+                              ? () {
+                                  if (isActive) {
+                                    onOpenDigitalCard();
+                                  } else if (effectiveStatus == 'waiting_docs' ||
+                                      effectiveStatus == 'reviewing_data') {
+                                    onEditPendingRequest(member, memberRequest);
+                                  } else if (effectiveStatus == 'expired' ||
+                                      effectiveStatus == 'suspended') {
+                                    if (memberRequest != null) {
+                                      onRequestRenewal(memberRequest.id);
+                                    }
+                                  }
+                                }
+                              : null,
                         ),
                     ],
                   ),
                 ),
-                if (showJustification && adminNotes.isNotEmpty) ...[
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    width: double.infinity,
-                    child: TextButton.icon(
-                      onPressed: () => _showJustificationDialog(
-                        context,
-                        statusDisplay,
-                        statusColor,
-                        adminNotes,
-                        isRejected: effectiveStatus == 'rejected',
-                      ),
-                      icon: Icon(
-                        Icons.help_outline_rounded,
-                        size: 18,
-                        color: statusColor,
-                      ),
-                      label: Text(
-                        "Ver motivo da ${effectiveStatus == 'rejected' ? 'reprovação' : 'suspensão'}",
-                        style: GoogleFonts.inter(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: statusColor,
-                        ),
-                      ),
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        backgroundColor: statusColor.withValues(alpha: 0.1),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 24),
-                if (isRejected)
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: onSupportTap,
-                      icon: const Icon(
-                        Icons.support_agent_rounded,
-                        color: AppColors.errorRed,
-                      ),
-                      label: Text(
-                        'Falar com Suporte',
-                        style: GoogleFonts.inter(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 15,
-                          color: AppColors.errorRed,
-                        ),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        side: const BorderSide(
-                          color: AppColors.errorRed,
-                          width: 1.5,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(18),
-                        ),
-                      ),
-                    ),
-                  )
-                else
-                  StatusActionButton(
-                    isExpanded: true,
-                    height: 52,
-                    fontSize: 14,
-                    statusKey: isActive ? 'active' : (status.isEmpty ? 'waiting_approval' : status),
-                    label: isActive
-                        ? 'Abrir Carteira Digital'
-                        : (status == 'expired' || status == 'suspended'
-                              ? 'Solicitar Renovação'
-                              : (status == 'waiting_docs'
-                                    ? 'Enviar Documentos'
-                                    : (status == 'reviewing_data'
-                                          ? 'Revisar Dados'
-                                          : 'Aguardando Aprovação'))),
-                    iconOverride: isActive
-                        ? Icons.qr_code_scanner_rounded
-                        : (status == 'expired' || status == 'suspended'
-                              ? Icons.autorenew_rounded
-                              : (status == 'waiting_docs' ||
-                                        status == 'reviewing_data'
-                                    ? Icons.edit_document
-                                    : Icons.lock_outline_rounded)),
-                    onTap: (isActive || 
-                            status == 'waiting_docs' || 
-                            status == 'reviewing_data' || 
-                            ((status == 'expired' || status == 'suspended') && memberRequest != null))
-                        ? () {
-                            if (isActive) {
-                              onOpenDigitalCard();
-                            } else if (status == 'waiting_docs' ||
-                                status == 'reviewing_data') {
-                              onEditPendingRequest(member, memberRequest);
-                            } else if (status == 'expired' ||
-                                status == 'suspended') {
-                              if (memberRequest != null) {
-                                onRequestRenewal(memberRequest.id);
-                              }
-                            }
-                          }
-                        : null,
-                  ),
               ],
             ),
           ),
@@ -356,11 +514,13 @@ class HomeDigitalCardSection extends StatelessWidget {
 
   void _showJustificationDialog(
     BuildContext context,
-    String status,
-    Color color,
-    String notes, {
-    bool isRejected = false,
-  }) {
+    HomeStatusInfo statusInfo,
+    String notes,
+  ) {
+    final color = statusInfo.color;
+    final title = statusInfo.deadlineTitle ?? statusInfo.fullLabel;
+    final isRejected = statusInfo.isRejected;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -368,11 +528,11 @@ class HomeDigitalCardSection extends StatelessWidget {
         surfaceTintColor: Colors.transparent,
         title: Row(
           children: [
-            Icon(Icons.info_outline_rounded, color: color),
+            Icon(statusInfo.icon, color: color),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                'Motivo: $status',
+                title,
                 style: GoogleFonts.inter(
                   fontWeight: FontWeight.w900,
                   color: color,
@@ -390,23 +550,81 @@ class HomeDigitalCardSection extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: color.withValues(alpha: 0.1)),
-              ),
-              child: Text(
-                notes,
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  color: AppColors.cardTitle,
-                  height: 1.6,
-                  fontWeight: FontWeight.w500,
+            if (statusInfo.deadlineMessage != null) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: color.withValues(alpha: 0.2)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Informação importante:',
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: color,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      statusInfo.deadlineMessage!,
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        color: AppColors.cardTitle,
+                        height: 1.5,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
+              const SizedBox(height: 16),
+            ],
+            if (notes.isNotEmpty) ...[
+              Text(
+                'Detalhes da equipe:',
+                style: GoogleFonts.inter(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.cardSubtitle.withValues(alpha: 0.6),
+                  letterSpacing: 0.5,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.03),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                ),
+                child: Text(
+                  notes,
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    color: AppColors.cardTitle,
+                    height: 1.6,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ] else if (notes.isEmpty && (statusInfo.isRejected || statusInfo.showJustification) && statusInfo.deadlineMessage == null) ...[
+              Text(
+                'A equipe responsável ainda não adicionou detalhes específicos.',
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  color: AppColors.cardSubtitle.withValues(alpha: 0.7),
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ],
             if (isRejected) ...[
               const SizedBox(height: 20),
               Text(

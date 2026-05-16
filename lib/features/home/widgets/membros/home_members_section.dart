@@ -3,21 +3,22 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/widgets/premium/conectea_avatar.dart';
 import 'package:conectea/core/constants/colors.dart';
 import 'package:conectea/models/member.dart';
+import 'package:conectea/models/card_request.dart';
 import 'package:conectea/features/home/widgets/comum/home_section_header.dart';
 import 'package:conectea/features/home/utils/home_status_helper.dart';
 
 class HomeMembersSection extends StatelessWidget {
   final List<Member> members;
-  final Member? selectedMember;
-  final VoidCallback onViewAllTap;
-  final ValueChanged<Member> onMemberSelected;
+  final List<CardRequest> requests;
+  final String? selectedMemberId;
+  final Function(String) onMemberSelected;
   final String? paletteSeed;
 
   const HomeMembersSection({
     super.key,
     required this.members,
-    required this.selectedMember,
-    required this.onViewAllTap,
+    required this.requests,
+    required this.selectedMemberId,
     required this.onMemberSelected,
     this.paletteSeed,
   });
@@ -29,9 +30,7 @@ class HomeMembersSection extends StatelessWidget {
       children: [
         HomeSectionHeader(
           title: '${members.length} membros vinculados',
-          subtitle: 'Selecione um membro para visualizar.',
-          actionLabel: 'Ver todos',
-          onActionTap: onViewAllTap,
+          subtitle: 'Selecione um membro.',
         ),
         const SizedBox(height: 12),
         SingleChildScrollView(
@@ -42,35 +41,46 @@ class HomeMembersSection extends StatelessWidget {
           child: Row(
             children: List.generate(members.length, (index) {
               final member = members[index];
-              final isSelected = member.id == selectedMember?.id;
+              // Localiza request deste membro para status unificado
+              final memberRequest = requests
+                  .where((r) => r.memberId == member.id)
+                  .toList()
+                  .firstOrNull;
+
+              final isSelected = member.id == selectedMemberId;
               final initials = member.initials;
-              final statusInfo = HomeStatusHelper.memberStatus(member.status);
+              final statusInfo = HomeStatusHelper.memberStatus(
+                member.status,
+                memberRequest: memberRequest,
+              );
 
               return GestureDetector(
-                onTap: () => onMemberSelected(member),
+                onTap: () => onMemberSelected(member.id),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
                   margin: const EdgeInsets.only(right: 12),
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
+                    horizontal: 14,
+                    vertical: 10,
                   ),
+                  width: 175, // Largura fixa para estabilidade
+                  height: 64, // Altura fixa para consistência
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? Colors.white.withValues(alpha: 0.1)
+                        ? Colors.white.withValues(alpha: 0.08)
                         : Colors.white.withValues(alpha: 0.03),
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular(18),
                     border: Border.all(
                       color: isSelected
-                          ? AppColors.primary
-                          : Colors.white.withValues(alpha: 0.1),
-                      width: isSelected ? 2 : 1,
+                          ? AppColors.primary.withValues(alpha: 0.8)
+                          : Colors.white.withValues(alpha: 0.08),
+                      width: isSelected ? 1.5 : 1,
                     ),
                     boxShadow: [
                       if (isSelected)
                         BoxShadow(
-                          color: AppColors.primary.withValues(alpha: 0.2),
-                          blurRadius: 15,
+                          color: AppColors.primary.withValues(alpha: 0.1),
+                          blurRadius: 12,
                           offset: const Offset(0, 4),
                         ),
                     ],
@@ -79,51 +89,63 @@ class HomeMembersSection extends StatelessWidget {
                     children: [
                       ConecteaAvatar(
                         initials: initials,
-                        size: 38,
+                        size: 34,
                         isInactive: !isSelected,
                         paletteSeed: paletteSeed,
                         showGlow: isSelected,
                       ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            member.name.split(' ').first,
-                            style: GoogleFonts.inter(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.cardTitle,
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              member.name.split(' ').first,
+                              style: GoogleFonts.inter(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.cardTitle,
+                                letterSpacing: -0.2,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          Row(
-                            children: [
-                              Container(
-                                width: 6,
-                                height: 6,
-                                decoration: BoxDecoration(
-                                  color: statusInfo.isActive
-                                      ? AppColors.statusGreen
-                                      : AppColors.alertOrange,
-                                  shape: BoxShape.circle,
+                            const SizedBox(height: 1),
+                            Row(
+                              children: [
+                                Container(
+                                  width: 5,
+                                  height: 5,
+                                  decoration: BoxDecoration(
+                                    color: statusInfo.color,
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: statusInfo.color.withValues(alpha: 0.4),
+                                        blurRadius: 3,
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                statusInfo.shortLabel,
-                                style: GoogleFonts.inter(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                  color: statusInfo.isActive
-                                      ? AppColors.statusGreen
-                                      : AppColors.alertOrange,
+                                const SizedBox(width: 5),
+                                Expanded(
+                                  child: Text(
+                                    statusInfo.shortLabel.toUpperCase(),
+                                    style: GoogleFonts.inter(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w900,
+                                      color: statusInfo.color.withValues(alpha: 0.9),
+                                      letterSpacing: 0.3,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ],
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),

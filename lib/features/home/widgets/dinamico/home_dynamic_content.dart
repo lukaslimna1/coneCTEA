@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:conectea/models/member.dart';
 import 'package:conectea/models/card_request.dart';
 import 'package:conectea/models/digital_card.dart';
-import 'package:conectea/features/home/widgets/solicitacoes/home_ongoing_request_section.dart';
+
 import 'package:conectea/features/home/widgets/membros/home_members_section.dart';
 import 'package:conectea/features/home/widgets/carteirinha/home_digital_card_section.dart';
 import 'package:conectea/features/home/widgets/acesso_rapido/home_quick_access_section.dart';
@@ -46,16 +46,14 @@ class HomeDynamicContent extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        HomeOngoingRequestSection(
-          requests: requests,
-          onDetailsTap: onDetailsTap,
-        ),
-        const SizedBox(height: 12),
         HomeMembersSection(
           members: members,
-          selectedMember: selectedMember,
-          onViewAllTap: onViewAllMembers,
-          onMemberSelected: onMemberSelected,
+          requests: requests,
+          selectedMemberId: selectedMember?.id,
+          onMemberSelected: (id) {
+            final member = members.firstWhere((m) => m.id == id);
+            onMemberSelected(member);
+          },
           paletteSeed: paletteSeed,
         ),
         const SizedBox(height: 24),
@@ -70,7 +68,7 @@ class HomeDynamicContent extends StatelessWidget {
           onRequestRenewal: onRequestRenewal,
           onSupportTap: onSupportTap,
         ),
-        const SizedBox(height: 32),
+        const SizedBox(height: 40),
         HomeQuickAccessSection(
           onOpenDigitalCard: onOpenDigitalCard,
           onRequestCard: onRequestCard,

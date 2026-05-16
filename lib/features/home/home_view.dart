@@ -297,7 +297,7 @@ class _HomeViewState extends State<HomeView> {
                       role: _user?.role,
                       onQrTap: () => context.push('/qr-scanner'),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 28),
 
                     // Bloco Dinâmico Reativo
                     StreamBuilder<List<Member>>(

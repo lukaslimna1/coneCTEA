@@ -62,7 +62,7 @@ class StatusVisualTokens {
 
       case 'waiting_docs':
         return StatusVisualTokens(
-          label: 'DOCUMENTOS PENDENTES',
+          label: 'ENVIAR DOCS',
           primary: const Color(0xFF22D3EE),
           harmonic: const Color(0xFF2DD4BF),
           pillBackground: const Color(0xFF22D3EE).withValues(alpha: 0.12),
@@ -75,7 +75,7 @@ class StatusVisualTokens {
 
       case 'reviewing_data':
         return StatusVisualTokens(
-          label: 'REVISAR DADOS',
+          label: 'REVISAR',
           primary: const Color(0xFFFF7A1A),
           harmonic: const Color(0xFFFFB020),
           pillBackground: const Color(0xFFFF7A1A).withValues(alpha: 0.13),
