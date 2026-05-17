@@ -278,7 +278,11 @@ class _HomeViewState extends State<HomeView> {
           color: AppColors.primary,
           child: Builder(
             builder: (context) {
-              final topPadding = MediaQuery.paddingOf(context).top + 28;
+              // Constantes de layout do topo para alinhar com o AppTopHeader e evitar magic numbers
+              final double topSafeArea = MediaQuery.paddingOf(context).top;
+              const double headerVisualHeight = 64.0; // Altura física do AppTopHeader (14 padding top + 38 avatar/botão + 12 padding bottom)
+              const double headerClearance = 24.0; // Respiro visual elegante entre a borda do header e o início do conteúdo da Home
+              final double topPadding = topSafeArea + headerVisualHeight + headerClearance;
               final bottomInset = MediaQuery.paddingOf(context).bottom;
               // 68dp navbar + 16dp margin inferior + área segura do sistema
               const double navBarHeight = 68 + 16;
