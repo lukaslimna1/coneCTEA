@@ -25,6 +25,7 @@ class _NotificationsViewState extends State<NotificationsView> {
   List<NotificationItem> _notifications = [];
   Stream<List<NotificationItem>>? _notificationsStream;
   final Set<String> _expandedNotifications = {};
+  final Set<String> _readNotificationsLocally = {};
 
   @override
   void initState() {
@@ -344,147 +345,152 @@ class _NotificationsViewState extends State<NotificationsView> {
     final key = item.id.isNotEmpty ? item.id : '${item.createdAt.toIso8601String()}_${item.title}';
     final isExpanded = _expandedNotifications.contains(key);
     final isLongMessage = item.message.length > 90;
+    final isRead = item.isRead || _readNotificationsLocally.contains(key);
 
-    return PremiumCard(
-      padding: EdgeInsets.zero,
-      margin: EdgeInsets.zero,
-      hasGradient: true,
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Linha de acento lateral discreta e elegante
-            Container(
-              width: 4,
-              decoration: BoxDecoration(
-                color: ui.color,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(16),
-                  bottomLeft: Radius.circular(16),
+    return GestureDetector(
+      onTap: () => _markSingleAsRead(item, key),
+      child: PremiumCard(
+        padding: EdgeInsets.zero,
+        margin: EdgeInsets.zero,
+        hasGradient: true,
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Linha de acento lateral discreta e elegante
+              Container(
+                width: 4,
+                decoration: BoxDecoration(
+                  color: ui.color,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    bottomLeft: Radius.circular(16),
+                  ),
                 ),
               ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Ícone com gradiente suave (Premium Glassmorphism)
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            ui.color.withValues(alpha: 0.25),
-                            ui.color.withValues(alpha: 0.05),
-                          ],
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Ícone com gradiente suave (Premium Glassmorphism)
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              ui.color.withValues(alpha: 0.25),
+                              ui.color.withValues(alpha: 0.05),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: ui.color.withValues(alpha: 0.2),
+                            width: 1,
+                          ),
                         ),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: ui.color.withValues(alpha: 0.2),
-                          width: 1,
-                        ),
+                        child: Icon(ui.icon, color: ui.color, size: 22),
                       ),
-                      child: Icon(ui.icon, color: ui.color, size: 22),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    item.title,
+                                    style: GoogleFonts.inter(
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 15,
+                                      color: AppColors.cardTitle,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                if (!isRead)
+                                  Container(
+                                    margin: const EdgeInsets.only(top: 4),
+                                    width: 8,
+                                    height: 8,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.cyan,
+                                      shape: BoxShape.circle,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: AppColors.cyan.withValues(alpha: 0.5),
+                                          blurRadius: 4,
+                                          spreadRadius: 1,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              item.message,
+                              maxLines: isLongMessage && !isExpanded ? 2 : null,
+                              overflow: isLongMessage && !isExpanded ? TextOverflow.ellipsis : null,
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                color: AppColors.cardSubtitle,
+                                height: 1.5,
+                              ),
+                            ),
+                            if (isLongMessage) ...[
+                              const SizedBox(height: 8),
+                              GestureDetector(
+                                onTap: () {
+                                  _markSingleAsRead(item, key);
+                                  setState(() {
+                                    if (isExpanded) {
+                                      _expandedNotifications.remove(key);
+                                    } else {
+                                      _expandedNotifications.add(key);
+                                    }
+                                  });
+                                },
                                 child: Text(
-                                  item.title,
+                                  isExpanded ? 'Ver menos' : 'Ver mais',
                                   style: GoogleFonts.inter(
-                                    fontWeight: FontWeight.w800,
-                                    fontSize: 15,
-                                    color: AppColors.cardTitle,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              if (!item.isRead)
-                                Container(
-                                  margin: const EdgeInsets.only(top: 4),
-                                  width: 8,
-                                  height: 8,
-                                  decoration: BoxDecoration(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
                                     color: AppColors.cyan,
-                                    shape: BoxShape.circle,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: AppColors.cyan.withValues(alpha: 0.5),
-                                        blurRadius: 4,
-                                        spreadRadius: 1,
-                                      ),
-                                    ],
                                   ),
                                 ),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            item.message,
-                            maxLines: isLongMessage && !isExpanded ? 2 : null,
-                            overflow: isLongMessage && !isExpanded ? TextOverflow.ellipsis : null,
-                            style: GoogleFonts.inter(
-                              fontSize: 14,
-                              color: AppColors.cardSubtitle,
-                              height: 1.5,
-                            ),
-                          ),
-                          if (isLongMessage) ...[
-                            const SizedBox(height: 8),
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  if (isExpanded) {
-                                    _expandedNotifications.remove(key);
-                                  } else {
-                                    _expandedNotifications.add(key);
-                                  }
-                                });
-                              },
-                              child: Text(
-                                isExpanded ? 'Ver menos' : 'Ver mais',
-                                style: GoogleFonts.inter(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.cyan,
-                                ),
                               ),
+                            ],
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                const Icon(PhosphorIconsRegular.clock, size: 14, color: AppColors.cardMutedText),
+                                const SizedBox(width: 6),
+                                Text(
+                                  timeFormatted,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.cardMutedText,
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              const Icon(PhosphorIconsRegular.clock, size: 14, color: AppColors.cardMutedText),
-                              const SizedBox(width: 6),
-                              Text(
-                                timeFormatted,
-                                style: GoogleFonts.inter(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.cardMutedText,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -648,6 +654,20 @@ class _NotificationsViewState extends State<NotificationsView> {
         ],
       ),
     );
+  }
+
+  Future<void> _markSingleAsRead(NotificationItem item, String key) async {
+    final isRead = item.isRead || _readNotificationsLocally.contains(key);
+    if (!isRead) {
+      setState(() {
+        _readNotificationsLocally.add(key);
+      });
+      try {
+        await _databaseService.markNotificationAsRead(item.id);
+      } catch (e) {
+        debugPrint('Erro ao marcar notificação como lida: $e');
+      }
+    }
   }
 }
 

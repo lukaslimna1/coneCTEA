@@ -431,32 +431,40 @@ class DatabaseService {
         break;
       case 'rejected': 
       case 'rejeitada': 
-        title = 'Solicitação não aprovada';
-        message = 'Não conseguimos aprovar a solicitação da carteirinha de $memberName neste momento.';
-        if (notes.isNotEmpty) {
-          message += ' Motivo informado: $notes';
+        title = 'Solicitação reprovada';
+        final cleanNotes = _cleanAdminNotes(notes);
+        if (cleanNotes.isNotEmpty) {
+          message = 'Não foi possível aprovar a carteirinha de $memberName neste momento. Motivo: $cleanNotes.';
+        } else {
+          message = 'Não foi possível aprovar a carteirinha de $memberName neste momento.';
         }
         break;
       case 'suspended': 
       case 'suspensa': 
         title = 'Carteirinha suspensa';
-        message = 'A carteirinha de $memberName foi suspensa temporariamente.';
-        if (notes.isNotEmpty) {
-          message += ' Motivo informado: $notes';
+        final cleanNotes = _cleanAdminNotes(notes);
+        if (cleanNotes.isNotEmpty) {
+          message = 'A carteirinha de $memberName está temporariamente suspensa. Motivo: $cleanNotes.';
+        } else {
+          message = 'A carteirinha de $memberName está temporariamente suspensa.';
         }
         break;
       case 'waiting_docs': 
         title = 'Documentos pendentes';
-        message = 'Precisamos de alguns documentos para continuar a solicitação de $memberName.';
-        if (notes.isNotEmpty) {
-          message += ' Pendência: $notes';
+        final cleanNotes = _cleanAdminNotes(notes);
+        if (cleanNotes.isNotEmpty) {
+          message = 'Para continuar a carteirinha de $memberName, precisamos de alguns documentos. Falta enviar: $cleanNotes.';
+        } else {
+          message = 'Para continuar a carteirinha de $memberName, precisamos de alguns documentos.';
         }
         break;
       case 'reviewing_data': 
         title = 'Revisão de dados necessária';
-        message = 'Alguns dados da solicitação de $memberName precisam de revisão.';
-        if (notes.isNotEmpty) {
-          message += ' Correção necessária: $notes';
+        final cleanNotes = _cleanAdminNotes(notes);
+        if (cleanNotes.isNotEmpty) {
+          message = 'Algumas informações da carteirinha de $memberName precisam de ajuste antes da análise continuar. Revise: $cleanNotes.';
+        } else {
+          message = 'Algumas informações da carteirinha de $memberName precisam de ajuste antes da análise continuar.';
         }
         break;
       case 'expired': 
@@ -464,8 +472,9 @@ class DatabaseService {
         message = 'A carteirinha de $memberName venceu. Solicite a renovação para continuar usando o documento digital.';
         break;
       default:
-        if (notes.isNotEmpty && !notes.contains('Pendência:')) {
-          message += ' Motivo: ${notes.length > 50 ? "${notes.substring(0, 47)}..." : notes}';
+        final cleanNotes = _cleanAdminNotes(notes);
+        if (cleanNotes.isNotEmpty) {
+          message += ' Motivo: ${cleanNotes.length > 50 ? "${cleanNotes.substring(0, 47)}..." : cleanNotes}';
         }
     }
 
@@ -704,5 +713,26 @@ class DatabaseService {
       case 'renewing': return '🟣 Aguardando Renovação';
       default: return status;
     }
+  }
+
+  String _cleanAdminNotes(String notes) {
+    String cleaned = notes.trim();
+    if (cleaned.isEmpty) return '';
+
+    final regexes = [
+      RegExp(r'^(pendência|pendências|observação|observações|motivo|motivo informado|correção necessária|documento|documentos)\s*:\s*', caseSensitive: false),
+    ];
+
+    bool cleanedAny = true;
+    while (cleanedAny) {
+      cleanedAny = false;
+      for (final regex in regexes) {
+        if (regex.hasMatch(cleaned)) {
+          cleaned = cleaned.replaceFirst(regex, '').trim();
+          cleanedAny = true;
+        }
+      }
+    }
+    return cleaned;
   }
 }
