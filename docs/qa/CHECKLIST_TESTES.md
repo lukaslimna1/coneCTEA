@@ -68,3 +68,42 @@ Este checklist serve como guia para apoiar a mitigação de falhas visuais ou qu
 - [ ] Validar que o card de Acesso Rápido (`QuickAccessCard`) termina de forma compacta e simétrica logo abaixo de seu respectivo CTA, sem deixar espaços vazios indesejados.
 - [ ] Confirmar que a altura do carrossel pai do Acesso Rápido está fixada em `148` no máximo.
 - [ ] Rolar o carrossel de "Outros Serviços" e "Informações" e confirmar que as sombras inferiores (`BoxShadow` premium) são desenhadas integralmente, sem recortes ou linhas duras abruptas causadas por contêineres pais muito estreitos.
+
+---
+
+## Checklist de Formulário de Dependente & Teclado (Frente 26C.1 / 26C.2)
+
+Verificações para garantir a estabilidade do fluxo de cadastro e o comportamento dinâmico da interface sob foco de teclado virtual:
+
+### 1. Preenchimento de Campos e Layout do Formulário
+- [ ] Navegar para [AddMemberPage](file:///h:/Sites/ConeCTEA/lib/features/requests/add_member_page.dart) na Home ou seção de carteirinhas.
+- [ ] Validar que a Cidade e o Estado estão devidamente isolados em linhas separadas e preenchem corretamente o espaço horizontal.
+- [ ] Confirmar que os campos de contatos de Emergência e Responsável estão visualmente separados em entradas dedicadas para Nome e Telefone individualizados.
+- [ ] Selecionar Tipo Sanguíneo e validar que o placeholder inicial exibe exatamente `"Selecione"`.
+- [ ] Confirmar se, ao recarregar a tela sem dependente selecionado ou com valor inicial nulo, o widget [RequestDropdownField](file:///h:/Sites/ConeCTEA/lib/features/requests/widgets/request_dropdown_field.dart) renderiza adequadamente a dica de seleção.
+
+### 2. Ocultação Dinâmica da Navbar com Teclado IME
+- [ ] Em um emulador ou dispositivo físico com a barra de 3 botões tradicionais do Android ativa, toque em qualquer campo de texto no formulário de dependente.
+- [ ] Validar que o teclado virtual sobe e a [PremiumBottomNavBar](file:///h:/Sites/ConeCTEA/docs/design-system/COMPONENTES_PREMIUM.md#2-premiumbottomnavbar) desaparece imediatamente, liberando o espaço da tela.
+- [ ] Rolar o formulário verticalmente para atestar que os campos inferiores estão totalmente legíveis e roláveis sob a área do teclado.
+- [ ] Dispensar o teclado virtual ou pressionar o botão voltar do celular.
+- [ ] Validar que a barra de navegação premium ressurge imediatamente em sua posição original e sem nenhum travamento visual ou RenderFlex.
+
+---
+
+## Checklist de Detalhes da Carteirinha (Frente 26B.1 / 26B.2 / 26B.3-AUD)
+
+Testes específicos de responsividade estrutural e estética premium nos cartões e blocos informativos:
+
+### 1. Visual da Carteirinha Digital (Sapphire Luxe)
+- [ ] Selecionar dependentes com diferentes paletas neon e verificar se a seed se ajusta corretamente.
+- [ ] Verificar o card no Sapphire Luxe e confirmar se o token/número identificador da carteirinha está ampliado e legível.
+- [ ] Atravessar para o verso (flip) e confirmar que o QR Code e o texto descritivo legal resumido estão harmoniosos e livres de overflow.
+- [ ] Certificar-se de que nenhum contato de emergência secundário é impresso de forma gráfica na frente ou no verso do cartão Sapphire Luxe (a ocultação é puramente visual).
+
+### 2. Seção de Detalhes e Ações Rápidas (Telas Estreitas - 360dp)
+- [ ] Executar o teste visual no emulador ou dispositivo com largura de tela de 360dp (como Samsung A05/A06).
+- [ ] Validar se o bloco de validade ("Válida até") exibe o ícone de calendário de `14dp` e o padding reduzido, permanecendo alinhado sem quebras.
+- [ ] Verificar se o texto do botão CTA secundário exibe exatamente o texto compacto `"VER"`.
+- [ ] Confirmar que os botões `"VER"` e `"Girar"` dividem o espaço de forma proporcional de 50/50 e não geram transbordos de layout.
+- [ ] **Validação com zoom:** Aumentar a escala tipográfica do sistema operacional do smartphone/emulador para 1.5x e confirmar que os labels mais longos utilizam reticências e sofrem decaimento suave via `TextOverflow.ellipsis`, sem quebrar a integridade elástica do `CardsDetailsSection`.

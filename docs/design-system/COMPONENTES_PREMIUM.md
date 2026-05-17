@@ -32,12 +32,32 @@ Catalogar e padronizar os componentes de interface premium utilizados no ecossis
 - **Local:** `lib/core/widgets/premium/premium_bottom_nav_bar.dart`
 - **Padrão Visual:** Lunar Glass / Night Blue.
 - **Função:** Barra de navegação inferior unificada para alternância rápida entre módulos.
-- **Características de Responsividade e Blindagem:**
+- **Características de Responsividade e Proteção:**
   - **Efeito de Foco Dinâmico:** O item selecionado cresce horizontalmente revelando sua etiqueta de texto, enquanto os demais exibem apenas o ícone.
   - **Prevenção de RenderFlex:** O label do item ativo é envolvido por `Flexible(fit: FlexFit.loose)` e contido por um `ClipRect` com `TextOverflow.ellipsis`. Isso impede falhas de layout quando a largura interpolada cai temporariamente abaixo de `20px` nas transições.
   - **Compatibilidade do Sistema:** Mantém o padding inferior baseado no `MediaQuery.of(context).padding.bottom` para manter a coerência de espaçamento de forma nativa sob os modos de navegação do SO (gestos ou 3 botões).
+  - **Ocultação com Teclado Ativo (Frente 26C.2):** O widget monitora a presença do teclado virtual do sistema via `MediaQuery.viewInsetsOf(context).bottom > 0`. Ao detectar o teclado aberto, a navbar retorna temporariamente um `SizedBox.shrink()`. Isso previne que a barra seja empurrada pelo teclado (teclado tipo IME), evitando sobreposições em formulários e mitigando quebras visuais em aparelhos com navegação física ou virtual clássica por 3 botões (como Motorola Edge Curved).
 
-### 3. QuickAccessCard
+### 3. CardsDetailsSection (Seção de Detalhes)
+
+- **Local:** `lib/features/cards/widgets/tela_carteirinhas/cards_details_section.dart`
+- **Padrão Visual:** Lunar Glass / Night Blue.
+- **Função:** Exibe os blocos informativos detalhados da carteirinha selecionada (Validade e Status) e os botões de ação ("VER" e "Girar").
+- **Características de Responsividade (Frente 26B.2 / 26B.3-AUD):**
+  - **Mitigação Samsung A05/A06:** Paddings e espaçamentos internos compactados para o bloco "Validade" (padding horizontal reduzido para `8dp` e ícone para `14dp`).
+  - **Botões Horizontais Proporcionais:** Os botões rápidos de ação são dispostos lado a lado envolvidos por widgets `Expanded`, garantindo proporção exata de 50/50 no espaço disponível. O texto do botão de visualização foi sintetizado para exatamente `"VER"` para prevenir overflows horizontais.
+  - **Proteção Antiestouro:** Todos os campos dinâmicos e rótulos curtos utilizam `Expanded`, `maxLines: 1` e `TextOverflow.ellipsis`, blindando a seção contra variações de tamanho de fonte do sistema operacional.
+
+### 4. PremiumButton (Botão Premium)
+
+- **Local:** `lib/core/widgets/premium/premium_button.dart`
+- **Padrão Visual:** Lunar Glass com gradientes suaves em tons Sapphire / Night Blue.
+- **Função:** Botão de ação premium adaptável.
+- **Características:**
+  - Encapsulamento de segurança contra trunfações tipográficas.
+  - Utiliza `Flexible` em sua estrutura interna para lidar de forma elástica com larguras restritas.
+
+### 5. QuickAccessCard
 
 - **Local:** `lib/features/home/widgets/acesso_rapido/quick_access_card.dart`
 - **Padrão Visual:** Lunar Glass com borda gradiente sutil.

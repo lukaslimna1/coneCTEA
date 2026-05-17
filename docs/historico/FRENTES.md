@@ -45,6 +45,11 @@ Este arquivo existe para manter rastreabilidade sem sobrecarregar o `DOCTecnico.
 | 25B.4 | Absorvida | Refino intermediário da antiga seção `HomeOngoingRequestSection`. Corrigiu overflow, reorganizou hierarquia e revelou redundância/status divergente entre solicitação global e membro selecionado. | A solução final foi absorvida pela 25B.5, com remoção da seção separada. |
 | 25B.5 | Concluída | Home unificada em torno do Documento Digital. `HomeMembersSection` virou seletor mestre, `HomeDynamicContent` orquestra blocos dinâmicos, `HomeDigitalCardSection` concentra status, protocolo copiável, CTAs e modais contextuais. `HomeOngoingRequestSection` foi removida. | Reduziu redundância e impediu que solicitação de um membro fosse exibida junto da carteirinha de outro. |
 | 25B.5-HOTFIX | Concluída | Correção de sincronização visual da carteirinha via `statusOverride` em `DigitalCardWidget`/`DigitalCardFront` e validação condicional de CPF/Data na `AddMemberPage` via `_isFieldEnabled`. | Corrigiu selo interno da carteirinha e desbloqueou fluxos de `ENVIAR DOCS`/`REVISAR` quando CPF/Data não eram alvo da revisão. |
+| 26B.1 | Concluída | Refinamento estético e de legibilidade da carteirinha digital no padrão Sapphire Luxe. Commit `5876692`. | Ajustes nos widgets de frente, verso e background da carteirinha, otimizando contrastes, fontes e removendo a exibição direta de contatos (dados preservados no model). |
+| 26C.1 | Concluída | Refino controlado do formulário de "Cadastrar novo dependente" com separação visual de campos. Commit `db0ccf9`. | Divisão visual de Cidade/Estado, contatos de emergência e responsável. Placeholder do tipo sanguíneo resumido para "Selecione". Sem migrações de banco. |
+| 26C.2 | Concluída | Ocultação temporária e reativa da navbar premium com o teclado virtual aberto. Commit `49e6cae`. | Oculta a `PremiumBottomNavBar` quando o teclado Android está ativo via `MediaQuery.viewInsetsOf`, mitigando sobreposições em barras nativas. |
+| 26B.2 | Concluída | Mitigação de overflow horizontal na seção de detalhes da carteirinha digital. Commit `e3e004f`. | Redução de textos de CTA para "VER", redimensionamento de paddings/ícones do bloco de validade e aplicação de `Expanded` e `TextOverflow.ellipsis`. |
+| 26B.3-AUD | Concluída | Auditoria técnica global de responsividade da seção de detalhes da carteirinha digital em viewports de 360dp a 412dp. | Comprova estabilidade e flexibilidade elástica do layout nos cenários simulados. Sem necessidade de alterações de código Dart. |
 
 ---
 
@@ -59,6 +64,11 @@ Se uma frente como `24D.1`, `24D.2`, `25B.1` ou `25B.2` não estiver registrada 
 ## Roadmap Técnico
 
 ### Concluído recentemente
+- Frente 26B.1 (Refinamento Sapphire Luxe da Carteirinha Digital);
+- Frente 26C.1 (Ajustes no formulário de Novo Dependente);
+- Frente 26C.2 (Ocultação da navbar premium com teclado Android aberto);
+- Frente 26B.2 (Mitigação de overflows nos detalhes da carteirinha);
+- Auditoria 26B.3-AUD (Responsividade global da seção de detalhes);
 - Frente 26A (Responsividade Global, SafeAreas, NavBar, Seções da Home e Auditoria);
 - Frente 25C (PremiumStatusDialog e Fluxo de Renovação);
 - Frente 23E;
