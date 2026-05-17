@@ -7,6 +7,8 @@ import 'package:conectea/services/auth_service.dart';
 import 'package:conectea/models/notification_item.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/widgets/premium/premium_card.dart';
+import 'package:conectea/core/theme/status_visual_tokens.dart';
+
 
 class NotificationsView extends StatefulWidget {
   final VoidCallback? onBack;
@@ -492,44 +494,83 @@ class _NotificationsViewState extends State<NotificationsView> {
     final type = item.type.toLowerCase();
     final title = item.title.toLowerCase();
 
-    // 1. Tipos reais do DatabaseService
+    // 1. Suporte nativo a status_update com sufixo (novas notificações humanizadas vinculadas)
+    if (type.startsWith('status_update:')) {
+      final statusKey = type.substring('status_update:'.length).trim();
+      final tokens = StatusVisualTokens.fromStatus(statusKey);
+      return _TypeUI(tokens.icon, tokens.primary);
+    }
+
+    // 2. Tipos estruturados de reenvio/solicitação
     if (type == 'new_request') {
-      return _TypeUI(PhosphorIconsRegular.filePlus, AppColors.cyan);
+      final tokens = StatusVisualTokens.fromStatus('waiting_approval');
+      return _TypeUI(PhosphorIconsRegular.filePlus, tokens.primary);
     }
     if (type == 'request_updated') {
-      return _TypeUI(PhosphorIconsRegular.arrowsClockwise, AppColors.alertOrange);
+      final tokens = StatusVisualTokens.fromStatus('under_review');
+      return _TypeUI(PhosphorIconsRegular.arrowsClockwise, tokens.primary);
     }
 
-    // 2. Inferência visual para status_update
+    // 3. Fallback textual ultra seguro para status_update sem sufixo (notificações antigas)
     if (type == 'status_update') {
-      if (title.contains('aprovad') || title.contains('emitid') || title.contains('🎉')) {
-        return _TypeUI(PhosphorIconsRegular.checkCircle, AppColors.statusGreen);
+      // Prioridade máxima para termos negativos/reprovação (evita que "não aprovada" caia em "aprovada")
+      if (title.contains('não aprovad') ||
+          title.contains('reprovad') ||
+          title.contains('rejeitad') ||
+          title.contains('❌')) {
+        final tokens = StatusVisualTokens.fromStatus('rejected');
+        return _TypeUI(tokens.icon, tokens.primary);
       }
-      if (title.contains('reprovad') || title.contains('rejeitad') || title.contains('❌')) {
-        return _TypeUI(PhosphorIconsRegular.xCircle, AppColors.errorRed);
-      }
+
       if (title.contains('suspens') || title.contains('⚠️')) {
-        return _TypeUI(PhosphorIconsRegular.prohibit, AppColors.errorRed);
+        final tokens = StatusVisualTokens.fromStatus('suspended');
+        return _TypeUI(tokens.icon, tokens.primary);
       }
-      if (title.contains('documento') || title.contains('pendente') || title.contains('📄')) {
-        return _TypeUI(PhosphorIconsRegular.warningCircle, AppColors.alertOrange);
+
+      if (title.contains('documento') ||
+          title.contains('pendente') ||
+          title.contains('📄')) {
+        final tokens = StatusVisualTokens.fromStatus('waiting_docs');
+        return _TypeUI(tokens.icon, tokens.primary);
       }
-      if (title.contains('revisão') || title.contains('corrigid') || title.contains('✏️')) {
-        return _TypeUI(PhosphorIconsRegular.notePencil, AppColors.alertOrange);
+
+      if (title.contains('revisão') ||
+          title.contains('corrigid') ||
+          title.contains('✏️')) {
+        final tokens = StatusVisualTokens.fromStatus('reviewing_data');
+        return _TypeUI(tokens.icon, tokens.primary);
       }
+
       if (title.contains('vencid') || title.contains('📅')) {
-        return _TypeUI(PhosphorIconsRegular.calendarX, AppColors.alertOrange);
+        final tokens = StatusVisualTokens.fromStatus('expired');
+        return _TypeUI(tokens.icon, tokens.primary);
+      }
+
+      if (title.contains('renov')) {
+        final tokens = StatusVisualTokens.fromStatus('renewing');
+        return _TypeUI(tokens.icon, tokens.primary);
+      }
+
+      // Verificado por último após descartar termos negativos
+      if (title.contains('aprovad') ||
+          title.contains('emitid') ||
+          title.contains('🎉')) {
+        final tokens = StatusVisualTokens.fromStatus('active');
+        return _TypeUI(tokens.icon, tokens.primary);
       }
     }
 
-    // 3. Compatibilidade com tipos legados
+    // 4. Mapeamento de retrocompatibilidade com tipos legados
     switch (type) {
       case 'card_approved':
-        return _TypeUI(PhosphorIconsRegular.checkCircle, AppColors.statusGreen);
+        final tokens = StatusVisualTokens.fromStatus('active');
+        return _TypeUI(tokens.icon, tokens.primary);
       case 'card_rejected':
-        return _TypeUI(PhosphorIconsRegular.xCircle, AppColors.errorRed);
+        final tokens = StatusVisualTokens.fromStatus('rejected');
+        return _TypeUI(tokens.icon, tokens.primary);
       case 'doc_pending':
-        return _TypeUI(PhosphorIconsRegular.warningCircle, AppColors.alertOrange);
+        final tokens = StatusVisualTokens.fromStatus('waiting_docs');
+        return _TypeUI(tokens.icon, tokens.primary);
       case 'general_notice':
         return _TypeUI(PhosphorIconsRegular.info, AppColors.primary);
       case 'new_partner':

@@ -302,16 +302,18 @@ class DatabaseService {
   Future<void> createCardRequest(CardRequest request) async {
     await _supabase.from('card_requests').upsert(request.toJson());
     
-    // Tentar pegar o nome do membro
-    String memberName = 'Beneficiário';
+    // Tentar pegar o nome do membro com tratamento robusto e fallback
+    String memberName = 'membro';
     try {
       final memberData = await _supabase.from('members').select('name').eq('id', request.memberId).single();
-      memberName = memberData['name'];
+      if (memberData['name'] != null && (memberData['name'] as String).trim().isNotEmpty) {
+        memberName = memberData['name'];
+      }
     } catch (_) {}
 
     await _notifyAdmins(
-      'Nova Solicitação Recebida',
-      'Uma nova solicitação foi enviada para $memberName (Protocolo: ${request.protocol}).',
+      'Nova solicitação recebida',
+      'Nova solicitação recebida para a carteirinha de $memberName. Protocolo: ${request.protocol}',
       'new_request',
       memberId: request.memberId,
     );
@@ -413,45 +415,57 @@ class DatabaseService {
       }
     }
 
+    final String memberName = member.name.trim().isNotEmpty
+        ? member.name
+        : 'beneficiário';
+
     // 5. Criar notificação in-app
-    String title = 'Atualização de Carteirinha';
-    String message = 'O status da carteirinha de ${member.name} mudou para: ${_getStatusDisplay(status)}';
+    String title = 'Atualização de carteirinha';
+    String message = 'O status da carteirinha de $memberName mudou para: ${_getStatusDisplay(status)}';
     
     switch (status.toLowerCase()) {
       case 'approved': 
       case 'active': 
-        title = '🎉 Carteirinha Aprovada!';
-        message = 'A carteirinha digital de ${member.name} foi emitida e já está disponível para uso!';
+        title = 'Carteirinha aprovada';
+        message = 'A carteirinha digital de $memberName já está disponível para uso.';
         break;
       case 'rejected': 
       case 'rejeitada': 
-        title = '❌ Solicitação Reprovada';
-        message = 'A solicitação de ${member.name} foi reprovada.';
-        if (notes.isNotEmpty) message += ' Motivo: $notes';
+        title = 'Solicitação não aprovada';
+        message = 'Não conseguimos aprovar a solicitação da carteirinha de $memberName neste momento.';
+        if (notes.isNotEmpty) {
+          message += ' Motivo informado: $notes';
+        }
         break;
       case 'suspended': 
       case 'suspensa': 
-        title = '⚠️ Carteirinha Suspensa';
-        message = 'A carteirinha de ${member.name} foi suspensa temporariamente.';
-        if (notes.isNotEmpty) message += ' Motivo: $notes';
+        title = 'Carteirinha suspensa';
+        message = 'A carteirinha de $memberName foi suspensa temporariamente.';
+        if (notes.isNotEmpty) {
+          message += ' Motivo informado: $notes';
+        }
         break;
       case 'waiting_docs': 
-        title = '📄 Documentos Pendentes';
-        message = 'Precisamos que você envie alguns documentos para continuar a solicitação de ${member.name}.';
-        if (notes.isNotEmpty) message += '\nObservações: $notes';
+        title = 'Documentos pendentes';
+        message = 'Precisamos de alguns documentos para continuar a solicitação de $memberName.';
+        if (notes.isNotEmpty) {
+          message += ' Pendência: $notes';
+        }
         break;
       case 'reviewing_data': 
-        title = '✏️ Revisão de Dados Necessária';
-        message = 'Alguns dados da solicitação de ${member.name} precisam ser corrigidos.';
-        if (notes.isNotEmpty) message += '\nPendências: $notes';
+        title = 'Revisão de dados necessária';
+        message = 'Alguns dados da solicitação de $memberName precisam de revisão.';
+        if (notes.isNotEmpty) {
+          message += ' Correção necessária: $notes';
+        }
         break;
       case 'expired': 
-        title = '📅 Carteirinha Vencida';
-        message = 'A carteirinha de ${member.name} está vencida.';
+        title = 'Carteirinha vencida';
+        message = 'A carteirinha de $memberName venceu. Solicite a renovação para continuar usando o documento digital.';
         break;
       default:
         if (notes.isNotEmpty && !notes.contains('Pendência:')) {
-          message += '\nMotivo: ${notes.length > 50 ? "${notes.substring(0, 47)}..." : notes}';
+          message += ' Motivo: ${notes.length > 50 ? "${notes.substring(0, 47)}..." : notes}';
         }
     }
 
@@ -462,7 +476,7 @@ class DatabaseService {
       memberId: memberId,
       title: title,
       message: message,
-      type: 'status_update',
+      type: 'status_update:${status.toLowerCase()}',
       createdAt: DateTime.now(),
       isRead: false,
       actionLabel: 'Ver',
@@ -483,15 +497,29 @@ class DatabaseService {
 
     // Se o usuário reenviou os dados ou documentos, o status volta para waiting_approval
     if (request.status == 'waiting_approval' || request.status == 'renewing') {
-      String memberName = 'Beneficiário';
+      String memberName = 'membro';
       try {
         final memberData = await _supabase.from('members').select('name').eq('id', request.memberId).single();
-        memberName = memberData['name'];
+        if (memberData['name'] != null && (memberData['name'] as String).trim().isNotEmpty) {
+          memberName = memberData['name'];
+        }
       } catch (_) {}
 
+      String holderName = 'O titular';
+      try {
+        final profileData = await _supabase.from('profiles').select('name').eq('id', request.userId).single();
+        if (profileData['name'] != null && (profileData['name'] as String).trim().isNotEmpty) {
+          holderName = profileData['name'];
+        }
+      } catch (_) {}
+
+      final String messageText = holderName != 'O titular'
+          ? '$holderName atualizou a solicitação da carteirinha de $memberName. Protocolo: ${request.protocol}'
+          : 'O titular atualizou a solicitação da carteirinha de $memberName. Protocolo: ${request.protocol}';
+
       await _notifyAdmins(
-        'Solicitação Atualizada',
-        'O usuário reenviou os dados/documentos para $memberName (Protocolo: ${request.protocol}).',
+        'Solicitação atualizada',
+        messageText,
         'request_updated',
         memberId: request.memberId,
       );
