@@ -44,8 +44,10 @@ class _AddMemberPageState extends State<AddMemberPage> {
   final _nomeController = TextEditingController();
   final _cpfController = TextEditingController();
   final _telefoneController = TextEditingController();
-  final _contatoEmergenciaController = TextEditingController();
-  final _responsavelController = TextEditingController();
+  final _contatoEmergenciaNomeController = TextEditingController();
+  final _contatoEmergenciaTelefoneController = TextEditingController();
+  final _responsavelNomeController = TextEditingController();
+  final _responsavelTelefoneController = TextEditingController();
   final _nascimentoController = TextEditingController();
   final _cidController = TextEditingController();
 
@@ -95,6 +97,43 @@ class _AddMemberPageState extends State<AddMemberPage> {
     filter: {"#": RegExp(r'[0-9]')},
   );
 
+  final emergencyPhoneMask = MaskTextInputFormatter(
+    mask: '(##) #####-####',
+    filter: {"#": RegExp(r'[0-9]')},
+  );
+
+  final responsiblePhoneMask = MaskTextInputFormatter(
+    mask: '(##) #####-####',
+    filter: {"#": RegExp(r'[0-9]')},
+  );
+
+  String _composeContact(String name, String phone) {
+    final cleanName = name.trim();
+    final cleanPhone = phone.trim();
+    if (cleanName.isNotEmpty && cleanPhone.isNotEmpty) {
+      return '$cleanName - $cleanPhone';
+    } else if (cleanName.isNotEmpty) {
+      return cleanName;
+    } else if (cleanPhone.isNotEmpty) {
+      return cleanPhone;
+    }
+    return '';
+  }
+
+  Map<String, String> _parseContact(String value) {
+    if (value.contains(' - ')) {
+      final parts = value.split(' - ');
+      return {
+        'name': parts[0].trim(),
+        'phone': parts.sublist(1).join(' - ').trim(),
+      };
+    }
+    return {
+      'name': value.trim(),
+      'phone': '',
+    };
+  }
+
   @override
   void initState() {
     super.initState();
@@ -103,8 +142,17 @@ class _AddMemberPageState extends State<AddMemberPage> {
       _nomeController.text = m.name;
       _cpfController.text = m.cpf;
       _telefoneController.text = m.phone;
-      _contatoEmergenciaController.text = m.emergencyContact;
-      _responsavelController.text = m.responsibleName;
+
+      // Parse do contato de emergência legado
+      final parsedEmerg = _parseContact(m.emergencyContact);
+      _contatoEmergenciaNomeController.text = parsedEmerg['name'] ?? '';
+      _contatoEmergenciaTelefoneController.text = parsedEmerg['phone'] ?? '';
+
+      // Parse do responsável legado
+      final parsedResp = _parseContact(m.responsibleName);
+      _responsavelNomeController.text = parsedResp['name'] ?? '';
+      _responsavelTelefoneController.text = parsedResp['phone'] ?? '';
+
       _nascimentoController.text = m.dateOfBirth;
       _cidController.text = m.cid;
       _selectedBloodType = m.bloodType.isNotEmpty ? m.bloodType : null;
@@ -185,8 +233,10 @@ class _AddMemberPageState extends State<AddMemberPage> {
     _nomeController.dispose();
     _cpfController.dispose();
     _telefoneController.dispose();
-    _contatoEmergenciaController.dispose();
-    _responsavelController.dispose();
+    _contatoEmergenciaNomeController.dispose();
+    _contatoEmergenciaTelefoneController.dispose();
+    _responsavelNomeController.dispose();
+    _responsavelTelefoneController.dispose();
     _nascimentoController.dispose();
     _cidController.dispose();
     super.dispose();
@@ -332,8 +382,14 @@ class _AddMemberPageState extends State<AddMemberPage> {
         city: _selectedCity!,
         state: _selectedState!,
         phone: _telefoneController.text,
-        emergencyContact: _contatoEmergenciaController.text,
-        responsibleName: _responsavelController.text.trim(),
+        emergencyContact: _composeContact(
+          _contatoEmergenciaNomeController.text,
+          _contatoEmergenciaTelefoneController.text,
+        ),
+        responsibleName: _composeContact(
+          _responsavelNomeController.text,
+          _responsavelTelefoneController.text,
+        ),
         dateOfBirth: _nascimentoController.text,
         bloodType: _selectedBloodType ?? '',
         cid: _cidController.text.trim(),
@@ -509,42 +565,32 @@ class _AddMemberPageState extends State<AddMemberPage> {
                               ),
                               const SizedBox(height: 20),
 
-                              Row(
-                                children: [
-                                  Expanded(
-                                    flex: 2,
-                                    child: RequestSearchableDropdown(
-                                      label: 'Estado*',
-                                      value: _selectedState,
-                                      items: _states
-                                          .map((s) => s['sigla'] as String)
-                                          .toList(),
-                                      onChanged: (val) {
-                                        setState(() => _selectedState = val);
-                                        _fetchCities(val);
-                                      },
-                                      icon: PhosphorIconsRegular.mapPin,
-                                      enabled: _isFieldEnabled('Estado'),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    flex: 5,
-                                    child: RequestSearchableDropdown(
-                                      label: 'Cidade*',
-                                      value: _selectedCity,
-                                      items: _cities,
-                                      onChanged: (val) =>
-                                          setState(() => _selectedCity = val),
-                                      icon:
-                                          PhosphorIconsRegular.navigationArrow,
-                                      hint: _isLoadingCities
-                                          ? 'Carregando...'
-                                          : 'Selecione',
-                                      enabled: _isFieldEnabled('Cidade'),
-                                    ),
-                                  ),
-                                ],
+                              RequestSearchableDropdown(
+                                label: 'Estado*',
+                                value: _selectedState,
+                                items: _states
+                                    .map((s) => s['sigla'] as String)
+                                    .toList(),
+                                onChanged: (val) {
+                                  setState(() => _selectedState = val);
+                                  _fetchCities(val);
+                                },
+                                icon: PhosphorIconsRegular.mapPin,
+                                enabled: _isFieldEnabled('Estado'),
+                              ),
+                              const SizedBox(height: 20),
+
+                              RequestSearchableDropdown(
+                                label: 'Cidade*',
+                                value: _selectedCity,
+                                items: _cities,
+                                onChanged: (val) =>
+                                    setState(() => _selectedCity = val),
+                                icon: PhosphorIconsRegular.navigationArrow,
+                                hint: _isLoadingCities
+                                    ? 'Carregando...'
+                                    : 'Selecione',
+                                enabled: _isFieldEnabled('Cidade'),
                               ),
                               const SizedBox(height: 20),
 
@@ -560,9 +606,9 @@ class _AddMemberPageState extends State<AddMemberPage> {
                               const SizedBox(height: 20),
 
                               RequestInputField(
-                                label: 'Contato de Emergência (Opcional)',
-                                controller: _contatoEmergenciaController,
-                                hint: 'Nome e Telefone',
+                                label: 'Nome do Contato de Emergência (Opcional)',
+                                controller: _contatoEmergenciaNomeController,
+                                hint: 'Digite o nome do contato',
                                 icon: PhosphorIconsRegular.firstAid,
                                 enabled: _isFieldEnabled(
                                   'Contato de Emergência',
@@ -571,10 +617,34 @@ class _AddMemberPageState extends State<AddMemberPage> {
                               const SizedBox(height: 20),
 
                               RequestInputField(
-                                label: 'Contato do Responsável (Opcional)',
-                                controller: _responsavelController,
-                                hint: 'Nome e Telefone (se menor)',
+                                label: 'Número do Contato de Emergência (Opcional)',
+                                controller: _contatoEmergenciaTelefoneController,
+                                hint: '(00) 00000-0000',
+                                icon: PhosphorIconsRegular.phone,
+                                inputFormatters: [emergencyPhoneMask],
+                                keyboardType: TextInputType.phone,
+                                enabled: _isFieldEnabled(
+                                  'Contato de Emergência',
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+
+                              RequestInputField(
+                                label: 'Nome do Responsável (Opcional)',
+                                controller: _responsavelNomeController,
+                                hint: 'Digite o nome do responsável',
                                 icon: PhosphorIconsRegular.users,
+                                enabled: _isFieldEnabled('Responsável'),
+                              ),
+                              const SizedBox(height: 20),
+
+                              RequestInputField(
+                                label: 'Número do Responsável (Opcional)',
+                                controller: _responsavelTelefoneController,
+                                hint: '(00) 00000-0000',
+                                icon: PhosphorIconsRegular.phone,
+                                inputFormatters: [responsiblePhoneMask],
+                                keyboardType: TextInputType.phone,
                                 enabled: _isFieldEnabled('Responsável'),
                               ),
                               const SizedBox(height: 20),
@@ -645,6 +715,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                               RequestDropdownField<String>(
                                 label: 'Tipo Sanguíneo (Opcional)',
                                 value: _selectedBloodType,
+                                hint: 'Selecione',
                                 items:
                                     [
                                           'A+',

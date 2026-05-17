@@ -43,6 +43,16 @@ class RequestDropdownField<T> extends StatelessWidget {
           onChanged: enabled ? onChanged : null,
           isExpanded: true,
           dropdownColor: const Color(0xFF0C2445),
+          hint: hint != null
+              ? Text(
+                  hint!,
+                  style: GoogleFonts.inter(
+                    color: AppColors.textSecondary.withValues(alpha: 0.5),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                )
+              : null,
           icon: const Icon(
             PhosphorIconsRegular.caretDown,
             color: AppColors.textSecondary,
