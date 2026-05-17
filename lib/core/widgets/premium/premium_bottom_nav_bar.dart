@@ -17,6 +17,11 @@ class PremiumBottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final double keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
+    if (keyboardInset > 0) {
+      return const SizedBox.shrink();
+    }
+
     final double systemBottomInset = MediaQuery.paddingOf(context).bottom;
     // Aumentamos a margem de segurança inferior para 20 para garantir simetria com as laterais
     // e evitar que a sombra seja "comida" pela barra de navegação do sistema no A55.
