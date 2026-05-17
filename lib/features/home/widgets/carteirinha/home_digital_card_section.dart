@@ -10,6 +10,7 @@ import 'package:conectea/models/digital_card.dart';
 import 'package:conectea/core/widgets/premium/premium_card.dart';
 import 'package:conectea/features/cards/widgets/carteirinha_digital/digital_card_widget.dart';
 import 'package:conectea/features/home/utils/home_status_helper.dart';
+import 'package:conectea/core/widgets/premium/premium_status_dialog.dart';
 
 class HomeDigitalCardSection extends StatelessWidget {
   final List<Member> members;
@@ -145,7 +146,6 @@ class HomeDigitalCardSection extends StatelessWidget {
     final String statusDisplay = statusInfo.fullLabel;
     final Color statusColor = statusInfo.color;
     final bool isActive = statusInfo.isActive;
-    final bool isRejected = statusInfo.isRejected;
 
     final adminNotes = memberRequest?.adminNotes ?? '';
 
@@ -423,27 +423,27 @@ class HomeDigitalCardSection extends StatelessWidget {
                         ),
                       ],
                       const SizedBox(height: 20),
-                      if (isRejected)
+                      if (statusInfo.shouldShowSupport)
                         SizedBox(
                           width: double.infinity,
                           child: OutlinedButton.icon(
                             onPressed: onSupportTap,
-                            icon: const Icon(
+                            icon: Icon(
                               Icons.support_agent_rounded,
-                              color: AppColors.errorRed,
+                              color: statusInfo.isSuspended ? statusColor : AppColors.errorRed,
                             ),
                             label: Text(
-                              'Falar com Suporte',
+                              statusInfo.isSuspended ? 'Pedir revisão' : 'Falar com Suporte',
                               style: GoogleFonts.inter(
                                 fontWeight: FontWeight.w800,
                                 fontSize: 15,
-                                color: AppColors.errorRed,
+                                color: statusInfo.isSuspended ? statusColor : AppColors.errorRed,
                               ),
                             ),
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 16),
-                              side: const BorderSide(
-                                color: AppColors.errorRed,
+                              side: BorderSide(
+                                color: statusInfo.isSuspended ? statusColor : AppColors.errorRed,
                                 width: 1.5,
                               ),
                               shape: RoundedRectangleBorder(
@@ -464,37 +464,36 @@ class HomeDigitalCardSection extends StatelessWidget {
                                   : effectiveStatus),
                           label: isActive
                               ? 'Abrir Carteira Digital'
-                              : (effectiveStatus == 'expired' ||
-                                      effectiveStatus == 'suspended'
+                              : (statusInfo.canRenew
                                   ? 'Solicitar Renovação'
                                   : (effectiveStatus == 'waiting_docs'
                                       ? 'Enviar Documentos'
                                       : (effectiveStatus == 'reviewing_data'
                                           ? 'Revisar Dados'
-                                          : 'Aguardando Aprovação'))),
+                                          : (statusInfo.isSuspended
+                                              ? 'Aguardando Revisão'
+                                              : 'Aguardando Aprovação')))),
                           iconOverride: isActive
                               ? Icons.qr_code_scanner_rounded
-                              : (effectiveStatus == 'expired' ||
-                                      effectiveStatus == 'suspended'
+                              : (statusInfo.canRenew
                                   ? Icons.autorenew_rounded
                                   : (effectiveStatus == 'waiting_docs' ||
                                           effectiveStatus == 'reviewing_data'
                                       ? Icons.edit_document
-                                      : Icons.lock_outline_rounded)),
+                                      : (statusInfo.isSuspended
+                                          ? Icons.hourglass_empty_rounded
+                                          : Icons.lock_outline_rounded))),
                           onTap: (isActive ||
                                   effectiveStatus == 'waiting_docs' ||
                                   effectiveStatus == 'reviewing_data' ||
-                                  ((effectiveStatus == 'expired' ||
-                                          effectiveStatus == 'suspended') &&
-                                      memberRequest != null))
+                                  (statusInfo.canRenew && memberRequest != null))
                               ? () {
                                   if (isActive) {
                                     onOpenDigitalCard();
                                   } else if (effectiveStatus == 'waiting_docs' ||
                                       effectiveStatus == 'reviewing_data') {
                                     onEditPendingRequest(member, memberRequest);
-                                  } else if (effectiveStatus == 'expired' ||
-                                      effectiveStatus == 'suspended') {
+                                  } else if (statusInfo.canRenew) {
                                     if (memberRequest != null) {
                                       onRequestRenewal(memberRequest.id);
                                     }
@@ -518,162 +517,10 @@ class HomeDigitalCardSection extends StatelessWidget {
     HomeStatusInfo statusInfo,
     String notes,
   ) {
-    final color = statusInfo.color;
-    final title = statusInfo.deadlineTitle ?? statusInfo.fullLabel;
-    final isRejected = statusInfo.isRejected;
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.cardBackground.withValues(alpha: 0.95),
-        surfaceTintColor: Colors.transparent,
-        title: Row(
-          children: [
-            Icon(statusInfo.icon, color: color),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                title,
-                style: GoogleFonts.inter(
-                  fontWeight: FontWeight.w900,
-                  color: color,
-                  fontSize: 18,
-                ),
-              ),
-            ),
-          ],
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
-          side: BorderSide(color: color.withValues(alpha: 0.3), width: 1.5),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (statusInfo.deadlineMessage != null) ...[
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: color.withValues(alpha: 0.2)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Informação importante:',
-                      style: GoogleFonts.inter(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
-                        color: color,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      statusInfo.deadlineMessage!,
-                      style: GoogleFonts.inter(
-                        fontSize: 13,
-                        color: AppColors.cardTitle,
-                        height: 1.5,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
-            if (notes.isNotEmpty) ...[
-              Text(
-                'Detalhes da equipe:',
-                style: GoogleFonts.inter(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.cardSubtitle.withValues(alpha: 0.6),
-                  letterSpacing: 0.5,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.03),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-                ),
-                child: Text(
-                  notes,
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: AppColors.cardTitle,
-                    height: 1.6,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ] else if (notes.isEmpty && (statusInfo.isRejected || statusInfo.showJustification) && statusInfo.deadlineMessage == null) ...[
-              Text(
-                'A equipe responsável ainda não adicionou detalhes específicos.',
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  color: AppColors.cardSubtitle.withValues(alpha: 0.7),
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
-            ],
-            if (isRejected) ...[
-              const SizedBox(height: 20),
-              Text(
-                'Caso não concorde com esta decisão, entre em contato com o nosso suporte para mais informações.',
-                style: GoogleFonts.inter(
-                  fontSize: 12,
-                  color: AppColors.cardSubtitle.withValues(alpha: 0.6),
-                  fontStyle: FontStyle.italic,
-                  height: 1.4,
-                ),
-              ),
-            ],
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Entendi',
-              style: GoogleFonts.inter(
-                color: AppColors.cardSubtitle,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-          if (isRejected)
-            Padding(
-              padding: const EdgeInsets.only(left: 8),
-              child: ElevatedButton.icon(
-                onPressed: onSupportTap,
-                icon: const Icon(Icons.support_agent_rounded, size: 18),
-                label: const Text('Suporte'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: color,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
+    PremiumStatusDialog.show(
+      context,
+      statusInfo: statusInfo,
+      notes: notes,
     );
   }
 }

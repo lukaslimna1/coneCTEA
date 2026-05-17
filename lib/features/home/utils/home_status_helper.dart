@@ -12,6 +12,10 @@ class HomeStatusInfo {
   final IconData icon;
   final bool isActive;
   final bool isRejected;
+  final bool isSuspended;
+  final bool canRenew;
+  final bool shouldShowSupport;
+  final bool shouldShowTeamDetails;
   final bool showJustification;
   final String? deadlineTitle;
   final String? deadlineMessage;
@@ -26,6 +30,10 @@ class HomeStatusInfo {
     required this.icon,
     this.isActive = false,
     this.isRejected = false,
+    this.isSuspended = false,
+    this.canRenew = false,
+    this.shouldShowSupport = false,
+    this.shouldShowTeamDetails = false,
     this.showJustification = false,
     this.deadlineTitle,
     this.deadlineMessage,
@@ -87,6 +95,7 @@ class HomeStatusHelper {
     String? deadlineTitle;
     String? deadlineMessage;
     String? secondaryActionLabel;
+    bool shouldShowTeamDetails = false;
 
     final DateTime? deadline = memberRequest?.expiresAt;
     final String dateStr = deadline != null
@@ -98,8 +107,10 @@ class HomeStatusHelper {
       case 'under_review':
       case 'pending':
         deadlineTitle = 'Prazo de aprovação';
-        deadlineMessage = 'A análise da carteirinha pode levar até 5 dias úteis, caso não existam pendências no cadastro ou nos documentos.';
+        deadlineMessage =
+            'A análise da carteirinha pode levar até 5 dias úteis, caso não existam pendências no cadastro ou nos documentos.';
         secondaryActionLabel = 'Ver prazo de aprovação';
+        shouldShowTeamDetails = false;
         break;
       case 'waiting_docs':
         deadlineTitle = 'Documentos solicitados';
@@ -107,6 +118,7 @@ class HomeStatusHelper {
             ? 'Envie os documentos até $dateStr.'
             : 'Envie os documentos solicitados para continuar.';
         secondaryActionLabel = 'Ver documentos solicitados';
+        shouldShowTeamDetails = true;
         break;
       case 'reviewing_data':
         deadlineTitle = 'Dados para revisar';
@@ -114,27 +126,32 @@ class HomeStatusHelper {
             ? 'Corrija os dados até $dateStr.'
             : 'Revise os dados solicitados para continuar.';
         secondaryActionLabel = 'Ver dados para revisão';
+        shouldShowTeamDetails = true;
         break;
       case 'renewing':
         deadlineTitle = 'Prazo da renovação';
-        deadlineMessage = 'A renovação pode levar de 5 a 10 dias úteis, dependendo da análise e da necessidade de novas informações.';
+        deadlineMessage =
+            'A renovação pode levar de 5 a 10 dias úteis, dependendo da análise e da necessidade de novas informações.';
         secondaryActionLabel = 'Ver prazo da renovação';
+        shouldShowTeamDetails = false;
         break;
       case 'expired':
-        // Sem botão secundário específico
         deadlineTitle = 'Vencida';
         deadlineMessage = 'Solicite a renovação para continuar utilizando.';
         secondaryActionLabel = null;
+        shouldShowTeamDetails = false;
         break;
       case 'rejected':
         deadlineTitle = 'Motivo da reprovação';
         deadlineMessage = 'Verifique o motivo para entender como proceder.';
         secondaryActionLabel = 'Ver motivo da reprovação';
+        shouldShowTeamDetails = true;
         break;
       case 'suspended':
         deadlineTitle = 'Motivo da suspensão';
         deadlineMessage = 'Entre em contato com o suporte do projeto.';
         secondaryActionLabel = 'Ver motivo da suspensão';
+        shouldShowTeamDetails = true;
         break;
     }
 
@@ -147,6 +164,11 @@ class HomeStatusHelper {
       icon: tokens.icon,
       isActive: effectiveStatus == 'active' || effectiveStatus == 'approved',
       isRejected: effectiveStatus == 'rejected',
+      isSuspended: effectiveStatus == 'suspended',
+      canRenew: effectiveStatus == 'expired',
+      shouldShowSupport:
+          effectiveStatus == 'rejected' || effectiveStatus == 'suspended',
+      shouldShowTeamDetails: shouldShowTeamDetails,
       showJustification: secondaryActionLabel != null,
       deadlineTitle: deadlineTitle,
       deadlineMessage: deadlineMessage,
