@@ -64,7 +64,9 @@ class HomeMembersSection extends StatelessWidget {
                     vertical: 10,
                   ),
                   width: 175, // Largura fixa para estabilidade
-                  height: 64, // Altura fixa para consistência
+                  constraints: const BoxConstraints(
+                    minHeight: 64, // Altura mínima para consistência e segurança sob zoom
+                  ),
                   decoration: BoxDecoration(
                     color: isSelected
                         ? Colors.white.withValues(alpha: 0.08)
@@ -99,6 +101,7 @@ class HomeMembersSection extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
                               member.name.split(' ').first,
