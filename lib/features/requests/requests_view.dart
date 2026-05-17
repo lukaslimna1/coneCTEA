@@ -159,15 +159,16 @@ class RequestsView extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.1),
+              color: Colors.white.withValues(alpha: 0.06),
               borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
             ),
             child: Text(
               count.toString(),
               style: GoogleFonts.inter(
                 fontSize: 11,
                 fontWeight: FontWeight.w800,
-                color: AppColors.primary,
+                color: Colors.white.withValues(alpha: 0.92),
               ),
             ),
           ),
@@ -222,6 +223,8 @@ class RequestsView extends StatelessWidget {
 
     return PremiumCard(
       hasGradient: true,
+      padding: EdgeInsets.zero,
+      radius: 20,
       onTap: !isActionable
         ? null
         : () async {
@@ -240,48 +243,81 @@ class RequestsView extends StatelessWidget {
           },
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Faixa/acento superior colorido pelo status
+          Container(
+            height: 4,
+            width: double.infinity,
+            color: tokens.primary,
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // 1. Pill de status
+                _buildStatusBadge(tokens),
+                const SizedBox(height: 12),
+
+                // 2. Ícone + Título
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         color: AppColors.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      child: Icon(_getTypeIcon(request.type), color: AppColors.primary, size: 24),
+                      child: Icon(
+                        _getTypeIcon(request.type),
+                        color: AppColors.primary,
+                        size: 20,
+                      ),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 12),
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _getTypeLabel(request.type),
-                            style: GoogleFonts.inter(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 16,
-                              color: AppColors.cardTitle,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Protocolo: ${request.protocol}',
-                            style: GoogleFonts.inter(
-                              fontSize: 12,
-                              color: AppColors.cardMutedText,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
+                      child: Text(
+                        _getTypeLabel(request.type),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.inter(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 15,
+                          color: AppColors.cardTitle,
+                        ),
                       ),
                     ),
-                    _buildStatusBadge(tokens),
                   ],
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 12),
+
+                // 3. Protocolo
+                if (request.protocol.isNotEmpty) ...[
+                  Text(
+                    'Protocolo: ${request.protocol}',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: AppColors.cardMutedText,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                ],
+
+                // 4. Data
+                Text(
+                  'Solicitado em $dateFormatted',
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: AppColors.cardMutedText,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+
+                // Progresso da análise (apenas para itens em andamento)
                 if (!isHistory) ...[
+                  const SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -293,91 +329,96 @@ class RequestsView extends StatelessWidget {
                           color: AppColors.cardSubtitle,
                         ),
                       ),
-                        Text(
-                          '${(_getProgress(request.status) * 100).toInt()}%',
-                          style: GoogleFonts.inter(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w800,
-                            color: tokens.primary,
-                          ),
+                      Text(
+                        '${(_getProgress(request.status) * 100).toInt()}%',
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                          color: tokens.primary,
                         ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 8),
-                  Stack(
-                    children: [
-                      Container(
-                        height: 6,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: AppColors.background,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 500),
-                        height: 6,
-                        width: (MediaQuery.of(context).size.width - 88) * _getProgress(request.status),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [tokens.primary.withValues(alpha: 0.6), tokens.primary],
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      return Stack(
+                        children: [
+                          Container(
+                            height: 6,
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: AppColors.background,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
                           ),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                    ],
+                          AnimatedContainer(
+                            duration: const Duration(milliseconds: 500),
+                            height: 6,
+                            width: constraints.maxWidth * _getProgress(request.status),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [tokens.primary.withValues(alpha: 0.6), tokens.primary],
+                              ),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
-                  const SizedBox(height: 20),
                 ],
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(PhosphorIconsRegular.calendar, size: 14, color: AppColors.cardMutedText),
-                        const SizedBox(width: 6),
-                        Text(
-                          dateFormatted,
-                          style: GoogleFonts.inter(
-                            fontSize: 12,
-                            color: AppColors.cardMutedText,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
+
+                // Botão CORRIGIR alinhado no canto inferior direito
+                if (isActionable) ...[
+                  const SizedBox(height: 16),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: StatusActionButton(
+                      label: 'CORRIGIR',
+                      statusKey: request.status,
+                      height: 28,
+                      fontSize: 9,
+                      iconSize: 14,
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
                     ),
-                    if (request.status == 'reviewing_data' || request.status == 'waiting_docs')
-                      StatusActionButton(
-                        label: 'CORRIGIR',
-                        statusKey: request.status,
-                        height: 28,
-                        fontSize: 9,
-                        iconSize: 14,
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                      ),
-                  ],
-                ),
+                  ),
+                ],
               ],
             ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildStatusBadge(StatusVisualTokens tokens) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: tokens.pillBackground,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: tokens.border.withValues(alpha: 0.2)),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: tokens.pillBorder),
       ),
-      child: Text(
-        tokens.label.toUpperCase(),
-        style: GoogleFonts.inter(
-          color: tokens.primary,
-          fontSize: 10,
-          fontWeight: FontWeight.w900,
-          letterSpacing: 0.5,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(tokens.icon, size: 12, color: tokens.primary),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              tokens.label.toUpperCase(),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.inter(
+                color: tokens.primary,
+                fontSize: 9,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
