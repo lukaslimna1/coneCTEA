@@ -61,7 +61,7 @@ class CardsDetailsSection extends StatelessWidget {
             children: [
               Expanded(
                 child: PremiumButton(
-                  text: 'Ver carteirinha',
+                  text: 'VER',
                   variant: PremiumButtonVariant.primary,
                   icon: PhosphorIconsRegular.identificationCard,
                   onPressed: onOpenFullScreen,
@@ -104,35 +104,42 @@ class CardsDetailsSection extends StatelessWidget {
     bool isStatus = false,
   }) {
     return PremiumCard(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
       child: Row(
         children: [
           Icon(
             icon,
             color: isStatus ? AppColors.statusGreen : AppColors.primary,
-            size: 24,
+            size: 20,
           ),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: GoogleFonts.inter(
-                  fontSize: 11,
-                  color: AppColors.cardSubtitle,
-                  fontWeight: FontWeight.w500,
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.inter(
+                    fontSize: 10.5,
+                    color: AppColors.cardSubtitle,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-              ),
-              Text(
-                value,
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                  color: isStatus ? AppColors.statusGreen : AppColors.cardTitle,
+                Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color: isStatus ? AppColors.statusGreen : AppColors.cardTitle,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
