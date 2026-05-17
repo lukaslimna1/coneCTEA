@@ -3,7 +3,7 @@
 **App:** 0.5.0-dev  
 **Documentação:** 4.2.0  
 **Status:** Desenvolvimento
-**Atualizado em:** 16/05/2026
+**Atualizado em:** 17/05/2026
 
 ---
 
@@ -22,8 +22,27 @@ O projeto mantém scripts de automação em `tools/qa/android/` para agilizar a 
     *   Scripts `.bat` padronizados para abertura de AVDs com `-gpu angle_indirect` e `-no-snapshot-load`.
     *   Utilitários inclusos: `listar_avds.bat`, `fechar_emuladores_adb.bat` e `abrir_todos_qa_info.bat`.
     *   Scripts antigos obsoletos foram removidos.
-*   **Validação em Hardware Real:**
-    *   Testes periódicos realizados em dispositivo físico **Samsung A55**, validando comportamento de `SafeArea`, `NavigationBar` nativa, densidade de pixels e performance de animações (avatares neon e carteirinha digital).
+*   **Dispositivos de Referência:**
+    *   Perfil **Samsung A55** considerado como referência para visualização do comportamento de `SafeArea`, `NavigationBar` nativa, densidade de pixels e performance de animações (avatares neon e carteirinha digital).
 *   **Protocolo Técnico:**
     *   Uso da flag `-no-snapshot-load` nos scripts para garantir um "Cold Boot" limpo e evitar travamentos por snapshots corrompidos.
     *   Atenção redobrada ao abrir múltiplos emuladores, pois os IDs de dispositivo (ex: `emulator-5554`) podem alternar entre os perfis abertos.
+
+---
+
+## Protocolo de Testes de Responsividade (Frente 26A)
+
+Para validar modificações no ecossistema da Home e componentes premium associados, execute os seguintes passos:
+
+1. **Validação de Notches e Entalhes superiores:**
+   - Ative a simulação de entalhe (Ex: *Waterfall Cutout* ou *Corner Cutout*) nas opções de desenvolvedor do emulador.
+   - Verifique que o `AppTopHeader` permanece posicionado adequadamente e o Hero da Home não sofre deslocamento incorreto.
+
+2. **Simulação de Gestos e Barra de Navegação Física:**
+   - Execute o app no perfil **Samsung A05/A06** (360dp) e **ZFlip** (412dp Tall).
+   - Alterne o sistema do Android para navegação por **Gestos**. Verifique que os botões de ação e abas não se sobrepõem à barra horizontal de gestos do SO.
+   - Alterne de volta para navegação por **3 Botões**. Valide o comportamento estético sob a `PremiumBottomNavBar`.
+
+3. **Carga e Zoom Dinâmicos:**
+   - **Cenário recomendado de validação futura:** Configurar o emulador com zoom de exibição de **1.5x**.
+   - Navegar pela Home e verificar que a lista horizontal de membros e os cards de atalhos e informações redimensionam adequadamente, mitigando o risco de truncações ou overflows horizontais/verticais.

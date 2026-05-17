@@ -2,7 +2,7 @@
 
 **App:** 0.5.0-dev  
 **Documentação:** 4.2.0  
-**Status:** Em construção  
+**Status:** Desenvolvimento
 **Atualizado em:** 17/05/2026
 
 ---
@@ -43,8 +43,28 @@ Antes de finalizar qualquer tarefa, valide os seguintes pontos:
 
 ---
 
-## Próxima Frente: Home Responsiva (Validações Futuras)
+## Checklist de Responsividade da Home (Frente 26A)
 
-Para a próxima frente de Home responsiva, os seguintes testes serão obrigatórios:
-- **Header:** Validar blindagem contra câmera frontal, notch, gota, ilhas, furos e recortes. Auditar o uso estrito de `SafeArea`. Conteúdo abaixo não pode ser empurrado de forma quebrada.
-- **Navbar:** Validar comportamento com navegação Android por gestos e navegação Android com 3 botões. O espaço disponível muda dinamicamente.
+Este checklist serve como guia para apoiar a mitigação de falhas visuais ou quebras de layout em futuras atualizações da Home:
+
+### 1. Header e SafeArea Superior Adaptativa
+- [ ] Iniciar o app em simulador com cutout específico (ex: Gota, Tall cutout ou Corner).
+- [ ] Validar que o logotipo no `AppTopHeader` não fica sobreposto à status bar ou cortado fisicamente.
+- [ ] Confirmar que o clearance entre o Header e o Hero ("Olá, Nome") permanece harmonioso em `8.0` pixels, sem vãos excessivos.
+- [ ] Validar comportamento em rotação (se aplicável), garantindo integridade visual.
+
+### 2. PremiumBottomNavBar (Barra de Navegação Premium)
+- [ ] Abrir o app em dispositivo configurado com **Navegação por Gestos** do sistema Android.
+- [ ] Validar que o padding inferior se ajusta adequadamente de forma nativa para evitar que o indicador de gestos colida com os botões/ícones da navbar.
+- [ ] Alternar para o modo de **3 Botões Tradicionais** do Android.
+- [ ] Validar que a navbar se posiciona de forma compacta imediatamente acima da barra de botões nativa, sem folgas excessivas.
+- [ ] Alternar freneticamente entre as abas (Home, Carteirinha, etc.) e validar que **NENHUM RenderFlex ou tremor de milissegundos** ocorre durante as animações de transição de largura.
+
+### 3. Membros e Seletores Familiares
+- [ ] **Cenário recomendado de validação futura:** Aumentar o zoom de exibição/fonte do sistema operacional para 1.2x e 1.5x.
+- [ ] Validar que os avatares neon em `HomeMembersSection` mantêm seu tamanho proporcional sem sofrer recortes verticais ou disparar exceções de overflow.
+
+### 4. Carrosséis e Margens de Sombra (Buffers Seguros)
+- [ ] Validar que o card de Acesso Rápido (`QuickAccessCard`) termina de forma compacta e simétrica logo abaixo de seu respectivo CTA, sem deixar espaços vazios indesejados.
+- [ ] Confirmar que a altura do carrossel pai do Acesso Rápido está fixada em `148` no máximo.
+- [ ] Rolar o carrossel de "Outros Serviços" e "Informações" e confirmar que as sombras inferiores (`BoxShadow` premium) são desenhadas integralmente, sem recortes ou linhas duras abruptas causadas por contêineres pais muito estreitos.
