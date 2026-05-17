@@ -109,32 +109,38 @@ class PremiumBottomNavBar extends StatelessWidget {
             ),
           ] : null,
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              isSelected ? item.activeIcon : item.inactiveIcon,
-              color: isSelected ? Colors.white : const Color(0xFFAAB6CC).withValues(alpha: 0.9),
-              size: 24,
-            ),
-            if (isSelected) ...[
-              const SizedBox(width: 6),
-              Flexible(
-                child: Text(
-                  displayLabel,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.inter(
-                    fontSize: 12.5, // Reduzido levemente de 13 para 12.5 para garantir encaixe
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                    letterSpacing: -0.2,
-                  ),
+        child: ClipRect(
+          child: isSelected
+              ? Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      item.activeIcon,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        displayLabel,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.inter(
+                          fontSize: 12.5, // Reduzido levemente de 13 para 12.5 para garantir encaixe
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              : Icon(
+                  item.inactiveIcon,
+                  color: const Color(0xFFAAB6CC).withValues(alpha: 0.9),
+                  size: 24,
                 ),
-              ),
-            ],
-          ],
         ),
       ),
     );
