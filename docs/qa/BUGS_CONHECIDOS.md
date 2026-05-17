@@ -56,6 +56,15 @@ As frentes 26B e 26C focaram na mitigação de falhas e problemas de visualizaç
 - **Resolução:** O widget foi protegido com detecção nativa de foco de escrita. Ao ler `MediaQuery.viewInsetsOf(context).bottom > 0` (indicando teclado aberto na tela), o componente passa a retornar imediatamente um `SizedBox.shrink()`. Isso oculta temporariamente o menu premium, restaurando o espaço de scroll vertical completo para o formulário. A navbar reaparece de forma transparente e imediata assim que o foco do teclado é encerrado.
 - **Status:** **Resolvido** (Frente 26C.2).
 
+### 2.3 Overflows e Legibilidade na Tela de Pedidos e Solicitações (RequestsView)
+- **Problema:** Riscos de overflow horizontal na barra de progresso devido ao uso de MediaQuery para calcular largura dinâmica, além de baixa legibilidade no texto de contagem de registros na seção "Histórico" (texto roxo sobre fundo escuro).
+- **Causa Técnica:** O cálculo da barra utilizava a largura total da tela física, sem respeitar a margem e padding dos cards premium internos, causando estouro lateral em telas estreitas de 360dp. O contador roxo escuro oferecia baixo contraste de cores.
+- **Resolução:**
+  1. A barra de progresso foi migrada para usar `LayoutBuilder` coletando a largura exata do container local (`constraints.maxWidth`), permitindo flexibilidade proporcional e mitigando o risco de overflow horizontal em 360dp.
+  2. O contador visual foi substituído por um badge Dark Glass translúcido com contorno e texto em branco suave (`white.withValues(alpha: 0.92)`), garantindo alta legibilidade e contraste.
+  3. A estrutura do card de solicitação foi organizada verticalmente (pill de status, ícone, título com Expanded/ellipsis, número de protocolo e data em linhas próprias), protegendo o conteúdo.
+- **Status:** **Mitigado e Resolvido** (Frente 26D.1)
+
 ---
 
 ## 3. Histórico Geral de Bugs e Status Atual
@@ -68,9 +77,10 @@ As frentes 26B e 26C focaram na mitigação de falhas e problemas de visualizaç
 | `BUG-HOME-004` | `HomeMembersSection` | Média | Altura dinâmica com `BoxConstraints(minHeight: 64)`. | **RESOLVIDO** |
 | `BUG-CARD-001` | `CardsDetailsSection` | Alta | Padding compacto + Expanded + CTA 'VER' de 1 linha. | **RESOLVIDO** |
 | `BUG-NAV-001` | `PremiumBottomNavBar` | Alta | Ocultação baseada em MediaQuery.viewInsetsOf quando teclado > 0. | **RESOLVIDO** |
+| `BUG-REQ-001` | `RequestsView` | Alta | LayoutBuilder na barra de progresso + Cards verticais + Contador branco. | **RESOLVIDO** |
 
 ---
 
 ## Observações
 
-Nenhum bug de responsividade visual, RenderFlex ou overflow resta pendente nas seções principais da Home, da aba de Carteirinhas ou do formulário de solicitações auditados na bancada de desenvolvimento atual. A mitigação visual foi considerada altamente estável sob as condições de teste do ambiente local.
+Nenhum bug de responsividade visual, RenderFlex ou overflow resta pendente nas seções principais da Home, da aba de Carteirinhas, do formulário de solicitações ou da tela de Pedidos e Solicitações auditados na bancada de desenvolvimento atual. A mitigação visual foi considerada altamente estável sob as condições de teste do ambiente local.

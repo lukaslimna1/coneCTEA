@@ -107,3 +107,29 @@ Testes específicos de responsividade estrutural e estética premium nos cartõe
 - [ ] Verificar se o texto do botão CTA secundário exibe exatamente o texto compacto `"VER"`.
 - [ ] Confirmar que os botões `"VER"` e `"Girar"` dividem o espaço de forma proporcional de 50/50 e não geram transbordos de layout.
 - [ ] **Validação com zoom:** Aumentar a escala tipográfica do sistema operacional do smartphone/emulador para 1.5x e confirmar que os labels mais longos utilizam reticências e sofrem decaimento suave via `TextOverflow.ellipsis`, sem quebrar a integridade elástica do `CardsDetailsSection`.
+
+---
+
+## Checklist de Histórico e Pedidos/Solicitações (Frente 26D.1)
+
+Testes de responsividade técnica e de experiência visual na tela de Pedidos e Solicitações (`RequestsView`):
+
+### 1. Responsividade e Estabilidade de Layout dos Cards (360dp a 412dp)
+- [ ] Executar teste visual no emulador ou dispositivo real com perfil estreito de 360dp (Samsung A05/A06).
+- [ ] Validar que cada card de solicitação é renderizado verticalmente com:
+  - Faixa/acento superior colorido grudado no topo correspondente à cor do status (sem vãos brancos/escuros nas curvas superiores devido ao `ClipRRect`).
+  - Pill de status com ícone visível no canto superior esquerdo do conteúdo.
+  - Título principal alinhado e contido via `Expanded` com reticências (`TextOverflow.ellipsis`) em caso de textos muito longos.
+  - Protocolo copiável e data de solicitação exibidos em linhas individuais próprias logo abaixo.
+- [ ] Pressionar o botão "Copiar" ao lado do protocolo e verificar se o feedback visual ("Protocolo copiado!") é exibido de forma discreta e legível.
+- [ ] Validar que o botão "CORRIGIR" (quando disponível para status acionáveis como "Revisar") é renderizado adequadamente no canto inferior direito, sem empurrar outros elementos ou estourar a base do card.
+
+### 2. Barra de Progresso Dinâmica com LayoutBuilder
+- [ ] Redimensionar a tela ou simular aparelhos de diferentes larguras na bancada de testes.
+- [ ] Confirmar que o cálculo de preenchimento proporcional da barra de progresso (baseado no valor dinâmico de `progressValue`) permanece restrito aos limites internos do card via `LayoutBuilder(constraints.maxWidth)`.
+- [ ] Verificar que não ocorre nenhum estouro lateral de RenderFlex em larguras estreitas (360dp).
+
+### 3. Legibilidade do Contador de Registros (Dark Glass)
+- [ ] Localizar os cabeçalhos de seção "EM ANDAMENTO" e "HISTÓRICO".
+- [ ] Validar que a contagem numérica de solicitações ao lado de cada cabeçalho é exibida em branco suave (`white.withValues(alpha: 0.92)`).
+- [ ] Verificar que a pill de contorno roxo discreto e fundo Dark Glass oferece excelente taxa de contraste e boa legibilidade em ambientes de iluminação adversa.

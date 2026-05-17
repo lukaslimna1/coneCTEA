@@ -65,3 +65,12 @@ Para validar modificações no ecossistema da Home e componentes premium associa
      4. Validar se o CTA principal possui exatamente o texto `"VER"` de 1 linha.
      5. No menu de configurações do Android do emulador, aumente o tamanho da fonte do sistema para o nível máximo.
      6. Retorne ao app e confirme que os textos longos exibem reticências (`TextOverflow.ellipsis`) e não extrapolam a linha ou causam estouro de tela.
+
+6. **Protocolo de Testes para Pedidos e Solicitações (Frente 26D.1):**
+   - **Dispositivo recomendado:** Perfil **Samsung A05/A06** (360dp de largura de tela) ou **Xiaomi Redmi/POCO** (438dp).
+   - **Passo a Passo:**
+     1. Navegar até a aba de Pedidos/Solicitações ([requests_view.dart](file:///h:/Sites/ConeCTEA/lib/features/requests/requests_view.dart)).
+     2. Validar o alinhamento e a integridade visual da disposição vertical dos cards de solicitação.
+     3. Confirmar que a barra de progresso interno (com `LayoutBuilder`) expande e contrai de forma proporcional à largura útil disponível sem ocasionar falhas ou transbordos pretos/amarelos de RenderFlex.
+     4. Verificar a legibilidade do texto nos cabeçalhos "EM ANDAMENTO" e "HISTÓRICO" sob luz ambiente simulada brilhante ou no modo escuro.
+     5. Testar a funcionalidade de cópia do número de protocolo em múltiplos aparelhos da bancada, validando o contraste da mensagem temporária de sucesso.

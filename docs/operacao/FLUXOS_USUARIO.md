@@ -39,3 +39,15 @@ Mapear os principais fluxos de interação e navegação do usuário no aplicati
 - Visualiza o card digital estilizado com o Sapphire Luxe. O usuário pode tocar no card para rotacioná-lo (flip) e visualizar o QR Code administrativo e o texto legal simplificado no verso.
 - Logo abaixo da carteirinha, na seção [CardsDetailsSection](file:///h:/Sites/ConeCTEA/lib/features/cards/widgets/tela_carteirinhas/cards_details_section.dart), o usuário consulta rapidamente o bloco informativo de "Validade" e a pill de status administrativo, ambos protegidos contra quebra de layout em telas de 360dp.
 - Toca no botão de ação rápida `"VER"` para exibir o documento em tela cheia adaptativa ou no botão `"Girar"` para flipar a carteirinha.
+
+### Fluxo de Acompanhamento de Pedidos e Solicitações (Frente 26D.1)
+- O usuário acessa a aba "Pedidos" ou "Solicitações" para monitorar o andamento de seus processos pendentes ou concluídos.
+- A tela exibe um sumário organizado de forma limpa em duas seções principais: "EM ANDAMENTO" e "HISTÓRICO".
+- O usuário acompanha de forma linear e vertical cada card de solicitação contendo:
+  - Faixa colorida superior correspondente ao status (para fácil identificação visual).
+  - Pill de status com ícone correspondente no padrão Dark Glass.
+  - Título do dependente/solicitação em destaque com ellipsis se necessário.
+  - Data de submissão e número do protocolo em linhas individualizadas para máxima leitura vertical.
+  - Barra de progresso visual fluida e responsiva baseada na proporção do container.
+  - Botão "CORRIGIR" (unificado no padrão `StatusActionButton`) quando houver pendências acionáveis a resolver (como no status "Revisar").
+- O usuário pode copiar o protocolo com um clique e receber feedback visual discreto ("Protocolo copiado!").

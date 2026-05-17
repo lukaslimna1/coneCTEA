@@ -73,3 +73,14 @@ Catalogar e padronizar os componentes de interface premium utilizados no ecossis
 - **Função:** Seletor principal para alternar o membro visualizado no Documento Digital.
 - **Características de Responsividade:**
   - **Mitigação de Zoom:** Reduz o risco de quebras de layout ou truncações de avatares em cenários recomendados de validação futura com zoom ou fontes maiores.
+
+### 7. Card de Pedidos/Solicitações (Frente 26D.1)
+
+- **Local:** `lib/features/requests/requests_view.dart` (métodos internos do widget)
+- **Padrão Visual:** Lunar Glass / Night Blue com acento cromático superior de status.
+- **Função:** Card estruturado verticalmente para acompanhamento detalhado de solicitações do usuário.
+- **Características de Responsividade e Legibilidade:**
+  - **Acento Superior de Status:** Faixa colorida de `4px` colada ao topo do card de acordo com o status (`tokens.primary`), aproveitando de forma limpa o arredondamento de bordas (`radius: 20` e `ClipRRect`) do `PremiumCard` sem a necessidade de customizações extras.
+  - **Estrutura Vertical Simétrica:** Organização vertical do conteúdo (pill de status com ícone, título com Expanded e ellipsis, protocolo copiável, data e barra de progresso) para leitura fluida e confortável em viewports estreitas de 360dp.
+  - **Cálculo de Progresso Adaptativo:** A barra de progresso dinâmico utiliza `LayoutBuilder` com `constraints.maxWidth` em vez do cálculo global por `MediaQuery`, garantindo que o `AnimatedContainer` se expanda de forma proporcional aos limites físicos do card, eliminando riscos de estouro de RenderFlex lateral em 360dp.
+  - **Contador com Badge Dark Glass:** Os badges numéricos dos cabeçalhos das seções foram ajustados para a cor branca suave (`white.withValues(alpha: 0.92)`) sobre uma pill de contorno roxo discreto e fundo Dark Glass, oferecendo excelente contraste sob luz ambiente ou variações de brilho na bancada de testes.

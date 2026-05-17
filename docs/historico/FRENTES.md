@@ -50,6 +50,7 @@ Este arquivo existe para manter rastreabilidade sem sobrecarregar o `DOCTecnico.
 | 26C.2 | Concluída | Ocultação temporária e reativa da navbar premium com o teclado virtual aberto. Commit `49e6cae`. | Oculta a `PremiumBottomNavBar` quando o teclado Android está ativo via `MediaQuery.viewInsetsOf`, mitigando sobreposições em barras nativas. |
 | 26B.2 | Concluída | Mitigação de overflow horizontal na seção de detalhes da carteirinha digital. Commit `e3e004f`. | Redução de textos de CTA para "VER", redimensionamento de paddings/ícones do bloco de validade e aplicação de `Expanded` e `TextOverflow.ellipsis`. |
 | 26B.3-AUD | Concluída | Auditoria técnica global de responsividade da seção de detalhes da carteirinha digital em viewports de 360dp a 412dp. | Comprova estabilidade e flexibilidade elástica do layout nos cenários simulados. Sem necessidade de alterações de código Dart. |
+| 26D.1 | Concluída | Refino visual da tela Pedidos / Solicitações com nova hierarquia vertical, LayoutBuilder na barra de progresso e contador Dark Glass com número branco. Commit `5b4ab6f`. | Melhora significativamente a responsividade da tela em viewports de 360dp a 438dp. |
 
 ---
 
@@ -64,6 +65,7 @@ Se uma frente como `24D.1`, `24D.2`, `25B.1` ou `25B.2` não estiver registrada 
 ## Roadmap Técnico
 
 ### Concluído recentemente
+- Frente 26D.1 (Refino visual da tela Pedidos / Solicitações);
 - Frente 26B.1 (Refinamento Sapphire Luxe da Carteirinha Digital);
 - Frente 26C.1 (Ajustes no formulário de Novo Dependente);
 - Frente 26C.2 (Ocultação da navbar premium com teclado Android aberto);
