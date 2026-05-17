@@ -25,7 +25,7 @@ class HomeQuickAccessSection extends StatelessWidget {
 
     return HomeHorizontalSection(
       title: 'Acesso Rápido',
-      height: 168,
+      height: 148,
       items: [
         VerCarteirinhaCard(
           width: cardWidth,
