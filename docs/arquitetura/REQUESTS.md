@@ -2,29 +2,17 @@
 
 **App:** 0.5.0-dev  
 **Documentação:** 4.2.0  
-**Status:** Em construção  
+**Status:** Desenvolvimento
 **Atualizado em:** 16/05/2026
 
 ---
 
-## Objetivo
-
-Descrever o objetivo deste documento dentro da documentação profissional do ConeCTEA.
-
----
-
-## Escopo
-
-Este documento será preenchido progressivamente conforme as frentes forem consolidadas.
-
----
-
-## Seções planejadas
-
-- A definir.
-
----
-
-## Observações
-
-Este arquivo foi criado como parte da estrutura profissional de documentação do ConeCTEA.
+## 5.4 Solicitação de Carteirinha (Requests)
+O fluxo foi consolidado e modularizado:
+*   **Fluxo Direto:** Acesso via Home ou Cards diretamente para `AddMemberPage`.
+*   **Validação Real:** Implementada validação algorítmica de CPF (`request_cpf_validator.dart`).
+*   **Status Padronizado:** O sistema consome `StatusVisualTokens` para exibir feedbacks visuais apropriados na `RequestsView` e em cards de acompanhamento. O botão "CORRIGIR" (fluxo de revisão) foi unificado no padrão `StatusActionButton`.
+*   **Segurança:** Ciclo de segurança imediata executado nas áreas auditadas, com feedbacks seguros ao usuário.
+*   **Gestão de Documentos (Frente 24C):** Upload mobile via Google Apps Script (GAS) com suporte a bytes (Web fallback) e path (Mobile). Os logs do `GoogleDriveService` são mascarados (fileId omitido) para proteger a privacidade.
+*   **Limpeza Automática (LGPD):** Ao aprovar uma carteirinha, o sistema remove automaticamente os documentos (RG/Laudo) da pasta do Google Drive e os envia para a lixeira. Os campos `document_url` e `medical_report_url` são limpos no banco de dados após o sucesso da operação. Validação oficial em mobile/emulador.
+*   **Depreciação:** `MemberSelectionPage` e `NewRequestPage` foram removidas em favor da `AddMemberPage`.

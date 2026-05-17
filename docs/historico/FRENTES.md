@@ -3,7 +3,7 @@
 **App:** 0.5.0-dev  
 **Documentação:** 4.2.0  
 **Status:** Desenvolvimento  
-**Atualizado em:** 16/05/2026
+**Atualizado em:** 17/05/2026
 
 ---
 
@@ -30,6 +30,7 @@ Este arquivo existe para manter rastreabilidade sem sobrecarregar o `DOCTecnico.
 
 | Frente | Status | Resumo técnico | Observação |
 |---|---|---|---|
+| 25C | Concluída | Finaliza modal premium e ajustes de status da Home. Commit `c282eb7`. Novo `PremiumStatusDialog` sem ações complexas. Fluxo de "Renovação" isolado para status "Vencida". Status "Suspensa" com botão de revisão próprio. Validações: `flutter analyze` limpo, `flutter build apk --debug` ok, `git diff --check` ok. | Push concluído para `origin/main`. Fluxo de renovação validado manualmente com usuário QA interno, sem dados pessoais. |
 | 23E | Concluída | Implementação do sistema oficial `ConecteaAvatar`, visual Lunar Glass, 15 paletas neon/tech e herança cromática por conta titular. | Consolidou identidade visual familiar dos avatares. |
 | 24C | Concluída | Correções críticas pós-teste APK 23E: Instagram externo, CTA de retorno, upload mobile de documentos, redirect GAS no `GoogleDriveService`, limpeza automática de documentos do Drive após aprovação, logs mascarados e feedback administrativo de falha de limpeza. | Fluxo mobile/emulador validado com deleção instantânea dos documentos do Drive. Chrome/Web segue com limitação futura por CORS/GAS. |
 | 24D.3 | Concluída | Remoção completa do fluxo de confirmação por OTP. Cadastro passou a ser 100% interno: cria conta/perfil, executa `signOut()`, exibe diálogo de sucesso e leva para `/login`. Reset de senha via Supabase preservado. | `confirm_email_page.dart`, rota `/confirm-email` e métodos OTP foram removidos. |
@@ -51,10 +52,34 @@ Se uma frente como `24D.1`, `24D.2`, `25B.1` ou `25B.2` não estiver registrada 
 
 ---
 
-## Pendências Relacionadas
+## Roadmap Técnico
 
-- Blindagem global de SafeArea, notch, câmera frontal e navigation bar.
-- Refinamento visual dos demais blocos da Home.
-- Cards de acesso rápido.
-- Responsividade e legibilidade em telas Android estreitas/curvas.
-- QA contínuo em matriz Samsung, Motorola e Xiaomi.
+### Concluído recentemente
+- Frente 23E;
+- Frente 24C;
+- Frente 24D.3;
+- Frente 25A;
+- Frente 25B.3;
+- Versionamento;
+- Account v2.
+
+### Próxima Direção
+- Home & Experiência;
+- Home Layout;
+- Legibilidade;
+- QA Contínuo.
+
+### Futuro / Backlog
+- Saúde;
+- Push;
+- Geolocalização;
+- Arquitetura;
+- Suporte;
+- Revisão Jurídica;
+- Privacidade;
+- Admin;
+- Conteúdo;
+- BI;
+- UX;
+- Tema claro;
+- modo offline básico.

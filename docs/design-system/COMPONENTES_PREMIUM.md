@@ -3,28 +3,26 @@
 **App:** 0.5.0-dev  
 **Documentação:** 4.2.0  
 **Status:** Em construção  
-**Atualizado em:** 16/05/2026
+**Atualizado em:** 17/05/2026
 
 ---
 
 ## Objetivo
 
-Descrever o objetivo deste documento dentro da documentação profissional do ConeCTEA.
+Catalogar e padronizar os componentes de interface premium utilizados no ecossistema ConeCTEA.
 
 ---
 
-## Escopo
+## Componentes
 
-Este documento será preenchido progressivamente conforme as frentes forem consolidadas.
+### PremiumStatusDialog
 
----
-
-## Seções planejadas
-
-- A definir.
-
----
-
-## Observações
-
-Este arquivo foi criado como parte da estrutura profissional de documentação do ConeCTEA.
+- **Local:** `lib/core/widgets/premium/premium_status_dialog.dart`
+- **Padrão Visual:** Night Blue / Lunar Glass.
+- **Função:** Componente centralizado para avisos e informativos, substituindo o `AlertDialog` nativo no fluxo “Ver Motivo / Ver Documento Digital”.
+- **Características:**
+  - Modal puramente informativo.
+  - Botão único `Entendido`.
+  - Scroll interno para garantir a leitura de justificativas longas.
+  - Adaptado para evitar overflow em telas estreitas (360dp).
+  - **Restrições:** Não deve conter botão de suporte ou ações de negócio (separação clara entre visual e regras de negócio).

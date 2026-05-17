@@ -25,6 +25,13 @@ Este documento será preenchido progressivamente conforme as frentes forem conso
 
 ---
 
+## Checklist de Validação
+
+Para garantir a qualidade antes de qualquer release, valide regras de lint, compilação de APK e commits.
+Consulte o [Checklist de Testes](../qa/CHECKLIST_TESTES.md) completo.
+
+---
+
 ## Observações
 
 Este arquivo foi criado como parte da estrutura profissional de documentação do ConeCTEA.

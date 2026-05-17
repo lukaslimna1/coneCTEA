@@ -25,6 +25,12 @@ Este documento será preenchido progressivamente conforme as frentes forem conso
 
 ---
 
+## Roadmap Técnico e Frentes
+
+Para acompanhar o histórico de frentes, o que foi concluído recentemente e o que está no backlog (próxima direção e futuro), consulte o [Histórico de Frentes](../historico/FRENTES.md).
+
+---
+
 ## Observações
 
 Este arquivo foi criado como parte da estrutura profissional de documentação do ConeCTEA.

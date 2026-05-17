@@ -24,6 +24,7 @@ A pasta `docs/` guarda os documentos detalhados por tema.
 ### Arquitetura
 - [Arquitetura Geral](arquitetura/ARQUITETURA_GERAL.md)
 - [Home Unificada](arquitetura/HOME_UNIFICADA.md)
+- [Central do Usuário](arquitetura/ACCOUNT.md)
 - [Auth](arquitetura/AUTH.md)
 - [Requests](arquitetura/REQUESTS.md)
 - [Carteirinha Digital](arquitetura/CARTEIRINHA_DIGITAL.md)

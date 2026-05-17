@@ -3,28 +3,23 @@
 **App:** 0.5.0-dev  
 **Documentação:** 4.2.0  
 **Status:** Em construção  
-**Atualizado em:** 16/05/2026
+**Atualizado em:** 17/05/2026
 
 ---
 
 ## Objetivo
 
-Descrever o objetivo deste documento dentro da documentação profissional do ConeCTEA.
+Mapear as regras de negócio associadas aos diferentes status da carteirinha e da plataforma.
 
 ---
 
-## Escopo
+## Regras Operacionais por Status
 
-Este documento será preenchido progressivamente conforme as frentes forem consolidadas.
+### Renovação
+- A flag `canRenew` é exclusiva para o status **Vencida** (`expired`).
+- Carteirinhas no status **Suspensa** ou **Reprovada** não podem entrar no fluxo de renovação.
+- **Renovando** é um estado estritamente de espera, ativado logo após o usuário solicitar a renovação da carteirinha.
 
----
-
-## Seções planejadas
-
-- A definir.
-
----
-
-## Observações
-
-Este arquivo foi criado como parte da estrutura profissional de documentação do ConeCTEA.
+### Exibição de Informações
+- O campo `notes` (justificativas, motivos de recusa) não é apagado do banco de dados quando o usuário envia correções.
+- A exibição do "Detalhes da equipe" na UI é baseada em regras de apresentação, não devendo aparecer em status neutros ou de análise.
