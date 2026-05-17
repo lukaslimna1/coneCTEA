@@ -82,38 +82,54 @@ class DigitalCardBack extends StatelessWidget {
                   
                   if (member.cid.isNotEmpty)
                     Padding(
-                      padding: const EdgeInsets.only(bottom: 6.0),
+                      padding: const EdgeInsets.only(bottom: 8.0),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF7C3AED).withValues(alpha: 0.25),
-                          border: Border.all(color: const Color(0xFFA143FF).withValues(alpha: 0.5)),
+                          color: const Color(0xFF0F172A).withValues(alpha: 0.45),
+                          border: Border.all(color: const Color(0xFF00D8D0).withValues(alpha: 0.3)),
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        child: Text(
-                          'CID: ${member.cid}',
-                          style: GoogleFonts.inter(
-                            color: const Color(0xFFA143FF),
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                          ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'CID: ',
+                              style: GoogleFonts.inter(
+                                color: Colors.white.withValues(alpha: 0.7),
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                            Text(
+                              member.cid,
+                              style: GoogleFonts.inter(
+                                color: const Color(0xFF67E8F9), // Ciano suave Sapphire
+                                fontSize: 10,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
                     
                   _buildBackItem('CIDADE / UF', '${member.city} / ${member.state}'),
-                  _buildBackItem('CONTATO DE EMERGÊNCIA', member.emergencyContact),
                   
                   const Spacer(),
                   
                   // Texto legal
-                  Text(
-                    'Documento de identificação digital para uso exclusivo nos programas da Família TEA Bauru.\nNão substitui a CIPTEA oficial (Lei 13.977/20) ou outros documentos de identidade legais.\nA autenticidade pode ser verificada via QR Code.',
-                    style: GoogleFonts.inter(
-                      color: Colors.white.withValues(alpha: 0.55),
-                      fontSize: 7,
-                      fontWeight: FontWeight.w800,
-                      height: 1.2,
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 4.0),
+                    child: Text(
+                      'Carteirinha digital de uso interno da Família TEA Bauru. Não substitui CIPTEA, RG, CPF ou outro documento oficial. A autenticidade pode ser verificada pelo QR Code.',
+                      style: GoogleFonts.inter(
+                        color: Colors.white.withValues(alpha: 0.65),
+                        fontSize: 8,
+                        fontWeight: FontWeight.w600,
+                        height: 1.3,
+                      ),
                     ),
                   ),
                 ],

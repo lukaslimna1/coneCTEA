@@ -222,28 +222,28 @@ class DigitalCardFront extends StatelessWidget {
                           fontWeight: FontWeight.w900,
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      if (member.responsibleName.isNotEmpty)
-                        Text(
-                          'Resp: ${member.responsibleName}',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.inter(
-                            color: Colors.white.withValues(alpha: 0.7),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w800,
+                      if (hasValidBloodType) ...[
+                        const SizedBox(height: 8),
+                        RichText(
+                          text: TextSpan(
+                            style: GoogleFonts.inter(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white.withValues(alpha: 0.88),
+                            ),
+                            children: [
+                              const TextSpan(text: 'Tipo Sanguíneo: '),
+                              TextSpan(
+                                text: member.bloodType,
+                                style: const TextStyle(
+                                  color: Color(0xFFFF9A8A), // Coral claro premium de alta legibilidade no fundo escuro
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      const SizedBox(height: 4),
-                      if (hasValidBloodType)
-                        Text(
-                          'Tipo Sanguíneo: ${member.bloodType}',
-                          style: GoogleFonts.inter(
-                            color: const Color(0xFFFF6B6B), // Vermelho claro sobre escuro
-                            fontSize: 12,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -259,30 +259,31 @@ class DigitalCardFront extends StatelessWidget {
               children: [
                 // Pílula do Token
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                    color: const Color(0xFF0F172A).withValues(alpha: 0.45),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFF00D8D0).withValues(alpha: 0.3)),
                   ),
                   child: Row(
                     children: [
-                      const Icon(PhosphorIconsRegular.hash, color: Color(0xFF4299E1), size: 8),
-                      const SizedBox(width: 4),
+                      const Icon(PhosphorIconsRegular.hash, color: Color(0xFF00D8D0), size: 14),
+                      const SizedBox(width: 6),
                       Text(
                         'TOKEN: ',
                         style: GoogleFonts.inter(
-                          color: Colors.white.withValues(alpha: 0.6),
-                          fontSize: 8,
+                          color: Colors.white.withValues(alpha: 0.88),
+                          fontSize: 11,
                           fontWeight: FontWeight.w900,
                         ),
                       ),
                       Text(
                         validationToken,
                         style: GoogleFonts.inter(
-                          color: Colors.white,
-                          fontSize: 10,
+                          color: const Color(0xFF67E8F9), // Ice cyan de alta leitura
+                          fontSize: 14,
                           fontWeight: FontWeight.w900,
+                          letterSpacing: 0.5,
                         ),
                       ),
                     ],
