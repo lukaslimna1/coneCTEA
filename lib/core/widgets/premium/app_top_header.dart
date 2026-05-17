@@ -109,29 +109,39 @@ class AppTopHeader extends StatelessWidget implements PreferredSizeWidget {
         ),
         if (notificationCount > 0)
           Positioned(
-            top: -3,
-            right: -3,
+            top: -2,
+            right: -2,
             child: IgnorePointer(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                 constraints: const BoxConstraints(
-                  minWidth: 18,
-                  minHeight: 18,
+                  minWidth: 16,
+                  minHeight: 16,
                 ),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [Color(0xFF8B5CF6), Color(0xFFA855F7)],
+                    colors: [Color(0xFFF43F5E), Color(0xFFE11D48)], // Ruby / Rose Premium Gradient
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: const Color(0xFF071A33), width: 1.5),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFF020617), width: 1.5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFE11D48).withValues(alpha: 0.3),
+                      blurRadius: 4,
+                      spreadRadius: 0.5,
+                    ),
+                  ],
                 ),
                 child: Center(
                   child: Text(
                     notificationCount > 99 ? '99+' : notificationCount.toString(),
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 9,
+                      fontSize: 8.5,
                       fontWeight: FontWeight.w900,
+                      height: 1.0,
                     ),
                   ),
                 ),
