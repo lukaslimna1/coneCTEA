@@ -50,7 +50,7 @@ Para validar modificações no ecossistema da Home e componentes premium associa
 4. **Protocolo de Testes para Teclado IME e Navbar Oculta (Frente 26C.2):**
    - **Dispositivo recomendado:** Emulador com perfil **Motorola Edge Curved** ou similar, com barra nativa de **3 Botões** configurada.
    - **Passo a Passo:**
-     1. Navegar até a página de novo dependente ([AddMemberPage](file:///h:/Sites/ConeCTEA/lib/features/requests/add_member_page.dart)).
+     1. Navegar até a página de novo dependente (`lib/features/requests/add_member_page.dart`).
      2. Tocar em qualquer campo de entrada de texto (ex: Nome).
      3. Confirmar que o teclado virtual do Android sobe e a `PremiumBottomNavBar` é ocultada de forma instantânea.
      4. Rolar o formulário até o final com o teclado ativo, garantindo que não ocorra RenderFlex ou impedimentos físicos nos campos de Cidade, Estado e botões de contatos.
@@ -59,8 +59,8 @@ Para validar modificações no ecossistema da Home e componentes premium associa
 5. **Protocolo de Testes de Detalhes da Carteirinha em Telas Estreitas (Frente 26B.2 / 26B.3-AUD):**
    - **Dispositivo recomendado:** Perfil **Samsung A05/A06** (360dp de largura de tela).
    - **Passo a Passo:**
-     1. Navegar até a aba de Carteirinhas ([cards_view.dart](file:///h:/Sites/ConeCTEA/lib/features/cards/cards_view.dart)).
-     2. Selecionar o dependente e examinar o componente [CardsDetailsSection](file:///h:/Sites/ConeCTEA/lib/features/cards/widgets/tela_carteirinhas/cards_details_section.dart) logo abaixo do card.
+     1. Navegar até a aba de Carteirinhas (`lib/features/cards/cards_view.dart`).
+     2. Selecionar o dependente e examinar o componente `CardsDetailsSection` (`lib/features/cards/widgets/tela_carteirinhas/cards_details_section.dart`) logo abaixo do card.
      3. Garantir que o bloco "Validade" e a pill de status administrativo estejam adequadamente alinhados na horizontal, livres de RenderFlex.
      4. Validar se o CTA principal possui exatamente o texto `"VER"` de 1 linha.
      5. No menu de configurações do Android do emulador, aumente o tamanho da fonte do sistema para o nível máximo.
@@ -69,7 +69,7 @@ Para validar modificações no ecossistema da Home e componentes premium associa
 6. **Protocolo de Testes para Pedidos e Solicitações (Frente 26D.1):**
    - **Dispositivo recomendado:** Perfil **Samsung A05/A06** (360dp de largura de tela) ou **Xiaomi Redmi/POCO** (438dp).
    - **Passo a Passo:**
-     1. Navegar até a aba de Pedidos/Solicitações ([requests_view.dart](file:///h:/Sites/ConeCTEA/lib/features/requests/requests_view.dart)).
+     1. Navegar até a aba de Pedidos/Solicitações (`lib/features/requests/requests_view.dart`).
      2. Validar o alinhamento e a integridade visual da disposição vertical dos cards de solicitação.
      3. Confirmar que a barra de progresso interno (com `LayoutBuilder`) expande e contrai de forma proporcional à largura útil disponível sem ocasionar falhas ou transbordos pretos/amarelos de RenderFlex.
      4. Verificar a legibilidade do texto nos cabeçalhos "EM ANDAMENTO" e "HISTÓRICO" sob luz ambiente simulada brilhante ou no modo escuro.

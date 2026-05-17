@@ -76,15 +76,15 @@ Este checklist serve como guia para apoiar a mitigação de falhas visuais ou qu
 Verificações para garantir a estabilidade do fluxo de cadastro e o comportamento dinâmico da interface sob foco de teclado virtual:
 
 ### 1. Preenchimento de Campos e Layout do Formulário
-- [ ] Navegar para [AddMemberPage](file:///h:/Sites/ConeCTEA/lib/features/requests/add_member_page.dart) na Home ou seção de carteirinhas.
+- [ ] Navegar para `lib/features/requests/add_member_page.dart` na Home ou seção de carteirinhas.
 - [ ] Validar que a Cidade e o Estado estão devidamente isolados em linhas separadas e preenchem corretamente o espaço horizontal.
 - [ ] Confirmar que os campos de contatos de Emergência e Responsável estão visualmente separados em entradas dedicadas para Nome e Telefone individualizados.
 - [ ] Selecionar Tipo Sanguíneo e validar que o placeholder inicial exibe exatamente `"Selecione"`.
-- [ ] Confirmar se, ao recarregar a tela sem dependente selecionado ou com valor inicial nulo, o widget [RequestDropdownField](file:///h:/Sites/ConeCTEA/lib/features/requests/widgets/request_dropdown_field.dart) renderiza adequadamente a dica de seleção.
+- [ ] Confirmar se, ao recarregar a tela sem dependente selecionado ou com valor inicial nulo, o widget `RequestDropdownField` (`lib/features/requests/widgets/request_dropdown_field.dart`) renderiza adequadamente a dica de seleção.
 
 ### 2. Ocultação Dinâmica da Navbar com Teclado IME
 - [ ] Em um emulador ou dispositivo físico com a barra de 3 botões tradicionais do Android ativa, toque em qualquer campo de texto no formulário de dependente.
-- [ ] Validar que o teclado virtual sobe e a [PremiumBottomNavBar](file:///h:/Sites/ConeCTEA/docs/design-system/COMPONENTES_PREMIUM.md#2-premiumbottomnavbar) desaparece imediatamente, liberando o espaço da tela.
+- [ ] Validar que o teclado virtual sobe e a [PremiumBottomNavBar](../design-system/COMPONENTES_PREMIUM.md#2-premiumbottomnavbar) desaparece imediatamente, liberando o espaço da tela.
 - [ ] Rolar o formulário verticalmente para atestar que os campos inferiores estão totalmente legíveis e roláveis sob a área do teclado.
 - [ ] Dispensar o teclado virtual ou pressionar o botão voltar do celular.
 - [ ] Validar que a barra de navegação premium ressurge imediatamente em sua posição original e sem nenhum travamento visual ou RenderFlex.
