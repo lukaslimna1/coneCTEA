@@ -135,6 +135,11 @@ class _CardsViewState extends State<CardsView> {
 
   @override
   Widget build(BuildContext context) {
+    final double topSafeArea = MediaQuery.paddingOf(context).top;
+    const double headerVisualHeight = 64.0;
+    const double headerClearance = 4.0;
+    final double topPadding = topSafeArea + headerVisualHeight + headerClearance;
+
     final userId = _authService.currentUser?.id;
     if (userId == null) {
       return const Center(child: Text('Por favor, faça login'));
@@ -213,7 +218,7 @@ class _CardsViewState extends State<CardsView> {
                     final selectedCard = activeCardsMap[selectedMember.id]!;
 
                     return ListView(
-                      padding: const EdgeInsets.fromLTRB(0, 100, 0, 32),
+                      padding: EdgeInsets.fromLTRB(0, topPadding, 0, 32),
                       children: [
                         // Header com Ícone QR
                         Padding(

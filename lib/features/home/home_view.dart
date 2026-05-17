@@ -283,7 +283,7 @@ class _HomeViewState extends State<HomeView> {
               const double headerVisualHeight =
                   64.0; // Altura física do AppTopHeader (14 padding top + 38 avatar/botão + 12 padding bottom)
               const double headerClearance =
-                  8.0; // Respiro visual elegante entre a borda do header e o início do conteúdo da Home
+                  0.0; // Respiro visual elegante entre a borda do header e o início do conteúdo da Home
               final double topPadding =
                   topSafeArea + headerVisualHeight + headerClearance;
               final bottomInset = MediaQuery.paddingOf(context).bottom;

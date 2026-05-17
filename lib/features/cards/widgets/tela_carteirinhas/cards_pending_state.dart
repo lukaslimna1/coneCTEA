@@ -20,8 +20,13 @@ class CardsPendingState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final double topSafeArea = MediaQuery.paddingOf(context).top;
+    const double headerVisualHeight = 64.0;
+    const double headerClearance = 4.0;
+    final double topPadding = topSafeArea + headerVisualHeight + headerClearance;
+
     return ListView(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.fromLTRB(24, topPadding, 24, 24),
       children: [
         Text(
           'Carteirinhas',

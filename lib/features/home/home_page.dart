@@ -149,7 +149,7 @@ class _HomePageState extends State<HomePage> {
       case 2:
         return const RequestsView();
       case 3:
-        return const NotificationsView();
+        return NotificationsView(onBack: () => setState(() => _currentIndex = 0));
       case 4:
         return AccountView(user: _user);
       case 5:

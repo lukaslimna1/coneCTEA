@@ -7,10 +7,11 @@ import 'package:conectea/services/auth_service.dart';
 import 'package:conectea/models/notification_item.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/widgets/premium/premium_card.dart';
-import 'package:intl/intl.dart';
 
 class NotificationsView extends StatefulWidget {
-  const NotificationsView({super.key});
+  final VoidCallback? onBack;
+
+  const NotificationsView({super.key, this.onBack});
 
   @override
   State<NotificationsView> createState() => _NotificationsViewState();
@@ -21,6 +22,7 @@ class _NotificationsViewState extends State<NotificationsView> {
   final AuthService _authService = AuthService();
   List<NotificationItem> _notifications = [];
   Stream<List<NotificationItem>>? _notificationsStream;
+  final Set<String> _expandedNotifications = {};
 
   @override
   void initState() {
@@ -58,6 +60,11 @@ class _NotificationsViewState extends State<NotificationsView> {
 
   @override
   Widget build(BuildContext context) {
+    final double topSafeArea = MediaQuery.paddingOf(context).top;
+    const double headerVisualHeight = 64.0;
+    const double headerClearance = 4.0;
+    final double topPadding = topSafeArea + headerVisualHeight + headerClearance;
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
@@ -69,34 +76,90 @@ class _NotificationsViewState extends State<NotificationsView> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(24, 100, 24, 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                padding: EdgeInsets.fromLTRB(24, topPadding, 24, 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    if (widget.onBack != null) ...[
+                      GestureDetector(
+                        onTap: widget.onBack,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: const Color(0xA60F172A), // Dark Glass base
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: const Color(0x2E94A3B8), // Glass border
+                              width: 1,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.1),
+                                blurRadius: 4,
+                                offset: const Offset(0, 1),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                PhosphorIconsRegular.caretLeft,
+                                color: AppColors.cyan,
+                                size: 14,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Voltar',
+                                style: GoogleFonts.inter(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.cyan,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          'Notificações',
-                          style: GoogleFonts.inter(
-                            fontSize: 28,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.cardTitle,
-                            letterSpacing: -0.5,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Notificações',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.inter(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.cardTitle,
+                                  letterSpacing: -0.5,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Mantenha-se informado',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.inter(
+                                  fontSize: 14,
+                                  color: AppColors.cardSubtitle,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Mantenha-se informado sobre sua conta.',
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            color: AppColors.cardSubtitle,
-                          ),
-                        ),
+                        if (_notifications.isNotEmpty) ...[
+                          const SizedBox(width: 16),
+                          _buildClearButton(),
+                        ],
                       ],
                     ),
-                    if (_notifications.isNotEmpty)
-                      _buildClearButton(),
                   ],
                 ),
               ),
@@ -128,9 +191,18 @@ class _NotificationsViewState extends State<NotificationsView> {
                       physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
                       itemCount: notifications.length,
                       itemBuilder: (context, index) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: _buildNotificationItem(notifications[index]),
+                        final item = notifications[index];
+                        final showHeader = index == 0 || !_isSameDay(item.createdAt, notifications[index - 1].createdAt);
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (showHeader) _buildDateHeader(item.createdAt),
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: _buildNotificationItem(item),
+                            ),
+                          ],
                         );
                       },
                     );
@@ -262,98 +334,192 @@ class _NotificationsViewState extends State<NotificationsView> {
   }
 
   Widget _buildNotificationItem(NotificationItem item) {
-    final dateFormatted = DateFormat('dd MMM, HH:mm').format(item.createdAt);
-    final ui = _getTypeUI(item.type);
+    final timeFormatted = _formatNotificationTime(item.createdAt);
+    final ui = _getTypeUI(item);
+    final key = item.id.isNotEmpty ? item.id : '${item.createdAt.toIso8601String()}_${item.title}';
+    final isExpanded = _expandedNotifications.contains(key);
+    final isLongMessage = item.message.length > 90;
 
     return PremiumCard(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.zero,
       margin: EdgeInsets.zero,
       hasGradient: true,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Ícone com gradiente suave (Premium)
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  ui.color.withValues(alpha: 0.3), // Clearer/Lighter at top
-                  ui.color.withValues(alpha: 0.05), // Darker at base
-                ],
-              ),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: ui.color.withValues(alpha: 0.2),
-                width: 1,
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Linha de acento lateral discreta e elegante
+            Container(
+              width: 4,
+              decoration: BoxDecoration(
+                color: ui.color,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  bottomLeft: Radius.circular(16),
+                ),
               ),
             ),
-            child: Icon(ui.icon, color: ui.color, size: 24),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Ícone com gradiente suave (Premium Glassmorphism)
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            ui.color.withValues(alpha: 0.25),
+                            ui.color.withValues(alpha: 0.05),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: ui.color.withValues(alpha: 0.2),
+                          width: 1,
+                        ),
+                      ),
+                      child: Icon(ui.icon, color: ui.color, size: 22),
+                    ),
+                    const SizedBox(width: 14),
                     Expanded(
-                      child: Text(
-                        item.title,
-                        style: GoogleFonts.inter(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 16,
-                          color: AppColors.cardTitle,
-                        ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  item.title,
+                                  style: GoogleFonts.inter(
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 15,
+                                    color: AppColors.cardTitle,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              if (!item.isRead)
+                                Container(
+                                  margin: const EdgeInsets.only(top: 4),
+                                  width: 8,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.cyan,
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: AppColors.cyan.withValues(alpha: 0.5),
+                                        blurRadius: 4,
+                                        spreadRadius: 1,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            item.message,
+                            maxLines: isLongMessage && !isExpanded ? 2 : null,
+                            overflow: isLongMessage && !isExpanded ? TextOverflow.ellipsis : null,
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              color: AppColors.cardSubtitle,
+                              height: 1.5,
+                            ),
+                          ),
+                          if (isLongMessage) ...[
+                            const SizedBox(height: 8),
+                            GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  if (isExpanded) {
+                                    _expandedNotifications.remove(key);
+                                  } else {
+                                    _expandedNotifications.add(key);
+                                  }
+                                });
+                              },
+                              child: Text(
+                                isExpanded ? 'Ver menos' : 'Ver mais',
+                                style: GoogleFonts.inter(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.cyan,
+                                ),
+                              ),
+                            ),
+                          ],
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              const Icon(PhosphorIconsRegular.clock, size: 14, color: AppColors.cardMutedText),
+                              const SizedBox(width: 6),
+                              Text(
+                                timeFormatted,
+                                style: GoogleFonts.inter(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.cardMutedText,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
-                    if (!item.isRead)
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: const BoxDecoration(
-                          color: AppColors.primary,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
                   ],
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  item.message,
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: AppColors.cardSubtitle,
-                    height: 1.5,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    const Icon(PhosphorIconsRegular.clock, size: 14, color: AppColors.cardMutedText),
-                    const SizedBox(width: 6),
-                    Text(
-                      dateFormatted,
-                      style: GoogleFonts.inter(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.cardMutedText,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  _TypeUI _getTypeUI(String type) {
+  _TypeUI _getTypeUI(NotificationItem item) {
+    final type = item.type.toLowerCase();
+    final title = item.title.toLowerCase();
+
+    // 1. Tipos reais do DatabaseService
+    if (type == 'new_request') {
+      return _TypeUI(PhosphorIconsRegular.filePlus, AppColors.cyan);
+    }
+    if (type == 'request_updated') {
+      return _TypeUI(PhosphorIconsRegular.arrowsClockwise, AppColors.alertOrange);
+    }
+
+    // 2. Inferência visual para status_update
+    if (type == 'status_update') {
+      if (title.contains('aprovad') || title.contains('emitid') || title.contains('🎉')) {
+        return _TypeUI(PhosphorIconsRegular.checkCircle, AppColors.statusGreen);
+      }
+      if (title.contains('reprovad') || title.contains('rejeitad') || title.contains('❌')) {
+        return _TypeUI(PhosphorIconsRegular.xCircle, AppColors.errorRed);
+      }
+      if (title.contains('suspens') || title.contains('⚠️')) {
+        return _TypeUI(PhosphorIconsRegular.prohibit, AppColors.errorRed);
+      }
+      if (title.contains('documento') || title.contains('pendente') || title.contains('📄')) {
+        return _TypeUI(PhosphorIconsRegular.warningCircle, AppColors.alertOrange);
+      }
+      if (title.contains('revisão') || title.contains('corrigid') || title.contains('✏️')) {
+        return _TypeUI(PhosphorIconsRegular.notePencil, AppColors.alertOrange);
+      }
+      if (title.contains('vencid') || title.contains('📅')) {
+        return _TypeUI(PhosphorIconsRegular.calendarX, AppColors.alertOrange);
+      }
+    }
+
+    // 3. Compatibilidade com tipos legados
     switch (type) {
       case 'card_approved':
         return _TypeUI(PhosphorIconsRegular.checkCircle, AppColors.statusGreen);
@@ -368,6 +534,76 @@ class _NotificationsViewState extends State<NotificationsView> {
       default:
         return _TypeUI(PhosphorIconsRegular.bell, AppColors.primary);
     }
+  }
+
+  bool _isSameDay(DateTime a, DateTime b) {
+    final localA = a.toLocal();
+    final localB = b.toLocal();
+    return localA.year == localB.year &&
+        localA.month == localB.month &&
+        localA.day == localB.day;
+  }
+
+  String _formatNotificationDay(DateTime date) {
+    final localDate = date.toLocal();
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(const Duration(days: 1));
+    final compareDate = DateTime(localDate.year, localDate.month, localDate.day);
+
+    if (compareDate == today) {
+      return 'Hoje';
+    } else if (compareDate == yesterday) {
+      return 'Ontem';
+    }
+
+    final months = [
+      'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
+      'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'
+    ];
+
+    return '${localDate.day} de ${months[localDate.month - 1]}';
+  }
+
+  String _formatNotificationTime(DateTime date) {
+    final localDate = date.toLocal();
+    final hour = localDate.hour.toString().padLeft(2, '0');
+    final minute = localDate.minute.toString().padLeft(2, '0');
+    return '$hour:$minute';
+  }
+
+  Widget _buildDateHeader(DateTime date) {
+    final dateStr = _formatNotificationDay(date);
+    return Padding(
+      padding: const EdgeInsets.only(top: 16, bottom: 12),
+      child: Row(
+        children: [
+          Text(
+            dateStr,
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: AppColors.cardTitle.withValues(alpha: 0.85),
+              letterSpacing: 0.5,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Container(
+              height: 1,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.cyan.withValues(alpha: 0.25),
+                    AppColors.cyan.withValues(alpha: 0.0),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

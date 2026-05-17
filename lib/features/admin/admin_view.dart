@@ -60,6 +60,11 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
 
   @override
   Widget build(BuildContext context) {
+    final double topSafeArea = MediaQuery.paddingOf(context).top;
+    const double headerVisualHeight = 64.0;
+    const double headerClearance = 4.0;
+    final double topPadding = topSafeArea + headerVisualHeight + headerClearance;
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
@@ -67,8 +72,7 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 100),
-            _buildHeader(),
+            _buildHeader(topPadding),
             _buildTabBar(),
             Expanded(
               child: TabBarView(
@@ -85,14 +89,14 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(double topPadding) {
     final bool isDev = _currentUser?.role.canRunMaintenance ?? false;
 
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 800),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+          padding: EdgeInsets.fromLTRB(24, topPadding, 24, 8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

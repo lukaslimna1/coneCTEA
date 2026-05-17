@@ -22,6 +22,10 @@ class AccountView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authService = AuthService();
+    final double topSafeArea = MediaQuery.paddingOf(context).top;
+    const double headerVisualHeight = 64.0;
+    const double headerClearance = 4.0;
+    final double topPadding = topSafeArea + headerVisualHeight + headerClearance;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -29,10 +33,9 @@ class AccountView extends StatelessWidget {
       body: AppBackground(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+          padding: EdgeInsets.fromLTRB(24, topPadding, 24, 0),
           child: Column(
             children: [
-              const SizedBox(height: 80),
               _buildProfileHeader(user),
               const SizedBox(height: 40),
               

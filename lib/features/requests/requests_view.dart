@@ -17,6 +17,11 @@ class RequestsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final double topSafeArea = MediaQuery.paddingOf(context).top;
+    const double headerVisualHeight = 64.0;
+    const double headerClearance = 4.0;
+    final double topPadding = topSafeArea + headerVisualHeight + headerClearance;
+
     final authService = AuthService();
     final databaseService = DatabaseService();
     final userId = authService.currentUser?.id;
@@ -57,7 +62,7 @@ class RequestsView extends StatelessWidget {
                 slivers: [
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(24, 100, 24, 8),
+                      padding: EdgeInsets.fromLTRB(24, topPadding, 24, 8),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
