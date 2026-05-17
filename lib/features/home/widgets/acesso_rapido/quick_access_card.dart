@@ -25,10 +25,14 @@ class QuickAccessCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: width,
-      height: 138,
-      child: Material(
+    return Align(
+      alignment: Alignment.topCenter,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          minWidth: width,
+          maxWidth: width,
+        ),
+        child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
@@ -65,9 +69,11 @@ class QuickAccessCard extends StatelessWidget {
             child: Stack(
               children: [
                 // Camada de vidro sutil
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.025),
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.025),
+                    ),
                   ),
                 ),
                 // Efeito de luz sutil no canto (Glow)
@@ -106,8 +112,14 @@ class QuickAccessCard extends StatelessWidget {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.only(
+                    top: 14,
+                    left: 16,
+                    right: 16,
+                    bottom: 10,
+                  ),
                   child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Bloco Superior: Ícone + Textos
@@ -177,7 +189,7 @@ class QuickAccessCard extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const Spacer(),
+                      const SizedBox(height: 12),
                       // CTA Button
                       Container(
                         height: 40,
@@ -218,6 +230,7 @@ class QuickAccessCard extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
