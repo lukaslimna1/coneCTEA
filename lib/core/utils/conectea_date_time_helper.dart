@@ -50,4 +50,13 @@ class ConecteaDateTimeHelper {
 
     return '${projTime.day} de ${months[projTime.month - 1]}';
   }
+
+  /// Formata a data no padrão dd/MM/yyyy sob o fuso oficial de Brasília/Bauru.
+  static String formatProjectDateShort(DateTime value) {
+    final projTime = toProjectTime(value);
+    final day = projTime.day.toString().padLeft(2, '0');
+    final month = projTime.month.toString().padLeft(2, '0');
+    final year = projTime.year.toString();
+    return '$day/$month/$year';
+  }
 }

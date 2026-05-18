@@ -204,15 +204,31 @@ class DatabaseService {
   }
 
   /// Cria ou reativa a carteirinha digital ao aprovar uma solicitação.
-  /// isActive é derivado de status=='active' no Dart — não depende da coluna is_active.
+  /// Obtém a validade civil diretamente do servidor (Postgres) no fuso America/Sao_Paulo (1 ano).
   Future<void> ensureDigitalCard({
     required String memberId,
     required String userId,
     required String requestId,
     required Member member,
   }) async {
-    final now = DateTime.now();
-    final validUntil = DateTime(now.year + 1, now.month, now.day);
+    // Obter as datas civis oficiais direto do Postgres (fuso de Bauru/SP)
+    final response = await _supabase.rpc('conectea_digital_card_validity_window');
+
+    final String issuedAtStr;
+    final String validUntilStr;
+
+    if (response is List && response.isNotEmpty) {
+      final map = response.first as Map<String, dynamic>;
+      issuedAtStr = map['issued_at'] as String;
+      validUntilStr = map['valid_until'] as String;
+    } else if (response is Map) {
+      issuedAtStr = response['issued_at'] as String;
+      validUntilStr = response['valid_until'] as String;
+    } else {
+      throw Exception('Formato de resposta inválido ao calcular validade no servidor.');
+    }
+
+    final dbIssuedAt = DateTime.parse(issuedAtStr);
 
     // Verificar se já existe uma carteirinha para este membro
     final existing = await _supabase
@@ -222,22 +238,22 @@ class DatabaseService {
         .maybeSingle();
 
     if (existing != null) {
-      // Reativar e renovar a validade
+      // Reativar e renovar a validade usando o timestamp do Postgres
       await _supabase.from('digital_cards').update({
         'status': 'active',
-        'valid_until': validUntil.toIso8601String(),
-        'updated_at': now.toIso8601String(),
+        'valid_until': validUntilStr,
+        'updated_at': issuedAtStr,
       }).eq('member_id', memberId);
     } else {
-      // Criar nova carteirinha
-      final cardNumber = 'TEA-ID-${now.millisecondsSinceEpoch.toRadixString(16).toUpperCase().substring(0, 8)}';
+      // Criar nova carteirinha usando os timestamps do Postgres
+      final cardNumber = 'TEA-ID-${dbIssuedAt.millisecondsSinceEpoch.toRadixString(16).toUpperCase().substring(0, 8)}';
       await _supabase.from('digital_cards').insert({
         'member_id': memberId,
         'user_id': userId,
         'card_number': cardNumber,
         'status': 'active',
-        'valid_until': validUntil.toIso8601String(),
-        'issued_at': now.toIso8601String(),
+        'valid_until': validUntilStr,
+        'issued_at': issuedAtStr,
         'front_data': {
           'name': member.name,
           'cpf': member.cpf,
@@ -246,11 +262,29 @@ class DatabaseService {
         },
         'back_data': {'emergencyContact': member.emergencyContact},
         'qr_validation_url': cardNumber,
-        'created_at': now.toIso8601String(),
-        'updated_at': now.toIso8601String(),
+        'created_at': issuedAtStr,
+        'updated_at': issuedAtStr,
       });
     }
   }
+
+  /// Valida o vencimento da carteirinha no lado do servidor (Postgres) baseado na data civil do projeto.
+  Future<bool> isDigitalCardExpiredServer(DateTime validUntil) async {
+    try {
+      final response = await _supabase.rpc(
+        'conectea_is_digital_card_expired',
+        params: {'p_valid_until': validUntil.toIso8601String()},
+      );
+      if (response is bool) {
+        return response;
+      }
+      throw Exception('Retorno inesperado da verificação de expiração: $response');
+    } catch (e) {
+      debugPrint('Erro na validação de expiração server-side: $e');
+      rethrow;
+    }
+  }
+
 
   // --- Solicitações de Carteirinha ---
   Future<List<CardRequest>> getCardRequests(String userId) async {

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:conectea/core/constants/colors.dart';
 import 'package:conectea/core/widgets/premium/premium_button.dart';
 import 'package:conectea/core/widgets/premium/premium_card.dart';
+
+import 'package:conectea/core/utils/conectea_date_time_helper.dart';
 
 class CardsDetailsSection extends StatelessWidget {
   final DateTime validUntil;
@@ -36,7 +37,7 @@ class CardsDetailsSection extends StatelessWidget {
                 child: _buildInfoBlock(
                   icon: PhosphorIconsRegular.calendarCheck,
                   label: 'Válida até',
-                  value: DateFormat('dd/MM/yyyy').format(validUntil),
+                  value: ConecteaDateTimeHelper.formatProjectDateShort(validUntil),
                 ),
               ),
               const SizedBox(width: 12),

@@ -9,6 +9,8 @@ import 'package:conectea/models/member.dart';
 import 'package:conectea/core/widgets/premium_avatar.dart';
 import 'package:conectea/core/theme/status_visual_tokens.dart';
 
+import 'package:conectea/core/utils/conectea_date_time_helper.dart';
+
 /// Componente que renderiza a frente da carteirinha digital.
 /// Contém dados básicos do membro, foto, validade e status.
 class DigitalCardFront extends StatelessWidget {
@@ -26,11 +28,21 @@ class DigitalCardFront extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final birthStr = _parseDate(member.dateOfBirth);
-    final validStr = card != null ? _parseDate(card!.validUntil.toIso8601String()) : '--/--/----';
+    final validStr = card != null ? ConecteaDateTimeHelper.formatProjectDateShort(card!.validUntil) : '--/--/----';
     final validationToken = card != null ? card!.cardNumber : '----';
 
     final status = statusOverride ?? (card?.status ?? 'pending');
-    final isExpired = statusOverride == 'expired' || (card != null && card!.validUntil.isBefore(DateTime.now()));
+
+    bool isExpired = statusOverride == 'expired';
+    if (card != null && !isExpired) {
+      final projectToday = ConecteaDateTimeHelper.toProjectTime(ConecteaDateTimeHelper.nowProjectTime);
+      final todayDateOnly = DateTime(projectToday.year, projectToday.month, projectToday.day);
+
+      final validUntilProject = ConecteaDateTimeHelper.toProjectTime(card!.validUntil);
+      final validUntilDateOnly = DateTime(validUntilProject.year, validUntilProject.month, validUntilProject.day);
+
+      isExpired = todayDateOnly.isAfter(validUntilDateOnly);
+    }
     
     // Resolve tokens de status (se estiver expirado ou forçado, usa o status correto)
     final effectiveStatus = isExpired ? 'expired' : status;

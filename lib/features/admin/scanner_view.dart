@@ -7,6 +7,8 @@ import '../../services/database_service.dart';
 import '../../models/digital_card.dart';
 import 'package:intl/intl.dart';
 
+import 'package:conectea/core/utils/conectea_date_time_helper.dart';
+
 class ScannerView extends StatefulWidget {
   const ScannerView({super.key});
 
@@ -71,31 +73,32 @@ class _ScannerViewState extends State<ScannerView> {
           title: 'Não Encontrada',
           message: 'A carteirinha informada não existe em nossa base.',
         );
-      } else {
-        final isExpired = card.validUntil.isBefore(DateTime.now());
-        final isActive = card.status == 'active';
-        
-        // Se o getCardByNumber retornou o member via join, ele estaria no JSON
-        // Mas como o modelo não tem o campo member, vamos buscar manualmente se necessário
-        // ou assumir que frontData tem o nome.
-        // card.frontData['name'] is available but not used here
-
-        _showResultSheet(
-          isValid: isActive && !isExpired,
-          card: card,
-          title: isActive && !isExpired ? 'Carteirinha Válida' : 'Carteirinha Inválida',
-          message: isExpired 
-              ? 'Esta carteirinha está vencida desde ${DateFormat('dd/MM/yyyy').format(card.validUntil)}.'
-              : !isActive 
-                  ? 'Esta carteirinha foi desativada pelo administrador.'
-                  : 'Documento original e válido.',
-        );
+        return;
       }
+
+      // Validação do vencimento via servidor (Postgres) baseado na data civil do projeto
+      final isExpired = await _databaseService.isDigitalCardExpiredServer(card.validUntil);
+      final isActive = card.status == 'active';
+
+      if (!mounted) return;
+
+      _showResultSheet(
+        isValid: isActive && !isExpired,
+        card: card,
+        title: isActive && !isExpired ? 'Carteirinha Válida' : 'Carteirinha Inválida',
+        message: isExpired
+            ? 'Esta carteirinha está vencida desde ${ConecteaDateTimeHelper.formatProjectDateShort(card.validUntil)}.'
+            : !isActive
+                ? 'Esta carteirinha foi desativada pelo administrador.'
+                : 'Documento original e válido.',
+      );
     } catch (e) {
+      debugPrint('Erro ao validar carteirinha no scanner: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Não foi possível validar a carteirinha agora. Tente novamente.'),
+            content: Text('Falha na conexão com o servidor. Não foi possível validar o vencimento agora. Tente novamente.'),
+            backgroundColor: AppColors.errorRed,
           ),
         );
       }
