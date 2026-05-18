@@ -2,17 +2,16 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/widgets/premium/premium_qr_button.dart';
 
 import 'package:conectea/core/constants/colors.dart';
-import 'package:conectea/core/widgets/premium/premium_card.dart';
 import 'package:conectea/services/database_service.dart';
 import 'package:conectea/models/app_user.dart';
 import 'package:conectea/features/admin/widgets/admin_requests_tab.dart';
 import 'package:conectea/features/admin/widgets/admin_user_dialogs.dart';
 import 'package:conectea/features/admin/widgets/admin_users_tab.dart';
+import 'package:conectea/features/admin/widgets/admin_management_hub.dart';
 
 class AdminView extends StatefulWidget {
   const AdminView({super.key});
@@ -21,24 +20,17 @@ class AdminView extends StatefulWidget {
   State<AdminView> createState() => _AdminViewState();
 }
 
-class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMixin {
+class _AdminViewState extends State<AdminView> {
   final DatabaseService _databaseService = DatabaseService();
-  late TabController _tabController;
   final GlobalKey<AdminUsersTabState> _usersTabKey = GlobalKey<AdminUsersTabState>();
 
   AppUser? _currentUser;
+  String? _selectedModule; // null ou 'hub', 'requests', 'users'
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
     _loadInitialData();
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
   }
 
   Future<void> _loadInitialData() async {
@@ -50,13 +42,10 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
     if (user != null) {
       final profile = await _databaseService.getUserProfile(user.id);
       if (mounted) {
-        // Logs de auditoria interna removidos por segurança na Fase 18B
-        
         setState(() => _currentUser = profile);
       }
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -65,6 +54,18 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
     const double headerClearance = 4.0;
     final double topPadding = topSafeArea + headerVisualHeight + headerClearance;
 
+    final String? moduleTitle = _selectedModule == 'requests'
+        ? 'Gestão de Carteirinhas'
+        : _selectedModule == 'users'
+            ? 'Usuários e Permissões'
+            : null;
+
+    final String? moduleSubtitle = _selectedModule == 'requests'
+        ? 'Solicitações, revisões e status das carteirinhas.'
+        : _selectedModule == 'users'
+            ? 'Contas, cargos e acessos administrativos.'
+            : null;
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
@@ -72,16 +73,14 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeader(topPadding),
-            _buildTabBar(),
+            _buildHeader(
+              topPadding,
+              title: moduleTitle,
+              subtitle: moduleSubtitle,
+            ),
+            if (_selectedModule != null) _buildBackButton(),
             Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  _buildRequestsTab(),
-                  _buildUsersTab(),
-                ],
-              ),
+              child: _buildBody(),
             ),
           ],
         ),
@@ -89,9 +88,7 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
     );
   }
 
-  Widget _buildHeader(double topPadding) {
-    final bool isDev = _currentUser?.role.canRunMaintenance ?? false;
-
+  Widget _buildHeader(double topPadding, {String? title, String? subtitle}) {
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 800),
@@ -108,7 +105,7 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Painel de Gestão',
+                          title ?? 'Gestão',
                           style: GoogleFonts.inter(
                             fontSize: 26,
                             fontWeight: FontWeight.w900,
@@ -118,7 +115,7 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Gerenciamento institucional ConeCTEA',
+                          subtitle ?? 'Escolha uma área administrativa.',
                           style: GoogleFonts.inter(
                             fontSize: 14,
                             color: AppColors.textSecondary,
@@ -128,31 +125,6 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
                       ],
                     ),
                   ),
-                  if (isDev)
-                    IconButton(
-                      onPressed: _showMaintenanceSheet,
-                      icon: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xA60F172A), // Dark Glass base
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: const Color(0x2E94A3B8), // Glass border
-                            width: 1,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.1),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: const Icon(PhosphorIconsRegular.wrench, color: Color(0xFF7C3AED)), // Soft Purple
-                      ),
-                      tooltip: 'Rodar Manutenções',
-                    ),
-                  const SizedBox(width: 8),
                   const PremiumQrButton(),
                 ],
               ),
@@ -163,69 +135,75 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
     );
   }
 
-  Widget _buildTabBar() {
+  Widget _buildBackButton() {
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 800),
-        child: PremiumCard(
-          margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-          padding: const EdgeInsets.all(4),
-          child: TabBar(
-            controller: _tabController,
-            labelColor: Colors.white,
-            unselectedLabelColor: AppColors.textSecondary.withValues(alpha: 0.5),
-            indicatorSize: TabBarIndicatorSize.tab,
-            dividerColor: Colors.transparent,
-            indicator: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  AppColors.primary,
-                  AppColors.primary.withValues(alpha: 0.8),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
+          child: InkWell(
+            onTap: () => setState(() => _selectedModule = null),
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: const Color(0x1A7C3AED), // Soft purple sutil
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: const Color(0x337C3AED),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.arrow_back_rounded,
+                    color: Color(0xFFA78BFA),
+                    size: 16,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Voltar ao Painel',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: const Color(0xFFA78BFA),
+                    ),
+                  ),
                 ],
               ),
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.2),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                ),
-              ],
             ),
-            labelStyle: GoogleFonts.inter(fontWeight: FontWeight.w800, fontSize: 14),
-            unselectedLabelStyle: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 14),
-            tabs: const [
-              Tab(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(PhosphorIconsRegular.clipboardText, size: 20),
-                    SizedBox(width: 8),
-                    Text('Solicitações'),
-                  ],
-                ),
-              ),
-              Tab(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(PhosphorIconsRegular.user, size: 20),
-                    SizedBox(width: 8),
-                    Text('Usuários'),
-                  ],
-                ),
-              ),
-            ],
           ),
         ),
       ),
     );
   }
 
+  Widget _buildBody() {
+    if (_currentUser == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    switch (_selectedModule) {
+      case 'requests':
+        return _buildRequestsTab();
+      case 'users':
+        return _buildUsersTab();
+      default:
+        return AdminManagementHub(
+          currentUser: _currentUser,
+          onSelectModule: (module) {
+            setState(() => _selectedModule = module);
+          },
+          onShowMaintenance: _showMaintenanceSheet,
+        );
+    }
+  }
+
   Widget _buildRequestsTab() {
     return AdminRequestsTab(databaseService: _databaseService);
   }
-
 
   Widget _buildUsersTab() {
     return AdminUsersTab(
@@ -247,8 +225,6 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
       ),
     );
   }
-
-
 
   void _showMaintenanceSheet() {
     showModalBottomSheet(
@@ -292,7 +268,6 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
               'Remove registros de solicitações expiradas há mais de 1 ano.',
               () async {
                 Navigator.pop(context);
-                // Lógica de exemplo por enquanto
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Manutenção concluída!')));
                 }
