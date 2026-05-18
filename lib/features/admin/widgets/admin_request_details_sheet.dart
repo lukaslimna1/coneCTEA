@@ -68,7 +68,13 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
     }
   }
 
-  Future<void> _updateStatus(String newStatus, String notes, {DateTime? expiresAt}) async {
+  Future<void> _updateStatus(
+    String newStatus,
+    String notes, {
+    DateTime? expiresAt,
+    bool clearDocument = false,
+    bool clearMedicalReport = false,
+  }) async {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -77,8 +83,48 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
       ),
     );
 
+    bool driveCleanupSuccess = true;
+
     try {
-      // Único ponto de atualização — updateCardRequestStatus agora propaga
+      // 1. Tentar deletar do Drive se clearDocument for verdadeiro e URL válida
+      if (clearDocument && widget.request.documentUrl.isNotEmpty && widget.request.documentUrl.contains('drive.google.com')) {
+        try {
+          final success = await _driveService.deleteFile(widget.request.documentUrl);
+          if (!success) {
+            driveCleanupSuccess = false;
+            debugPrint('Falha ao deletar documento com foto antigo no Drive.');
+          }
+        } catch (e) {
+          driveCleanupSuccess = false;
+          debugPrint('Erro ao deletar documento com foto no Drive: $e');
+        }
+      }
+
+      // 2. Tentar deletar do Drive se clearMedicalReport for verdadeiro e URL válida
+      if (clearMedicalReport && widget.request.medicalReportUrl.isNotEmpty && widget.request.medicalReportUrl.contains('drive.google.com')) {
+        try {
+          final success = await _driveService.deleteFile(widget.request.medicalReportUrl);
+          if (!success) {
+            driveCleanupSuccess = false;
+            debugPrint('Falha ao deletar laudo medico antigo no Drive.');
+          }
+        } catch (e) {
+          driveCleanupSuccess = false;
+          debugPrint('Erro ao deletar laudo medico no Drive: $e');
+        }
+      }
+
+      // 3. Limpar no Supabase (tanto em card_requests quanto em members)
+      if (clearDocument || clearMedicalReport) {
+        await widget.databaseService.clearRequestDocumentUrls(
+          requestId: widget.request.id,
+          memberId: widget.request.memberId,
+          clearDocument: clearDocument,
+          clearMedicalReport: clearMedicalReport,
+        );
+      }
+
+      // 4. Único ponto de atualização — updateCardRequestStatus agora propaga
       // para member.status e digital_cards.is_active automaticamente
       await widget.databaseService.updateCardRequestStatus(
         widget.request.id,
@@ -97,21 +143,50 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
         Navigator.of(context, rootNavigator: true).pop();
         
         // 2. Mostrar feedback de sucesso ANTES de fechar o sheet para garantir o contexto
-        if (cleanupSuccess) {
+        if (newStatus == 'active') {
+          if (cleanupSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Status atualizado com sucesso!'),
+                backgroundColor: Colors.green,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Carteirinha aprovada, mas a limpeza automática dos documentos precisa ser revisada.'),
+                backgroundColor: Colors.orange,
+                behavior: SnackBarBehavior.floating,
+                duration: Duration(seconds: 5),
+              ),
+            );
+          }
+        } else if (newStatus == 'waiting_docs' || newStatus == 'reviewing_data') {
+          if (driveCleanupSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Solicitação de reenvio enviada e documentos antigos limpos!'),
+                backgroundColor: Colors.green,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('A revisão foi enviada, mas a limpeza física de um arquivo no Drive precisa ser verificada.'),
+                backgroundColor: Colors.orange,
+                behavior: SnackBarBehavior.floating,
+                duration: Duration(seconds: 5),
+              ),
+            );
+          }
+        } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Status atualizado com sucesso!'),
               backgroundColor: Colors.green,
               behavior: SnackBarBehavior.floating,
-            ),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Carteirinha aprovada, mas a limpeza automática dos documentos precisa ser revisada.'),
-              backgroundColor: Colors.orange,
-              behavior: SnackBarBehavior.floating,
-              duration: Duration(seconds: 5),
             ),
           );
         }
@@ -414,7 +489,16 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
       if (options.isNotEmpty) {
         expiresAt = DateTime.now().add(Duration(days: selectedDays));
       }
-      _updateStatus(status, notesController.text.trim(), expiresAt: expiresAt);
+      final bool clearDocument = selectedOptions['Documento com Foto (RG/CNH)'] ?? false;
+      final bool clearMedicalReport = selectedOptions['Laudo Médico'] ?? false;
+
+      _updateStatus(
+        status,
+        notesController.text.trim(),
+        expiresAt: expiresAt,
+        clearDocument: clearDocument,
+        clearMedicalReport: clearMedicalReport,
+      );
     }
   }
 

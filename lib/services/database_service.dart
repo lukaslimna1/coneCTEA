@@ -558,6 +558,43 @@ class DatabaseService {
     }).eq('id', requestId);
   }
 
+  Future<void> clearRequestDocumentUrls({
+    required String requestId,
+    required String memberId,
+    bool clearDocument = false,
+    bool clearMedicalReport = false,
+  }) async {
+    final now = DateTime.now().toIso8601String();
+
+    // 1. Atualizar card_requests se necessário
+    final requestUpdates = <String, dynamic>{};
+    if (clearDocument) {
+      requestUpdates['document_url'] = '';
+    }
+    if (clearMedicalReport) {
+      requestUpdates['medical_report_url'] = '';
+    }
+
+    if (requestUpdates.isNotEmpty) {
+      requestUpdates['updated_at'] = now;
+      await _supabase.from('card_requests').update(requestUpdates).eq('id', requestId);
+    }
+
+    // 2. Sincronizar com a tabela members
+    final memberUpdates = <String, dynamic>{};
+    if (clearDocument) {
+      memberUpdates['document_url'] = '';
+    }
+    if (clearMedicalReport) {
+      memberUpdates['medical_report_url'] = '';
+    }
+
+    if (memberUpdates.isNotEmpty) {
+      memberUpdates['updated_at'] = now;
+      await _supabase.from('members').update(memberUpdates).eq('id', memberId);
+    }
+  }
+
   Future<List<AppUser>> getAllProfiles() async {
     try {
       final List<dynamic> data = await _supabase

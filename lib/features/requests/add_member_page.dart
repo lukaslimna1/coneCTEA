@@ -67,9 +67,6 @@ class _AddMemberPageState extends State<AddMemberPage> {
   String? _medicalReportFileName;
   bool _isUploadingReport = false;
 
-  String? _oldDocumentUrl;
-  String? _oldMedicalReportUrl;
-
   bool _isLoading = false;
 
   bool _isFieldEnabled(String fieldName) {
@@ -169,10 +166,6 @@ class _AddMemberPageState extends State<AddMemberPage> {
       // Portanto, limpamos as variáveis de URL locais para que o widget exiba o estado vazio ("Toque para enviar arquivo").
       _documentUrl = (m.documentUrl.isNotEmpty && !documentEnabled) ? m.documentUrl : null;
       _medicalReportUrl = (m.medicalReportUrl.isNotEmpty && !medicalReportEnabled) ? m.medicalReportUrl : null;
-
-      // Guardamos a URL antiga apenas se o campo está habilitado para reenvio, para fins de deleção segura em background
-      _oldDocumentUrl = (m.documentUrl.isNotEmpty && documentEnabled) ? m.documentUrl : null;
-      _oldMedicalReportUrl = (m.medicalReportUrl.isNotEmpty && medicalReportEnabled) ? m.medicalReportUrl : null;
 
       if (_selectedState != null) {
         _fetchCities(_selectedState!, resetCity: false);
@@ -294,15 +287,6 @@ class _AddMemberPageState extends State<AddMemberPage> {
               _medicalReportFileName = file.name;
             }
           });
-
-          // Deleção assíncrona segura em background do arquivo anterior rejeitado
-          if (isDocument && _oldDocumentUrl != null) {
-            _driveService.deleteFile(_oldDocumentUrl!);
-            _oldDocumentUrl = null; // Evita dupla deleção
-          } else if (!isDocument && _oldMedicalReportUrl != null) {
-            _driveService.deleteFile(_oldMedicalReportUrl!);
-            _oldMedicalReportUrl = null; // Evita dupla deleção
-          }
         }
       } else {
         if (mounted) {
