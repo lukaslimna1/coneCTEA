@@ -11,8 +11,8 @@
   <img src="https://img.shields.io/badge/Flutter-3.41.9-02569B?logo=flutter" alt="Flutter">
   <img src="https://img.shields.io/badge/Dart-3.11.5-0175C2?logo=dart" alt="Dart">
   <img src="https://img.shields.io/badge/Supabase-PostgreSQL-3FCF8E?logo=supabase" alt="Supabase">
-  <img src="https://img.shields.io/badge/App-0.5.0--dev-8B3DFF?logo=flutter" alt="App">
-  <img src="https://img.shields.io/badge/Docs-4.2.0-02569B?logo=read-the-docs" alt="Docs">
+  <img src="https://img.shields.io/badge/App-0.6.0--dev-8B3DFF?logo=flutter" alt="App">
+  <img src="https://img.shields.io/badge/Docs-4.3.0-02569B?logo=read-the-docs" alt="Docs">
   <img src="https://img.shields.io/badge/Status-Desenvolvimento-orange" alt="Status">
 </p>
 
@@ -113,4 +113,4 @@ Projeto desenvolvido por **Lucas Lima**.
 Portfólio: [lucaslimadigital.vercel.app](https://lucaslimadigital.vercel.app)
 
 ---
-*ConeCTEA App 0.5.0-dev | Documentação 4.2.0 — 2026*
+*ConeCTEA App 0.6.0-dev | Documentação 4.3.0 — 2026*

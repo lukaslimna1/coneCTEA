@@ -1,7 +1,7 @@
 # Documentação do ConeCTEA
 
-**App:** 0.5.0-dev  
-**Documentação:** 4.2.0  
+**App:** 0.6.0-dev
+**Documentação:** 4.3.0
 **Status:** Desenvolvimento
 
 ---

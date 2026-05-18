@@ -1,9 +1,9 @@
 # Histórico Técnico de Frentes — ConeCTEA
 
-**App:** 0.5.0-dev  
-**Documentação:** 4.2.0  
+**App:** 0.6.0-dev
+**Documentação:** 4.3.0
 **Status:** Desenvolvimento  
-**Atualizado em:** 17/05/2026
+**Atualizado em:** 22/05/2026
 
 ---
 
@@ -53,6 +53,7 @@ Este arquivo existe para manter rastreabilidade sem sobrecarregar o `DOCTecnico.
 | 26D.1 | Concluída | Refino visual da tela Pedidos / Solicitações com nova hierarquia vertical, LayoutBuilder na barra de progresso e contador Dark Glass com número branco. Commit `5b4ab6f`. | Melhora significativamente a responsividade da tela em viewports de 360dp a 438dp. |
 | 26E.1 | Concluída | Refino visual da tela de Notificações, compactação de topo das telas internas e novo badge Ruby/Rose no header. Commits `b3862ca` e `bb4f7df`. | Padronizou a estrutura de topo de todas as telas internas e removeu ciano do contador do sino. |
 | 26E.2 | Concluída | Humanização de textos das notificações, vínculo direto de cores/ícones ao `StatusVisualTokens` e leitura individual e reativa ao toque. Commits `8ea9d84` e `e7980d3`. | Otimizou o tom textual, corrigiu duplicidades e permitiu marcar mensagens individuais como lidas reativamente. |
+| 26F | Concluída nesta etapa | Fluxo de revisão administrativa de dados e reenvio seletivo de documentos sensíveis com solicitação de exclusão no Drive. Commits: f08b4c4 (destravamento de campos, validação de documentos e limpeza visual inicial), 5c61157 (banner "Ajustes solicitados" e texto dinâmico de documentos obrigatórios) e c0d7551 (limpeza seletiva de documentos rejeitados movida para fluxo admin com refino posterior do ponto da deleção). | Atua na tentativa de exclusão seletiva de arquivos rejeitados no Drive ao solicitar reenvio administrativo, destravando dinamicamente apenas os campos/documentos alvos da revisão, sem ação necessária no momento. |
 
 ---
 
@@ -67,6 +68,7 @@ Se uma frente como `24D.1`, `24D.2`, `25B.1` ou `25B.2` não estiver registrada 
 ## Roadmap Técnico
 
 ### Concluído recentemente
+- Frente 26F (Fluxo de revisão administrativa e reenvio seletivo de documentos);
 - Frente 26E.2 (Humanização e Leitura individual de notificações);
 - Frente 26E.1 (Refino de Notificações, compactação de topo e badge Ruby/Rose);
 - Frente 26D.1 (Refino visual da tela Pedidos / Solicitações);

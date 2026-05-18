@@ -1,7 +1,7 @@
 # Bugs Conhecidos — ConeCTEA
 
-**App:** 0.5.0-dev  
-**Documentação:** 4.2.0  
+**App:** 0.6.0-dev
+**Documentação:** 4.3.0
 **Status:** Desenvolvimento
 **Atualizado em:** 17/05/2026
 
@@ -78,9 +78,29 @@ As frentes 26B e 26C focaram na mitigação de falhas e problemas de visualizaç
 | `BUG-CARD-001` | `CardsDetailsSection` | Alta | Padding compacto + Expanded + CTA 'VER' de 1 linha. | **RESOLVIDO** |
 | `BUG-NAV-001` | `PremiumBottomNavBar` | Alta | Ocultação baseada em MediaQuery.viewInsetsOf quando teclado > 0. | **RESOLVIDO** |
 | `BUG-REQ-001` | `RequestsView` | Alta | LayoutBuilder na barra de progresso + Cards verticais + Contador branco. | **RESOLVIDO** |
+| `BUG-REQ-002` | `RequestAdminNotesBanner`| Média | Redução do título para "Ajustes solicitados", padding e flexibilidade de linha. | **RESOLVIDO** |
+| `BUG-REQ-003` | `AddMemberPage (Drive)` | Alta | Remoção da exclusão do Drive do fluxo do usuário e migração para o fluxo admin. | **RESOLVIDO** |
+
+---
+
+## 4. Bugs Resolvidos na Frente 26F (Revisão de Dados e Reenvio de Documentos)
+
+A Frente 26F tratou de correções visuais e lógicas críticas identificadas durante o fluxo de reenvio de dados pelo usuário final:
+
+### 4.1 Overflow no Banner de Pendência Administrativa (`RequestAdminNotesBanner`)
+- **Problema:** Um erro de overflow de renderização (estouro horizontal da tela) ocorria ao exibir o banner de ajustes administrativos em dispositivos móveis estreitos (360dp de largura), quebrando a estética premium da tela.
+- **Causa Técnica:** O título `"Ajuste solicitado pelo Administrador"` era excessivamente longo e tentava se renderizar sem quebra em uma linha rígida sem restrição flexível.
+- **Resolução:** O título foi encurtado com moderação para `"Ajustes solicitados"`, o padding lateral do componente foi compactado e todos os elementos de texto e botão foram envolvidos em estruturas flexíveis adequadas (`Expanded`), permitindo dimensionamento seguro mesmo nas menores janelas visuais.
+- **Status:** **Resolvido** (Frente 26F-FIX.1A).
+
+### 4.2 Deleção Física Precoce e Inconsistente de Arquivos no Google Drive
+- **Problema:** Ao selecionar um novo arquivo no fluxo de correção do formulário (`_pickAndUploadFile`), o sistema excluía fisicamente o arquivo anterior do Google Drive de forma imediata. Se o usuário cancelasse a edição ou fechasse o aplicativo sem pressionar "Salvar", a URL persistida no Supabase apontava para um arquivo inexistente no Drive (link quebrado).
+- **Causa Técnica:** A chamada ao método de deleção do Google Drive estava inserida dentro da função de seleção temporária de arquivo local na máquina do usuário final.
+- **Resolução:** A lógica de exclusão física precoce em `_pickAndUploadFile` foi totalmente removida. O processo de exclusão de arquivos obsoletos/rejeitados foi transferido com segurança para o lado do administrador. O trigger de remoção agora é disparado seletivamente apenas no momento exato em que o administrador confirma a pendência e envia a solicitação de volta para reenvio de documentos específicos.
+- **Status:** **Resolvido** (Frente 26F-DRIVE-FIX.1).
 
 ---
 
 ## Observações
 
-Nenhum bug de responsividade visual, RenderFlex ou overflow resta pendente nas seções principais da Home, da aba de Carteirinhas, do formulário de solicitações ou da tela de Pedidos e Solicitações auditados na bancada de desenvolvimento atual. A mitigação visual foi considerada altamente estável sob as condições de teste do ambiente local.
+Todas as inconsistências de responsividade visual, RenderFlex, overflow ou riscos de perda lógica na integridade de arquivos conhecidas foram analisadas em bancada de desenvolvimento e mitigadas. A auditoria técnica e os testes manuais em ambiente de laboratório indicam que os comportamentos de interface atendem aos critérios de aceitação e de UX estabelecidos para o ecossistema ConeCTEA, priorizando a mitigação contínua de inconsistências operacionais e de rede sem assumir invulnerabilidade absoluta.

@@ -1,9 +1,9 @@
 # Requests — ConeCTEA
 
-**App:** 0.5.0-dev  
-**Documentação:** 4.2.0  
+**App:** 0.6.0-dev
+**Documentação:** 4.3.0
 **Status:** Desenvolvimento
-**Atualizado em:** 16/05/2026
+**Atualizado em:** 17/05/2026
 
 ---
 
@@ -29,3 +29,8 @@ O fluxo foi consolidado e modularizado:
     - O título foi envolvido por um `Expanded` com limite de 1 linha e ellipsis. Protocolo e data foram dispostos individualmente em linhas próprias de apoio visual.
     - A barra de progresso dinâmico foi migrada do cálculo baseado em `MediaQuery` para o uso de `LayoutBuilder` coletando a largura exata do container local (`constraints.maxWidth`), o que mitigou riscos de estouro lateral (RenderFlex) em viewports estreitas de 360dp.
     - O contador de registros ao lado dos cabeçalhos "EM ANDAMENTO" e "HISTÓRICO" foi ajustado na cor branca sobre uma pill translúcida em estilo Dark Glass, garantindo boa legibilidade e contraste na bancada de desenvolvimento atual.
+*   **Revisão Administrativa e Reenvio Seletivo de Documentos (Frente 26F):**
+    - **Destravamento Condicional de Campos:** Na tela de edição (`AddMemberPage`), quando uma solicitação retorna do fluxo de análise para revisão do usuário (`reviewing_data` ou `waiting_docs`), apenas os campos e documentos marcados explicitamente pelo administrador são destravados para edição (controlado via `_isFieldEnabled`). Todos os demais campos permanecem bloqueados de forma segura, reduzindo riscos de alterações indesejadas de dados já validados.
+    - **Liberação Dinâmica do Campo CID:** O campo do Código Internacional de Doenças (CID) passa a ser desbloqueado dinamicamente no formulário do usuário se, e somente se, o reenvio do Laudo Médico for solicitado pela administração.
+    - **Comportamento Visual dos Campos sob Revisão:** Para evitar confusão no reenvio de informações, o formulário apresenta os campos de texto sob revisão como limpos/vazios e os seletores de arquivo limpos, obrigando o usuário a reenviar/redigitar estritamente a nova informação correta solicitada. Os documentos não solicitados permanecem preservados e ocultos para edição.
+    - **Persistência Segura nas Tabelas:** O processo de limpeza e sincronização é executado em nível de banco de dados no Supabase, afetando as tabelas `card_requests` (tabela de requisições temporárias) e `members` (tabela de dados efetivos), garantindo consistência técnica em todo o ecossistema e mitigando que URLs desatualizadas ou rejeitadas reapareçam para o usuário final.

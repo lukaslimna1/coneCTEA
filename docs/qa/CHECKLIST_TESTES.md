@@ -1,7 +1,7 @@
 # Checklist de Testes — ConeCTEA
 
-**App:** 0.5.0-dev  
-**Documentação:** 4.2.0  
+**App:** 0.6.0-dev
+**Documentação:** 4.3.0
 **Status:** Desenvolvimento
 **Atualizado em:** 17/05/2026
 
@@ -133,3 +133,37 @@ Testes de responsividade técnica e de experiência visual na tela de Pedidos e 
 - [ ] Localizar os cabeçalhos de seção "EM ANDAMENTO" e "HISTÓRICO".
 - [ ] Validar que a contagem numérica de solicitações ao lado de cada cabeçalho é exibida em branco suave (`white.withValues(alpha: 0.92)`).
 - [ ] Verificar que a pill de contorno roxo discreto e fundo Dark Glass oferece excelente taxa de contraste e boa legibilidade em ambientes de iluminação adversa.
+
+---
+
+## Checklist de Revisão de Dados e Reenvio de Documentos (Frente 26F)
+
+Verificações para garantir a estabilidade visual do banner de pendências, o destravamento seletivo de inputs e a integridade de exclusões no Drive e Supabase:
+
+### 1. Banner "Ajustes solicitados" e Responsividade
+- [ ] Colocar uma solicitação no status de pendência ("Revisar") e preencher observações do administrador.
+- [ ] Abrir o formulário de edição do dependente (`AddMemberPage`) e validar que o banner "Ajustes solicitados" é renderizado no topo.
+- [ ] Testar em emulador com largura de 360dp e garantir que o banner se ajusta de forma elástica, sem apresentar qualquer overflow horizontal de renderização ou quebra textual dura.
+
+### 2. Bloqueio e Destravamento Condicional de Campos e CID
+- [ ] **Caso A: Reenvio de apenas campos cadastrais textuais (ex: Nome).**
+  - [ ] Validar que apenas o campo de Nome está habilitado para alteração.
+  - [ ] Verificar se os documentos (RG, Laudo) e o campo CID estão bloqueados de forma segura contra escrita.
+- [ ] **Caso B: Reenvio apenas de "Documento com Foto" (RG).**
+  - [ ] Validar que o campo tipográfico de Código CID está desabilitado.
+  - [ ] Confirmar que o seletor para "Documento com Foto" está habilitado e exibe o label obrigatório em destaque ("Documento obrigatório nesta etapa"), enquanto o seletor de "Laudo Médico" está completamente bloqueado e preserva a URL anterior.
+- [ ] **Caso C: Reenvio de "Laudo Médico".**
+  - [ ] Validar que o campo de Código CID está reativo e liberado dinamicamente para digitação pelo usuário.
+  - [ ] Confirmar que o seletor para "Laudo Médico" está habilitado e limpo com o aviso de obrigatoriedade, enquanto o seletor de "Documento com Foto" permanece bloqueado.
+
+### 3. Integridade da Seleção e do Upload de Arquivos
+- [ ] Abrir a tela de reenvio de documento e selecionar um novo arquivo local (simular pick com imagem ou PDF).
+- [ ] Validar que a seleção do arquivo local NÃO aciona nenhuma exclusão lógica ou solicitação de limpeza física do arquivo anterior de forma precoce no Google Drive.
+- [ ] Fechar a tela sem salvar e reabri-la; atestar que os documentos anteriores continuam consistentes no Supabase (URLs não quebradas).
+- [ ] Concluir o reenvio clicando em "Salvar e Continuar" e confirmar que o novo arquivo é persistido de forma integrada no Google Drive e no Supabase.
+
+### 4. Limpeza Seletiva de Arquivos no Lado do Administrador
+- [ ] No painel administrativo, simular a rejeição de apenas o "Documento com Foto", validando o envio da solicitação de limpeza do arquivo antigo no Drive.
+- [ ] Confirmar no terminal de logs que o disparo do fluxo de exclusão seletiva via `GoogleDriveService.deleteFile` solicita a limpeza física estritamente do Documento com Foto antigo no Drive, deixando a URL e o arquivo do Laudo Médico intocados.
+- [ ] Simular a rejeição de "Laudo Médico" apenas; confirmar no terminal que foi solicitada a exclusão física do Laudo Médico obsoleto no Drive e que o Documento com Foto antigo permanece seguro e com link funcional.
+- [ ] Validar que falhas de conexão ou erros de API durante a exclusão do arquivo físico no Drive não travam a atualização lógica da solicitação no banco do Supabase, registrando o erro silenciosamente nos logs administrativos para fins de auditoria e mitigação operacional.

@@ -1,6 +1,6 @@
 # 📘 Documentação Técnica — ConeCTEA
 
-**App:** 0.5.0-dev | **Documentação:** 4.2.0 | **Status:** Desenvolvimento
+**App:** 0.6.0-dev | **Documentação:** 4.3.0 | **Status:** Desenvolvimento
 <br>
 **Atualizado em:** 16/05/2026
 
@@ -21,4 +21,4 @@ Este arquivo `DOCTecnico.md` serve agora como o ponto central de referência par
 *   **[QA Android, Emuladores e Checklists](docs/qa/QA_ANDROID.md)**
 
 ---
-*ConeCTEA App 0.5.0-dev | Documentação Técnica 4.2.0 — Família TEA Bauru 💙*
+*ConeCTEA App 0.6.0-dev | Documentação Técnica 4.3.0 — Família TEA Bauru 💙*

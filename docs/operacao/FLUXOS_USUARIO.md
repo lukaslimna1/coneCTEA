@@ -1,8 +1,8 @@
 # Fluxos Usuário — ConeCTEA
 
-**App:** 0.5.0-dev  
-**Documentação:** 4.2.0  
-**Status:** Em construção  
+**App:** 0.6.0-dev
+**Documentação:** 4.3.0
+**Status:** Em construção
 **Atualizado em:** 17/05/2026
 
 ---
@@ -25,6 +25,7 @@ Mapear os principais fluxos de interação e navegação do usuário no aplicati
 - O usuário com a carteirinha no status **Vencida** visualiza na Home o botão exclusivo “Solicitar Renovação”.
 - Ao clicar em "Solicitar Renovação", o status do aplicativo muda para **Renovando**.
 - O usuário passa a aguardar o processamento da solicitação pelo administrador.
+- Validar o retorno da carteirinha para o status Ativa após aprovação pelo administrador.
 
 ### Fluxo de Solicitação de Novo Dependente / Carteirinha (Frente 26C.1)
 - O usuário acessa a página `lib/features/requests/add_member_page.dart` a partir da Home ou da aba de carteirinhas.
@@ -36,7 +37,7 @@ Mapear os principais fluxos de interação e navegação do usuário no aplicati
 ### Fluxo de Consulta de Carteirinha e Detalhes Rápidos (Frente 26B.1 / 26B.2 / 26B.3-AUD)
 - O usuário navega para a aba de Carteirinhas (`lib/features/cards/cards_view.dart`).
 - Seleciona o dependente no carrossel de membros. A paleta de cor neon se adapta deterministicamente à seed de cores do titular.
-- Visualiza o card digital estilizado com o Sapphire Luxe. O usuário pode tocar no card para rotacioná-lo (flip) e visualizar o QR Code administrativo e o texto legal simplificado no verso.
+- Visualiza o card digital estilizado com o Sapphire Luxe. O usuário pode tocar no card para rotacioná-lo (flip) e visualizar o QR Code administrativo e o texto legal descritivo simplificado no verso.
 - Logo abaixo da carteirinha, na seção `CardsDetailsSection` (`lib/features/cards/widgets/tela_carteirinhas/cards_details_section.dart`), o usuário consulta rapidamente o bloco informativo de "Validade" e a pill de status administrativo, ambos protegidos contra quebra de layout em telas de 360dp.
 - Toca no botão de ação rápida `"VER"` para exibir o documento em tela cheia adaptativa ou no botão `"Girar"` para flipar a carteirinha.
 
@@ -51,3 +52,14 @@ Mapear os principais fluxos de interação e navegação do usuário no aplicati
   - Barra de progresso visual fluida e responsiva baseada na proporção do container.
   - Botão "CORRIGIR" (unificado no padrão `StatusActionButton`) quando houver pendências acionáveis a resolver (como no status "Revisar").
 - O usuário pode copiar o protocolo com um clique e receber feedback visual discreto ("Protocolo copiado!").
+
+### Fluxo de Revisão de Dados e Reenvio de Documentos (Frente 26F)
+- O usuário acessa a solicitação pendente com status "Revisar" a partir da lista de Pedidos/Solicitações ou diretamente através dos alertas contextuais na Home.
+- Ao clicar em "CORRIGIR", o usuário é direcionado para o formulário de edição (`AddMemberPage`).
+- No topo da página, um banner premium compacto com o título "Ajustes solicitados" apresenta as observações inseridas pelo administrador, indicando com clareza quais correções devem ser realizadas, com redimensionamento elástico adaptado a telas de 360dp de largura.
+- O formulário bloqueia visualmente todos os campos já validados (como CPF, Nome, Data de Nascimento, etc., caso não tenham sido objeto da revisão). Apenas os campos sinalizados para correção ficam liberados para edição.
+- Caso o administrador solicite a revisão de documentos:
+  - Os seletores para "Documento com Foto" e/ou "Laudo Médico" aparecem limpos e com a indicação textual de "Documento obrigatório nesta etapa" em destaque, evitando a impressão incorreta de que o envio é opcional nessa fase de saneamento de pendências.
+  - O campo para Código CID é liberado para digitação apenas se o Laudo Médico tiver sido solicitado para revisão.
+- O usuário preenche as informações corrigidas, faz o upload dos novos documentos necessários e clica em "Salvar e Continuar".
+- A solicitação é atualizada e retorna para a fila de análise administrativa, bloqueando novamente a edição no lado do usuário.
