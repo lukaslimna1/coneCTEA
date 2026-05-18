@@ -173,29 +173,32 @@ Verificações para garantir a estabilidade visual do banner de pendências, o d
 ## Checklist de Testes do Botão "Fazer mais tarde" e Descarte de Alterações (Frente 26G)
 Verificações estruturais e operacionais para garantir a consistência do descarte seguro de dados e a higiene de uploads temporários na `AddMemberPage`:
 
+> [!NOTE]
+> Itens marcados como concluídos refletem validação funcional realizada por Lucas na bancada local. Manter em observação para testes futuros de rede/Drive.
+
 ### 1. Comportamento Sem Alterações
-- [ ] **Fluxo de Cadastro Inicial:** Abrir a tela de novo cadastro dependente, não alterar nenhum campo (deixar controllers de texto vazios, tipo sanguíneo sem seleção e sem novos arquivos anexados) e tocar em `"Fazer mais tarde"`. Validar que a tela é fechada imediatamente sem exibir modal de confirmação.
-- [ ] **Fluxo de Correção de Pendência (`reviewing_data` / `waiting_docs`):** Acessar a tela de correção a partir de uma solicitação rejeitada, não realizar nenhuma alteração nos campos desbloqueados e tocar em `"Fazer mais tarde"` (ou usar voltar físico/gesto). Confirmar que a tela fecha direto e sem diálogos.
+- [x] **Fluxo de Cadastro Inicial:** Abrir a tela de novo cadastro dependente, não alterar nenhum campo (deixar controllers de texto vazios, tipo sanguíneo sem seleção e sem novos arquivos anexados) e tocar em `"Fazer mais tarde"`. Validar que a tela é fechada imediatamente sem exibir modal de confirmação.
+- [x] **Fluxo de Correção de Pendência (`reviewing_data` / `waiting_docs`):** Acessar a tela de correção a partir de uma solicitação rejeitada, não realizar nenhuma alteração nos campos desbloqueados e tocar em `"Fazer mais tarde"` (ou usar voltar físico/gesto). Confirmar que a tela fecha direto e sem diálogos.
 
 ### 2. Comportamento Com Alterações Cadastrais
-- [ ] **Modificação de Texto:** No cadastro ou correção, alterar qualquer campo tipográfico habilitado (ex: preencher um caractere no campo de nome ou observações). Tocar em `"Fazer mais tarde"` ou usar voltar do sistema. Validar a exibição do diálogo `"Descartar alterações?"` contendo os botões `"Continuar Editando"` e `"Sair sem Salvar"`.
-- [ ] **Interrupção e Retorno:** No modal de descarte, clicar em `"Continuar Editando"`. Confirmar que o modal fecha, o usuário permanece na tela de formulário e todas as informações provisórias preenchidas continuam ativas e visíveis.
-- [ ] **Descarte Técnico:** Modificar um campo e clicar em `"Sair sem Salvar"`. Confirmar que a tela fecha e a informação alterada não foi gravada nem no Supabase nem mantida na reabertura subsequente.
+- [x] **Modificação de Texto:** No cadastro ou correção, alterar qualquer campo tipográfico habilitado (ex: preencher um caractere no campo de nome ou observações). Tocar em `"Fazer mais tarde"` ou usar voltar do sistema. Validar a exibição do diálogo `"Descartar alterações?"` contendo os botões `"Continuar Editando"` e `"Sair sem Salvar"`.
+- [x] **Interrupção e Retorno:** No modal de descarte, clicar em `"Continuar Editando"`. Confirmar que o modal fecha, o usuário permanece na tela de formulário e todas as informações provisórias preenchidas continuam ativas e visíveis.
+- [x] **Descarte Técnico:** Modificar um campo e clicar em `"Sair sem Salvar"`. Confirmar que a tela fecha e a informação alterada não foi gravada nem no Supabase nem mantida na reabertura subsequente.
 
 ### 3. Comportamento Com Novos Uploads Temporários
-- [ ] **Higiene do Drive (Laudo Médico Novo):**
-  - [ ] Habilitar o reenvio de Laudo Médico, anexar um arquivo local novo (imagem ou PDF). Isso gerará um upload temporário no Drive e registrará a URL provisória no app.
-  - [ ] Pressionar `"Fazer mais tarde"` ou voltar físico. Validar a exibição do diálogo de descarte.
-  - [ ] Selecionar `"Sair sem Salvar"`.
+- [x] **Higiene do Drive (Laudo Médico Novo):**
+  - [x] Habilitar o reenvio de Laudo Médico, anexar um arquivo local novo (imagem ou PDF). Isso gerará um upload temporário no Drive e registrará a URL provisória no app.
+  - [x] Pressionar `"Fazer mais tarde"` ou voltar físico. Validar a exibição do diálogo de descarte.
+  - [x] Selecionar `"Sair sem Salvar"`.
   - [ ] Acessar os logs de depuração do terminal administrativo/depuração local e validar o acionamento assíncrono do método `RequestCleanupHelper.cleanupTempUploadedUrls`.
   - [ ] Verificar se há a tentativa assíncrona de deleção da URL temporária gerada naquela sessão, mantendo em observação possíveis falhas de conexão de rede ou interrupções abruptas que gerem riscos residuais de arquivos órfãos.
-- [ ] **Higiene do Drive (Documento com Foto Novo):** Repetir o teste anterior para o upload temporário do Documento com Foto (RG). Confirmar que o descarte solicita a limpeza física do novo arquivo provisório no Drive.
-- [ ] **Higiene do Drive (Múltiplos Uploads Novos):** Anexar tanto Laudo quanto RG na mesma sessão ativa, confirmar a saída sem salvar e validar no console que ambos os novos arquivos foram catalogados para a tentativa de exclusão física no Drive.
+- [x] **Higiene do Drive (Documento com Foto Novo):** Repetir o teste anterior para o upload temporário do Documento com Foto (RG). Confirmar que o descarte solicita a limpeza física do novo arquivo provisório no Drive.
+- [x] **Higiene do Drive (Múltiplos Uploads Novos):** Anexar tanto Laudo quanto RG na mesma sessão ativa, confirmar a saída sem salvar e validar no console que ambos os novos arquivos foram catalogados para a tentativa de exclusão física no Drive.
 
 ### 4. Preservação de Dados e Documentos Oficiais/Antigos
-- [ ] **Preservação de URLs Consolidadas:** Em uma solicitação de reenvio de Laudo Médico (`waiting_docs` onde o Documento com Foto anterior já foi validado e está salvo), preencher novos dados no Laudo e clicar em `"Sair sem Salvar"`. Validar no banco do Supabase ou reabertura da tela que a URL e o arquivo físico consolidados do Documento com Foto antigo continuam totalmente preservados e funcionais.
-- [ ] **Preservação de Dados de Cadastro:** Confirmar que ao sair sem salvar, nenhuma chamada a métodos de envio (`_handleSave`) ocorre por baixo do capô, mantendo o status do dependente inalterado no Supabase.
+- [x] **Preservação de URLs Consolidadas:** Em uma solicitação de reenvio de Laudo Médico (`waiting_docs` onde o Documento com Foto anterior já foi validado e está salvo), preencher novos dados no Laudo e clicar em `"Sair sem Salvar"`. Validar no banco do Supabase ou reabertura da tela que a URL e o arquivo físico consolidados do Documento com Foto antigo continuam totalmente preservados e funcionais.
+- [x] **Preservação de Dados de Cadastro:** Confirmar que ao sair sem salvar, nenhuma chamada a métodos de envio (`_handleSave`) ocorre por baixo do capô, mantendo o status do dependente inalterado no Supabase.
 
 ### 5. Integridade do Fluxo Administrativo e Comunicações
-- [ ] **Ausência de Notificações de Saída:** Validar que ao sair sem salvar, nenhuma entrada de notificação é gerada para o usuário titular ou para o painel do administrador.
-- [ ] **Preservação de Status:** Atentar para que o status do cadastro do membro não mude (ex: continue em `reviewing_data` ou `waiting_docs` exatamente como estava antes de abrir a tela), permitindo que a pendência permaneça visível na lista para correção futura.
+- [x] **Ausência de Notificações de Saída:** Validar que ao sair sem salvar, nenhuma entrada de notificação é gerada para o usuário titular ou para o painel do administrador.
+- [x] **Preservação de Status:** Atentar para que o status do cadastro do membro não mude (ex: continue em `reviewing_data` ou `waiting_docs` exatamente como estava antes de abrir a tela), permitindo que a pendência permaneça visível na lista para correção futura.
