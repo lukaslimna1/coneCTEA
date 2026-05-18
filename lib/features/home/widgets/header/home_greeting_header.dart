@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:conectea/core/constants/colors.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+
 import 'package:conectea/models/app_user.dart';
 import 'package:conectea/core/widgets/premium/premium_qr_button.dart';
+import 'package:conectea/core/widgets/premium/conectea_role_badge.dart';
 
 class HomeGreetingHeader extends StatelessWidget {
   final String displayName;
@@ -76,7 +77,7 @@ class HomeGreetingHeader extends StatelessWidget {
       triggerMode: TooltipTriggerMode.tap,
       child: Semantics(
         label: _getRoleTooltip(),
-        child: _AdminRankInsignia(role: role!),
+        child: ConecteaRoleBadge.compact(role: role!),
       ),
     );
   }
@@ -92,64 +93,5 @@ class HomeGreetingHeader extends StatelessWidget {
       default:
         return '';
     }
-  }
-}
-
-/// Widget interno para compor a insígnia de patente administrativa premium.
-class _AdminRankInsignia extends StatelessWidget {
-  final UserRole role;
-
-  const _AdminRankInsignia({required this.role});
-
-  @override
-  Widget build(BuildContext context) {
-    IconData icon;
-    Color color;
-
-    switch (role) {
-      case UserRole.adminDev:
-        icon = PhosphorIcons.codeSimple(PhosphorIconsStyle.bold);
-        color = const Color(0xFF22D3EE).withValues(alpha: 0.9); // Ciano suave premium
-        break;
-      case UserRole.adminMaster:
-        icon = PhosphorIcons.crown(PhosphorIconsStyle.bold);
-        color = const Color(0xFFFBBF24).withValues(alpha: 0.9); // Dourado âmbar suave
-        break;
-      case UserRole.admin:
-      default:
-        icon = PhosphorIcons.shieldCheck(PhosphorIconsStyle.bold);
-        color = const Color(0xFF34D399).withValues(alpha: 0.9); // Verde esmeralda suave
-        break;
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(5),
-      decoration: BoxDecoration(
-        color: const Color(0xD90F172A), // Dark glass mais fechado e premium
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: color.withValues(alpha: 0.25), // Borda temática sutil
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.08),
-            blurRadius: 10,
-            spreadRadius: 1,
-          ),
-        ],
-      ),
-      child: Icon(
-        icon,
-        color: color,
-        size: 18,
-        shadows: [
-          Shadow(
-            color: color.withValues(alpha: 0.2),
-            blurRadius: 4,
-          ),
-        ],
-      ),
-    );
   }
 }

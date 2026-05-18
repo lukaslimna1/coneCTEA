@@ -12,6 +12,7 @@ import 'package:conectea/features/admin/widgets/admin_requests_tab.dart';
 import 'package:conectea/features/admin/widgets/admin_user_dialogs.dart';
 import 'package:conectea/features/admin/widgets/admin_users_tab.dart';
 import 'package:conectea/features/admin/widgets/admin_management_hub.dart';
+import 'package:conectea/core/widgets/premium/conectea_role_badge.dart';
 
 class AdminView extends StatefulWidget {
   const AdminView({super.key});
@@ -89,44 +90,49 @@ class _AdminViewState extends State<AdminView> {
   }
 
   Widget _buildHeader(double topPadding, {String? title, String? subtitle}) {
+    final bool showRoleBadge = _selectedModule == null && _currentUser != null;
+
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 800),
         child: Padding(
           padding: EdgeInsets.fromLTRB(24, topPadding, 24, 8),
-          child: Column(
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title ?? 'Gestão',
-                          style: GoogleFonts.inter(
-                            fontSize: 26,
-                            fontWeight: FontWeight.w900,
-                            color: AppColors.textPrimary,
-                            letterSpacing: -1.0,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          subtitle ?? 'Escolha uma área administrativa.',
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            color: AppColors.textSecondary,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (showRoleBadge) ...[
+                      ConecteaRoleBadge.expanded(role: _currentUser!.role),
+                      const SizedBox(height: 10), // Respiro sutil abaixo do badge
+                    ],
+                    Text(
+                      title ?? 'Gestão',
+                      style: GoogleFonts.inter(
+                        fontSize: 26,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.textPrimary,
+                        letterSpacing: -1.0,
+                      ),
                     ),
-                  ),
-                  const PremiumQrButton(),
-                ],
+                    const SizedBox(height: 6),
+                    Text(
+                      subtitle ?? 'Escolha uma área administrativa.',
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        color: AppColors.textSecondary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              Padding(
+                padding: EdgeInsets.only(top: showRoleBadge ? 22.0 : 0.0),
+                child: const PremiumQrButton(),
               ),
             ],
           ),
