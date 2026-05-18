@@ -487,7 +487,20 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
     if (confirm == true) {
       DateTime? expiresAt;
       if (options.isNotEmpty) {
-        expiresAt = DateTime.now().add(Duration(days: selectedDays));
+        try {
+          expiresAt = await widget.databaseService.getAdminDeadlineFromServer(selectedDays);
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Erro ao obter prazo do servidor. Ação cancelada.'),
+                backgroundColor: Colors.red,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+          return;
+        }
       }
       final bool clearDocument = selectedOptions['Documento com Foto (RG/CNH)'] ?? false;
       final bool clearMedicalReport = selectedOptions['Laudo Médico'] ?? false;

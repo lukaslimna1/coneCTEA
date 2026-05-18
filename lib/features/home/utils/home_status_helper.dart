@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:conectea/models/card_request.dart';
 import 'package:conectea/core/theme/status_visual_tokens.dart';
+import 'package:conectea/core/utils/conectea_date_time_helper.dart';
 
 /// Classe que encapsula todas as informações visuais de um status na HomeView.
 class HomeStatusInfo {
@@ -99,7 +100,7 @@ class HomeStatusHelper {
 
     final DateTime? deadline = memberRequest?.expiresAt;
     final String dateStr = deadline != null
-        ? '${deadline.day.toString().padLeft(2, '0')}/${deadline.month.toString().padLeft(2, '0')}/${deadline.year}'
+        ? ConecteaDateTimeHelper.formatProjectDateShort(deadline)
         : '';
 
     switch (effectiveStatus) {

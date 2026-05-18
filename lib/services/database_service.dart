@@ -285,6 +285,23 @@ class DatabaseService {
     }
   }
 
+  /// Obtém o prazo administrativo server-side baseado em dias úteis operacionais.
+  Future<DateTime> getAdminDeadlineFromServer(int businessDays) async {
+    try {
+      final response = await _supabase.rpc(
+        'conectea_admin_deadline',
+        params: {'p_business_days': businessDays},
+      );
+      if (response is String) {
+        return DateTime.parse(response).toUtc();
+      }
+      throw Exception('Formato de resposta inesperado do prazo do servidor: $response');
+    } catch (e) {
+      debugPrint('Erro ao obter prazo administrativo server-side: $e');
+      rethrow;
+    }
+  }
+
 
   // --- Solicitações de Carteirinha ---
   Future<List<CardRequest>> getCardRequests(String userId) async {
@@ -397,7 +414,7 @@ class DatabaseService {
     };
 
     if (expiresAt != null) {
-      updateData['expires_at'] = expiresAt.toIso8601String();
+      updateData['expires_at'] = expiresAt.toUtc().toIso8601String();
     }
 
     await _supabase.from('card_requests').update(updateData).eq('id', requestId);
