@@ -1,9 +1,9 @@
 # Histórico Técnico de Frentes — ConeCTEA
 
-**App:** 0.6.0-dev
-**Documentação:** 4.3.0
+**App:** 0.7.0-dev
+**Documentação:** 4.4.0
 **Status:** Desenvolvimento  
-**Atualizado em:** 22/05/2026
+**Atualizado em:** 18/05/2026
 
 ---
 
@@ -55,6 +55,12 @@ Este arquivo existe para manter rastreabilidade sem sobrecarregar o `DOCTecnico.
 | 26E.2 | Concluída | Humanização de textos das notificações, vínculo direto de cores/ícones ao `StatusVisualTokens` e leitura individual e reativa ao toque. Commits `8ea9d84` e `e7980d3`. | Otimizou o tom textual, corrigiu duplicidades e permitiu marcar mensagens individuais como lidas reativamente. |
 | 26F | Concluída nesta etapa | Fluxo de revisão administrativa de dados e reenvio seletivo de documentos sensíveis com solicitação de exclusão no Drive. Commits: f08b4c4 (destravamento de campos, validação de documentos e limpeza visual inicial), 5c61157 (banner "Ajustes solicitados" e texto dinâmico de documentos obrigatórios) e c0d7551 (limpeza seletiva de documentos rejeitados movida para fluxo admin com refino posterior do ponto da deleção). | Atua na tentativa de exclusão seletiva de arquivos rejeitados no Drive ao solicitar reenvio administrativo, destravando dinamicamente apenas os campos/documentos alvos da revisão, sem ação necessária no momento. |
 | 26G | Concluída nesta etapa | Botão "Fazer mais tarde" e descarte seguro de alterações na AddMemberPage. Commit `593ec1e` (Adiciona fazer mais tarde em solicitações). | Implementa saída segura sem envio que descarta alterações locais sob confirmação do usuário e efetua tentativa de limpeza física de uploads temporários novos da sessão atual no Drive, mantendo em observação riscos residuais. |
+| 26H.1 | Concluída | Centralização de fuso horário oficial America/Sao_Paulo (UTC-3) e helper central `ConecteaDateTimeHelper` em Flutter. | Elimina a dependência de relógios locais nas notificações e exibições de prazo da Home. |
+| 26H.2 | Concluída | Validade técnica da carteirinha digital no Supabase via RPC por exatamente 1 ano civil (365 dias) a partir da aprovação, vencendo em 00:00:00 do dia seguinte no fuso oficial. Sem triggers no banco. | Mantém conformidade de regras de negócio internas e declara expressamente ausência de CIPTEA governamental/Romeo Mion. |
+| 26H.3 | Concluída | Prazos administrativos server-side selecionáveis (7, 15 ou 30 dias úteis operacionais) calculados via DB (`conectea_add_business_days` / `conectea_admin_deadline`), vencendo em 00:00:00 do dia seguinte no fuso oficial, com controle de privilégios `SECURITY INVOKER` e sem triggers. | Impede fraudes por adulteração de relógio do celular e exclui sábados/domingos. Feriados são limitações futuras registradas. |
+| 26H.3-FIX.1A | Concluída | Refatoração do `home_status_helper.dart` para consumir o helper unificado de tempo `ConecteaDateTimeHelper.formatProjectDateShort(deadline)`. | Uniformiza e protege a interface visual da Home contra fusos e offsets desalinhados de dispositivos móveis. |
+| 26H.3-COMMIT | Concluída | Commit controlado `dfd3ca4` de exatamente 4 arquivos envolvidos na centralização temporal e push bem-sucedido para branch `main` em `origin`. | Mantém repositório 100% sincronizado com branch main remoto. |
+
 
 ---
 
@@ -69,6 +75,7 @@ Se uma frente como `24D.1`, `24D.2`, `25B.1` ou `25B.2` não estiver registrada 
 ## Roadmap Técnico
 
 ### Concluído recentemente
+- Série Frente 26H (Arquitetura temporal, validade da carteirinha digital, helper de tempo, RPCs de prazo administrativo em dias úteis, refabricação de Home helper e commit dfd3ca4);
 - Frente 26G (Botão "Fazer mais tarde" e descarte seguro de alterações na AddMemberPage);
 - Frente 26F (Fluxo de revisão administrativa e reenvio seletivo de documentos);
 - Frente 26E.2 (Humanização e Leitura individual de notificações);

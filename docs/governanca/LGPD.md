@@ -1,7 +1,7 @@
 # Governança de Dados & LGPD — ConeCTEA
 
-**App:** 0.6.0-dev
-**Documentação:** 4.3.0
+**App:** 0.7.0-dev
+**Documentação:** 4.4.0
 **Status:** Desenvolvimento
 **Atualizado em:** 18/05/2026
 
@@ -86,3 +86,13 @@ A Frente 26G fortaleceu as premissas de *privacy by design* e *privacy by defaul
 * **Decisão Arquitetural contra a Persistência de Rascunhos:** Visando atenuar a exposição de Informações Pessoais Identificáveis (PII) e dados de saúde de menores em trânsito e em repouso, o ConeCTEA adotou a premissa técnica de **não persistir dados provisórios** (rascunhos) localmente em banco embarcado ou na nuvem Supabase enquanto o cadastro do membro não estiver devidamente revisado e submetido voluntariamente pelas famílias. Isto apoia diretamente o princípio da minimização de dados e a transparência operacional, evitando que dados incompletos ou abandonados fiquem armazenados na infraestrutura do sistema.
 * **Higiene e Expurgo Físico na Sessão Ativa:** Para impedir a proliferação de documentos sensíveis remanescentes na nuvem institucional (Google Drive) quando uma família inicia um fluxo de envio de imagem e decide abandonar a tela no meio do processo, o aplicativo rastreia as URLs provisórias e aciona silenciosamente em segundo plano a tentativa de exclusão física seletiva dessas mídias via Apps Script (GAS) ao confirmar a ação `"Sair sem Salvar"`.
 * **Risco Residual Coerente:** Em conformidade com a natureza distribuída das redes de telefonia celular, há o risco residual conhecido de falha na entrega destas requisições de expurgo físico caso ocorra perda súbita de conexão de rede antes do fechamento do app. Para mitigar esse cenário, a integridade operacional e a limpeza lógica no banco de dados do Supabase permanecem inalteradas, e os arquivos residuais na nuvem podem ser monitorados e higienizados de forma transparente e independente na lixeira ou pasta do Drive, mantendo a conformidade prática sob observação operacional periódica, sem a necessidade de ações adicionais ou intervenções no celular da família.
+
+---
+
+## 7. Integridade e Consistência Temporal (Frente 26H)
+
+Sob as premissas de integridade dos dados e segurança da informação, a Frente 26H introduziu regras rígidas para o controle de datas e prazos baseados no servidor:
+
+* **Prevenção contra Adulterações Locais:** O rastreamento de prazos e validades baseia-se exclusivamente no fuso oficial do projeto (`America/Sao_Paulo` UTC-3), processado e calculado no banco de dados. Isso impede a manipulação de tempos locais por usuários que poderiam tentar adiar prazos de revisão ou prolongar de forma ilegal a validade civil de suas carteirinhas alterando as configurações de relógio do celular.
+* **Segurança e Rastreabilidade:** Triggers automáticos no banco gerenciam a transição lógica dos status e datas limitadoras, fornecendo trilhas cronológicas idôneas para auditorias técnicas, mantendo o ecossistema robusto e em conformidade conceitual com os princípios de segurança, integridade de dados e responsabilidade da LGPD.
+

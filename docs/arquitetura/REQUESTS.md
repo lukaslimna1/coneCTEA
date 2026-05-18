@@ -1,7 +1,7 @@
 # Requests — ConeCTEA
 
-**App:** 0.6.0-dev
-**Documentação:** 4.3.0
+**App:** 0.7.0-dev
+**Documentação:** 4.4.0
 **Status:** Desenvolvimento
 **Atualizado em:** 18/05/2026
 
@@ -41,3 +41,9 @@ O fluxo foi consolidado e modularizado:
     - **Diálogo de Confirmação:** Caso modificações ou uploads de novos arquivos tenham ocorrido, o diálogo `RequestUnsavedChangesDialog` (`lib/features/requests/widgets/request_unsaved_changes_dialog.dart`) é invocado, fornecendo as opções de continuar editando ou sair descartando as edições. Caso não haja alterações locais, a tela é fechada imediatamente sem alertas.
     - **Higiene e Exclusão de Uploads da Sessão:** Em caso de descarte confirmado, o helper modularizado `RequestCleanupHelper` (`lib/features/requests/helpers/request_cleanup_helper.dart`) é acionado em segundo plano para catalogar e efetuar a tentativa assíncrona de exclusão física dos novos arquivos temporários carregados no Google Drive/GAS estritamente durante aquela sessão de edição. Arquivos antigos oficiais já consolidados ou salvos anteriormente permanecem preservados e intocados.
     - **Mitigação de Impacto de Rede:** O fluxo de descarte e saída segura da tela é projetado para ser tolerante a falhas de rede. Erros de delete no Drive/GAS não impedem a saída do usuário e são mitigados silenciosamente, registrando em log local apenas o necessário sem expor IDs confidenciais de dados pessoais. O status do banco no Supabase não sofre alterações e nenhuma notificação é criada ou enviada ao administrador.
+*   **Prazos Administrativos de Correção Server-Side (Frente 26H.3):**
+    - **Cálculo em Dias Úteis:** Introduz o controle de prazos administrativos estritos em dias úteis operacionais (excluindo sábados e domingos) calculados no servidor via funções de banco de dados (`conectea_add_business_days`), sem interferência do relógio do aparelho do usuário.
+    - **Prazos Selecionáveis (Interface do Administrador):** O administrador seleciona dinamicamente a duração do prazo administrativo de correção (7, 15 ou 30 dias úteis operacionais) na interface do painel no momento de processar o retorno da solicitação para revisão. O cálculo e a validação do prazo associado ocorrem no banco por meio da RPC `conectea_admin_deadline`, sem uso de triggers ou policies automáticas nas tabelas de solicitações.
+    - **Momento da Expiração:** O prazo limite expira na virada técnica exata para o dia civil subsequente (`00:00:00` do dia seguinte ao limite técnico no fuso `America/Sao_Paulo` de Bauru/SP), oferecendo segurança jurídica e tempo completo para que os usuários realizem as adequações necessárias até o último minuto do prazo.
+    - **Limitação Registrada (Feriados):** Feriados não são integrados à regra nesta etapa por razões de complexidade operacional, sendo contabilizados como dias normais na soma de dias úteis.
+

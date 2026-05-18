@@ -1,9 +1,9 @@
 # Carteirinha Digital — ConeCTEA
 
-**App:** 0.5.0-dev  
-**Documentação:** 4.2.0  
+**App:** 0.7.0-dev  
+**Documentação:** 4.4.0  
 **Status:** Desenvolvimento
-**Atualizado em:** 16/05/2026
+**Atualizado em:** 18/05/2026
 
 ---
 
@@ -34,3 +34,12 @@ Componente modular e performático:
 ## 5.7 Tela Cheia Adaptativa (FullScreenCardPage)
 Implementação de responsividade defensiva:
 *   **Portrait/Landscape:** Layouts otimizados com `SingleChildScrollView` e `FittedBox` para evitar overflows em qualquer resolução Android.
+
+---
+
+## 5.8 Validade da Carteirinha e Regras de Expiração (Frente 26H.2)
+A validade da carteirinha digital foi estruturada com regras consistentes e avisos de conformidade jurídica:
+*   **Regra de Expiração:** A carteirinha tem validade técnica de **1 ano civil (365 dias)** a partir do momento em que o administrador aprova a solicitação no backend. O cálculo é feito no Supabase via funções server-side (`conectea_digital_card_validity_window`), sem triggers ou policies nas tabelas do banco de dados.
+*   **Momento de Virada:** O status do membro ou carteirinha transiciona ou expira tecnicamente na virada para o dia civil subsequente (`00:00:00` do dia seguinte ao fim dos 365 dias, baseado no fuso `America/Sao_Paulo`), maximizando o uso da carteirinha até o último segundo de validade real.
+*   **AVISO LEGAL DE GOVERNANÇA:** A carteirinha gerada tem caráter **exclusivamente interno** para identificação de membros em ações, benefícios e parcerias da associação Família TEA Bauru. Ela **NÃO possui vinculação com a Lei Romeo Mion (Lei Federal 13.977/2020)** e **NÃO substitui, revoga ou equivale a documentos oficiais de identificação civil** ou à CIPTEA governamental oficial expedida por órgãos estaduais ou municipais.
+

@@ -1,7 +1,7 @@
 # Documentação do ConeCTEA
 
-**App:** 0.6.0-dev
-**Documentação:** 4.3.0
+**App:** 0.7.0-dev
+**Documentação:** 4.4.0
 **Status:** Desenvolvimento
 
 ---
@@ -28,6 +28,7 @@ A pasta `docs/` guarda os documentos detalhados por tema.
 - [Auth](arquitetura/AUTH.md)
 - [Requests](arquitetura/REQUESTS.md)
 - [Carteirinha Digital](arquitetura/CARTEIRINHA_DIGITAL.md)
+- [Arquitetura Temporal (Tempo e Datas)](arquitetura/TEMPO_E_DATAS.md)
 - [Admin](arquitetura/ADMIN.md)
 - [Notificações](arquitetura/NOTIFICACOES.md)
 
