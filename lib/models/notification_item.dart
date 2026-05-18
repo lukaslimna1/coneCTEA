@@ -34,9 +34,9 @@ class NotificationItem {
       isRead: json['isRead'] ?? json['is_read'] ?? false,
       actionLabel: json['actionLabel'] ?? json['action_label'] ?? '',
       actionRoute: json['actionRoute'] ?? json['action_route'] ?? '',
-      createdAt: json['createdAt'] != null 
-          ? DateTime.parse(json['createdAt']) 
-          : (json['created_at'] != null ? DateTime.parse(json['created_at']) : DateTime.now()),
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt']).toUtc()
+          : (json['created_at'] != null ? DateTime.parse(json['created_at']).toUtc() : DateTime.now().toUtc()),
     );
   }
 

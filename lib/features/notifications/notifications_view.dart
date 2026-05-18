@@ -8,6 +8,7 @@ import 'package:conectea/models/notification_item.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/widgets/premium/premium_card.dart';
 import 'package:conectea/core/theme/status_visual_tokens.dart';
+import 'package:conectea/core/utils/conectea_date_time_helper.dart';
 
 
 class NotificationsView extends StatefulWidget {
@@ -587,39 +588,16 @@ class _NotificationsViewState extends State<NotificationsView> {
   }
 
   bool _isSameDay(DateTime a, DateTime b) {
-    final localA = a.toLocal();
-    final localB = b.toLocal();
-    return localA.year == localB.year &&
-        localA.month == localB.month &&
-        localA.day == localB.day;
+    return ConecteaDateTimeHelper.isSameProjectDay(a, b);
   }
 
+  // Frente 26H.1-FIX.1: Exibe a data absoluta no fuso do projeto, eliminando o risco de distorção de "Hoje/Ontem" do dispositivo local
   String _formatNotificationDay(DateTime date) {
-    final localDate = date.toLocal();
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final yesterday = today.subtract(const Duration(days: 1));
-    final compareDate = DateTime(localDate.year, localDate.month, localDate.day);
-
-    if (compareDate == today) {
-      return 'Hoje';
-    } else if (compareDate == yesterday) {
-      return 'Ontem';
-    }
-
-    final months = [
-      'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
-      'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'
-    ];
-
-    return '${localDate.day} de ${months[localDate.month - 1]}';
+    return ConecteaDateTimeHelper.formatProjectDateHeader(date);
   }
 
   String _formatNotificationTime(DateTime date) {
-    final localDate = date.toLocal();
-    final hour = localDate.hour.toString().padLeft(2, '0');
-    final minute = localDate.minute.toString().padLeft(2, '0');
-    return '$hour:$minute';
+    return ConecteaDateTimeHelper.formatProjectTime(date);
   }
 
   Widget _buildDateHeader(DateTime date) {

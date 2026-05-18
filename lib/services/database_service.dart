@@ -287,7 +287,7 @@ class DatabaseService {
             title: title,
             message: message,
             type: type,
-            createdAt: DateTime.now(),
+            createdAt: DateTime.now().toUtc(),
             isRead: false,
             actionLabel: 'Analisar',
             actionRoute: '/home',
@@ -486,7 +486,7 @@ class DatabaseService {
       title: title,
       message: message,
       type: 'status_update:${status.toLowerCase()}',
-      createdAt: DateTime.now(),
+      createdAt: DateTime.now().toUtc(),
       isRead: false,
       actionLabel: 'Ver',
       actionRoute: '/requests',
@@ -689,7 +689,9 @@ class DatabaseService {
 
   Future<void> createNotification(NotificationItem notification) async {
     try {
-      await _supabase.from('notifications').insert(notification.toJson());
+      final json = notification.toJson();
+      json.remove('created_at'); // Permite que o Supabase/Postgres gere automaticamente via DEFAULT now()
+      await _supabase.from('notifications').insert(json);
       debugPrint('✅ NOTIFICATION_CREATED: Notificação criada com sucesso no banco.');
     } catch (e) {
       debugPrint('Erro ao criar notificação: $e');
