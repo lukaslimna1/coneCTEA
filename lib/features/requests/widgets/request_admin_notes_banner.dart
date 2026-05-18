@@ -27,11 +27,13 @@ class RequestAdminNotesBanner extends StatelessWidget {
                 color: Colors.orange[800],
               ),
               const SizedBox(width: 8),
-              Text(
-                'Ajuste solicitado pelo Administrador',
-                style: GoogleFonts.inter(
-                  fontWeight: FontWeight.w800,
-                  color: Colors.orange[900],
+              Expanded(
+                child: Text(
+                  'Ajustes solicitados',
+                  style: GoogleFonts.inter(
+                    fontWeight: FontWeight.w800,
+                    color: Colors.orange[900],
+                  ),
                 ),
               ),
             ],

@@ -724,41 +724,93 @@ class _AddMemberPageState extends State<AddMemberPage> {
                               ),
                               const SizedBox(height: 12),
 
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: AppColors.alertOrange.withValues(
-                                    alpha: 0.1,
-                                  ),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
+                              // Determina se há documentos obrigatórios a reenviar
+                              (() {
+                                final isReviewingRequest = widget.request != null &&
+                                    (widget.request!.status == 'reviewing_data' ||
+                                     widget.request!.status == 'waiting_docs');
+
+                                final isDocumentRequested = isReviewingRequest &&
+                                    _isFieldEnabled('Documento com Foto (RG/CNH)');
+
+                                final isMedicalReportRequested = isReviewingRequest &&
+                                    _isFieldEnabled('Laudo Médico');
+
+                                final requiredDocumentsCount = [
+                                  isDocumentRequested,
+                                  isMedicalReportRequested,
+                                ].where((required) => required).length;
+
+                                final String title;
+                                final String message;
+
+                                if (requiredDocumentsCount == 1) {
+                                  title = 'Documento obrigatório nesta etapa';
+                                  message =
+                                      'Envie o documento solicitado para que a análise da carteirinha possa continuar.';
+                                } else if (requiredDocumentsCount > 1) {
+                                  title = 'Documentos obrigatórios nesta etapa';
+                                  message =
+                                      'Envie os documentos solicitados para que a análise da carteirinha possa continuar.';
+                                } else {
+                                  title = 'Os documentos são opcionais agora.';
+                                  message =
+                                      'Podemos solicitar documentação complementar durante a análise.';
+                                }
+
+                                return Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
                                     color: AppColors.alertOrange.withValues(
-                                      alpha: 0.3,
+                                      alpha: 0.1,
                                     ),
-                                  ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    const Icon(
-                                      PhosphorIconsRegular.info,
-                                      color: AppColors.alertOrange,
-                                      size: 20,
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Expanded(
-                                      child: Text(
-                                        'Os documentos são opcionais agora. Podemos solicitar documentação complementar durante a análise.',
-                                        style: GoogleFonts.inter(
-                                          fontSize: 12,
-                                          color: AppColors.textPrimary
-                                              .withValues(alpha: 0.8),
-                                          height: 1.4,
-                                        ),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: AppColors.alertOrange.withValues(
+                                        alpha: 0.3,
                                       ),
                                     ),
-                                  ],
-                                ),
-                              ),
+                                  ),
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Icon(
+                                        PhosphorIconsRegular.info,
+                                        color: AppColors.alertOrange,
+                                        size: 20,
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              title,
+                                              style: GoogleFonts.inter(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold,
+                                                color: AppColors.textPrimary
+                                                    .withValues(alpha: 0.9),
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              message,
+                                              style: GoogleFonts.inter(
+                                                fontSize: 12,
+                                                color: AppColors.textPrimary
+                                                    .withValues(alpha: 0.8),
+                                                height: 1.4,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              })(),
                               const SizedBox(height: 20),
 
                               RequestDropdownField<String>(
