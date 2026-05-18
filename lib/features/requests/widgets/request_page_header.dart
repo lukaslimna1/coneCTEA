@@ -6,10 +6,12 @@ import 'package:conectea/core/constants/colors.dart';
 
 class RequestPageHeader extends StatelessWidget {
   final bool isEditing;
+  final VoidCallback? onBackTap;
 
   const RequestPageHeader({
     super.key,
     required this.isEditing,
+    this.onBackTap,
   });
 
   @override
@@ -22,7 +24,7 @@ class RequestPageHeader extends StatelessWidget {
           child: Row(
             children: [
               IconButton(
-                onPressed: () {
+                onPressed: onBackTap ?? () {
                   if (context.canPop()) {
                     context.pop();
                   } else {

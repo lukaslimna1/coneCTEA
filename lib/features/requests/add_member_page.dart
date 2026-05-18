@@ -24,6 +24,9 @@ import 'package:conectea/features/requests/widgets/request_success_dialog.dart';
 import 'package:conectea/features/requests/widgets/request_page_header.dart';
 import 'package:conectea/features/requests/widgets/request_form_section.dart';
 import 'package:conectea/features/requests/utils/request_cpf_validator.dart';
+import 'package:conectea/features/requests/widgets/request_later_button.dart';
+import 'package:conectea/features/requests/widgets/request_unsaved_changes_dialog.dart';
+import 'package:conectea/features/requests/helpers/request_cleanup_helper.dart';
 
 class AddMemberPage extends StatefulWidget {
   final Member? member;
@@ -68,6 +71,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
   bool _isUploadingReport = false;
 
   bool _isLoading = false;
+  final List<String> _uploadedUrlsThisSession = [];
 
   bool _isFieldEnabled(String fieldName) {
     if (widget.request == null) return true;
@@ -277,6 +281,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
         fileName: fileName,
       );
       if (url != null) {
+        _uploadedUrlsThisSession.add(url);
         if (mounted) {
           setState(() {
             if (isDocument) {
@@ -513,20 +518,100 @@ class _AddMemberPageState extends State<AddMemberPage> {
     );
   }
 
+  bool _hasUnsavedChanges() {
+    if (widget.member == null) {
+      return _nomeController.text.isNotEmpty ||
+          _cpfController.text.isNotEmpty ||
+          _telefoneController.text.isNotEmpty ||
+          _contatoEmergenciaNomeController.text.isNotEmpty ||
+          _contatoEmergenciaTelefoneController.text.isNotEmpty ||
+          _responsavelNomeController.text.isNotEmpty ||
+          _responsavelTelefoneController.text.isNotEmpty ||
+          _nascimentoController.text.isNotEmpty ||
+          _cidController.text.isNotEmpty ||
+          _selectedBloodType != null ||
+          _selectedState != null ||
+          _selectedCity != null ||
+          _uploadedUrlsThisSession.isNotEmpty;
+    }
+
+    final m = widget.member!;
+    if (_nomeController.text.trim() != m.name.trim()) return true;
+    if (_cpfController.text.trim() != m.cpf.trim()) return true;
+    if (_telefoneController.text.trim() != m.phone.trim()) return true;
+
+    final parsedEmerg = _parseContact(m.emergencyContact);
+    if (_contatoEmergenciaNomeController.text.trim() != (parsedEmerg['name'] ?? '').trim()) return true;
+    if (_contatoEmergenciaTelefoneController.text.trim() != (parsedEmerg['phone'] ?? '').trim()) return true;
+
+    final parsedResp = _parseContact(m.responsibleName);
+    if (_responsavelNomeController.text.trim() != (parsedResp['name'] ?? '').trim()) return true;
+    if (_responsavelTelefoneController.text.trim() != (parsedResp['phone'] ?? '').trim()) return true;
+
+    if (_nascimentoController.text.trim() != m.dateOfBirth.trim()) return true;
+    if (_cidController.text.trim() != m.cid.trim()) return true;
+
+    final origBlood = m.bloodType.isNotEmpty ? m.bloodType : null;
+    if (_selectedBloodType != origBlood) return true;
+
+    final origState = m.state.isNotEmpty ? m.state : null;
+    if (_selectedState != origState) return true;
+
+    final origCity = m.city.isNotEmpty ? m.city : null;
+    if (_selectedCity != origCity) return true;
+
+    if (_uploadedUrlsThisSession.isNotEmpty) return true;
+
+    return false;
+  }
+
+  Future<void> _handleBackAction() async {
+    if (_hasUnsavedChanges()) {
+      final shouldDiscard = await showDialog<bool>(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => const RequestUnsavedChangesDialog(),
+      );
+
+      if (shouldDiscard == true) {
+        if (mounted) {
+          await RequestCleanupHelper.performCleanupAndExit(
+            context: context,
+            driveService: _driveService,
+            uploadedUrls: _uploadedUrlsThisSession,
+          );
+        }
+      }
+    } else {
+      await RequestCleanupHelper.performCleanupAndExit(
+        context: context,
+        driveService: _driveService,
+        uploadedUrls: _uploadedUrlsThisSession,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF051124),
-      body: PremiumAuthBackground(
-        child: SafeArea(
-          child: CustomScrollView(
-            physics: const BouncingScrollPhysics(),
-            slivers: [
-              SliverToBoxAdapter(
-                child: RequestPageHeader(
-                  isEditing: widget.member != null,
+    return PopScope<Object?>(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        await _handleBackAction();
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFF051124),
+        body: PremiumAuthBackground(
+          child: SafeArea(
+            child: CustomScrollView(
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                SliverToBoxAdapter(
+                  child: RequestPageHeader(
+                    isEditing: widget.member != null,
+                    onBackTap: _handleBackAction,
+                  ),
                 ),
-              ),
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -848,6 +933,14 @@ class _AddMemberPageState extends State<AddMemberPage> {
                                 onPressed: _handleSave,
                                 isLoading: _isLoading,
                               ),
+                              if (widget.request == null ||
+                                  widget.request!.status == 'reviewing_data' ||
+                                  widget.request!.status == 'waiting_docs') ...[
+                                const SizedBox(height: 12),
+                                RequestLaterButton(
+                                  onPressed: _handleBackAction,
+                                ),
+                              ],
                               const SizedBox(height: 20),
                             ],
                           ),
@@ -862,6 +955,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
