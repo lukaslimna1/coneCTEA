@@ -3,7 +3,7 @@
 **App:** 0.6.0-dev
 **Documentação:** 4.3.0
 **Status:** Desenvolvimento
-**Atualizado em:** 17/05/2026
+**Atualizado em:** 18/05/2026
 
 ---
 
@@ -80,6 +80,7 @@ As frentes 26B e 26C focaram na mitigação de falhas e problemas de visualizaç
 | `BUG-REQ-001` | `RequestsView` | Alta | LayoutBuilder na barra de progresso + Cards verticais + Contador branco. | **RESOLVIDO** |
 | `BUG-REQ-002` | `RequestAdminNotesBanner`| Média | Redução do título para "Ajustes solicitados", padding e flexibilidade de linha. | **RESOLVIDO** |
 | `BUG-REQ-003` | `AddMemberPage (Drive)` | Alta | Remoção da exclusão do Drive do fluxo do usuário e migração para o fluxo admin. | **RESOLVIDO** |
+| `BUG-REQ-004` | `AddMemberPage (Descarte)`| Média | Interceptação de volta + descarte local + tentativa assíncrona de limpeza de uploads novos no Drive. | **MITIGADO** |
 
 ---
 
@@ -98,6 +99,19 @@ A Frente 26F tratou de correções visuais e lógicas críticas identificadas du
 - **Causa Técnica:** A chamada ao método de deleção do Google Drive estava inserida dentro da função de seleção temporária de arquivo local na máquina do usuário final.
 - **Resolução:** A lógica de exclusão física precoce em `_pickAndUploadFile` foi totalmente removida. O processo de exclusão de arquivos obsoletos/rejeitados foi transferido com segurança para o lado do administrador. O trigger de remoção agora é disparado seletivamente apenas no momento exato em que o administrador confirma a pendência e envia a solicitação de volta para reenvio de documentos específicos.
 - **Status:** **Resolvido** (Frente 26F-DRIVE-FIX.1).
+
+---
+
+---
+
+## 5. Mitigações e Riscos Residuais na Frente 26G (Fazer mais tarde / Saída Segura)
+
+A Frente 26G implementou a interceptação de retorno (nativa e via botão "Fazer mais tarde") com descarte seguro de modificações locais e higiene física remota na `AddMemberPage`:
+
+### 5.1 Risco de Arquivos Órfãos no Google Drive por Abandono da Sessão
+- **Risco Técnico:** Ao selecionar novos arquivos para envio de RG ou Laudo no fluxo de cadastro ou correção de pendências, o upload temporário ao Google Drive remoto é imediato na UX do componente. Caso o usuário desistisse do envio tocando em `"Fazer mais tarde"`, fechasse a tela ou fechasse o app, estes novos arquivos já gravados na nuvem ficariam abandonados no Drive institucional como arquivos órfãos sem correspondência lógica no Supabase, comprometendo a limpeza de armazenamento e o princípio de minimização de dados.
+- **Mitigação Implementada:** Ao selecionar a ação `"Sair sem Salvar"`, o aplicativo lê as URLs de novos documentos anexados estritamente na sessão ativa e dispara em plano de fundo de forma assíncrona a tentativa de deleção física desses arquivos provisórios no Drive via Google Apps Script. Os documentos antigos já salvos e gravados anteriormente **não sofrem nenhuma alteração ou risco de perda de link**.
+- **Risco Residual:** Na ocorrência de encerramentos inesperados do sistema (ex: falta de bateria, queda completa de conexão de rede de dados no meio da fila de descarte, ou travamento do sistema operacional), a chamada de deleção remota assíncrona pode não se completar com êxito, deixando arquivos residuais sem associação na pasta remota. Este comportamento faz parte das limitações estruturais de comunicação em rede móvel. Trata-se de um risco residual sob constante observação e monitoramento, sem ações corretivas imediatas necessárias.
 
 ---
 

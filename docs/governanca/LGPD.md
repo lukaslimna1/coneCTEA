@@ -3,7 +3,7 @@
 **App:** 0.6.0-dev
 **Documentação:** 4.3.0
 **Status:** Desenvolvimento
-**Atualizado em:** 17/05/2026
+**Atualizado em:** 18/05/2026
 
 ---
 
@@ -76,3 +76,13 @@ A equipe de engenharia do ConeCTEA adota uma postura transparente e realista em 
 * **Tolerância a Falhas de Rede:** Se a comunicação com a API do Google Drive via GAS falhar no momento de apagar fisicamente um documento sensível rejeitado, a transição lógica no banco Supabase não é impedida de prosseguir. A prioridade do sistema é manter o fluxo de controle seguro na base do aplicativo.
 * **Auditoria de Pendências de Limpeza:** O erro do GAS é lançado silenciosamente e catalogado em log no terminal administrativo. Isso viabiliza que as equipes técnicas realizem varreduras periódicas na pasta do Google Drive para expurgar de forma manual eventuais arquivos remanescentes que não foram excluídos automaticamente devido a falhas na infraestrutura de rede externa do Google.
 * **Segurança na Bancada:** A arquitetura do ConeCTEA encontra-se em constante fase de desenvolvimento técnico e testes de laboratório. As estratégias de privacidade de dados descritas neste guia visam mitigar riscos cibernéticos sistêmicos, sem promessas de segurança absoluta ou invulnerabilidade cibernética, priorizando sempre as boas práticas de engenharia de software e a mitigação ativa de riscos.
+
+---
+
+## 6. Privacidade por Padrão no Fluxo de Abandono e Descarte (Frente 26G)
+
+A Frente 26G fortaleceu as premissas de *privacy by design* e *privacy by default* ao estruturar a jornada do botão `"Fazer mais tarde"` e o descarte seguro de alterações na `AddMemberPage`:
+
+* **Decisão Arquitetural contra a Persistência de Rascunhos:** Visando atenuar a exposição de Informações Pessoais Identificáveis (PII) e dados de saúde de menores em trânsito e em repouso, o ConeCTEA adotou a premissa técnica de **não persistir dados provisórios** (rascunhos) localmente em banco embarcado ou na nuvem Supabase enquanto o cadastro do membro não estiver devidamente revisado e submetido voluntariamente pelas famílias. Isto apoia diretamente o princípio da minimização de dados e a transparência operacional, evitando que dados incompletos ou abandonados fiquem armazenados na infraestrutura do sistema.
+* **Higiene e Expurgo Físico na Sessão Ativa:** Para impedir a proliferação de documentos sensíveis remanescentes na nuvem institucional (Google Drive) quando uma família inicia um fluxo de envio de imagem e decide abandonar a tela no meio do processo, o aplicativo rastreia as URLs provisórias e aciona silenciosamente em segundo plano a tentativa de exclusão física seletiva dessas mídias via Apps Script (GAS) ao confirmar a ação `"Sair sem Salvar"`.
+* **Risco Residual Coerente:** Em conformidade com a natureza distribuída das redes de telefonia celular, há o risco residual conhecido de falha na entrega destas requisições de expurgo físico caso ocorra perda súbita de conexão de rede antes do fechamento do app. Para mitigar esse cenário, a integridade operacional e a limpeza lógica no banco de dados do Supabase permanecem inalteradas, e os arquivos residuais na nuvem podem ser monitorados e higienizados de forma transparente e independente na lixeira ou pasta do Drive, mantendo a conformidade prática sob observação operacional periódica, sem a necessidade de ações adicionais ou intervenções no celular da família.

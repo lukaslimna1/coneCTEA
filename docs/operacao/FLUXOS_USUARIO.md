@@ -3,7 +3,7 @@
 **App:** 0.6.0-dev
 **Documentação:** 4.3.0
 **Status:** Em construção
-**Atualizado em:** 17/05/2026
+**Atualizado em:** 18/05/2026
 
 ---
 
@@ -63,3 +63,17 @@ Mapear os principais fluxos de interação e navegação do usuário no aplicati
   - O campo para Código CID é liberado para digitação apenas se o Laudo Médico tiver sido solicitado para revisão.
 - O usuário preenche as informações corrigidas, faz o upload dos novos documentos necessários e clica em "Salvar e Continuar".
 - A solicitação é atualizada e retorna para a fila de análise administrativa, bloqueando novamente a edição no lado do usuário.
+
+### Jornada de Saída Segura ("Fazer mais tarde") e Descarte de Alterações (Frente 26G)
+Este fluxo oferece mais conforto e flexibilidade às famílias, permitindo que elas interrompam o preenchimento ou correção de dados a qualquer momento e saiam com segurança da tela, sem a pressão de ter que resolver tudo no mesmo instante:
+
+1. **Decisão de Pausa:** Durante o preenchimento de um novo cadastro ou na tela de correção de pendências, o responsável pela criança/dependente percebe que não possui um documento em mãos ou que precisa pausar o processo. Ele decide tocar no botão `"Fazer mais tarde"` (posicionado ao lado da ação de envio) ou simplesmente usa o botão ou gesto de voltar nativo de seu smartphone.
+2. **Saída Sem Alterações:** Se a família não preencheu nenhuma nova informação nos campos habilitados e não realizou nenhum upload durante aquela sessão de edição, o aplicativo reconhece que não há novos dados em risco. A tela é fechada imediatamente, retornando à visualização anterior de forma limpa e direta.
+3. **Alerta de Descarte Seguro:** Caso o usuário tenha digitado novas informações nos campos ou selecionado um novo arquivo de Laudo Médico ou Documento com Foto, o aplicativo detecta a presença de alterações pendentes e apresenta uma janela de aviso amigável e cuidadosa, perguntando se ele deseja descartar as alterações daquela sessão:
+   - **"Continuar Editando":** Cancela o aviso e mantém o usuário exatamente no formulário onde ele estava, preservando todos os campos preenchidos e uploads efetuados para que ele possa continuar sua edição.
+   - **"Sair sem Salvar":** Confirma que ele deseja sair da tela imediatamente, abandonando as modificações não gravadas.
+4. **Descarte Local e Higiene de Dados na Nuvem:** Ao confirmar `"Sair sem Salvar"`:
+   - As novas alterações inseridas apenas naquela sessão são descartadas localmente.
+   - Se novos documentos foram carregados temporariamente na nuvem durante aquela sessão, o aplicativo inicia em segundo plano uma tentativa de exclusão física seletiva dessas URLs recém-geradas no Google Drive institucional, preservando a higiene do espaço remoto de armazenamento e a privacidade dos dados.
+   - Os documentos oficiais antigos que já haviam sido salvos anteriormente ou dados salvos **permanecem completamente preservados e intocados**, garantindo a segurança histórica do cadastro.
+   - O status da solicitação não sofre nenhuma alteração, nenhuma notificação nova é criada no sistema ou enviada ao administrador, e a pendência permanece disponível no painel de solicitações do usuário para que ele volte a editá-la e corrigi-la posteriormente, no momento em que lhe for mais oportuno.

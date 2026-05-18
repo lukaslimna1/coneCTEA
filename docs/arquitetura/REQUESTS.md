@@ -3,7 +3,7 @@
 **App:** 0.6.0-dev
 **Documentação:** 4.3.0
 **Status:** Desenvolvimento
-**Atualizado em:** 17/05/2026
+**Atualizado em:** 18/05/2026
 
 ---
 
@@ -34,3 +34,10 @@ O fluxo foi consolidado e modularizado:
     - **Liberação Dinâmica do Campo CID:** O campo do Código Internacional de Doenças (CID) passa a ser desbloqueado dinamicamente no formulário do usuário se, e somente se, o reenvio do Laudo Médico for solicitado pela administração.
     - **Comportamento Visual dos Campos sob Revisão:** Para evitar confusão no reenvio de informações, o formulário apresenta os campos de texto sob revisão como limpos/vazios e os seletores de arquivo limpos, obrigando o usuário a reenviar/redigitar estritamente a nova informação correta solicitada. Os documentos não solicitados permanecem preservados e ocultos para edição.
     - **Persistência Segura nas Tabelas:** O processo de limpeza e sincronização é executado em nível de banco de dados no Supabase, afetando as tabelas `card_requests` (tabela de requisições temporárias) e `members` (tabela de dados efetivos), garantindo consistência técnica em todo o ecossistema e mitigando que URLs desatualizadas ou rejeitadas reapareçam para o usuário final.
+*   **Botão "Fazer mais tarde" e Descarte Seguro (Frente 26G):**
+    - **UX de Abandono Sem Envio:** Adiciona o botão secundário `RequestLaterButton` (`lib/features/requests/widgets/request_later_button.dart`) na tela de formulário `AddMemberPage`. O objetivo é dar ao usuário uma saída segura sem a obrigatoriedade de finalizar a edição ou reenvio de imediato. A regra de negócio estabelece que "Fazer mais tarde" não atua como rascunho persistente.
+    - **Interceptação de Retorno:** Utiliza o widget `PopScope` para interceptar tanto o clique no botão "Fazer mais tarde" quanto o gesto físico ou botão de voltar nativo do sistema operacional Android/iOS.
+    - **Detecção de Alterações Locais:** O método local `_hasUnsavedChanges` na `AddMemberPage` compara dinamicamente o estado atual do formulário com os dados originais carregados (checando controllers de texto, tipo sanguíneo e novos arquivos selecionados no picker da sessão).
+    - **Diálogo de Confirmação:** Caso modificações ou uploads de novos arquivos tenham ocorrido, o diálogo `RequestUnsavedChangesDialog` (`lib/features/requests/widgets/request_unsaved_changes_dialog.dart`) é invocado, fornecendo as opções de continuar editando ou sair descartando as edições. Caso não haja alterações locais, a tela é fechada imediatamente sem alertas.
+    - **Higiene e Exclusão de Uploads da Sessão:** Em caso de descarte confirmado, o helper modularizado `RequestCleanupHelper` (`lib/features/requests/helpers/request_cleanup_helper.dart`) é acionado em segundo plano para catalogar e efetuar a tentativa assíncrona de exclusão física dos novos arquivos temporários carregados no Google Drive/GAS estritamente durante aquela sessão de edição. Arquivos antigos oficiais já consolidados ou salvos anteriormente permanecem preservados e intocados.
+    - **Mitigação de Impacto de Rede:** O fluxo de descarte e saída segura da tela é projetado para ser tolerante a falhas de rede. Erros de delete no Drive/GAS não impedem a saída do usuário e são mitigados silenciosamente, registrando em log local apenas o necessário sem expor IDs confidenciais de dados pessoais. O status do banco no Supabase não sofre alterações e nenhuma notificação é criada ou enviada ao administrador.

@@ -3,7 +3,7 @@
 **App:** 0.6.0-dev
 **Documentação:** 4.3.0
 **Status:** Desenvolvimento
-**Atualizado em:** 17/05/2026
+**Atualizado em:** 18/05/2026
 
 ---
 
@@ -94,3 +94,19 @@ As comunicações externas com APIs de terceiros estão sujeitas a falhas interm
 * **Resiliência a Falhas no Drive/GAS:** Caso o endpoint de solicitação de exclusão do GAS falhe (por exemplo, devido a instabilidade de rede, timeout, ou alteração abrupta de permissões de pastas), **a transação de limpeza lógica no Supabase NÃO é abortada**.
 * **Priorização da Experiência do Usuário:** O status do pedido muda normalmente para "Revisar" e o banco de dados é atualizado para `null`. O erro do Drive/GAS é capturado silenciosamente e reportado no terminal de logs administrativos do sistema para fins de auditoria interna. Isso evita que o fluxo do usuário ou do administrador trave devido a um problema colateral da API externa do Google.
 * **Mitigação de Perda Acidental:** Ao remover a lógica de exclusão física do método `_pickAndUploadFile` no lado do usuário móvel, mitigamos significativamente o risco de exclusão de arquivos no Drive caso o usuário escolha um arquivo local por engano e depois desista da operação fechando o aplicativo. A remoção física de dados obsoletos ocorre apenas quando há uma decisão administrativa explícita e de tratamento planejado de reenvio.
+
+---
+
+## 6. Higiene de Sessão e Descarte de Uploads Temporários (Frente 26G)
+
+Para evitar o acúmulo de arquivos órfãos (documentos sensíveis carregados na nuvem e posteriormente descartados pelo usuário antes de salvar a solicitação), a Frente 26G introduziu a lógica de descarte seguro na sessão ativa da `AddMemberPage`:
+
+### Funcionamento do Descarte de Uploads Temporários:
+1. **Rastreamento de Uploads na Sessão:** Durante o preenchimento ou correção do formulário de dependente, a `AddMemberPage` mantém em memória uma lista temporária contendo as URLs de todos os uploads bem-sucedidos efetuados estritamente ao longo daquela execução ativa do formulário (`_uploadedUrls`).
+2. **Disparo do Descarte Seguro:** Caso o usuário decida tocar em `"Fazer mais tarde"` ou usar os comandos nativos de retornar e selecionar a opção `"Sair sem Salvar"` no modal de confirmação, o aplicativo descarta as alterações de texto locais e inicia de forma assíncrona a tentativa de limpeza física desses novos uploads provisórios:
+   - O aplicativo delega a tarefa ao helper modular `RequestCleanupHelper.cleanupTempUploads(urlsToDelete)`.
+   - O helper varre a lista de URLs provisórias cadastradas na sessão ativa.
+   - Para cada URL, extrai o identificador exclusivo (`fileId`) do arquivo no Drive institucional.
+   - Dispara em segundo plano (plano de fundo de forma assíncrona e silenciosa) as requisições HTTP POST correspondentes ao Web App do Apps Script/GAS para executar a deleção física desses arquivos provisórios.
+3. **Preservação de Documentos Oficiais:** As URLs e arquivos de documentos que já haviam sido salvos e consolidados em sessões anteriores (e que não fazem parte dos uploads temporários novos criados na sessão corrente) **são completamente preservadas e intocadas**, garantindo a estabilidade e a prevenção de perda de dados históricos do dependente.
+4. **Resiliência e Risco Residual:** Se ocorrer uma interrupção inesperada no fornecimento de dados de rede, queda de sinal ou encerramento forçado do aplicativo (crash) antes do término da fila de requisições de limpeza assíncronas do helper, alguns arquivos provisórios podem persistir no espaço de armazenamento do Drive como arquivos órfãos. Trata-se de uma limitação conhecida e classificada como risco residual sob constante observação e monitoramento periódico das pastas, sem necessidade de ações imediatas ou intervenções ativas na interface do usuário móvel.
