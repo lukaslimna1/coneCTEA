@@ -254,7 +254,7 @@ class _AdminViewState extends State<AdminView> {
 
   void _showMaintenanceSheet() {
     final token = ConecteaVisualTokens.manutencaoTecnica;
-    
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -297,7 +297,7 @@ class _AdminViewState extends State<AdminView> {
                       ),
                     ),
                   ),
-                  
+
                   // Cabeçalho da Central
                   Row(
                     children: [
@@ -370,9 +370,9 @@ class _AdminViewState extends State<AdminView> {
                       ),
                     ],
                   ),
-                  
+
                   const SizedBox(height: 20),
-                  
+
                   // Aviso discreto de área técnica
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -405,9 +405,9 @@ class _AdminViewState extends State<AdminView> {
                       ],
                     ),
                   ),
-                  
+
                   const SizedBox(height: 24),
-                  
+
                   // Módulo 1: Controle de Recursos
                   _buildMaintenanceCard(
                     icon: PhosphorIconsRegular.sliders,
@@ -416,7 +416,7 @@ class _AdminViewState extends State<AdminView> {
                     statusLabel: 'Planejado',
                     isFuture: false,
                   ),
-                  
+
                   // Módulo 2: Diagnóstico do Sistema
                   _buildMaintenanceCard(
                     icon: PhosphorIconsRegular.pulse,
@@ -425,7 +425,7 @@ class _AdminViewState extends State<AdminView> {
                     statusLabel: 'Planejado',
                     isFuture: false,
                   ),
-                  
+
                   // Módulo 3: Rotinas Automáticas
                   _buildMaintenanceCard(
                     icon: PhosphorIconsRegular.arrowsClockwise,
@@ -434,7 +434,7 @@ class _AdminViewState extends State<AdminView> {
                     statusLabel: 'Planejado',
                     isFuture: false,
                   ),
-                  
+
                   // Módulo 4: Auditoria Técnica
                   _buildMaintenanceCard(
                     icon: PhosphorIconsRegular.fileText,
@@ -461,7 +461,7 @@ class _AdminViewState extends State<AdminView> {
   }) {
     final token = ConecteaVisualTokens.manutencaoTecnica;
     final statusColor = isFuture ? const Color(0xFF94A3B8) : token.accent;
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -469,15 +469,15 @@ class _AdminViewState extends State<AdminView> {
         color: const Color(0xD90F172A), // Dark glass premium
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: isFuture 
-              ? Colors.white.withValues(alpha: 0.05) 
+          color: isFuture
+              ? Colors.white.withValues(alpha: 0.05)
               : token.accent.withValues(alpha: 0.12),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: isFuture 
-                ? Colors.black.withValues(alpha: 0.2) 
+            color: isFuture
+                ? Colors.black.withValues(alpha: 0.2)
                 : token.accent.withValues(alpha: 0.02),
             blurRadius: 10,
             spreadRadius: 1,
@@ -490,13 +490,13 @@ class _AdminViewState extends State<AdminView> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: isFuture 
-                  ? Colors.white.withValues(alpha: 0.03) 
+              color: isFuture
+                  ? Colors.white.withValues(alpha: 0.03)
                   : token.softBackground,
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                color: isFuture 
-                    ? Colors.white.withValues(alpha: 0.06) 
+                color: isFuture
+                    ? Colors.white.withValues(alpha: 0.06)
                     : token.border,
                 width: 1,
               ),
