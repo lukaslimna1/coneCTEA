@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:conectea/core/constants/colors.dart';
 import 'package:conectea/core/widgets/premium/premium_button.dart';
 import 'package:conectea/core/theme/status_visual_tokens.dart';
+import 'package:conectea/core/theme/conectea_visual_tokens.dart';
 import 'package:conectea/core/widgets/premium/status_action_button.dart';
 
 class AdminSectionTitle extends StatelessWidget {
@@ -63,48 +64,60 @@ class _AdminDetailRowState extends State<AdminDetailRow> {
       }
     }
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final isNarrowScreen = screenWidth < 380;
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: Colors.white.withValues(alpha: 0.05),
+            width: 1,
+          ),
+        ),
+      ),
+      padding: EdgeInsets.symmetric(vertical: isNarrowScreen ? 10 : 12),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 140,
-            child: Text(
-              '${widget.label}:',
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                color: AppColors.textSecondary,
-                fontWeight: FontWeight.w500,
-              ),
+          Text(
+            widget.label.toUpperCase(),
+            style: GoogleFonts.inter(
+              fontSize: 11,
+              color: AppColors.textSecondary.withValues(alpha: 0.7),
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.8,
             ),
           ),
-          Expanded(
-            child: widget.customValue ?? Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    displayedValue,
-                    style: GoogleFonts.inter(
-                      fontSize: 14,
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w600,
-                    ),
+          const SizedBox(height: 6),
+          widget.customValue ?? Row(
+            children: [
+              Expanded(
+                child: Text(
+                  displayedValue,
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-                if (widget.isSensitive)
-                  IconButton(
-                    icon: Icon(
-                      _showValue ? Icons.visibility_off_rounded : Icons.visibility_rounded,
-                      size: 18,
-                      color: AppColors.primary,
-                    ),
-                    onPressed: () => setState(() => _showValue = !_showValue),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
+              ),
+              if (widget.isSensitive) ...[
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: Icon(
+                    _showValue ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+                    size: 20,
+                    color: ConecteaVisualTokens.privacidade.accent,
                   ),
+                  onPressed: () => setState(() => _showValue = !_showValue),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  splashRadius: 16,
+                ),
               ],
-            ),
+            ],
           ),
         ],
       ),
@@ -131,48 +144,53 @@ class AdminDocumentLink extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool hasUrl = url.isNotEmpty && url.startsWith('http');
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final isNarrowScreen = screenWidth < 380;
+    final docColor = StatusVisualTokens.fromStatus('waiting_docs').primary;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: hasUrl
-            ? AppColors.primary.withValues(alpha: 0.05)
-            : Colors.grey.withValues(alpha: 0.05),
+            ? docColor.withValues(alpha: 0.04)
+            : Colors.white.withValues(alpha: 0.02),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: hasUrl
-              ? AppColors.primary.withValues(alpha: 0.1)
-              : const Color(0xFFE2E8F0),
+              ? docColor.withValues(alpha: 0.15)
+              : Colors.white.withValues(alpha: 0.05),
         ),
       ),
       child: InkWell(
         onTap: hasUrl ? onTap : null,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: EdgeInsets.all(isNarrowScreen ? 10 : 12),
           child: Row(
             children: [
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: hasUrl
-                      ? AppColors.primary.withValues(alpha: 0.1)
-                      : Colors.grey.withValues(alpha: 0.1),
+                      ? docColor.withValues(alpha: 0.08)
+                      : Colors.white.withValues(alpha: 0.04),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
                   iconData,
-                  color: hasUrl ? AppColors.primary : Colors.grey,
-                  size: 24,
+                  color: hasUrl ? docColor : AppColors.textSecondary.withValues(alpha: 0.4),
+                  size: isNarrowScreen ? 20 : 24,
                 ),
               ),
-              const SizedBox(width: 16),
+              SizedBox(width: isNarrowScreen ? 10 : 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.inter(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
@@ -182,9 +200,11 @@ class AdminDocumentLink extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       hasUrl ? 'Toque para visualizar arquivo' : 'Não enviado',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.inter(
                         fontSize: 12,
-                        color: hasUrl ? AppColors.primary : AppColors.textSecondary,
+                        color: hasUrl ? docColor : AppColors.textSecondary.withValues(alpha: 0.6),
                         fontWeight: hasUrl ? FontWeight.w600 : FontWeight.normal,
                       ),
                     ),
@@ -192,16 +212,20 @@ class AdminDocumentLink extends StatelessWidget {
                 ),
               ),
               if (hasUrl) ...[
-                if (onDelete != null)
+                if (onDelete != null) ...[
                   IconButton(
                     icon: const Icon(Icons.delete_outline_rounded,
-                        color: Colors.redAccent, size: 22),
+                        color: Colors.redAccent, size: 20),
                     onPressed: onDelete,
+                    padding: const EdgeInsets.all(4),
+                    constraints: const BoxConstraints(),
                   ),
-                const Icon(
+                  SizedBox(width: isNarrowScreen ? 8 : 12),
+                ],
+                Icon(
                   Icons.arrow_forward_ios,
-                  color: AppColors.primary,
-                  size: 16,
+                  color: docColor,
+                  size: isNarrowScreen ? 14 : 16,
                 ),
               ],
             ],

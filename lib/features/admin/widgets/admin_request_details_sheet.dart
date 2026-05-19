@@ -32,13 +32,11 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
   bool _isLoading = true;
   AppUser? _requester;
   Member? _member;
-  final _notesController = TextEditingController();
   final GoogleDriveService _driveService = GoogleDriveService();
 
   @override
   void initState() {
     super.initState();
-    _notesController.text = widget.request.adminNotes;
     _loadDetails();
   }
 
@@ -303,7 +301,9 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
             ],
           ),
           content: SizedBox(
-            width: 480,
+            width: MediaQuery.sizeOf(context).width > 528
+                ? 480.0
+                : MediaQuery.sizeOf(context).width - 48.0,
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -708,27 +708,28 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
                         ],
 
                         const SizedBox(height: 24),
-                        const AdminSectionTitle(title: 'Anotações do Admin (Opcional)'),
-                        TextField(
-                          controller: _notesController,
-                          maxLines: 3,
-                          style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary),
-                          decoration: InputDecoration(
-                            hintText: 'Adicione notas sobre a análise...',
-                            hintStyle: GoogleFonts.inter(color: AppColors.inputPlaceholder),
-                            filled: true,
-                            fillColor: AppColors.inputBackground,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(color: AppColors.inputBorder),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(color: AppColors.inputBorder),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(color: AppColors.primary),
+                        const AdminSectionTitle(title: 'Histórico da Análise'),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.02),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                          ),
+                          child: Text(
+                            widget.request.adminNotes.trim().isNotEmpty
+                                ? widget.request.adminNotes.trim()
+                                : 'Nenhum registro anterior cadastrado.',
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              color: widget.request.adminNotes.trim().isNotEmpty
+                                  ? AppColors.textPrimary
+                                  : AppColors.textSecondary.withValues(alpha: 0.5),
+                              fontStyle: widget.request.adminNotes.trim().isNotEmpty
+                                  ? FontStyle.normal
+                                  : FontStyle.italic,
+                              height: 1.5,
                             ),
                           ),
                         ),

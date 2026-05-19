@@ -111,6 +111,9 @@ class ConecteaVisualTokens {
     usage: 'Modal de LGPD, troca de senhas e dados de proteção da conta.',
   );
 
+  /// Token semântico específico para privacidade e revelar/ocultar dados sensíveis.
+  static ConecteaVisualToken get privacidade => seguranca;
+
   // F) Usuários e Permissões
   // Uso: contas de usuários, controle de cargos e acessos.
   static const ConecteaVisualToken usuariosPermissoes = ConecteaVisualToken(
