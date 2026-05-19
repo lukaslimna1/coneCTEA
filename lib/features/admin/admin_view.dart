@@ -14,6 +14,7 @@ import 'package:conectea/features/admin/widgets/admin_user_dialogs.dart';
 import 'package:conectea/features/admin/widgets/admin_users_tab.dart';
 import 'package:conectea/features/admin/widgets/admin_management_hub.dart';
 import 'package:conectea/core/widgets/premium/conectea_role_badge.dart';
+import 'package:conectea/core/theme/conectea_visual_tokens.dart';
 
 class AdminView extends StatefulWidget {
   const AdminView({super.key});
@@ -252,76 +253,317 @@ class _AdminViewState extends State<AdminView> {
   }
 
   void _showMaintenanceSheet() {
+    final token = ConecteaVisualTokens.manutencaoTecnica;
+    
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: const BoxDecoration(
-          color: AppColors.cardBackground,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-        ),
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.purple.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.build_circle_rounded, color: Colors.purple, size: 24),
+      isScrollControlled: true,
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: Container(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.85,
+            ),
+            decoration: BoxDecoration(
+              color: const Color(0xFB0B132B), // Fundo premium Night Blue profundo
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+              border: Border(
+                top: BorderSide(
+                  color: token.accent.withValues(alpha: 0.2),
+                  width: 1.5,
                 ),
-                const SizedBox(width: 16),
-                Text(
-                  'Central de Manutenção',
-                  style: GoogleFonts.inter(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.textPrimary,
+              ),
+            ),
+            padding: const EdgeInsets.fromLTRB(32, 24, 32, 32),
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Alça de arraste visual premium
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 20),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
                   ),
-                ),
-              ],
+                  
+                  // Cabeçalho da Central
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: token.softBackground,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: token.border,
+                            width: 1,
+                          ),
+                        ),
+                        child: Icon(
+                          PhosphorIconsRegular.wrench,
+                          color: token.accent,
+                          size: 22,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  'Manutenção',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w900,
+                                    color: AppColors.textPrimary,
+                                    letterSpacing: -0.5,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: token.accent.withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(
+                                      color: token.accent.withValues(alpha: 0.3),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    'ADMIN DEV',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w800,
+                                      color: token.accent,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Área técnica restrita para recursos internos do app.',
+                              style: GoogleFonts.inter(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  
+                  const SizedBox(height: 20),
+                  
+                  // Aviso discreto de área técnica
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.withValues(alpha: 0.05),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: Colors.amber.withValues(alpha: 0.15),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          PhosphorIconsRegular.warning,
+                          color: Colors.amber.withValues(alpha: 0.8),
+                          size: 14,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Recursos desta área devem ser usados apenas para diagnóstico e controle técnico.',
+                            style: GoogleFonts.inter(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.amber.withValues(alpha: 0.8),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 24),
+                  
+                  // Módulo 1: Controle de Recursos
+                  _buildMaintenanceCard(
+                    icon: PhosphorIconsRegular.sliders,
+                    title: 'Controle de Recursos',
+                    description: 'Ativar ou desativar temporariamente módulos e ações com problema.',
+                    statusLabel: 'Planejado',
+                    isFuture: false,
+                  ),
+                  
+                  // Módulo 2: Diagnóstico do Sistema
+                  _buildMaintenanceCard(
+                    icon: PhosphorIconsRegular.pulse,
+                    title: 'Diagnóstico do Sistema',
+                    description: 'Verificar integrações, serviços e rotinas técnicas do app.',
+                    statusLabel: 'Planejado',
+                    isFuture: false,
+                  ),
+                  
+                  // Módulo 3: Rotinas Automáticas
+                  _buildMaintenanceCard(
+                    icon: PhosphorIconsRegular.arrowsClockwise,
+                    title: 'Rotinas Automáticas',
+                    description: 'Acompanhar limpezas e validações executadas pelo sistema.',
+                    statusLabel: 'Planejado',
+                    isFuture: false,
+                  ),
+                  
+                  // Módulo 4: Auditoria Técnica
+                  _buildMaintenanceCard(
+                    icon: PhosphorIconsRegular.fileText,
+                    title: 'Auditoria Técnica',
+                    description: 'Consultar registros de ações administrativas sensíveis.',
+                    statusLabel: 'Futuro',
+                    isFuture: true,
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 24),
-            _buildMaintenanceItem(
-              Icons.cleaning_services_rounded,
-              'Limpar Solicitações Antigas',
-              'Remove registros de solicitações expiradas há mais de 1 ano.',
-              () async {
-                Navigator.pop(context);
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Manutenção concluída!')));
-                }
-              }
-            ),
-            _buildMaintenanceItem(
-              Icons.sync_problem_rounded,
-              'Recalcular Prazos',
-              'Sincroniza datas de validade com base nos últimos status.',
-              () async {
-                Navigator.pop(context);
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Prazos recalculados com sucesso!')));
-                }
-              }
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildMaintenanceItem(IconData icon, String title, String subtitle, VoidCallback onTap) {
-    return ListTile(
-      onTap: onTap,
-      leading: Icon(icon, color: AppColors.primary),
-      title: Text(title, style: GoogleFonts.inter(fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
-      subtitle: Text(subtitle, style: GoogleFonts.inter(fontSize: 12, color: AppColors.textSecondary)),
-      contentPadding: EdgeInsets.zero,
+  Widget _buildMaintenanceCard({
+    required IconData icon,
+    required String title,
+    required String description,
+    required String statusLabel,
+    required bool isFuture,
+  }) {
+    final token = ConecteaVisualTokens.manutencaoTecnica;
+    final statusColor = isFuture ? const Color(0xFF94A3B8) : token.accent;
+    
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xD90F172A), // Dark glass premium
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: isFuture 
+              ? Colors.white.withValues(alpha: 0.05) 
+              : token.accent.withValues(alpha: 0.12),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: isFuture 
+                ? Colors.black.withValues(alpha: 0.2) 
+                : token.accent.withValues(alpha: 0.02),
+            blurRadius: 10,
+            spreadRadius: 1,
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: isFuture 
+                  ? Colors.white.withValues(alpha: 0.03) 
+                  : token.softBackground,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: isFuture 
+                    ? Colors.white.withValues(alpha: 0.06) 
+                    : token.border,
+                width: 1,
+              ),
+            ),
+            child: Icon(
+              icon,
+              color: isFuture ? const Color(0xFF94A3B8) : token.accent,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textPrimary,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: statusColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: statusColor.withValues(alpha: 0.2),
+                          width: 1,
+                        ),
+                      ),
+                      child: Text(
+                        statusLabel.toUpperCase(),
+                        style: GoogleFonts.inter(
+                          fontSize: 8,
+                          fontWeight: FontWeight.w800,
+                          color: statusColor,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  description,
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textSecondary,
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
