@@ -21,25 +21,44 @@ class AdminRequestsTab extends StatefulWidget {
   State<AdminRequestsTab> createState() => _AdminRequestsTabState();
 }
 
+enum _AdminRequestQueueFilter {
+  newRequests,
+  corrections,
+  active,
+  restricted,
+  expired,
+  renewal,
+}
+
 class _AdminRequestsTabState extends State<AdminRequestsTab> {
-  // 0 = Ativas, 1 = Concluídas, 2 = Restritas
-  int _requestFilterIndex = 0;
+  _AdminRequestQueueFilter _activeFilter = _AdminRequestQueueFilter.newRequests;
+  late final Stream<List<CardRequest>> _requestsStream;
+  List<CardRequest> _lastRequests = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _requestsStream = widget.databaseService.getAllCardRequestsStream();
+  }
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<CardRequest>>(
-      stream: widget.databaseService.getAllCardRequestsStream(),
+      stream: _requestsStream,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
+        final bool hasCachedRequests = _lastRequests.isNotEmpty;
+
+        if (snapshot.hasData) {
+          _lastRequests = snapshot.data!.whereType<CardRequest>().toList();
+        }
+
+        if (snapshot.connectionState == ConnectionState.waiting && !hasCachedRequests) {
           return _buildShimmerList();
         }
 
-        // Filtrar nulos e garantir segurança de tipos
-        final List<CardRequest> requests = (snapshot.data ?? []).whereType<CardRequest>().toList();
-        
-        if (requests.isEmpty) {
-          return _buildEmptyState('Nenhuma solicitação encontrada', Icons.inbox_rounded);
-        }
+        final List<CardRequest> requests = snapshot.hasData
+            ? snapshot.data!.whereType<CardRequest>().toList()
+            : _lastRequests;
 
         // Sort: pendentes primeiro, depois por data
         final sortedRequests = List<CardRequest>.from(requests)
@@ -51,35 +70,62 @@ class _AdminRequestsTabState extends State<AdminRequestsTab> {
             return b.createdAt.compareTo(a.createdAt);
           });
 
-        final pendingCount = requests.where((r) => ['waiting_approval', 'reviewing_data', 'waiting_docs', 'renewing'].contains(r.status)).length;
-        final approvedCount = requests.where((r) => ['active', 'approved'].contains(r.status)).length;
-        final restrictedCount = requests.where((r) => ['rejected', 'suspended', 'expired'].contains(r.status)).length;
+        // Contagens precisas dos 6 grupos semânticos
+        final newRequestsCount = requests.where((r) => r.status == 'waiting_approval').length;
+        final correctionsCount = requests.where((r) => ['reviewing_data', 'waiting_docs'].contains(r.status)).length;
+        final activeCount = requests.where((r) => ['active', 'approved'].contains(r.status)).length;
+        final restrictedCount = requests.where((r) => ['rejected', 'suspended'].contains(r.status)).length;
+        final expiredCount = requests.where((r) => r.status == 'expired').length;
+        final renewalCount = requests.where((r) => r.status == 'renewing').length;
 
-        // Filtrar a lista com base no _requestFilterIndex
+        // Filtrar a lista com base no _activeFilter selecionado nos contadores superiores
         final filteredRequests = sortedRequests.where((r) {
-          if (_requestFilterIndex == 0) {
-            return ['waiting_approval', 'reviewing_data', 'waiting_docs', 'renewing'].contains(r.status);
-          } else if (_requestFilterIndex == 1) {
-            return ['active', 'approved'].contains(r.status);
-          } else {
-            return ['rejected', 'suspended', 'expired'].contains(r.status);
+          switch (_activeFilter) {
+            case _AdminRequestQueueFilter.newRequests:
+              return r.status == 'waiting_approval';
+            case _AdminRequestQueueFilter.corrections:
+              return ['reviewing_data', 'waiting_docs'].contains(r.status);
+            case _AdminRequestQueueFilter.active:
+              return ['active', 'approved'].contains(r.status);
+            case _AdminRequestQueueFilter.restricted:
+              return ['rejected', 'suspended'].contains(r.status);
+            case _AdminRequestQueueFilter.expired:
+              return r.status == 'expired';
+            case _AdminRequestQueueFilter.renewal:
+              return r.status == 'renewing';
           }
         }).toList();
 
         return CustomScrollView(
           slivers: [
             SliverToBoxAdapter(
-              child: _buildStatsRow(pendingCount, approvedCount, restrictedCount),
-            ),
-            SliverToBoxAdapter(
-              child: _buildRequestFilter(),
+              child: _AdminRequestFilterCarousel(
+                key: const PageStorageKey('admin_request_filter_carousel'),
+                activeFilter: _activeFilter,
+                newRequests: newRequestsCount,
+                corrections: correctionsCount,
+                active: activeCount,
+                restricted: restrictedCount,
+                expired: expiredCount,
+                renewal: renewalCount,
+                onFilterChanged: (filter) {
+                  setState(() {
+                    _activeFilter = filter;
+                  });
+                },
+              ),
             ),
             if (filteredRequests.isEmpty)
-              SliverFillRemaining(
-                child: Center(
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 32, 24, 120),
                   child: _buildEmptyState(
-                    _requestFilterIndex == 0 ? 'Nenhuma solicitação ativa' :
-                    _requestFilterIndex == 1 ? 'Nenhuma solicitação concluída' : 'Nenhuma solicitação restrita',
+                    _activeFilter == _AdminRequestQueueFilter.newRequests ? 'Nenhuma solicitação nova' :
+                    _activeFilter == _AdminRequestQueueFilter.corrections ? 'Nenhuma solicitação em correção' :
+                    _activeFilter == _AdminRequestQueueFilter.active ? 'Nenhuma solicitação ativa' :
+                    _activeFilter == _AdminRequestQueueFilter.restricted ? 'Nenhuma solicitação restrita' :
+                    _activeFilter == _AdminRequestQueueFilter.expired ? 'Nenhuma solicitação vencida' :
+                    'Nenhuma solicitação de renovação',
                     Icons.inbox_rounded,
                   ),
                 ),
@@ -106,160 +152,6 @@ class _AdminRequestsTabState extends State<AdminRequestsTab> {
           ],
         );
       },
-    );
-  }
-
-  Widget _buildRequestFilter() {
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 800),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
-          child: PremiumCard(
-            padding: const EdgeInsets.all(4),
-            child: Row(
-              children: [
-                _buildFilterButton(0, 'Ativas'),
-                _buildFilterButton(1, 'Concluídas'),
-                _buildFilterButton(2, 'Restritas'),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFilterButton(int index, String label) {
-    final isSelected = _requestFilterIndex == index;
-    final IconData icon;
-    
-    switch (index) {
-      case 0:
-        icon = PhosphorIconsRegular.clock;
-        break;
-      case 1:
-        icon = PhosphorIconsRegular.checkCircle;
-        break;
-      default:
-        icon = PhosphorIconsRegular.shieldWarning;
-    }
-
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() => _requestFilterIndex = index),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            color: isSelected ? const Color(0xFF7C3AED).withValues(alpha: 0.2) : Colors.transparent, 
-            borderRadius: BorderRadius.circular(10),
-            border: isSelected ? Border.all(color: const Color(0xFF7C3AED).withValues(alpha: 0.5)) : null,
-          ),
-          alignment: Alignment.center,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon, 
-                size: 18, 
-                color: isSelected ? Colors.white : AppColors.textSecondary.withValues(alpha: 0.4),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                label,
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                  color: isSelected ? Colors.white : AppColors.textSecondary.withValues(alpha: 0.4),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatsRow(int pending, int approved, int restricted) {
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 800),
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildStatCard('Ativas', pending.toString(), AppColors.alertOrange, Icons.pending_actions_rounded),
-              const SizedBox(width: 12),
-              _buildStatCard('Concluídas', approved.toString(), AppColors.statusGreen, Icons.check_circle_rounded),
-              const SizedBox(width: 12),
-              _buildStatCard('Restritas', restricted.toString(), AppColors.adminDanger, Icons.block_rounded),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatCard(String label, String value, Color color, IconData icon) {
-    return PremiumCard(
-      width: 140,
-      padding: const EdgeInsets.all(16),
-      child: Stack(
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, color: color, size: 24),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                label,
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w800,
-                  color: color,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                value,
-                style: GoogleFonts.outfit(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 12),
-            ],
-          ),
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              height: 3,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    color,
-                    color.withValues(alpha: 0.5),
-                  ],
-                ),
-                borderRadius: const BorderRadius.vertical(bottom: Radius.circular(3)),
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -290,62 +182,65 @@ class _AdminRequestsTabState extends State<AdminRequestsTab> {
   }
 
   Widget _buildEmptyState(String message, IconData icon) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [
-                      AppColors.primary.withValues(alpha: 0.2),
-                      AppColors.primary.withValues(alpha: 0.0),
-                    ],
-                  ),
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Stack(
+          alignment: Alignment.center,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    AppColors.primary.withValues(alpha: 0.2),
+                    AppColors.primary.withValues(alpha: 0.0),
+                  ],
                 ),
               ),
-              Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-                ),
-              ),
-              Icon(
-                PhosphorIconsRegular.tray, 
-                size: 48, 
-                color: AppColors.primary.withValues(alpha: 0.8),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          Text(
-            message,
-            style: GoogleFonts.inter(
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-              color: AppColors.textPrimary,
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Arraste para baixo para atualizar',
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              color: AppColors.textSecondary.withValues(alpha: 0.5),
+            Container(
+              width: 66,
+              height: 66,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+              ),
             ),
+            Icon(
+              PhosphorIconsRegular.tray,
+              size: 32,
+              color: AppColors.primary.withValues(alpha: 0.8),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Text(
+          message,
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: GoogleFonts.inter(
+            fontSize: 15,
+            fontWeight: FontWeight.w800,
+            color: AppColors.textPrimary,
           ),
-          const SizedBox(height: 24),
-          const Icon(PhosphorIconsRegular.caretDoubleDown, color: Color(0xFF1B3D71), size: 24),
-        ],
-      ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          'Quando houver registros, eles aparecerão aqui.',
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: GoogleFonts.inter(
+            fontSize: 12,
+            color: AppColors.textSecondary.withValues(alpha: 0.5),
+          ),
+        ),
+      ],
     );
   }
 
@@ -358,6 +253,260 @@ class _AdminRequestsTabState extends State<AdminRequestsTab> {
         request: request,
         databaseService: widget.databaseService,
         onStatusChanged: () {}, // O StreamBuilder atualiza automaticamente
+      ),
+    );
+  }
+}
+
+class _AdminRequestFilterCarousel extends StatefulWidget {
+  final _AdminRequestQueueFilter activeFilter;
+  final int newRequests;
+  final int corrections;
+  final int active;
+  final int restricted;
+  final int expired;
+  final int renewal;
+  final ValueChanged<_AdminRequestQueueFilter> onFilterChanged;
+
+  const _AdminRequestFilterCarousel({
+    super.key,
+    required this.activeFilter,
+    required this.newRequests,
+    required this.corrections,
+    required this.active,
+    required this.restricted,
+    required this.expired,
+    required this.renewal,
+    required this.onFilterChanged,
+  });
+
+  @override
+  State<_AdminRequestFilterCarousel> createState() => _AdminRequestFilterCarouselState();
+}
+
+class _AdminRequestFilterCarouselState extends State<_AdminRequestFilterCarousel> {
+  late final ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 800),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SingleChildScrollView(
+              controller: _scrollController,
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.only(left: 24, right: 24, top: 16, bottom: 8),
+              child: Row(
+                children: [
+                  _buildStatCard(
+                    _AdminRequestQueueFilter.newRequests,
+                    'Novas',
+                    widget.newRequests.toString(),
+                    const Color(0xFFF59E0B),
+                    PhosphorIconsRegular.sparkle,
+                  ),
+                  const SizedBox(width: 12),
+                  _buildStatCard(
+                    _AdminRequestQueueFilter.corrections,
+                    'Correções',
+                    widget.corrections.toString(),
+                    const Color(0xFFFF7A1A),
+                    PhosphorIconsRegular.notePencil,
+                  ),
+                  const SizedBox(width: 12),
+                  _buildStatCard(
+                    _AdminRequestQueueFilter.active,
+                    'Ativas',
+                    widget.active.toString(),
+                    const Color(0xFF00FF85),
+                    PhosphorIconsRegular.checkCircle,
+                  ),
+                  const SizedBox(width: 12),
+                  _buildStatCard(
+                    _AdminRequestQueueFilter.restricted,
+                    'Restritas',
+                    widget.restricted.toString(),
+                    const Color(0xFFE11D48),
+                    PhosphorIconsRegular.prohibit,
+                  ),
+                  const SizedBox(width: 12),
+                  _buildStatCard(
+                    _AdminRequestQueueFilter.expired,
+                    'Vencidas',
+                    widget.expired.toString(),
+                    const Color(0xFFCBD5E1),
+                    PhosphorIconsRegular.calendarX,
+                  ),
+                  const SizedBox(width: 12),
+                  _buildStatCard(
+                    _AdminRequestQueueFilter.renewal,
+                    'Renovação',
+                    widget.renewal.toString(),
+                    const Color(0xFF8B3DFF),
+                    PhosphorIconsRegular.arrowsClockwise,
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 8, bottom: 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'deslize',
+                    style: GoogleFonts.inter(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white.withValues(alpha: 0.35),
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    width: 14,
+                    height: 3,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(1.5),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Container(
+                    width: 3,
+                    height: 3,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Container(
+                    width: 3,
+                    height: 3,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatCard(
+    _AdminRequestQueueFilter filter,
+    String label,
+    String value,
+    Color color,
+    IconData icon,
+  ) {
+    final isSelected = widget.activeFilter == filter;
+
+    return PremiumCard(
+      width: 120,
+      height: 102,
+      padding: EdgeInsets.zero,
+      onTap: () {
+        widget.onFilterChanged(filter);
+      },
+      borderOverride: isSelected
+          ? Border.all(color: color.withValues(alpha: 0.6), width: 1.5)
+          : Border.all(color: Colors.white.withValues(alpha: 0.05), width: 1.0),
+      shadow: isSelected
+          ? [
+              BoxShadow(
+                color: color.withValues(alpha: 0.25),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.3),
+                blurRadius: 12,
+                offset: const Offset(0, 6),
+              ),
+            ]
+          : null,
+      child: Expanded(
+        child: Container(
+          width: double.infinity,
+          height: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: isSelected ? 0.18 : 0.08),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: Icon(icon, color: color, size: 18),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    value,
+                    style: GoogleFonts.outfit(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
+                      color: isSelected ? color : AppColors.textPrimary,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                  color: isSelected ? Colors.white : AppColors.textSecondary.withValues(alpha: 0.7),
+                ),
+              ),
+              const Spacer(),
+              Container(
+                height: 3,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      color,
+                      color.withValues(alpha: 0.5),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(1.5),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
