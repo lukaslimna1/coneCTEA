@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/widgets/premium/premium_qr_button.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:conectea/core/constants/colors.dart';
 import 'package:conectea/services/database_service.dart';
@@ -67,6 +68,9 @@ class _AdminViewState extends State<AdminView> {
             ? 'Contas, cargos e acessos administrativos.'
             : null;
 
+    final bool hasSelectedModule = _selectedModule != null;
+    final double computedHeaderTopPadding = hasSelectedModule ? 12.0 : topPadding;
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
@@ -74,12 +78,13 @@ class _AdminViewState extends State<AdminView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (hasSelectedModule)
+              _buildBackButton(topPadding),
             _buildHeader(
-              topPadding,
+              computedHeaderTopPadding,
               title: moduleTitle,
               subtitle: moduleSubtitle,
             ),
-            if (_selectedModule != null) _buildBackButton(),
             Expanded(
               child: _buildBody(),
             ),
@@ -91,6 +96,7 @@ class _AdminViewState extends State<AdminView> {
 
   Widget _buildHeader(double topPadding, {String? title, String? subtitle}) {
     final bool showRoleBadge = _selectedModule == null && _currentUser != null;
+    final bool showQrButton = _selectedModule != 'requests';
 
     return Center(
       child: ConstrainedBox(
@@ -129,11 +135,13 @@ class _AdminViewState extends State<AdminView> {
                   ],
                 ),
               ),
-              const SizedBox(width: 16),
-              Padding(
-                padding: EdgeInsets.only(top: showRoleBadge ? 22.0 : 0.0),
-                child: const PremiumQrButton(),
-              ),
+              if (showQrButton) ...[
+                const SizedBox(width: 16),
+                Padding(
+                  padding: EdgeInsets.only(top: showRoleBadge ? 22.0 : 0.0),
+                  child: const PremiumQrButton(),
+                ),
+              ],
             ],
           ),
         ),
@@ -141,44 +149,55 @@ class _AdminViewState extends State<AdminView> {
     );
   }
 
-  Widget _buildBackButton() {
+  Widget _buildBackButton(double topPadding) {
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 800),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
-          child: InkWell(
+        child: Container(
+          width: double.infinity,
+          padding: EdgeInsets.fromLTRB(24, topPadding, 24, 8),
+          alignment: Alignment.centerLeft,
+          child: GestureDetector(
             onTap: () => setState(() => _selectedModule = null),
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              decoration: BoxDecoration(
-                color: const Color(0x1A7C3AED), // Soft purple sutil
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: const Color(0x337C3AED),
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.arrow_back_rounded,
-                    color: Color(0xFFA78BFA),
-                    size: 16,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: const Color(0xA60F172A), // Dark Glass base
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: const Color(0x2E94A3B8), // Glass border
+                      width: 1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Voltar ao Painel',
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                      color: const Color(0xFFA78BFA),
+                  child: const Center(
+                    child: Icon(
+                      PhosphorIconsRegular.caretLeft,
+                      color: AppColors.cyan,
+                      size: 18,
                     ),
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Voltar ao Painel',
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xE6FFFFFF), // Branco suave
+                  ),
+                ),
+              ],
             ),
           ),
         ),
