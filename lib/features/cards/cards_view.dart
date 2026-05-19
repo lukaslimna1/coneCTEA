@@ -35,6 +35,10 @@ class _CardsViewState extends State<CardsView> {
   bool _showBack = false;
   AppUser? _user;
 
+  Stream<List<Member>>? _membersStream;
+  Stream<List<DigitalCard>>? _digitalCardsStream;
+  Stream<List<CardRequest>>? _cardRequestsStream;
+
   @override
   void initState() {
     super.initState();
@@ -46,6 +50,10 @@ class _CardsViewState extends State<CardsView> {
     try {
       final userId = _authService.currentUser?.id;
       if (userId != null) {
+        _membersStream = _databaseService.membersStream(userId);
+        _digitalCardsStream = _databaseService.digitalCardsStream(userId);
+        _cardRequestsStream = _databaseService.cardRequestsStream(userId);
+
         final user = await _databaseService.getUserProfile(userId);
         if (mounted) {
           setState(() {
@@ -150,18 +158,18 @@ class _CardsViewState extends State<CardsView> {
       extendBodyBehindAppBar: true,
       body: AppBackground(
         child: StreamBuilder<List<Member>>(
-          stream: _databaseService.membersStream(userId),
+          stream: _membersStream,
           builder: (context, memberSnap) {
             return StreamBuilder<List<DigitalCard>>(
-              stream: _databaseService.digitalCardsStream(userId),
+              stream: _digitalCardsStream,
               builder: (ctx, cardSnap) {
                 return StreamBuilder<List<CardRequest>>(
-                  stream: _databaseService.cardRequestsStream(userId),
+                  stream: _cardRequestsStream,
                   builder: (ctx2, requestSnap) {
                     // Verificação de Erros nas Streams
                     if (memberSnap.hasError || cardSnap.hasError || requestSnap.hasError) {
                       return CardsErrorState(
-                        onRetry: () => setState(() {}),
+                        onRetry: _loadProfile,
                       );
                     }
 

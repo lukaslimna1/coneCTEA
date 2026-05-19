@@ -43,6 +43,10 @@ class _HomeViewState extends State<HomeView> {
   DateTime? _lastResetRequest;
   String? _selectedMemberId;
 
+  Stream<List<Member>>? _membersStream;
+  Stream<List<CardRequest>>? _cardRequestsStream;
+  Stream<List<DigitalCard>>? _digitalCardsStream;
+
   Member? _getSelectedMember(List<Member> members) {
     if (members.isEmpty) return null;
     if (_selectedMemberId == null) return members.first;
@@ -94,6 +98,10 @@ class _HomeViewState extends State<HomeView> {
             user = user.copyWith(name: metaName.toString().trim());
           }
         }
+
+        _membersStream = _databaseService.membersStream(userId);
+        _cardRequestsStream = _databaseService.cardRequestsStream(userId);
+        _digitalCardsStream = _databaseService.digitalCardsStream(userId);
 
         if (mounted) {
           setState(() {
@@ -308,7 +316,7 @@ class _HomeViewState extends State<HomeView> {
 
                     // Bloco Dinâmico Reativo
                     StreamBuilder<List<Member>>(
-                      stream: _databaseService.membersStream(userId),
+                      stream: _membersStream,
                       builder: (context, memberSnapshot) {
                         if (memberSnapshot.connectionState ==
                                 ConnectionState.waiting &&
@@ -326,16 +334,14 @@ class _HomeViewState extends State<HomeView> {
                         final selectedMember = _getSelectedMember(members);
 
                         return StreamBuilder<List<CardRequest>>(
-                          stream: _databaseService.cardRequestsStream(userId),
+                          stream: _cardRequestsStream,
                           builder: (context, requestSnapshot) {
                             final requests = (requestSnapshot.data ?? [])
                                 .whereType<CardRequest>()
                                 .toList();
 
                             return StreamBuilder<List<DigitalCard>>(
-                              stream: _databaseService.digitalCardsStream(
-                                userId,
-                              ),
+                              stream: _digitalCardsStream,
                               builder: (context, cardSnapshot) {
                                 final digitalCards = (cardSnapshot.data ?? [])
                                     .whereType<DigitalCard>()
