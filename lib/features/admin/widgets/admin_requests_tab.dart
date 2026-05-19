@@ -8,6 +8,7 @@ import 'package:conectea/services/database_service.dart';
 import 'package:conectea/models/card_request.dart';
 import 'package:conectea/features/admin/widgets/admin_request_card.dart';
 import 'package:conectea/features/admin/widgets/admin_request_details_sheet.dart';
+import 'package:conectea/core/theme/conectea_visual_tokens.dart';
 
 class AdminRequestsTab extends StatefulWidget {
   final DatabaseService databaseService;
@@ -34,11 +35,29 @@ class _AdminRequestsTabState extends State<AdminRequestsTab> {
   _AdminRequestQueueFilter _activeFilter = _AdminRequestQueueFilter.newRequests;
   late final Stream<List<CardRequest>> _requestsStream;
   List<CardRequest> _lastRequests = [];
+  late final TextEditingController _searchController;
+  FocusNode? _searchFocusNode;
+  String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
     _requestsStream = widget.databaseService.getAllCardRequestsStream();
+    _searchController = TextEditingController();
+    _searchFocusNode = FocusNode();
+    _searchFocusNode!.addListener(_onFocusChange);
+  }
+
+  void _onFocusChange() {
+    setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _searchFocusNode?.removeListener(_onFocusChange);
+    _searchFocusNode?.dispose();
+    super.dispose();
   }
 
   @override
@@ -78,7 +97,7 @@ class _AdminRequestsTabState extends State<AdminRequestsTab> {
         final expiredCount = requests.where((r) => r.status == 'expired').length;
         final renewalCount = requests.where((r) => r.status == 'renewing').length;
 
-        // Filtrar a lista com base no _activeFilter selecionado nos contadores superiores
+        // 1. Filtrar a lista com base no _activeFilter selecionado nos contadores superiores
         final filteredRequests = sortedRequests.where((r) {
           switch (_activeFilter) {
             case _AdminRequestQueueFilter.newRequests:
@@ -96,8 +115,29 @@ class _AdminRequestsTabState extends State<AdminRequestsTab> {
           }
         }).toList();
 
+        // 2. Aplicar busca global sobre todas as solicitações caso haja busca ativa
+        final isSearching = _searchQuery.trim().isNotEmpty;
+        final globalSearchResults = sortedRequests.where((r) {
+          if (!isSearching) return false;
+          final query = _searchQuery.trim().toLowerCase();
+
+          final protocol = r.protocol.toLowerCase();
+          final idFallback = r.id.length >= 6 ? r.id.substring(0, 6).toLowerCase() : r.id.toLowerCase();
+          final memberName = r.memberName.toLowerCase();
+
+          return protocol.contains(query) || idFallback.contains(query) || memberName.contains(query);
+        }).toList();
+
+        // 3. Determinar a lista final a ser exibida
+        final List<CardRequest> displayRequests = isSearching ? globalSearchResults : filteredRequests;
+
         return CustomScrollView(
           slivers: [
+            // Bloco 3: Campo de busca global (Sempre Visível)
+            SliverToBoxAdapter(
+              child: _buildSearchBar(),
+            ),
+            // Bloco 4: Carrossel de filtros
             SliverToBoxAdapter(
               child: _AdminRequestFilterCarousel(
                 key: const PageStorageKey('admin_request_filter_carousel'),
@@ -115,7 +155,8 @@ class _AdminRequestsTabState extends State<AdminRequestsTab> {
                 },
               ),
             ),
-            if (filteredRequests.isEmpty)
+            // Bloco 5: Lista / Empty states
+            if (!isSearching && filteredRequests.isEmpty)
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(24, 32, 24, 120),
@@ -130,13 +171,20 @@ class _AdminRequestsTabState extends State<AdminRequestsTab> {
                   ),
                 ),
               )
+            else if (isSearching && globalSearchResults.isEmpty)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 48, 24, 120),
+                  child: _buildSearchEmptyState(),
+                ),
+              )
             else
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
                 sliver: SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
-                      final request = filteredRequests[index];
+                      final request = displayRequests[index];
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 12),
                         child: AdminRequestCard(
@@ -145,7 +193,7 @@ class _AdminRequestsTabState extends State<AdminRequestsTab> {
                         ),
                       );
                     },
-                    childCount: filteredRequests.length,
+                    childCount: displayRequests.length,
                   ),
                 ),
               ),
@@ -254,6 +302,201 @@ class _AdminRequestsTabState extends State<AdminRequestsTab> {
         databaseService: widget.databaseService,
         onStatusChanged: () {}, // O StreamBuilder atualiza automaticamente
       ),
+    );
+  }
+
+  Widget _buildSearchBar() {
+    final hasText = _searchQuery.isNotEmpty;
+    final isFocused = _searchFocusNode?.hasFocus ?? false;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 800),
+          child: Container(
+            height: 54,
+            decoration: BoxDecoration(
+              color: const Color(0xA60F172A),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isFocused
+                    ? ConecteaVisualTokens.visualizacao.accent.withValues(alpha: 0.35)
+                    : Colors.white.withValues(alpha: 0.08),
+                width: 1.2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.16),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+                if (isFocused)
+                  BoxShadow(
+                    color: ConecteaVisualTokens.visualizacao.accent.withValues(alpha: 0.08),
+                    blurRadius: 14,
+                    spreadRadius: 1,
+                  ),
+              ],
+            ),
+            child: Row(
+              children: [
+                const SizedBox(width: 8),
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: ConecteaVisualTokens.visualizacao.accent.withValues(alpha: 0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Icon(
+                      PhosphorIconsRegular.magnifyingGlass,
+                      size: 18,
+                      color: ConecteaVisualTokens.visualizacao.accent,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Theme(
+                    data: Theme.of(context).copyWith(
+                      inputDecorationTheme: const InputDecorationTheme(
+                        filled: false,
+                        fillColor: Colors.transparent,
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                      ),
+                    ),
+                    child: TextSelectionTheme(
+                      data: TextSelectionThemeData(
+                        cursorColor: ConecteaVisualTokens.visualizacao.accent,
+                        selectionColor: ConecteaVisualTokens.visualizacao.accent.withValues(alpha: 0.22),
+                        selectionHandleColor: ConecteaVisualTokens.visualizacao.accent,
+                      ),
+                      child: TextField(
+                        controller: _searchController,
+                        focusNode: _searchFocusNode,
+                        cursorColor: ConecteaVisualTokens.visualizacao.accent,
+                        onChanged: (value) {
+                          setState(() {
+                            _searchQuery = value;
+                          });
+                        },
+                        style: GoogleFonts.inter(
+                          fontSize: 15.0,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white.withValues(alpha: 0.95),
+                        ),
+                        decoration: InputDecoration(
+                          hintText: 'Buscar por protocolo ou nome',
+                          hintStyle: GoogleFonts.inter(
+                            fontSize: 14.5,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white.withValues(alpha: 0.35),
+                          ),
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          isDense: true,
+                          filled: false,
+                          fillColor: Colors.transparent,
+                          hoverColor: Colors.transparent,
+                          focusColor: Colors.transparent,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                if (hasText) ...[
+                  IconButton(
+                    onPressed: () {
+                      _searchController.clear();
+                      setState(() {
+                        _searchQuery = '';
+                      });
+                    },
+                    icon: Icon(
+                      PhosphorIconsRegular.xCircle,
+                      size: 20,
+                      color: Colors.white.withValues(alpha: 0.35),
+                    ),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    splashRadius: 18,
+                  ),
+                  const SizedBox(width: 14),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSearchEmptyState() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Stack(
+          alignment: Alignment.center,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    AppColors.primary.withValues(alpha: 0.2),
+                    AppColors.primary.withValues(alpha: 0.0),
+                  ],
+                ),
+              ),
+            ),
+            Container(
+              width: 66,
+              height: 66,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+              ),
+            ),
+            Icon(
+              PhosphorIconsRegular.magnifyingGlass,
+              size: 32,
+              color: AppColors.primary.withValues(alpha: 0.8),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Text(
+          'Nenhum resultado encontrado',
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: GoogleFonts.inter(
+            fontSize: 15,
+            fontWeight: FontWeight.w800,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          'Tente buscar por protocolo ou nome.',
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: GoogleFonts.inter(
+            fontSize: 12,
+            color: AppColors.textSecondary.withValues(alpha: 0.5),
+          ),
+        ),
+      ],
     );
   }
 }
