@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -28,13 +29,19 @@ class _HomePageState extends State<HomePage> {
   final AuthService _authService = AuthService();
   final DatabaseService _databaseService = DatabaseService();
   AppUser? _user;
-  Stream<List<NotificationItem>>? _notificationsStream;
+  StreamSubscription<List<NotificationItem>>? _notificationsSubscription;
   int _unreadCount = 0;
 
   @override
   void initState() {
     super.initState();
     _loadData();
+  }
+
+  @override
+  void dispose() {
+    _notificationsSubscription?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadData() async {
@@ -63,21 +70,21 @@ class _HomePageState extends State<HomePage> {
         );
       }
 
-      _notificationsStream = _databaseService.notificationsStream(userId);
+      await _notificationsSubscription?.cancel();
 
       if (mounted) {
         setState(() {
           _user = user;
         });
-
-        _notificationsStream!.listen((list) {
-          if (mounted) {
-            setState(() {
-              _unreadCount = list.where((n) => !n.isRead).length;
-            });
-          }
-        });
       }
+
+      _notificationsSubscription = _databaseService.notificationsStream(userId).listen((list) {
+        if (mounted) {
+          setState(() {
+            _unreadCount = list.where((n) => !n.isRead).length;
+          });
+        }
+      });
     }
   }
 

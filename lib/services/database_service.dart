@@ -753,9 +753,9 @@ class DatabaseService {
     return _supabase
         .from('notifications')
         .stream(primaryKey: ['id'])
+        .eq('user_id', userId)
         .order('created_at', ascending: false)
         .map((data) => data
-            .where((json) => json['user_id'] == userId)
             .map((json) => NotificationItem.fromJson(json))
             .toList());
   }
@@ -764,8 +764,9 @@ class DatabaseService {
     return _supabase
         .from('notifications')
         .stream(primaryKey: ['id'])
+        .eq('user_id', userId)
         .map((data) => data
-            .where((json) => json['user_id'] == userId && json['is_read'] == false)
+            .where((json) => json['is_read'] == false)
             .length);
   }
 
