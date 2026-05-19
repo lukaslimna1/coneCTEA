@@ -9,7 +9,6 @@ import 'package:conectea/models/member.dart';
 import 'package:conectea/core/constants/colors.dart';
 import 'package:conectea/features/admin/utils/admin_status_helper.dart';
 import 'package:conectea/features/admin/widgets/admin_common_widgets.dart';
-import 'package:conectea/core/widgets/premium/premium_button.dart';
 import 'package:conectea/core/theme/status_visual_tokens.dart';
 
 class AdminRequestDetailsSheet extends StatefulWidget {
@@ -219,7 +218,8 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
     }
 
     final notesController = TextEditingController();
-    final Color statusColor = AdminStatusHelper.getStatusColor(status);
+    final statusToken = StatusVisualTokens.fromStatus(status);
+    final Color statusColor = statusToken.primary;
 
     List<String> options = [];
     Map<String, bool> selectedOptions = {};
@@ -264,26 +264,33 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          backgroundColor: AppColors.surfaceCard,
+          backgroundColor: const Color(0xFF0B1224),
           surfaceTintColor: Colors.transparent,
+          shadowColor: statusColor.withValues(alpha: 0.15),
+          elevation: 20,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(24),
-            side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+            side: BorderSide(
+              color: statusColor.withValues(alpha: 0.2),
+              width: 1.5,
+            ),
           ),
           title: Row(
             children: [
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: statusColor.withValues(alpha: 0.15),
-                  shape: BoxShape.circle,
+                  color: statusColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: statusColor.withValues(alpha: 0.25),
+                    width: 1,
+                  ),
                 ),
                 child: Icon(
-                  status == 'rejected' ? Icons.cancel_outlined : 
-                  status == 'suspended' ? Icons.block_outlined :
-                  Icons.info_outline, 
-                  color: statusColor, 
-                  size: 24
+                  statusToken.icon,
+                  color: statusToken.iconColor,
+                  size: 24,
                 ),
               ),
               const SizedBox(width: 16),
@@ -294,7 +301,7 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
                     fontWeight: FontWeight.w900,
                     color: AppColors.textPrimary,
                     fontSize: 18,
-                    letterSpacing: 0.5,
+                    letterSpacing: 0.8,
                   ),
                 ),
               ),
@@ -304,148 +311,155 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
             width: MediaQuery.sizeOf(context).width > 528
                 ? 480.0
                 : MediaQuery.sizeOf(context).width - 48.0,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'JUSTIFICATIVA PARA O USUÁRIO',
-                    style: GoogleFonts.inter(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.textSecondary,
-                      letterSpacing: 1,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: notesController,
-                    maxLines: 4,
-                    style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary),
-                    decoration: InputDecoration(
-                      hintText: 'Descreva detalhadamente o motivo...',
-                      hintStyle: GoogleFonts.inter(color: AppColors.inputPlaceholder),
-                      filled: true,
-                      fillColor: AppColors.inputBackground,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide: const BorderSide(color: AppColors.inputBorder),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide: const BorderSide(color: AppColors.inputBorder),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide: const BorderSide(color: AppColors.primary, width: 2),
-                      ),
-                    ),
-                  ),
-                  if (options.isNotEmpty) ...[
-                    const SizedBox(height: 24),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.sizeOf(context).height * 0.55,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Text(
-                      status == 'reviewing_data' ? '📋 CAMPOS PARA CORREÇÃO' : '📄 DOCUMENTOS SOLICITADOS',
+                      'JUSTIFICATIVA PARA O USUÁRIO',
                       style: GoogleFonts.inter(
                         fontSize: 10,
                         fontWeight: FontWeight.w800,
-                        color: AppColors.primary,
+                        color: AppColors.textSecondary,
                         letterSpacing: 1,
                       ),
                     ),
                     const SizedBox(height: 12),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: AppColors.inputBackground,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.inputBorder),
-                      ),
-                      clipBehavior: Clip.antiAlias,
-                      child: Column(
-                        children: options.map((opt) {
-                          final isSelected = selectedOptions[opt] ?? false;
-                          return Material(
-                            color: Colors.transparent,
-                            child: CheckboxListTile(
-                              title: Text(
-                                opt, 
-                                style: GoogleFonts.inter(
-                                  fontSize: 13, 
-                                  color: isSelected ? AppColors.textPrimary : AppColors.textSecondary,
-                                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                                )
-                              ),
-                              value: isSelected,
-                              dense: true,
-                              activeColor: AppColors.primary,
-                              checkColor: Colors.white,
-                              controlAffinity: ListTileControlAffinity.leading,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                              onChanged: (val) {
-                                setDialogState(() {
-                                  selectedOptions[opt] = val ?? false;
-                                  
-                                  String newNotes = "Pendência:\n";
-                                  bool hasAny = false;
-                                  selectedOptions.forEach((key, isSelected) {
-                                    if (isSelected) {
-                                      newNotes += "- $key\n";
-                                      hasAny = true;
-                                    }
-                                  });
-                                  notesController.text = hasAny ? newNotes : "";
-                                });
-                              },
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      '⏳ PRAZO PARA RESPOSTA',
-                      style: GoogleFonts.inter(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.primary,
-                        letterSpacing: 1,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    DropdownButtonFormField<int>(
-                      initialValue: [7, 15, 30].contains(selectedDays) ? selectedDays : 7,
-                      dropdownColor: AppColors.surfaceCard,
-                      style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary, fontWeight: FontWeight.w600),
+                    TextField(
+                      controller: notesController,
+                      maxLines: 4,
+                      cursorColor: statusColor,
+                      style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary),
                       decoration: InputDecoration(
+                        hintText: 'Descreva detalhadamente o motivo...',
+                        hintStyle: GoogleFonts.inter(color: AppColors.inputPlaceholder, fontSize: 13),
                         filled: true,
-                        fillColor: AppColors.inputBackground,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        fillColor: Colors.black.withValues(alpha: 0.25),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
-                          borderSide: const BorderSide(color: AppColors.inputBorder),
+                          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
-                          borderSide: const BorderSide(color: AppColors.inputBorder),
+                          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
-                          borderSide: const BorderSide(color: AppColors.primary),
+                          borderSide: BorderSide(color: statusColor, width: 1.5),
                         ),
                       ),
-                      items: const [
-                        DropdownMenuItem(value: 7, child: Text('7 dias úteis')),
-                        DropdownMenuItem(value: 15, child: Text('15 dias úteis')),
-                        DropdownMenuItem(value: 30, child: Text('30 dias úteis')),
-                      ],
-                      onChanged: (val) {
-                        if (val != null) {
-                          setDialogState(() => selectedDays = val);
-                        }
-                      },
                     ),
+                    if (options.isNotEmpty) ...[
+                      const SizedBox(height: 24),
+                      Text(
+                        status == 'reviewing_data' ? '📋 CAMPOS PARA CORREÇÃO' : '📄 DOCUMENTOS SOLICITADOS',
+                        style: GoogleFonts.inter(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          color: statusColor,
+                          letterSpacing: 1,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: Column(
+                          children: options.map((opt) {
+                            final isSelected = selectedOptions[opt] ?? false;
+                            return Material(
+                              color: Colors.transparent,
+                              child: CheckboxListTile(
+                                title: Text(
+                                  opt,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 13,
+                                    color: isSelected ? AppColors.textPrimary : AppColors.textSecondary,
+                                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                                  )
+                                ),
+                                value: isSelected,
+                                dense: true,
+                                activeColor: statusColor,
+                                checkColor: Colors.white,
+                                controlAffinity: ListTileControlAffinity.leading,
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+                                onChanged: (val) {
+                                  setDialogState(() {
+                                    selectedOptions[opt] = val ?? false;
+
+                                    String newNotes = "Pendência:\n";
+                                    bool hasAny = false;
+                                    selectedOptions.forEach((key, isSelected) {
+                                      if (isSelected) {
+                                        newNotes += "- $key\n";
+                                        hasAny = true;
+                                      }
+                                    });
+                                    notesController.text = hasAny ? newNotes : "";
+                                  });
+                                },
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        '⏳ PRAZO PARA RESPOSTA',
+                        style: GoogleFonts.inter(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          color: statusColor,
+                          letterSpacing: 1,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<int>(
+                        initialValue: [7, 15, 30].contains(selectedDays) ? selectedDays : 7,
+                        dropdownColor: const Color(0xFF0B1224),
+                        style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary, fontWeight: FontWeight.w600),
+                        iconEnabledColor: statusColor,
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: Colors.black.withValues(alpha: 0.25),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide(color: statusColor, width: 1.5),
+                          ),
+                        ),
+                        items: const [
+                          DropdownMenuItem(value: 7, child: Text('7 dias úteis')),
+                          DropdownMenuItem(value: 15, child: Text('15 dias úteis')),
+                          DropdownMenuItem(value: 30, child: Text('30 dias úteis')),
+                        ],
+                        onChanged: (val) {
+                          if (val != null) {
+                            setDialogState(() => selectedDays = val);
+                          }
+                        },
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
           ),
@@ -453,28 +467,98 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
           actions: [
             Row(
               children: [
-                Expanded(
-                  child: PremiumButton(
-                    text: 'Cancelar',
-                    variant: PremiumButtonVariant.outline,
-                    onPressed: () => Navigator.pop(context, false),
+                Tooltip(
+                  message: 'Cancelar',
+                  child: Semantics(
+                    label: 'Cancelar',
+                    hint: 'Fecha o diálogo sem confirmar a ação',
+                    button: true,
+                    child: InkWell(
+                      onTap: () => Navigator.pop(context, false),
+                      borderRadius: BorderRadius.circular(14),
+                      child: Container(
+                        width: 56,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.22),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: const Color(0xFFE11D48).withValues(alpha: 0.35),
+                            width: 1.2,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.15),
+                              blurRadius: 6,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: const Center(
+                          child: Icon(
+                            Icons.close,
+                            color: Color(0xFFFB7185),
+                            size: 22,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  flex: 2,
-                  child: PremiumButton(
-                    text: 'Confirmar',
-                    colorOverride: statusColor,
-                    onPressed: () {
-                      if (notesController.text.trim().isEmpty) {
-                        ScaffoldMessenger.of(ctx).showSnackBar(
-                          const SnackBar(content: Text('Justificativa obrigatória')),
-                        );
-                        return;
-                      }
-                      Navigator.pop(ctx, true);
-                    },
+                  child: SizedBox(
+                    height: 48,
+                    child: Material(
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.circular(14),
+                      child: InkWell(
+                        onTap: () {
+                          if (notesController.text.trim().isEmpty) {
+                            ScaffoldMessenger.of(ctx).showSnackBar(
+                              const SnackBar(content: Text('Justificativa obrigatória')),
+                            );
+                            return;
+                          }
+                          Navigator.pop(ctx, true);
+                        },
+                        borderRadius: BorderRadius.circular(14),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [
+                                Color(0xFF065F46),
+                                Color(0xFF047857),
+                              ],
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                            ),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: const Color(0xFF34D399).withValues(alpha: 0.25),
+                              width: 1.2,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF047857).withValues(alpha: 0.15),
+                                blurRadius: 8,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            'Confirmar',
+                            style: GoogleFonts.inter(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ],
