@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:conectea/core/constants/colors.dart';
 import 'package:conectea/core/widgets/premium/conectea_avatar.dart';
 import 'package:conectea/core/widgets/premium/premium_card.dart';
@@ -67,7 +68,7 @@ class AdminUserCard extends StatelessWidget {
               ],
             ),
           ),
-          if (currentUserRole?.canManageRoles ?? false)
+          if (_shouldShowMenu())
             PopupMenuButton<String>(
               icon: Icon(Icons.more_vert_rounded, color: Colors.grey[400]),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -84,7 +85,8 @@ class AdminUserCard extends StatelessWidget {
                 if (currentUserRole?.canRunMaintenance ?? false)
                   _buildMenuAction('edit', 'Editar Cadastro', Icons.edit_note_rounded),
                 
-                const PopupMenuDivider(),
+                if (currentUserRole?.canRunMaintenance ?? false)
+                  const PopupMenuDivider(),
                 
                 _buildMenuItem(UserRole.user, 'Usuário', Icons.person_outline_rounded, user.role),
                 _buildMenuItem(UserRole.admin, 'Administrador', Icons.admin_panel_settings_outlined, user.role),
@@ -138,5 +140,26 @@ class AdminUserCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  bool _shouldShowMenu() {
+    if (currentUserRole == null) return false;
+    if (!currentUserRole!.canManageRoles) return false;
+
+    final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+    if (currentUserId == null) return false;
+
+    final isSelf = user.id == currentUserId;
+    if (isSelf) return false;
+
+    if (currentUserRole == UserRole.adminMaster) {
+      return user.role == UserRole.user || user.role == UserRole.admin;
+    }
+
+    if (currentUserRole == UserRole.adminDev) {
+      return true;
+    }
+
+    return false;
   }
 }
