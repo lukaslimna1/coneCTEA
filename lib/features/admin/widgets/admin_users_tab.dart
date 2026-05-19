@@ -83,22 +83,27 @@ class AdminUsersTabState extends State<AdminUsersTab> {
     return RefreshIndicator(
       onRefresh: _loadAllUsers,
       color: AppColors.primary,
-      child: Column(
-        children: [
-          _buildSearchField(),
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-              itemCount: _filteredUsers.length,
-              itemBuilder: (context, index) {
-                final user = _filteredUsers[index];
-                return AdminUserCard(
-                  user: user,
-                  currentUserRole: widget.currentUserRole,
-                  onToggleRole: (newRole) => widget.onToggleRole(user, newRole),
-                  onEditProfile: () => widget.onEditProfile(user),
-                );
-              },
+      child: CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          SliverToBoxAdapter(
+            child: _buildSearchField(),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  final user = _filteredUsers[index];
+                  return AdminUserCard(
+                    user: user,
+                    currentUserRole: widget.currentUserRole,
+                    onToggleRole: (newRole) => widget.onToggleRole(user, newRole),
+                    onEditProfile: () => widget.onEditProfile(user),
+                  );
+                },
+                childCount: _filteredUsers.length,
+              ),
             ),
           ),
         ],
