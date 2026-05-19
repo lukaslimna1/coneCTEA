@@ -1,9 +1,9 @@
 # Admin — ConeCTEA
 
-**App:** 0.7.0-dev
-**Documentação:** 4.4.0
+**App:** 0.7.1-dev
+**Documentação:** 4.5.0
 **Status:** Desenvolvimento
-**Atualizado em:** 18/05/2026
+**Atualizado em:** 19/05/2026
 
 ---
 
@@ -34,3 +34,25 @@ Regra de acesso:
 Todos os cargos administrativos podem visualizar o Hub. A entrada nos módulos é controlada por permissão/cargo. Módulos sem acesso são exibidos como “Acesso restrito”; módulos ainda não implementados são exibidos como “Em breve”.
 
 Nesta etapa, o Hub não altera regras de banco, permissões reais, RLS, fluxos de aprovação, documentos ou prazos administrativos.
+
+---
+
+### Usuários e Permissões
+
+O módulo **Usuários e Permissões** faz parte do Painel de Gestão/Admin e concentra a visualização administrativa de perfis e a gestão de cargos internos do ConeCTEA.
+
+A entrada no módulo é controlada por cargo. O `admin` normal visualiza o Hub de Gestão, mas não entra em Usuários e Permissões. O `admin_master` e o `admin_dev` podem acessar o módulo.
+
+A camada de interface aplica uma trava hierárquica para reduzir risco operacional:
+
+- `admin`: não recebe ações de cargo.
+- `admin_master`: pode agir somente sobre usuários `user` e `admin`.
+- `admin_master`: não pode agir sobre si mesmo, sobre outros `admin_master` ou sobre `admin_dev`.
+- `admin_dev`: pode agir sobre outros perfis e cargos, mas não sobre si mesmo pela interface.
+- O menu de três pontos é ocultado quando o operador não possui permissão para agir sobre o usuário alvo.
+
+A edição administrativa de cadastro foi reduzida ao escopo de **dados sensíveis**. O `admin_dev` pode abrir a ação **Editar dados sensíveis**, limitada aos campos **e-mail** e **CPF**. Dados comuns como nome, telefone, cidade, estado e gênero devem ser tratados pela área **Dados** do próprio usuário.
+
+O diálogo de dados sensíveis usa aviso de privacidade, CPF protegido por padrão e botão para revelar/ocultar o CPF. O payload enviado para atualização administrativa deve permanecer restrito a `email` e `cpf`.
+
+Esta frente aplicou travas defensivas na interface, mas não substitui validações de backend. Permanecem como pendências futuras: políticas RLS específicas, validações server-side, logs de auditoria administrativa, paginação de perfis e proteção contra remoção do último `admin_master` ou `admin_dev`.

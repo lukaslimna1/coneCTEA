@@ -1,9 +1,9 @@
 # Histórico Técnico de Frentes — ConeCTEA
 
-**App:** 0.7.0-dev
-**Documentação:** 4.4.0
+**App:** 0.7.1-dev
+**Documentação:** 4.5.0
 **Status:** Desenvolvimento  
-**Atualizado em:** 18/05/2026
+**Atualizado em:** 19/05/2026
 
 ---
 
@@ -61,6 +61,7 @@ Este arquivo existe para manter rastreabilidade sem sobrecarregar o `DOCTecnico.
 | 26H.3-FIX.1A | Concluída | Refatoração do `home_status_helper.dart` para consumir o helper unificado de tempo `ConecteaDateTimeHelper.formatProjectDateShort(deadline)`. | Uniformiza e protege a interface visual da Home contra fusos e offsets desalinhados de dispositivos móveis. |
 | 26H.3-COMMIT | Concluída | Commit controlado `dfd3ca4` de exatamente 4 arquivos envolvidos na centralização temporal e push bem-sucedido para branch `main` em `origin`. | Mantém repositório 100% sincronizado com branch main remoto. |
 | 27A.2 | Concluída | Reorganização do Painel de Gestão em Hub modular mobile-first, criação dos ConecteaVisualTokens e do componente global ConecteaRoleBadge. Commits `1ea7d50` e `7a718d2`. | Todos os cargos administrativos visualizam o Hub, com controle de entrada em cada módulo por permissão. |
+| 27B.1 | Concluída | Refinamento do módulo Usuários e Permissões com travas hierárquicas, edição limitada a e-mail/CPF (protegido) e experiência visual Dark Glass / teclado aware. Commits `5e0b4e8`, `c32d29c`, `584f557`. | Travas defensivas aplicadas somente na camada de interface (segurança de UI/UX). |
 
 ### Detalhes das Frentes Recentes
 
@@ -71,9 +72,29 @@ Este arquivo existe para manter rastreabilidade sem sobrecarregar o `DOCTecnico.
 ##### Resumo
 A Frente 27A.2 iniciou a reorganização do Painel de Gestão/Admin em formato de Hub modular mobile-first. O Hub passa a apresentar áreas administrativas como Gestão de Carteirinhas, Projetos/Programas/Eventos e Consultas com Profissionais (como módulos futuros/em breve), além de Usuários e Permissões (módulo existente restrito conforme cargo administrativo, acessível a admin_master e admin_dev) e Manutenção Técnica (módulo técnico existente restrito a admin_dev). Todos os cargos administrativos visualizam a estrutura geral do Hub, mas a entrada nos módulos é controlada por cargo/permissão. Nesta etapa, apenas Gestão de Carteirinhas permanece funcional; módulos futuros ou restritos ficam indicados como “Em breve” ou “Acesso restrito”, sem rotas ou regras novas.
 
-Também foi criado o ConecteaVisualTokens, camada global de tokens semânticos para elementos sem vínculo direto com status real. A regra definida é: quando há vínculo direto com status do fluxo, usa-se StatusVisualTokens; quando o elemento representa ação, módulo ou card sem vínculo direto com status, usa-se ConecteaVisualTokens.
+Também foi criado o ConecteaVisualTokens, camada global de tokens semânticos para elements sem vínculo direto com status real. A regra definida é: quando há vínculo direto com status do fluxo, usa-se StatusVisualTokens; quando o elemento representa ação, módulo ou card sem vínculo direto com status, usa-se ConecteaVisualTokens.
 
 Foi criado o componente global ConecteaRoleBadge, com variante compacta usada na Home e variante expandida usada no Hub de Gestão. O Hub exibe os cargos com textos curtos “ADM”, “ADM Master” e “ADM Dev”, preservando comunicação visual por ícone, cor e texto. ADM Dev usa roxo/violeta técnico, alinhado à identidade de Manutenção Técnica/dev.
+
+---
+
+## Frente 27B.1 — Usuários e Permissões no Painel de Gestão
+
+**Status:** concluída
+**Tipo:** refinamento administrativo, segurança de interface e UX mobile-first
+**Commits relacionados:** `5e0b4e8`, `c32d29c`, `584f557`
+
+A Frente 27B.1 refinou o módulo **Usuários e Permissões** dentro do Painel de Gestão/Admin, com foco em hierarquia administrativa, redução de risco operacional e melhoria visual dos fluxos sensíveis.
+
+A primeira etapa corrigiu a exposição indevida de ações de cargo na interface. O menu de três pontos passou a respeitar a hierarquia administrativa: `admin` normal não entra no módulo; `admin_master` só pode agir sobre `user` e `admin`; `admin_master` não pode agir sobre si mesmo, sobre outros `admin_master` ou sobre `admin_dev`; `admin_dev` pode agir sobre outros cargos, mas não sobre si mesmo.
+
+A segunda etapa limitou a edição administrativa feita pelo `admin_dev`. Como o usuário já possui a área **Dados** para atualizar informações comuns, o painel administrativo passou a permitir edição apenas de dados sensíveis vinculados à conta: **e-mail** e **CPF**. Campos como nome, telefone, cidade, estado e gênero foram removidos do diálogo administrativo.
+
+A terceira etapa refinou a experiência visual e mobile-first do módulo. O menu de permissões passou a usar visual Night Blue/Dark Glass, com cores e ícones alinhados aos badges de cargo. A ação **Editar dados sensíveis** recebeu semântica própria de privacidade. O diálogo foi refinado com aviso de cuidado, campos limitados a e-mail e CPF, CPF protegido por padrão com botão de revelar/ocultar, inputs em Dark Glass sem azul chapado e correção de overflow ao abrir teclado em telas estreitas como A05/A06.
+
+A frente não alterou banco de dados, Supabase, RLS, `DatabaseService`, models, AuthService, Hub de Gestão, Gestão de Carteirinhas, assets ou configurações Android/Gradle.
+
+**Pendências futuras mapeadas:** validação real em backend/RLS, logs de auditoria para alterações administrativas, proteção contra remoção do último `admin_master`/`admin_dev`, paginação de usuários e máscaras LGPD mais amplas.
 
 ---
 
@@ -88,6 +109,7 @@ Se uma frente como `24D.1`, `24D.2`, `25B.1` ou `25B.2` não estiver registrada 
 ## Roadmap Técnico
 
 ### Concluído recentemente
+- Frente 27B.1 (Usuários e Permissões no Painel de Gestão, travas hierárquicas, e-mail/CPF restrito e Dark Glass);
 - Frente 27A.2 (Hub de Gestão modular, ConecteaVisualTokens e ConecteaRoleBadge global);
 - Série Frente 26H (Arquitetura temporal, validade da carteirinha digital, helper de tempo, RPCs de prazo administrativo em dias úteis, refabricação de Home helper e commit dfd3ca4);
 - Frente 26G (Botão "Fazer mais tarde" e descarte seguro de alterações na AddMemberPage);

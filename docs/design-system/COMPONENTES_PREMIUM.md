@@ -1,9 +1,9 @@
 # Componentes Premium — ConeCTEA
 
-**App:** 0.7.0-dev
-**Documentação:** 4.4.0
+**App:** 0.7.1-dev
+**Documentação:** 4.5.0
 **Status:** Desenvolvimento
-**Atualizado em:** 18/05/2026
+**Atualizado em:** 19/05/2026
 
 ---
 
@@ -111,3 +111,22 @@ Catalogar e padronizar os componentes de interface premium utilizados no ecossis
 - **Regras de cores dos cargos:**
   - Cargo `admin_dev` (desenvolvedor e suporte técnico): consome o tom roxo/violeta técnico (`ConecteaVisualTokens.manutencaoTecnica.accent`).
   - Cargo `admin` e `admin_master`: consomem tons voltados à administração e coordenação geral.
+
+### Menu de permissões e dados sensíveis
+
+O menu de ações de usuários administrativos segue o padrão **Night Blue/Dark Glass** e deve comunicar visualmente a hierarquia dos cargos.
+
+As opções de cargo usam cores e ícones alinhados aos badges administrativos do app:
+
+- `Usuário`: semântica neutra/slate, representando perfil comum.
+- `Administrador`: semântica administrativa operacional.
+- `ADM Master`: semântica de coordenação/gestão elevada.
+- `ADM DEV`: semântica técnica/dev, usando roxo/violeta reservado para manutenção e desenvolvimento.
+
+O roxo/violeta técnico não deve ser usado como cor genérica de menu. Ele é reservado para `admin_dev`, manutenção técnica e rotinas de desenvolvimento.
+
+A ação **Editar dados sensíveis** não é uma ação de cargo. Ela deve usar semântica de privacidade/segurança, com visual próprio, ícone coerente e separação visual das opções de cargo.
+
+O diálogo **Editar dados sensíveis** segue o padrão Dark Glass, com aviso de privacidade, campos em Dark Glass e CPF protegido por padrão. O CPF deve iniciar oculto, com botão de revelar/ocultar usando semântica de privacidade. O diálogo deve evitar fundos azuis chapados herdados do tema global.
+
+Quando o teclado virtual abre em telas estreitas, o layout administrativo deve ser scrollável e tolerante à redução de altura, evitando `RenderFlex overflow`.
