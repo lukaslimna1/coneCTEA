@@ -50,10 +50,12 @@ class AdminModuleCard extends StatelessWidget {
         children: [
           // Ícone com contêiner estilizado
           Container(
-            padding: const EdgeInsets.all(12),
+            width: 44,
+            height: 44,
+            alignment: Alignment.center,
             decoration: BoxDecoration(
               color: token.iconBackground,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: token.border,
                 width: 1,
@@ -62,7 +64,7 @@ class AdminModuleCard extends StatelessWidget {
             child: Icon(
               isRestricted ? PhosphorIconsRegular.lockSimple : icon,
               color: token.accent,
-              size: 24,
+              size: 20,
             ),
           ),
           const SizedBox(width: 16),
@@ -81,7 +83,7 @@ class AdminModuleCard extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.inter(
-                          fontSize: 16,
+                          fontSize: 15,
                           fontWeight: FontWeight.w900,
                           color: isComingSoon 
                               ? AppColors.textPrimary.withValues(alpha: 0.5) 

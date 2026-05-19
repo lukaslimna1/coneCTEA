@@ -35,8 +35,8 @@ class AdminManagementHub extends StatelessWidget {
           children: [
             // Módulo 1: Gestão de Carteirinhas
             AdminModuleCard(
-              title: 'Gestão de Carteirinhas',
-              description: 'Solicitações, revisões, documentos, renovações e status das carteirinhas.',
+              title: 'Carteirinhas',
+              description: 'Solicitações, revisões, documentos e status.',
               icon: PhosphorIconsRegular.identificationCard,
               status: AdminModuleStatus.active,
               token: ConecteaVisualTokens.gestaoCarteirinhas,
@@ -51,8 +51,8 @@ class AdminManagementHub extends StatelessWidget {
 
             // Módulo 2: Projetos, Programas e Eventos
             AdminModuleCard(
-              title: 'Projetos, Programas e Eventos',
-              description: 'Palestras, oficinas, ações sociais, inscrições e programas da Família TEA Bauru.',
+              title: 'Projetos',
+              description: 'Palestras, oficinas e ações sociais.',
               icon: PhosphorIconsRegular.calendar,
               status: AdminModuleStatus.comingSoon,
               token: ConecteaVisualTokens.emBreve,
@@ -61,8 +61,8 @@ class AdminManagementHub extends StatelessWidget {
 
             // Módulo 3: Consultas com Profissionais
             AdminModuleCard(
-              title: 'Consultas com Profissionais',
-              description: 'Agendamentos iniciais com dentistas, médicos, advogados e outros profissionais parceiros.',
+              title: 'Consultas',
+              description: 'Agendamentos com profissionais parceiros.',
               icon: PhosphorIconsRegular.stethoscope,
               status: AdminModuleStatus.comingSoon,
               token: ConecteaVisualTokens.emBreve,
@@ -71,7 +71,7 @@ class AdminManagementHub extends StatelessWidget {
 
             // Módulo 4: Usuários e Permissões
             AdminModuleCard(
-              title: 'Usuários e Permissões',
+              title: 'Usuários',
               description: 'Contas, cargos e acessos administrativos.',
               icon: PhosphorIconsRegular.usersThree,
               status: canAccessUsers ? AdminModuleStatus.active : AdminModuleStatus.restricted,
@@ -89,8 +89,8 @@ class AdminManagementHub extends StatelessWidget {
 
             // Módulo 5: Manutenção Técnica
             AdminModuleCard(
-              title: 'Manutenção Técnica',
-              description: 'Ferramentas internas e rotinas restritas de desenvolvimento.',
+              title: 'Manutenção',
+              description: 'Ferramentas internas e rotinas restritas.',
               icon: PhosphorIconsRegular.wrench,
               status: canAccessMaintenance ? AdminModuleStatus.devOnly : AdminModuleStatus.restricted,
               token: canAccessMaintenance 
