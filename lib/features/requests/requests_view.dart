@@ -12,8 +12,28 @@ import 'package:conectea/core/widgets/premium/premium_card.dart';
 import 'package:intl/intl.dart';
 import 'package:conectea/features/requests/add_member_page.dart';
 
-class RequestsView extends StatelessWidget {
+class RequestsView extends StatefulWidget {
   const RequestsView({super.key});
+
+  @override
+  State<RequestsView> createState() => _RequestsViewState();
+}
+
+class _RequestsViewState extends State<RequestsView> {
+  Stream<List<CardRequest>>? _cardRequestsStream;
+
+  @override
+  void initState() {
+    super.initState();
+    _initStream();
+  }
+
+  void _initStream() {
+    final userId = AuthService().currentUser?.id;
+    if (userId != null) {
+      _cardRequestsStream = DatabaseService().cardRequestsStream(userId);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +43,6 @@ class RequestsView extends StatelessWidget {
     final double topPadding = topSafeArea + headerVisualHeight + headerClearance;
 
     final authService = AuthService();
-    final databaseService = DatabaseService();
     final userId = authService.currentUser?.id;
 
     if (userId == null) {
@@ -35,7 +54,7 @@ class RequestsView extends StatelessWidget {
       extendBodyBehindAppBar: true,
       body: AppBackground(
         child: StreamBuilder<List<CardRequest>>(
-          stream: databaseService.cardRequestsStream(userId),
+          stream: _cardRequestsStream,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(
