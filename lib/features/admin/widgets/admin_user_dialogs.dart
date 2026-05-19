@@ -12,111 +12,131 @@ class AdminUserDialogs {
     required DatabaseService databaseService,
     required VoidCallback onUpdateSuccess,
   }) {
-    final nameController = TextEditingController(text: user.name);
     final emailController = TextEditingController(text: user.email);
-    final phoneController = TextEditingController(text: user.phone);
     final cpfController = TextEditingController(text: user.cpf);
-    final cityController = TextEditingController(text: user.city ?? '');
-    final stateController = TextEditingController(text: user.state ?? '');
-    String? selectedGenero = user.gender;
 
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: Text(
-            'Editar Cadastro: ${user.name}',
-            style: GoogleFonts.inter(fontWeight: FontWeight.w900),
+          backgroundColor: AppColors.cardBackground,
+          surfaceTintColor: AppColors.cardBackground,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          title: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.edit_note_rounded, color: AppColors.primary, size: 32),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Editar dados sensíveis',
+                style: GoogleFonts.inter(fontWeight: FontWeight.w900, color: AppColors.textPrimary),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Use esta ação apenas para corrigir e-mail ou CPF vinculados à conta de ${user.name}.',
+                style: GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 13, fontWeight: FontWeight.w500),
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
-                  controller: nameController,
-                  decoration: const InputDecoration(labelText: 'Nome Completo'),
-                ),
-                TextField(
                   controller: emailController,
-                  decoration: const InputDecoration(labelText: 'E-mail'),
-                ),
-                TextField(
-                  controller: phoneController,
-                  decoration: const InputDecoration(labelText: 'Telefone'),
-                ),
-                TextField(
-                  controller: cpfController,
-                  decoration: const InputDecoration(labelText: 'CPF'),
-                ),
-                TextField(
-                  controller: cityController,
-                  decoration: const InputDecoration(labelText: 'Cidade'),
-                ),
-                TextField(
-                  controller: stateController,
-                  decoration: const InputDecoration(labelText: 'Estado'),
+                  style: GoogleFonts.inter(color: AppColors.textPrimary, fontSize: 14, fontWeight: FontWeight.w600),
+                  decoration: InputDecoration(
+                    labelText: 'E-mail',
+                    labelStyle: GoogleFonts.inter(color: AppColors.textSecondary),
+                    enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
+                    focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: AppColors.primary)),
+                  ),
                 ),
                 const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  initialValue: [
-                    'Feminino',
-                    'Masculino',
-                    'Não binário',
-                    'Outro',
-                    'Prefiro não informar',
-                  ].contains(selectedGenero) ? selectedGenero : null,
-                  decoration: const InputDecoration(labelText: 'Gênero'),
-                  hint: const Text('Selecione o gênero'),
-                  items: [
-                    'Feminino',
-                    'Masculino',
-                    'Não binário',
-                    'Outro',
-                    'Prefiro não informar',
-                  ].map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
-                  onChanged: (v) => setDialogState(() => selectedGenero = v),
+                TextField(
+                  controller: cpfController,
+                  style: GoogleFonts.inter(color: AppColors.textPrimary, fontSize: 14, fontWeight: FontWeight.w600),
+                  decoration: InputDecoration(
+                    labelText: 'CPF',
+                    labelStyle: GoogleFonts.inter(color: AppColors.textSecondary),
+                    enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
+                    focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: AppColors.primary)),
+                  ),
                 ),
               ],
             ),
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancelar'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                final data = {
-                  'name': nameController.text,
-                  'email': emailController.text,
-                  'phone': phoneController.text,
-                  'cpf': cpfController.text,
-                  'city': cityController.text,
-                  'state': stateController.text,
-                  'gender': selectedGenero,
-                };
+            Row(
+              children: [
+                Expanded(
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(
+                      'Cancelar',
+                      style: GoogleFonts.inter(color: AppColors.textSecondary, fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      final data = {
+                        'email': emailController.text,
+                        'cpf': cpfController.text,
+                      };
 
-                try {
-                  await databaseService.updateAnyUserProfile(user.id, data);
-                  if (context.mounted) {
-                    Navigator.pop(context);
-                    onUpdateSuccess();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Perfil atualizado com sucesso!')),
-                    );
-                  }
-                } catch (e) {
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Não foi possível atualizar o perfil agora. Tente novamente.'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
-                }
-              },
-              child: const Text('Salvar'),
+                      try {
+                        await databaseService.updateAnyUserProfile(user.id, data);
+                        if (context.mounted) {
+                          Navigator.pop(context);
+                          onUpdateSuccess();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Row(
+                                children: [
+                                  const Icon(Icons.check_circle_rounded, color: Colors.white),
+                                  const SizedBox(width: 12),
+                                  const Text('Dados sensíveis atualizados com sucesso!'),
+                                ],
+                              ),
+                              backgroundColor: AppColors.statusGreen,
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: const Text('Não foi possível atualizar o perfil agora. Tente novamente.'),
+                              backgroundColor: AppColors.errorRed,
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        }
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    child: const Text('Salvar'),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

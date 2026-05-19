@@ -83,7 +83,7 @@ class AdminUserCard extends StatelessWidget {
               },
               itemBuilder: (context) => [
                 if (currentUserRole?.canRunMaintenance ?? false)
-                  _buildMenuAction('edit', 'Editar Cadastro', Icons.edit_note_rounded),
+                  _buildMenuAction('edit', 'Editar dados sensíveis', Icons.edit_note_rounded),
                 
                 if (currentUserRole?.canRunMaintenance ?? false)
                   const PopupMenuDivider(),
