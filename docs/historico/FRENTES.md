@@ -60,7 +60,20 @@ Este arquivo existe para manter rastreabilidade sem sobrecarregar o `DOCTecnico.
 | 26H.3 | Concluída | Prazos administrativos server-side selecionáveis (7, 15 ou 30 dias úteis operacionais) calculados via DB (`conectea_add_business_days` / `conectea_admin_deadline`), vencendo em 00:00:00 do dia seguinte no fuso oficial, com controle de privilégios `SECURITY INVOKER` e sem triggers. | Impede fraudes por adulteração de relógio do celular e exclui sábados/domingos. Feriados são limitações futuras registradas. |
 | 26H.3-FIX.1A | Concluída | Refatoração do `home_status_helper.dart` para consumir o helper unificado de tempo `ConecteaDateTimeHelper.formatProjectDateShort(deadline)`. | Uniformiza e protege a interface visual da Home contra fusos e offsets desalinhados de dispositivos móveis. |
 | 26H.3-COMMIT | Concluída | Commit controlado `dfd3ca4` de exatamente 4 arquivos envolvidos na centralização temporal e push bem-sucedido para branch `main` em `origin`. | Mantém repositório 100% sincronizado com branch main remoto. |
+| 27A.2 | Concluída | Reorganização do Painel de Gestão em Hub modular mobile-first, criação dos ConecteaVisualTokens e do componente global ConecteaRoleBadge. Commits `1ea7d50` e `7a718d2`. | Todos os cargos administrativos visualizam o Hub, com controle de entrada em cada módulo por permissão. |
 
+### Detalhes das Frentes Recentes
+
+#### Frente 27A.2 — Hub de Gestão/Admin e tokens visuais
+**Status:** concluída
+**Commits:** `1ea7d50` e `7a718d2`
+
+##### Resumo
+A Frente 27A.2 iniciou a reorganização do Painel de Gestão/Admin em formato de Hub modular mobile-first. O Hub passa a apresentar áreas administrativas como Gestão de Carteirinhas, Projetos/Programas/Eventos e Consultas com Profissionais (como módulos futuros/em breve), além de Usuários e Permissões (módulo existente restrito conforme cargo administrativo, acessível a admin_master e admin_dev) e Manutenção Técnica (módulo técnico existente restrito a admin_dev). Todos os cargos administrativos visualizam a estrutura geral do Hub, mas a entrada nos módulos é controlada por cargo/permissão. Nesta etapa, apenas Gestão de Carteirinhas permanece funcional; módulos futuros ou restritos ficam indicados como “Em breve” ou “Acesso restrito”, sem rotas ou regras novas.
+
+Também foi criado o ConecteaVisualTokens, camada global de tokens semânticos para elementos sem vínculo direto com status real. A regra definida é: quando há vínculo direto com status do fluxo, usa-se StatusVisualTokens; quando o elemento representa ação, módulo ou card sem vínculo direto com status, usa-se ConecteaVisualTokens.
+
+Foi criado o componente global ConecteaRoleBadge, com variante compacta usada na Home e variante expandida usada no Hub de Gestão. O Hub exibe os cargos com textos curtos “ADM”, “ADM Master” e “ADM Dev”, preservando comunicação visual por ícone, cor e texto. ADM Dev usa roxo/violeta técnico, alinhado à identidade de Manutenção Técnica/dev.
 
 ---
 
@@ -75,6 +88,7 @@ Se uma frente como `24D.1`, `24D.2`, `25B.1` ou `25B.2` não estiver registrada 
 ## Roadmap Técnico
 
 ### Concluído recentemente
+- Frente 27A.2 (Hub de Gestão modular, ConecteaVisualTokens e ConecteaRoleBadge global);
 - Série Frente 26H (Arquitetura temporal, validade da carteirinha digital, helper de tempo, RPCs de prazo administrativo em dias úteis, refabricação de Home helper e commit dfd3ca4);
 - Frente 26G (Botão "Fazer mais tarde" e descarte seguro de alterações na AddMemberPage);
 - Frente 26F (Fluxo de revisão administrativa e reenvio seletivo de documentos);

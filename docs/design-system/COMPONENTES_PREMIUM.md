@@ -1,9 +1,9 @@
 # Componentes Premium — ConeCTEA
 
-**App:** 0.5.0-dev  
-**Documentação:** 4.2.0  
+**App:** 0.7.0-dev
+**Documentação:** 4.4.0
 **Status:** Desenvolvimento
-**Atualizado em:** 17/05/2026
+**Atualizado em:** 18/05/2026
 
 ---
 
@@ -84,3 +84,30 @@ Catalogar e padronizar os componentes de interface premium utilizados no ecossis
   - **Estrutura Vertical Simétrica:** Organização vertical do conteúdo (pill de status com ícone, título com Expanded e ellipsis, protocolo copiável, data e barra de progresso) para leitura fluida e confortável em viewports estreitas de 360dp.
   - **Cálculo de Progresso Adaptativo:** A barra de progresso dinâmico utiliza `LayoutBuilder` com `constraints.maxWidth` em vez do cálculo global por `MediaQuery`, garantindo que o `AnimatedContainer` se expanda de forma proporcional aos limites físicos do card, eliminando riscos de estouro de RenderFlex lateral em 360dp.
   - **Contador com Badge Dark Glass:** Os badges numéricos dos cabeçalhos das seções foram ajustados para a cor branca suave (`white.withValues(alpha: 0.92)`) sobre uma pill de contorno roxo discreto e fundo Dark Glass, oferecendo excelente contraste sob luz ambiente ou variações de brilho na bancada de testes.
+
+### 8. ConecteaVisualTokens
+
+- **Local:** `lib/core/theme/conectea_visual_tokens.dart`
+- **Padrão Visual:** Night Blue Premium (tons Sapphire, Esmeralda, Ciano, Âmbar, Violeta).
+- **Função:** Camada centralizada de design semântico e intenções visuais para cards, módulos e ações do Hub que não possuem correspondência direta com o status do banco.
+- **Diferença entre tokens:**
+  - `StatusVisualTokens`: elementos que possuem vínculo direto com status real do fluxo do banco (ex.: aprovado, rejeitado, pendente).
+  - `ConecteaVisualTokens`: elementos sem vínculo direto com status do fluxo, como módulos do Hub, acessos rápidos e rotinas de manutenção.
+- **Configurações e cores semânticas estabelecidas:**
+  - Gestão de Carteirinhas: `ativo` (ciano/teal institucional, sem uso de roxo/violeta, preservando roxo/violeta para Manutenção Técnica/dev).
+  - Projetos/Programas/Eventos: `emBreve` (neutro/slate, comunicando recurso futuro sem aparência de erro ou restrição).
+  - Consultas com Profissionais: `emBreve` (neutro/slate, comunicando recurso futuro sem aparência de erro ou restrição).
+  - Usuários e Permissões: quando bloqueado, `acessoRestrito` com ruby/rejected/restrição, alinhado à semântica de bloqueio/acesso não permitido; quando acessível, consome o token de usuários/permissões (acessível a admin_master e admin_dev).
+  - Manutenção Técnica: `manutencaoTecnica` (roxo/violeta técnico, alinhado à identidade dev; módulo técnico existente restrito a admin_dev).
+
+### 9. ConecteaRoleBadge
+
+- **Local:** `lib/core/widgets/premium/conectea_role_badge.dart`
+- **Padrão Visual:** Lunar Glassmorphism elástico.
+- **Função:** Componente global responsável por renderizar emblemas de cargo administrativo de forma adaptativa.
+- **Variantes de uso:**
+  - **Variante Compacta (Home):** exibe apenas o ícone e um texto muito curto em fonte reduzida, integrado de forma discreta ao fluxo de saudação no cabeçalho.
+  - **Variante Expandida (Hub de Gestão):** exibe ícone, texto destacado em caixa alta e fundo estilizado em glassmorphism elástico, ocupando posição de destaque acima do título do painel, garantindo respiro e alinhamento visual.
+- **Regras de cores dos cargos:**
+  - Cargo `admin_dev` (desenvolvedor e suporte técnico): consome o tom roxo/violeta técnico (`ConecteaVisualTokens.manutencaoTecnica.accent`).
+  - Cargo `admin` e `admin_master`: consomem tons voltados à administração e coordenação geral.
