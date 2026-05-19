@@ -158,7 +158,20 @@ Todas as tabelas do Supabase possuem RLS ativado por padrão. O acesso aos dados
 
 ---
 
-## 6. Limitações Técnicas e Roadmap de Integrações
+## 6. Realtime e consumo de streams
+
+A Frente 27C.2 revisou o uso de Supabase Realtime no app para reduzir consumo desnecessário e evitar recriações de streams durante rebuilds do Flutter.
+
+Padrões registrados:
+- Em streams por usuário, filtrar no Supabase por user_id sempre que aplicável, como em notificações.
+- Streams não devem ser criadas diretamente dentro do `build` quando puderem ser estabilizadas no ciclo de vida do State.
+- Listeners manuais com `.listen()` devem armazenar `StreamSubscription` e cancelar no `dispose()`.
+- Fluxos administrativos globais devem evitar enriquecimento N+1 no client.
+- A Gestão de Carteirinhas passou a usar `card_requests.member_name`, preenchido e sincronizado pelo banco, removendo consultas repetidas em `members` dentro da stream administrativa.
+
+---
+
+## 7. Limitações Técnicas e Roadmap de Integrações
 
 * **Feriados:** Atualmente, o cálculo de dias úteis desconsidera calendários de feriados nacionais ou locais de Bauru-SP. Esse refino está catalogado no backlog.
 * **Cron Jobs / PG Cron:** O Supabase PG Cron poderá ser adotado no futuro para varrer periodicamente a base de dados em busca de prazos expirados, alterando automaticamente o status do banco. Na fase atual, a verificação ocorre de forma lazy durante a leitura ou processamento de fluxos no app.

@@ -56,3 +56,19 @@ A edição administrativa de cadastro foi reduzida ao escopo de **dados sensíve
 O diálogo de dados sensíveis usa aviso de privacidade, CPF protegido por padrão e botão para revelar/ocultar o CPF. O payload enviado para atualização administrativa deve permanecer restrito a `email` e `cpf`.
 
 Esta frente aplicou travas defensivas na interface, mas não substitui validações de backend. Permanecem como pendências futuras: políticas RLS específicas, validações server-side, logs de auditoria administrativa, paginação de perfis e proteção contra remoção do último `admin_master` ou `admin_dev`.
+
+---
+
+### Gestão de Carteirinhas — otimização da fila administrativa
+
+A fila administrativa da Gestão de Carteirinhas usa Realtime em `card_requests` para manter solicitações atualizadas enquanto o módulo está aberto.
+
+Na Frente 27C.2, o enriquecimento N+1 de nomes foi removido. A tabela `card_requests` passou a possuir a coluna `member_name`, preenchida por backfill inicial + triggers de sincronização a partir de `members.name`.
+
+Com isso:
+- `getAllCardRequestsStream()` deixou de buscar `members.name` individualmente para cada solicitação;
+- a busca administrativa por nome continua local no app;
+- o card administrativo continua consumindo `CardRequest.memberName`;
+- alterações no nome do membro propagam para a fila administrativa.
+
+A lógica visual da Gestão de Carteirinhas não foi alterada nesta frente.

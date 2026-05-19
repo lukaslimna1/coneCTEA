@@ -62,6 +62,7 @@ Este arquivo existe para manter rastreabilidade sem sobrecarregar o `DOCTecnico.
 | 26H.3-COMMIT | Concluída | Commit controlado `dfd3ca4` de exatamente 4 arquivos envolvidos na centralização temporal e push bem-sucedido para branch `main` em `origin`. | Mantém repositório 100% sincronizado com branch main remoto. |
 | 27A.2 | Concluída | Reorganização do Painel de Gestão em Hub modular mobile-first, criação dos ConecteaVisualTokens e do componente global ConecteaRoleBadge. Commits `1ea7d50` e `7a718d2`. | Todos os cargos administrativos visualizam o Hub, com controle de entrada em cada módulo por permissão. |
 | 27B.1 | Concluída | Refinamento do módulo Usuários e Permissões com travas hierárquicas, edição limitada a e-mail/CPF (protegido) e experiência visual Dark Glass / teclado aware. Commits `5e0b4e8`, `c32d29c`, `584f557`. | Travas defensivas aplicadas somente na camada de interface (segurança de UI/UX). |
+| 27C.2 | Concluída | Revisão do Supabase Realtime: otimização em Notificações, estabilização de streams na Home/Carteirinhas/RequestsView e remoção do N+1 administrativo em Gestão de Carteirinhas. Commits `5685c8c`, `f0a6234`, `e95b173`, `37f0f3e`. | Reduz conexões e vazamentos de stream, preparando a arquitetura para escala. |
 
 ### Detalhes das Frentes Recentes
 
@@ -75,6 +76,33 @@ A Frente 27A.2 iniciou a reorganização do Painel de Gestão/Admin em formato d
 Também foi criado o ConecteaVisualTokens, camada global de tokens semânticos para elements sem vínculo direto com status real. A regra definida é: quando há vínculo direto com status do fluxo, usa-se StatusVisualTokens; quando o elemento representa ação, módulo ou card sem vínculo direto com status, usa-se ConecteaVisualTokens.
 
 Foi criado o componente global ConecteaRoleBadge, com variante compacta usada na Home e variante expandida usada no Hub de Gestão. O Hub exibe os cargos com textos curtos “ADM”, “ADM Master” e “ADM Dev”, preservando comunicação visual por ícone, cor e texto. ADM Dev usa roxo/violeta técnico, alinhado à identidade de Manutenção Técnica/dev.
+
+---
+
+#### Frente 27C.2 — Realtime, performance e consumo de streams
+
+**Status:** concluída
+**Tipo:** performance, arquitetura Flutter, Supabase Realtime e estabilidade operacional
+**Resumo:** A frente revisou e corrigiu pontos de consumo de Realtime no ConeCTEA, reduzindo recriações desnecessárias de streams, corrigindo listener manual de notificações e removendo o N+1 administrativo da Gestão de Carteirinhas.
+
+**Entregas principais:**
+- Notificações passaram a filtrar por `user_id` diretamente no Supabase e o contador do sino passou a cancelar corretamente a `StreamSubscription`.
+- Home e Carteirinhas deixaram de criar streams diretamente no `build`, usando streams estáveis no ciclo de vida do State.
+- Auditoria confirmou que troca de cargo/permissão não usa Realtime em `profiles`; o cargo segue carregado por `Future getUserProfile`.
+- Gestão de Carteirinhas removeu o N+1 em `getAllCardRequestsStream` com a coluna `card_requests.member_name`, backfill inicial + triggers de sincronização com `members.name`.
+- RequestsView teve a stream de solicitações estabilizada fora do `build`.
+
+**Commits relacionados:**
+- `5685c8c` — Otimiza realtime de notificacoes
+- `f0a6234` — Estabiliza streams da Home e Carteirinhas
+- `e95b173` — Remove N+1 da gestão de carteirinhas
+- `37f0f3e` — Estabiliza stream da tela de solicitacoes
+
+**Validação funcional:**
+Lucas validou notificações com múltiplos usuários, navegação rápida em Home/Carteirinhas, busca administrativa por nome, criação de nova solicitação, alteração de nome do beneficiário refletindo no admin e ausência de erros em consoles de dispositivos diferentes.
+
+**Observação futura:**
+Paginação da fila administrativa, limites operacionais e estratégias adicionais de cache/contingência ficam como planejamento futuro de escala, não como pendência crítica da Frente 27C.2.
 
 ---
 
@@ -109,6 +137,7 @@ Se uma frente como `24D.1`, `24D.2`, `25B.1` ou `25B.2` não estiver registrada 
 ## Roadmap Técnico
 
 ### Concluído recentemente
+- Frente 27C.2 (Realtime, performance e consumo de streams, otimização de notificações e admin);
 - Frente 27B.1 (Usuários e Permissões no Painel de Gestão, travas hierárquicas, e-mail/CPF restrito e Dark Glass);
 - Frente 27A.2 (Hub de Gestão modular, ConecteaVisualTokens e ConecteaRoleBadge global);
 - Série Frente 26H (Arquitetura temporal, validade da carteirinha digital, helper de tempo, RPCs de prazo administrativo em dias úteis, refabricação de Home helper e commit dfd3ca4);
