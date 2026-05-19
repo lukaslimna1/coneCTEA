@@ -670,36 +670,17 @@ class DatabaseService {
     await _supabase.from('profiles').update(data).eq('id', userId);
   }
 
-  /// Stream com JOIN manual de memberName (Supabase stream não suporta joins nativos)
+  /// Stream de solicitações de carteirinha para o painel administrativo
   Stream<List<CardRequest>> getAllCardRequestsStream() {
     return _supabase
         .from('card_requests')
         .stream(primaryKey: ['id'])
         .order('created_at', ascending: false)
-        .asyncMap((data) async {
+        .map((data) {
           final requests = <CardRequest>[];
           for (final json in data) {
             try {
-              final memberId = json['member_id']?.toString() ?? '';
-              Map<String, dynamic> enriched = Map<String, dynamic>.from(json);
-              
-              // Sempre buscar o nome se não estiver presente ou estiver vazio
-              if (memberId.isNotEmpty && (enriched['memberName'] == null || enriched['memberName'].toString().isEmpty)) {
-                try {
-                  final memberData = await _supabase
-                      .from('members')
-                      .select('name')
-                      .eq('id', memberId)
-                      .maybeSingle();
-                  
-                  if (memberData != null) {
-                    enriched['memberName'] = memberData['name'];
-                  }
-                } catch (e) {
-                  debugPrint('Erro ao buscar nome do membro para a stream: $e');
-                }
-              }
-              requests.add(CardRequest.fromJson(enriched));
+              requests.add(CardRequest.fromJson(json));
             } catch (e) {
               debugPrint('Erro ao processar solicitação na stream: $e');
             }
