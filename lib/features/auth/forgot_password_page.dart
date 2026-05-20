@@ -6,6 +6,7 @@ import '../../core/constants/colors.dart';
 import '../../core/widgets/premium_auth_background.dart';
 import '../../core/widgets/premium/premium_card.dart';
 import '../../core/widgets/premium/premium_button.dart';
+import '../../core/design_system_v2/design_system_v2.dart';
 import '../../services/auth_service.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
@@ -187,38 +188,14 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                 ),
                               ],
 
-                              Text(
-                                'E-mail',
-                                style: GoogleFonts.inter(
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.textPrimary,
-                                  fontSize: 14,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              TextField(
+                              DsInput(
+                                label: 'E-mail',
                                 controller: _emailController,
+                                hint: 'seuemail@exemplo.com',
+                                icon: PhosphorIcons.envelopeSimple(),
                                 keyboardType: TextInputType.emailAddress,
-                                style: GoogleFonts.inter(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600),
-                                decoration: InputDecoration(
-                                  hintText: 'exemplo@email.com',
-                                  hintStyle: GoogleFonts.inter(color: AppColors.textSecondary.withValues(alpha: 0.3), fontSize: 15),
-                                  prefixIcon: Icon(PhosphorIcons.envelope(), color: Colors.white, size: 22),
-                                  filled: true,
-                                  fillColor: const Color(0xA60F172A),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                    borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                    borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                    borderSide: const BorderSide(color: Color(0xFF7C3AED), width: 1.5),
-                                  ),
-                                ),
+                                textInputAction: TextInputAction.send,
+                                semanticsLabel: 'E-mail cadastrado',
                               ),
                               const SizedBox(height: 32),
 
