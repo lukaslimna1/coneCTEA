@@ -16,7 +16,7 @@ import 'package:conectea/core/widgets/premium/premium_card.dart';
 import 'package:conectea/app/routes.dart';
 import 'package:conectea/features/auth/utils/auth_cpf_validator.dart';
 import 'package:conectea/features/auth/widgets/registro/register_section_title.dart';
-import 'package:conectea/features/auth/widgets/registro/register_input_field.dart';
+
 import 'package:conectea/features/auth/widgets/registro/register_dropdown_field.dart';
 import 'package:conectea/features/auth/widgets/registro/register_terms_checkbox.dart';
 import 'package:conectea/features/auth/widgets/registro/register_scrollable_dialog.dart';
@@ -420,13 +420,16 @@ class _RegisterPageState extends State<RegisterPage> {
                                 validator: (v) => v!.isEmpty ? 'Campo obrigatório' : null,
                               ),
                               const SizedBox(height: 20),
-                              RegisterInputField(
+                              DsInput(
                                 label: 'CPF*',
                                 controller: _cpfController,
                                 hint: '000.000.000-00',
                                 icon: PhosphorIcons.identificationCard(),
                                 inputFormatters: [cpfMask],
                                 keyboardType: TextInputType.number,
+                                helperText: 'Ajuda a evitar cadastro duplicado.',
+                                textInputAction: TextInputAction.next,
+                                semanticsLabel: 'CPF',
                                 validator: (v) {
                                   if (v == null || v.isEmpty) return 'Campo obrigatório';
                                   if (!isValidAuthCpf(v)) return 'CPF inválido';
@@ -441,23 +444,29 @@ class _RegisterPageState extends State<RegisterPage> {
                                   if (useVerticalLayout) {
                                     return Column(
                                       children: [
-                                        RegisterInputField(
+                                        DsInput(
                                           label: 'Telefone (WhatsApp)',
                                           controller: _telefoneController,
                                           hint: '(00) 00000-0000',
                                           icon: PhosphorIcons.phone(),
                                           keyboardType: TextInputType.phone,
                                           inputFormatters: [phoneMask],
+                                          helperText: 'Será usado para contato sobre o cadastro.',
+                                          textInputAction: TextInputAction.next,
+                                          semanticsLabel: 'Telefone',
                                           validator: (v) => v == null || v.isEmpty ? 'Obrigatório' : null,
                                         ),
                                         const SizedBox(height: 20),
-                                        RegisterInputField(
+                                        DsInput(
                                           label: 'Nascimento',
                                           controller: _dataNascimentoController,
                                           hint: 'DD/MM/AAAA',
                                           icon: PhosphorIcons.calendar(),
                                           keyboardType: TextInputType.datetime,
                                           inputFormatters: [dateMask],
+                                          helperText: 'Ajuda na identificação do cadastro.',
+                                          textInputAction: TextInputAction.next,
+                                          semanticsLabel: 'Data de nascimento',
                                           validator: (v) => v == null || v.isEmpty ? 'Obrigatório' : null,
                                         ),
                                       ],
@@ -469,26 +478,32 @@ class _RegisterPageState extends State<RegisterPage> {
                                     children: [
                                       Expanded(
                                         flex: 2,
-                                        child: RegisterInputField(
+                                        child: DsInput(
                                           label: 'Telefone*',
                                           controller: _telefoneController,
                                           hint: '(00) 00000-0000',
                                           icon: PhosphorIcons.phone(),
                                           inputFormatters: [phoneMask],
                                           keyboardType: TextInputType.phone,
+                                          helperText: 'Será usado para contato sobre o cadastro.',
+                                          textInputAction: TextInputAction.next,
+                                          semanticsLabel: 'Telefone',
                                           validator: (v) => v!.length < 14 ? 'Telefone inválido' : null,
                                         ),
                                       ),
                                       const SizedBox(width: 12),
                                       Expanded(
                                         flex: 1,
-                                        child: RegisterInputField(
+                                        child: DsInput(
                                           label: 'Nascimento*',
                                           controller: _dataNascimentoController,
                                           hint: 'DD/MM/AAAA',
                                           icon: PhosphorIcons.calendar(),
                                           inputFormatters: [dateMask],
                                           keyboardType: TextInputType.datetime,
+                                          helperText: 'Ajuda na identificação do cadastro.',
+                                          textInputAction: TextInputAction.next,
+                                          semanticsLabel: 'Data de nascimento',
                                           validator: (v) => v!.length < 10 ? 'Data inválida' : null,
                                         ),
                                       ),
@@ -497,13 +512,16 @@ class _RegisterPageState extends State<RegisterPage> {
                                 },
                               ),
                               const SizedBox(height: 20),
-                              RegisterInputField(
+                              DsInput(
                                 label: 'E-mail*',
                                 controller: _emailController,
-                                hint: 'Digite seu e-mail',
+                                hint: 'seuemail@exemplo.com',
                                 icon: PhosphorIcons.envelopeSimple(),
                                 keyboardType: TextInputType.emailAddress,
-                                helper: 'Será usado para login no aplicativo.',
+                                textInputAction: TextInputAction.next,
+                                autofillHints: const [AutofillHints.email],
+                                semanticsLabel: 'E-mail',
+                                helperText: 'Será usado para login no aplicativo.',
                                 validator: (v) {
                                   if (v!.isEmpty) return 'Campo obrigatório';
                                   if (!v.contains('@')) return 'E-mail inválido';
@@ -535,16 +553,28 @@ class _RegisterPageState extends State<RegisterPage> {
                                     hint: _isLoadingCities ? 'Buscando...' : 'Selecione',
                                     onChanged: (v) => setState(() => _selectedCity = v),
                                   ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    'Ajuda na organização do atendimento regional.',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 11,
+                                      color: AppColors.textSecondary.withValues(alpha: 0.5),
+                                    ),
+                                  ),
                                 ],
                               ),
                               const SizedBox(height: 32),
                                 RegisterSectionTitle(icon: PhosphorIcons.shieldCheck(), title: 'Segurança', iconColor: Colors.lightBlueAccent),
                               const SizedBox(height: 20),
-                              RegisterInputField(
+                              DsInput(
                                 label: 'Senha*',
                                 controller: _passwordController,
                                 hint: 'Crie uma senha',
                                 icon: PhosphorIcons.lock(),
+                                keyboardType: TextInputType.visiblePassword,
+                                textInputAction: TextInputAction.next,
+                                autofillHints: const [AutofillHints.newPassword],
+                                semanticsLabel: 'Senha',
                                 obscureText: _obscurePassword,
                                 validator: (v) => v!.length < 6 ? 'Mínimo 6 caracteres' : null,
                                 suffixIcon: IconButton(
@@ -557,11 +587,14 @@ class _RegisterPageState extends State<RegisterPage> {
                                 ),
                               ),
                               const SizedBox(height: 20),
-                              RegisterInputField(
+                              DsInput(
                                 label: 'Confirmar Senha*',
                                 controller: _confirmPasswordController,
                                 hint: 'Repita sua senha',
                                 icon: PhosphorIcons.lockKey(),
+                                keyboardType: TextInputType.visiblePassword,
+                                textInputAction: TextInputAction.done,
+                                semanticsLabel: 'Confirmar Senha',
                                 obscureText: _obscureConfirmPassword,
                                 validator: (v) => v != _passwordController.text ? 'Senhas não conferem' : null,
                                 suffixIcon: IconButton(
@@ -600,19 +633,25 @@ class _RegisterPageState extends State<RegisterPage> {
                                     ),
                                     if (_indicacaoInstituicao == 'Sim') ...[
                                       const SizedBox(height: 16),
-                                      RegisterInputField(
+                                      DsInput(
                                         label: 'Nome da instituição',
                                         controller: _nomeInstituicaoController,
                                         hint: 'Digite o nome da instituição',
                                         icon: PhosphorIcons.buildings(),
+                                        textInputAction: TextInputAction.next,
+                                        semanticsLabel: 'Nome da instituição',
+                                        helperText: 'Informe se houver vínculo com uma instituição.',
                                       ),
                                     ],
                                     const SizedBox(height: 16),
-                                    RegisterInputField(
+                                    DsInput(
                                       label: 'Nome Social',
                                       controller: _nomeSocialController,
                                       hint: 'Como você gostaria de ser chamado(a)',
                                       icon: PhosphorIcons.identificationBadge(),
+                                      textInputAction: TextInputAction.next,
+                                      semanticsLabel: 'Nome Social',
+                                      helperText: 'Será usado para chamar você pelo nome correto.',
                                     ),
                                     const SizedBox(height: 16),
                                     Column(
