@@ -19,7 +19,6 @@ import 'package:conectea/features/auth/widgets/registro/register_section_title.d
 
 import 'package:conectea/features/auth/widgets/registro/register_terms_checkbox.dart';
 import 'package:conectea/features/auth/widgets/registro/register_scrollable_dialog.dart';
-import 'package:conectea/features/auth/widgets/registro/register_searchable_dropdown.dart';
 import 'package:conectea/features/auth/content/register_legal_texts.dart';
 import '../../core/design_system_v2/design_system_v2.dart';
 
@@ -533,23 +532,29 @@ class _RegisterPageState extends State<RegisterPage> {
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  RegisterSearchableDropdown(
+                                  DsSearchableDropdown(
                                     label: 'Estado*',
                                     value: _selectedState,
                                     items: _states.map((s) => s['sigla'] as String).toList(),
                                     icon: PhosphorIcons.mapTrifold(),
+                                    searchHint: 'Buscar estado',
+                                    semanticsLabel: 'Estado',
                                     onChanged: (v) {
                                       setState(() => _selectedState = v);
-                                      _fetchCities(v);
+                                      if (v != null) {
+                                        _fetchCities(v);
+                                      }
                                     },
                                   ),
                                   const SizedBox(height: 20),
-                                  RegisterSearchableDropdown(
+                                  DsSearchableDropdown(
                                     label: 'Cidade*',
                                     value: _selectedCity,
                                     items: _cities,
                                     icon: PhosphorIcons.mapPin(),
                                     hint: _isLoadingCities ? 'Buscando...' : 'Selecione',
+                                    searchHint: 'Buscar cidade',
+                                    semanticsLabel: 'Cidade',
                                     onChanged: (v) => setState(() => _selectedCity = v),
                                   ),
                                   const SizedBox(height: 6),
