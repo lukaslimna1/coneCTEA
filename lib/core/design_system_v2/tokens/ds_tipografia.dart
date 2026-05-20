@@ -158,4 +158,28 @@ class DsTipografia {
         color: DsCores.textSecondary,
         height: 1.2,
       );
+
+  /// Label padrão de campos de formulário.
+  static TextStyle get inputLabel => GoogleFonts.inter(
+        fontSize: 14,
+        fontWeight: FontWeight.w700,
+        color: DsCores.textPrimary,
+        height: 1.2,
+      );
+
+  /// Texto digitado em campos de formulário.
+  static TextStyle get inputText => GoogleFonts.inter(
+        fontSize: 15,
+        fontWeight: FontWeight.w600,
+        color: Colors.white,
+        height: 1.3,
+      );
+
+  /// Placeholder/hint em campos de formulário.
+  static TextStyle get inputHint => GoogleFonts.inter(
+        fontSize: 15,
+        fontWeight: FontWeight.w400,
+        color: DsCores.inputPlaceholder,
+        height: 1.3,
+      );
 }

@@ -7,6 +7,7 @@ import '../../core/constants/colors.dart';
 import '../../core/widgets/premium_auth_background.dart';
 import '../../core/widgets/premium/premium_card.dart';
 import '../../core/widgets/premium/premium_button.dart';
+import '../../core/design_system_v2/design_system_v2.dart';
 import '../../services/database_service.dart';
 
 class ForgotEmailPage extends StatefulWidget {
@@ -204,39 +205,15 @@ class _ForgotEmailPageState extends State<ForgotEmailPage> {
                                 ),
                               ],
 
-                              Text(
-                                'CPF',
-                                style: GoogleFonts.inter(
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.textPrimary,
-                                  fontSize: 14,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              TextField(
+                              DsInput(
+                                label: 'CPF',
                                 controller: _cpfController,
+                                hint: '000.000.000-00',
+                                icon: PhosphorIcons.identificationCard(),
                                 inputFormatters: [_cpfFormatter],
                                 keyboardType: TextInputType.number,
-                                style: GoogleFonts.inter(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600),
-                                decoration: InputDecoration(
-                                  hintText: '000.000.000-00',
-                                  hintStyle: GoogleFonts.inter(color: AppColors.textSecondary.withValues(alpha: 0.3), fontSize: 15),
-                                  prefixIcon: Icon(PhosphorIcons.identificationCard(), color: Colors.white, size: 22),
-                                  filled: true,
-                                  fillColor: const Color(0xA60F172A),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                    borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                    borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                    borderSide: const BorderSide(color: Color(0xFF7C3AED), width: 1.5),
-                                  ),
-                                ),
+                                textInputAction: TextInputAction.search,
+                                semanticsLabel: 'CPF cadastrado',
                               ),
                               const SizedBox(height: 32),
 

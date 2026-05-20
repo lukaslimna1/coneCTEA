@@ -86,7 +86,10 @@ class DsInput extends StatelessWidget {
         enabled ? DsCores.textPrimary : DsCores.textMuted;
 
     final effectiveIconColor =
-        enabled ? DsCores.iconSecondary : DsCores.iconMuted;
+        enabled ? DsCores.inputIcon : DsCores.iconMuted;
+
+    final effectiveSuffixIconColor =
+        enabled ? DsCores.inputSuffixIcon : DsCores.iconMuted;
 
     return Semantics(
       label: semanticsLabel ?? label,
@@ -96,8 +99,8 @@ class DsInput extends StatelessWidget {
         children: [
           Text(
             label,
-            style: DsTipografia.label.copyWith(
-              color: enabled ? DsCores.textSecondary : DsCores.textMuted,
+            style: DsTipografia.inputLabel.copyWith(
+              color: enabled ? DsCores.textPrimary : DsCores.textMuted,
             ),
           ),
           const SizedBox(height: DsEspacamentos.sm),
@@ -124,10 +127,8 @@ class DsInput extends StatelessWidget {
               onTap: onTap,
               autofillHints: autofillHints,
               cursorColor: DsCores.primary,
-              style: DsTipografia.body.copyWith(
+              style: DsTipografia.inputText.copyWith(
                 color: effectiveTextColor,
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
               ),
               decoration: InputDecoration(
                 hintText: hint,
@@ -137,18 +138,14 @@ class DsInput extends StatelessWidget {
                 errorMaxLines: 3,
                 filled: true,
                 fillColor: enabled
-                    ? DsCores.inputBackground.withValues(alpha: 0.64)
+                    ? DsCores.inputBackground
                     : DsCores.surface.withValues(alpha: 0.38),
                 isDense: false,
                 contentPadding: const EdgeInsets.symmetric(
                   vertical: DsEspacamentos.md,
                   horizontal: DsEspacamentos.md,
                 ),
-                hintStyle: DsTipografia.bodySmall.copyWith(
-                  color: DsCores.inputPlaceholder,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w400,
-                ),
+                hintStyle: DsTipografia.inputHint,
                 helperStyle: DsTipografia.caption.copyWith(
                   color: DsCores.textSecondary,
                   fontWeight: FontWeight.w500,
@@ -166,22 +163,22 @@ class DsInput extends StatelessWidget {
                   minHeight: DsTamanhos.inputHeight,
                 ),
                 suffixIcon: suffixIcon,
-                suffixIconColor: effectiveIconColor,
+                suffixIconColor: effectiveSuffixIconColor,
                 suffixIconConstraints: const BoxConstraints(
                   minWidth: DsTamanhos.inputHeight,
                   minHeight: DsTamanhos.inputHeight,
                 ),
                 border: _border(
-                  DsCores.inputBorder.withValues(alpha: 0.45),
+                  DsCores.inputBorder,
                   1,
                 ),
                 enabledBorder: _border(
-                  DsCores.inputBorder.withValues(alpha: 0.55),
+                  DsCores.inputBorder,
                   1,
                 ),
                 focusedBorder: _border(
-                  DsCores.primary.withValues(alpha: 0.95),
-                  1.6,
+                  DsCores.inputFocusBorder,
+                  1.5,
                 ),
                 disabledBorder: _border(
                   DsCores.border.withValues(alpha: 0.28),

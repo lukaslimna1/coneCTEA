@@ -51,9 +51,12 @@ class DsCores {
   static const Color dangerSoft = Color(0x26EF4444);
 
   // Inputs
-  static const Color inputBackground = Color(0xFF10315E);
-  static const Color inputBorder = Color(0xFF2A5B8F);
-  static const Color inputPlaceholder = Color(0xFF9FB2D6);
+  static const Color inputBackground = Color(0xA60F172A);
+  static const Color inputBorder = Color(0x1AFFFFFF);
+  static const Color inputFocusBorder = Color(0xFF7C3AED);
+  static const Color inputPlaceholder = Color(0x4DB8C7E6);
+  static const Color inputIcon = Color(0xFFFFFFFF);
+  static const Color inputSuffixIcon = Color(0x80B8C7E6);
 
   // Ícones
   static const Color iconPrimary = Color(0xFFF8FAFC);
