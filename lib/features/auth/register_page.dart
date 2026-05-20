@@ -22,6 +22,7 @@ import 'package:conectea/features/auth/widgets/registro/register_terms_checkbox.
 import 'package:conectea/features/auth/widgets/registro/register_scrollable_dialog.dart';
 import 'package:conectea/features/auth/widgets/registro/register_searchable_dropdown.dart';
 import 'package:conectea/features/auth/content/register_legal_texts.dart';
+import '../../core/design_system_v2/design_system_v2.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -409,11 +410,13 @@ class _RegisterPageState extends State<RegisterPage> {
                             children: [
                               RegisterSectionTitle(icon: PhosphorIcons.user(), title: 'Dados Pessoais', iconColor: AppColors.cyan),
                               const SizedBox(height: 20),
-                              RegisterInputField(
+                              DsInput(
                                 label: 'Nome Completo*',
                                 controller: _nomeController,
-                                hint: 'Digite seu nome completo',
+                                hint: 'Nome e sobrenome',
                                 icon: PhosphorIcons.user(),
+                                textInputAction: TextInputAction.next,
+                                semanticsLabel: 'Nome completo',
                                 validator: (v) => v!.isEmpty ? 'Campo obrigatório' : null,
                               ),
                               const SizedBox(height: 20),
