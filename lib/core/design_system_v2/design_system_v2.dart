@@ -16,3 +16,4 @@ export 'componentes/ds_selo.dart';
 
 // Padrões
 export 'padroes/ds_card_hub.dart';
+export 'padroes/ds_selo_status.dart';
