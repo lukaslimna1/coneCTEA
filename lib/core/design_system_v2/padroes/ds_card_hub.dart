@@ -4,7 +4,7 @@ import 'package:conectea/core/design_system_v2/componentes/ds_moldura_icone.dart
 import 'package:conectea/core/design_system_v2/componentes/ds_selo.dart';
 import 'package:conectea/core/design_system_v2/tokens/ds_medidas.dart';
 import 'package:conectea/core/design_system_v2/tokens/ds_tipografia.dart';
-import 'package:conectea/core/design_system_v2/tokens/ds_tokens_visuais.dart';
+import 'package:conectea/core/design_system_v2/tokens/ds_cores.dart';
 
 /// Layouts disponíveis para o card de Hub.
 enum DsCardHubLayout {
@@ -18,14 +18,14 @@ enum DsCardHubLayout {
 /// - DsCard para a casca Dark Glass;
 /// - DsMolduraIcone para o ícone premium;
 /// - DsSelo para etiquetas genéricas;
-/// - DsTokenVisual para semântica visual não ligada a status.
+/// - DsCorVisual para semântica visual não ligada a status.
 ///
 /// Não usar este componente para status de carteirinha/solicitação.
 class DsCardHub extends StatelessWidget {
   final String title;
   final String description;
   final IconData icon;
-  final DsTokenVisual token;
+  final DsCorVisual token;
   final VoidCallback? onTap;
   final Widget? trailing;
   final String? badgeText;
@@ -151,7 +151,7 @@ class DsCardHub extends StatelessWidget {
   }
 
   Widget _buildBadge() {
-    return DsSelo.fromTokenVisual(
+    return DsSelo.fromCorVisual(
       label: badgeText!,
       token: token,
       compact: true,

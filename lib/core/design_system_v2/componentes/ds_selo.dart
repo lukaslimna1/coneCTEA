@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:conectea/core/design_system_v2/tokens/ds_medidas.dart';
 import 'package:conectea/core/design_system_v2/tokens/ds_tipografia.dart';
-import 'package:conectea/core/design_system_v2/tokens/ds_tokens_visuais.dart';
+import 'package:conectea/core/design_system_v2/tokens/ds_cores.dart';
 
 /// Selo genérico oficial do Design System V2 do ConeCTEA.
 ///
@@ -42,13 +42,13 @@ class DsSelo extends StatelessWidget {
     this.maxWidth,
   }) : assert(borderWidth >= 0);
 
-  /// Cria um selo genérico usando as definições semânticas de um [DsTokenVisual].
+  /// Cria um selo genérico usando as definições semânticas de um [DsCorVisual].
   ///
   /// Não usar este construtor para status de carteirinha/solicitação.
-  DsSelo.fromTokenVisual({
+  DsSelo.fromCorVisual({
     super.key,
     required this.label,
-    required DsTokenVisual token,
+    required DsCorVisual token,
     this.icon,
     this.iconColor,
     this.compact = false,

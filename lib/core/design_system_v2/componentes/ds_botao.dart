@@ -86,12 +86,12 @@ class DsBotao extends StatelessWidget {
     switch (variante) {
       case DsBotaoVariante.primario:
         return _DsBotaoStyle(
-          gradient: DsCores.primaryGradient,
+          gradient: DsCores.adminGradient,
           textColor: Colors.white,
           borderColor: Colors.white.withValues(alpha: 0.15),
           borderWidth: 1,
           shadows: DsSombras.glow(
-            DsCores.primary,
+            DsCores.admin.accent,
             alpha: 0.18,
             blurRadius: 16,
           ),
@@ -108,24 +108,24 @@ class DsBotao extends StatelessWidget {
       case DsBotaoVariante.ghost:
         return _DsBotaoStyle(
           backgroundColor: Colors.transparent,
-          textColor: DsCores.cyan,
+          textColor: DsCores.carteirinha.accent,
           borderColor: Colors.transparent,
           borderWidth: 0,
         );
 
       case DsBotaoVariante.contorno:
         return _DsBotaoStyle(
-          backgroundColor: DsCores.cyan.withValues(alpha: 0.05),
-          textColor: DsCores.cyan,
-          borderColor: DsCores.cyan.withValues(alpha: 0.70),
+          backgroundColor: DsCores.carteirinha.softBackground,
+          textColor: DsCores.carteirinha.accent,
+          borderColor: DsCores.carteirinha.accent.withValues(alpha: 0.70),
           borderWidth: 1.4,
         );
 
       case DsBotaoVariante.perigo:
         return _DsBotaoStyle(
-          backgroundColor: DsCores.danger.withValues(alpha: 0.08),
-          textColor: DsCores.danger,
-          borderColor: DsCores.danger.withValues(alpha: 0.55),
+          backgroundColor: DsCores.perigo.softBackground,
+          textColor: DsCores.perigo.accent,
+          borderColor: DsCores.perigo.accent.withValues(alpha: 0.55),
           borderWidth: 1.4,
         );
     }

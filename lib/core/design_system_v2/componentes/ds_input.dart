@@ -126,7 +126,7 @@ class DsInput extends StatelessWidget {
               onFieldSubmitted: onFieldSubmitted,
               onTap: onTap,
               autofillHints: autofillHints,
-              cursorColor: DsCores.primary,
+              cursorColor: DsCores.inputFocusBorder,
               style: DsTipografia.inputText.copyWith(
                 color: effectiveTextColor,
               ),
@@ -152,7 +152,7 @@ class DsInput extends StatelessWidget {
                   height: 1.35,
                 ),
                 errorStyle: DsTipografia.caption.copyWith(
-                  color: DsCores.danger,
+                  color: DsCores.perigo.accent,
                   fontWeight: FontWeight.w700,
                   height: 1.35,
                 ),
@@ -185,11 +185,11 @@ class DsInput extends StatelessWidget {
                   1,
                 ),
                 errorBorder: _border(
-                  DsCores.danger.withValues(alpha: 0.70),
+                  DsCores.perigo.accent.withValues(alpha: 0.70),
                   1.2,
                 ),
                 focusedErrorBorder: _border(
-                  DsCores.danger,
+                  DsCores.perigo.accent,
                   1.6,
                 ),
               ),

@@ -51,7 +51,7 @@ class DsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final effectiveRadius = radius ?? DsRaios.card;
-    final effectiveAccent = accentColor ?? DsCores.cyan;
+    final effectiveAccent = accentColor ?? DsCores.carteirinha.accent;
     final effectiveBorderColor =
         borderColor ?? Colors.white.withValues(alpha: 0.08);
 

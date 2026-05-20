@@ -15,7 +15,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 ///
 /// Importante:
 /// Este token não deve ser usado para áreas comuns do app.
-/// Áreas como Conta, Segurança, Privacidade e Suporte usam DsTokenVisual.
+/// Áreas como Conta, Segurança, Privacidade e Suporte usam DsCorVisual.
 ///
 /// Regra atual do produto:
 /// No fluxo de carteirinha, approved e active apontam para o mesmo estado visual:

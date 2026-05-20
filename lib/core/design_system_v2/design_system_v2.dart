@@ -5,7 +5,7 @@
 export 'tokens/ds_cores.dart';
 export 'tokens/ds_medidas.dart';
 export 'tokens/ds_tipografia.dart';
-export 'tokens/ds_tokens_visuais.dart';
+
 export 'tokens/ds_tokens_status.dart';
 
 // Componentes
