@@ -40,18 +40,18 @@ class EditMyDataView extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: DsCores.seguranca.softBackground,
+                        color: DsCores.dadosProtegidos.softBackground,
                         borderRadius: BorderRadius.circular(DsRaios.md),
-                        border: Border.all(color: DsCores.seguranca.border),
+                        border: Border.all(color: DsCores.dadosProtegidos.border),
                       ),
                       child: Row(
                         children: [
-                          Icon(PhosphorIconsRegular.shieldCheck, color: DsCores.seguranca.accent, size: 20),
+                          Icon(PhosphorIconsRegular.shieldCheck, color: DsCores.dadosProtegidos.accent, size: 20),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
                               'CPF e e-mail são protegidos e precisam de solicitação para correção.',
-                              style: DsTipografia.infoBody.copyWith(color: DsCores.seguranca.accent),
+                              style: DsTipografia.infoBody.copyWith(color: DsCores.dadosProtegidos.accent),
                             ),
                           ),
                         ],
@@ -89,7 +89,7 @@ class EditMyDataView extends StatelessWidget {
 
                     const SizedBox(height: 32),
 
-                    _buildSectionTitle('Dados protegidos', PhosphorIconsRegular.shieldCheck, color: DsCores.seguranca),
+                    _buildSectionTitle('Dados protegidos', PhosphorIconsRegular.shieldCheck, color: DsCores.dadosProtegidos),
                     const SizedBox(height: 8),
                     Text(
                       'Para proteger sua conta, esses dados não são alterados diretamente por aqui.',
@@ -108,7 +108,7 @@ class EditMyDataView extends StatelessWidget {
                         );
                       },
                       variante: DsBotaoVariante.acao,
-                      token: DsCores.alerta,
+                      token: DsCores.correcao,
                       icon: PhosphorIconsRegular.paperPlaneRight,
                     ),
 

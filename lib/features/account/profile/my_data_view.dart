@@ -54,7 +54,7 @@ class MyDataView extends StatelessWidget {
 
                     const SizedBox(height: 32),
 
-                    _buildSectionTitle('Dados protegidos', PhosphorIconsRegular.shieldCheck, color: DsCores.seguranca),
+                    _buildSectionTitle('Dados protegidos', PhosphorIconsRegular.shieldCheck, color: DsCores.dadosProtegidos),
                     const SizedBox(height: 8),
                     Text(
                       'Esses dados ajudam a proteger sua conta e evitar alterações indevidas. Para corrigir, envie uma solicitação para análise da equipe.',
@@ -64,7 +64,7 @@ class MyDataView extends StatelessWidget {
                     _buildReadOnlyCard([
                       _buildDataRow('CPF', '***.***.***-**', icon: PhosphorIconsRegular.lock),
                       _buildDataRow('E-mail', 'l***@email.com', icon: PhosphorIconsRegular.lock, isLast: true),
-                    ], borderColor: DsCores.seguranca.border),
+                    ], borderColor: DsCores.dadosProtegidos.border),
 
                     const SizedBox(height: 32),
 
@@ -88,7 +88,7 @@ class MyDataView extends StatelessWidget {
                         );
                       },
                       variante: DsBotaoVariante.acao,
-                      token: DsCores.alerta,
+                      token: DsCores.correcao,
                       icon: PhosphorIconsRegular.paperPlaneRight,
                     ),
 
@@ -191,11 +191,11 @@ class MyDataView extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: DsCores.conta.softBackground,
+                  color: DsCores.dependente.softBackground,
                   shape: BoxShape.circle,
-                  border: Border.all(color: DsCores.conta.border),
+                  border: Border.all(color: DsCores.dependente.border),
                 ),
-                child: Icon(PhosphorIconsRegular.user, color: DsCores.conta.accent),
+                child: Icon(PhosphorIconsRegular.user, color: DsCores.dependente.accent),
               ),
               const SizedBox(width: 16),
               Expanded(

@@ -192,11 +192,11 @@ class DsDropdown extends StatelessWidget {
                           style: ButtonStyle(
                             backgroundColor: WidgetStateProperty.resolveWith<Color?>((states) {
                               if (isSelected) {
-                                return DsCores.admin.softBackground;
+                                return DsCores.surfaceElevated.withValues(alpha: 0.75);
                               }
                               if (states.contains(WidgetState.hovered) ||
                                   states.contains(WidgetState.pressed)) {
-                                return DsCores.admin.softBackground.withValues(alpha: 0.50);
+                                return DsCores.surfaceElevated.withValues(alpha: 0.65);
                               }
                               return Colors.transparent;
                             }),
