@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:conectea/core/constants/colors.dart';
+
+import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 
 class RegisterTermsCheckbox extends StatelessWidget {
   final bool value;
@@ -23,7 +24,7 @@ class RegisterTermsCheckbox extends StatelessWidget {
           child: Checkbox(
             value: value,
             onChanged: onChanged,
-            activeColor: AppColors.primary,
+            activeColor: DsTokensVisuais.sucesso.accent,
             side: BorderSide(color: Colors.white.withValues(alpha: 0.5), width: 1.5),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(6),
