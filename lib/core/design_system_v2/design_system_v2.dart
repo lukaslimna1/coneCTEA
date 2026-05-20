@@ -12,6 +12,7 @@ export 'tokens/ds_tokens_status.dart';
 export 'componentes/ds_botao.dart';
 export 'componentes/ds_card.dart';
 export 'componentes/ds_dropdown.dart';
+export 'componentes/ds_searchable_dropdown.dart';
 export 'componentes/ds_input.dart';
 export 'componentes/ds_moldura_icone.dart';
 export 'componentes/ds_selo.dart';
