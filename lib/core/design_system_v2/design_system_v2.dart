@@ -15,6 +15,7 @@ export 'componentes/ds_dropdown.dart';
 export 'componentes/ds_searchable_dropdown.dart';
 export 'componentes/ds_input.dart';
 export 'componentes/ds_moldura_icone.dart';
+export 'componentes/ds_botao_voltar.dart';
 export 'componentes/ds_selo.dart';
 
 // Padrões

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:conectea/core/design_system_v2/tokens/ds_cores.dart';
 import 'package:conectea/core/design_system_v2/tokens/ds_medidas.dart';
 
 /// Moldura oficial de ícone do Design System V2 do ConeCTEA.
@@ -39,7 +40,7 @@ class DsMolduraIcone extends StatelessWidget {
     this.radius,
     this.showBorder = true,
     this.subtleGlow = false,
-    this.borderWidth = 1.2,
+    this.borderWidth = 1.5,
     this.semanticsLabel,
   })  : assert(size > 0),
         assert(iconSize == null || iconSize > 0),
@@ -51,9 +52,9 @@ class DsMolduraIcone extends StatelessWidget {
     final effectiveIconSize = iconSize ?? DsTamanhos.iconMd;
     final effectiveIconColor = iconColor ?? accentColor;
     final effectiveBackground =
-        backgroundColor ?? accentColor.withValues(alpha: 0.12);
+        backgroundColor ?? DsCores.iconFrameBackground.withValues(alpha: 0.75);
     final effectiveBorder =
-        borderColor ?? accentColor.withValues(alpha: 0.25);
+        borderColor ?? accentColor.withValues(alpha: 0.45);
 
     return Semantics(
       label: semanticsLabel,

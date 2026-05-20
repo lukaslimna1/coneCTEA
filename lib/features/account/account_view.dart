@@ -9,7 +9,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:conectea/models/app_user.dart';
 import 'package:conectea/features/account/legal/consents_view.dart';
 import 'package:conectea/features/account/security/security_view.dart';
-import 'package:conectea/features/account/profile/edit_profile_view.dart';
+import 'package:conectea/features/account/profile/my_data_view.dart';
 import 'package:conectea/features/account/institutional/about_conectea_view.dart';
 import 'package:conectea/features/account/support/help_support_view.dart';
 
@@ -123,7 +123,7 @@ class AccountView extends StatelessWidget {
           description: 'Perfil, dependentes e correções.',
           token: DsCores.conta,
           layout: DsCardHubLayout.horizontal,
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const EditProfileView())),
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const MyDataView())),
         ),
         const SizedBox(height: 12),
         _buildMenuCard(

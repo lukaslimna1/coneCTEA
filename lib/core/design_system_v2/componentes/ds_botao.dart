@@ -3,7 +3,7 @@ import 'package:conectea/core/design_system_v2/tokens/ds_cores.dart';
 import 'package:conectea/core/design_system_v2/tokens/ds_medidas.dart';
 import 'package:conectea/core/design_system_v2/tokens/ds_tipografia.dart';
 
-enum DsBotaoVariante { primario, secundario, ghost, contorno, perigo }
+enum DsBotaoVariante { primario, secundario, ghost, contorno, perigo, acao }
 
 /// Botão oficial do Design System V2 do ConeCTEA.
 /// 
@@ -13,6 +13,7 @@ class DsBotao extends StatelessWidget {
   final String label;
   final VoidCallback? onPressed;
   final DsBotaoVariante variante;
+  final DsCorVisual? token;
   final IconData? icon;
   final bool isLoading;
   final bool fullWidth;
@@ -23,6 +24,7 @@ class DsBotao extends StatelessWidget {
     required this.label,
     this.onPressed,
     this.variante = DsBotaoVariante.primario,
+    this.token,
     this.icon,
     this.isLoading = false,
     this.fullWidth = true,
@@ -71,7 +73,7 @@ class DsBotao extends StatelessWidget {
                     horizontal: DsEspacamentos.lg,
                   ),
                   child: Center(
-                    child: _buildContent(style.textColor),
+                    child: _buildContent(style.textColor, style.iconColor),
                   ),
                 ),
               ),
@@ -128,10 +130,20 @@ class DsBotao extends StatelessWidget {
           borderColor: DsCores.perigo.accent.withValues(alpha: 0.55),
           borderWidth: 1.4,
         );
+
+      case DsBotaoVariante.acao:
+        final effectiveToken = token ?? DsCores.conta;
+        return _DsBotaoStyle(
+          backgroundColor: DsCores.iconFrameBackground.withValues(alpha: 0.70),
+          textColor: DsCores.textPrimary,
+          iconColor: effectiveToken.accent,
+          borderColor: effectiveToken.accent.withValues(alpha: 0.40),
+          borderWidth: 1.2,
+        );
     }
   }
 
-  Widget _buildContent(Color textColor) {
+  Widget _buildContent(Color textColor, Color? iconColor) {
     if (isLoading) {
       return SizedBox(
         height: DsTamanhos.iconSm,
@@ -148,7 +160,7 @@ class DsBotao extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         if (icon != null) ...[
-          Icon(icon, size: DsTamanhos.iconSm, color: textColor),
+          Icon(icon, size: DsTamanhos.iconSm, color: iconColor ?? textColor),
           const SizedBox(width: DsEspacamentos.sm),
         ],
         Flexible(
@@ -168,6 +180,7 @@ class _DsBotaoStyle {
   final Color? backgroundColor;
   final Gradient? gradient;
   final Color textColor;
+  final Color? iconColor;
   final Color borderColor;
   final double borderWidth;
   final List<BoxShadow>? shadows;
@@ -176,6 +189,7 @@ class _DsBotaoStyle {
     this.backgroundColor,
     this.gradient,
     required this.textColor,
+    this.iconColor,
     required this.borderColor,
     required this.borderWidth,
     this.shadows,

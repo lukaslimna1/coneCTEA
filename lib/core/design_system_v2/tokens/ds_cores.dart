@@ -86,9 +86,9 @@ class DsCores {
   static const Color surfaceElevated = Color(0xFF102A4C);
   static const Color surfaceCard = Color(0xFF10315E);
   static const Color surfaceCardHover = Color(0xFF163F72);
-
   static const Color glass = Color(0x990B1D3A);
   static const Color glassStrong = Color(0xD90B1D3A);
+  static const Color iconFrameBackground = Color(0xFF020617);
 
   // ---------------------------------------------------------------------------
   // Textos
@@ -191,7 +191,8 @@ class DsCores {
   static const DsCorVisual institucional = DsCorVisual(
     key: 'institucional',
     semanticName: 'Institucional',
-    description: 'Informações sobre o ConeCTEA, Família TEA Bauru e rede social da instituição.',
+    description:
+        'Informações sobre o ConeCTEA, Família TEA Bauru e rede social da instituição.',
     accent: Color(0xFFFBBF24),
     softBackground: Color(0x14FBBF24),
     border: Color(0x26FBBF24),
@@ -231,7 +232,8 @@ class DsCores {
   static const DsCorVisual restricao = DsCorVisual(
     key: 'restricao',
     semanticName: 'Restrição',
-    description: 'Bloqueios administrativos, perfis travados e recursos limitados.',
+    description:
+        'Bloqueios administrativos, perfis travados e recursos limitados.',
     accent: Color(0xFFE11D48),
     softBackground: Color(0x14E11D48),
     border: Color(0x30E11D48),
@@ -315,39 +317,25 @@ class DsCores {
   static const LinearGradient nightGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [
-      Color(0xFF102A4C),
-      Color(0xFF0B1D3A),
-      Color(0xFF071326),
-    ],
+    colors: [Color(0xFF102A4C), Color(0xFF0B1D3A), Color(0xFF071326)],
   );
 
   static const LinearGradient cardGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [
-      Color(0xFF102A4C),
-      Color(0xFF0B1D3A),
-      Color(0xFF08162D),
-    ],
+    colors: [Color(0xFF102A4C), Color(0xFF0B1D3A), Color(0xFF08162D)],
   );
 
   static const LinearGradient adminGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [
-      Color(0xFF7C3AED),
-      Color(0xFF5B21B6),
-    ],
+    colors: [Color(0xFF7C3AED), Color(0xFF5B21B6)],
   );
 
   static const LinearGradient carteirinhaGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [
-      Color(0xFF14D9D0),
-      Color(0xFF0EA8A1),
-    ],
+    colors: [Color(0xFF14D9D0), Color(0xFF0EA8A1)],
   );
 
   // ---------------------------------------------------------------------------
