@@ -61,86 +61,173 @@ class DsDropdown extends StatelessWidget {
             constraints: const BoxConstraints(
               minHeight: DsTamanhos.inputHeight,
             ),
-            child: DropdownButtonFormField<String>(
-              initialValue: value,
-              items: items.map((String item) {
-                return DropdownMenuItem<String>(
-                  value: item,
-                  child: Text(
-                    item,
-                    style: DsTipografia.inputText.copyWith(
-                      color: effectiveTextColor,
-                    ),
-                  ),
-                );
-              }).toList(),
-              onChanged: enabled ? onChanged : null,
+            child: _DsDropdownFormField(
+              value: value,
               validator: validator,
-              dropdownColor: DsCores.surfaceCard,
-              icon: Icon(
-                Icons.arrow_drop_down,
-                color: enabled ? DsCores.inputSuffixIcon : DsCores.iconMuted,
-              ),
-              style: DsTipografia.inputText.copyWith(
-                color: effectiveTextColor,
-              ),
-              decoration: InputDecoration(
-                hintText: hint,
-                helperText: helperText,
-                errorText: errorText,
-                helperMaxLines: 2,
-                errorMaxLines: 3,
-                filled: true,
-                fillColor: enabled
-                    ? DsCores.inputBackground
-                    : DsCores.surface.withValues(alpha: 0.38),
-                isDense: false,
-                contentPadding: const EdgeInsets.symmetric(
-                  vertical: DsEspacamentos.md,
-                  horizontal: DsEspacamentos.md,
-                ),
-                hintStyle: DsTipografia.inputHint,
-                helperStyle: DsTipografia.caption.copyWith(
-                  color: DsCores.textSecondary,
-                  fontWeight: FontWeight.w500,
-                  height: 1.35,
-                ),
-                errorStyle: DsTipografia.caption.copyWith(
-                  color: DsCores.perigo.accent,
-                  fontWeight: FontWeight.w700,
-                  height: 1.35,
-                ),
-                prefixIcon: icon == null ? null : Icon(icon),
-                prefixIconColor: effectiveIconColor,
-                prefixIconConstraints: const BoxConstraints(
-                  minWidth: DsTamanhos.inputHeight,
-                  minHeight: DsTamanhos.inputHeight,
-                ),
-                border: _border(
-                  DsCores.inputBorder,
-                  1,
-                ),
-                enabledBorder: _border(
-                  DsCores.inputBorder,
-                  1,
-                ),
-                focusedBorder: _border(
-                  DsCores.inputFocusBorder,
-                  1.5,
-                ),
-                disabledBorder: _border(
-                  DsCores.border.withValues(alpha: 0.28),
-                  1,
-                ),
-                errorBorder: _border(
-                  DsCores.perigo.accent.withValues(alpha: 0.70),
-                  1.2,
-                ),
-                focusedErrorBorder: _border(
-                  DsCores.perigo.accent,
-                  1.6,
-                ),
-              ),
+              enabled: enabled,
+              builder: (FormFieldState<String> field) {
+                return LayoutBuilder(
+                  builder: (BuildContext context, BoxConstraints constraints) {
+                    return MenuAnchor(
+                      crossAxisUnconstrained: false,
+                      style: MenuStyle(
+                        backgroundColor: WidgetStateProperty.all(DsCores.glassStrong),
+                        surfaceTintColor: WidgetStateProperty.all(Colors.transparent),
+                        elevation: WidgetStateProperty.all(8.0),
+                        padding: WidgetStateProperty.all(EdgeInsets.zero),
+                        shape: WidgetStateProperty.all(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(DsRaios.input),
+                            side: BorderSide(
+                              color: DsCores.border.withValues(alpha: 0.5),
+                              width: 1.0,
+                            ),
+                          ),
+                        ),
+                        minimumSize: WidgetStateProperty.all(
+                          Size(constraints.maxWidth, 0),
+                        ),
+                        maximumSize: WidgetStateProperty.all(
+                          Size(constraints.maxWidth, 320),
+                        ),
+                      ),
+                      builder: (BuildContext context, MenuController controller, Widget? child) {
+                        return InkWell(
+                          onTap: enabled
+                              ? () {
+                                  if (controller.isOpen) {
+                                    controller.close();
+                                  } else {
+                                    controller.open();
+                                  }
+                                }
+                              : null,
+                          borderRadius: BorderRadius.circular(DsRaios.input),
+                          child: InputDecorator(
+                            isFocused: controller.isOpen,
+                            decoration: InputDecoration(
+                              hintText: hint,
+                              helperText: helperText,
+                              errorText: field.errorText ?? errorText,
+                              helperMaxLines: 2,
+                              errorMaxLines: 3,
+                              filled: true,
+                              fillColor: enabled
+                                  ? DsCores.inputBackground
+                                  : DsCores.surface.withValues(alpha: 0.38),
+                              isDense: false,
+                              contentPadding: const EdgeInsets.symmetric(
+                                vertical: DsEspacamentos.md,
+                                horizontal: DsEspacamentos.md,
+                              ),
+                              hintStyle: DsTipografia.inputHint,
+                              helperStyle: DsTipografia.caption.copyWith(
+                                color: DsCores.textSecondary,
+                                fontWeight: FontWeight.w500,
+                                height: 1.35,
+                              ),
+                              errorStyle: DsTipografia.caption.copyWith(
+                                color: DsCores.perigo.accent,
+                                fontWeight: FontWeight.w700,
+                                height: 1.35,
+                              ),
+                              prefixIcon: icon == null ? null : Icon(icon),
+                              prefixIconColor: effectiveIconColor,
+                              prefixIconConstraints: const BoxConstraints(
+                                minWidth: DsTamanhos.inputHeight,
+                                minHeight: DsTamanhos.inputHeight,
+                              ),
+                              suffixIcon: Icon(
+                                Icons.arrow_drop_down,
+                                color: enabled ? DsCores.inputSuffixIcon : DsCores.iconMuted,
+                              ),
+                              suffixIconConstraints: const BoxConstraints(
+                                minWidth: DsTamanhos.inputHeight,
+                                minHeight: DsTamanhos.inputHeight,
+                              ),
+                              border: _border(
+                                DsCores.inputBorder,
+                                1,
+                              ),
+                              enabledBorder: _border(
+                                DsCores.inputBorder,
+                                1,
+                              ),
+                              focusedBorder: _border(
+                                DsCores.inputFocusBorder,
+                                1.5,
+                              ),
+                              disabledBorder: _border(
+                                DsCores.border.withValues(alpha: 0.28),
+                                1,
+                              ),
+                              errorBorder: _border(
+                                DsCores.perigo.accent.withValues(alpha: 0.70),
+                                1.2,
+                              ),
+                              focusedErrorBorder: _border(
+                                DsCores.perigo.accent,
+                                1.6,
+                              ),
+                            ),
+                            isEmpty: field.value == null || field.value!.isEmpty,
+                            child: Text(
+                              field.value ?? '',
+                              style: DsTipografia.inputText.copyWith(
+                                color: effectiveTextColor,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                      menuChildren: items.map((String item) {
+                        final bool isSelected = field.value == item;
+                        return MenuItemButton(
+                          onPressed: () {
+                            field.didChange(item);
+                            if (onChanged != null) {
+                              onChanged!(item);
+                            }
+                          },
+                          style: ButtonStyle(
+                            backgroundColor: WidgetStateProperty.resolveWith<Color?>((states) {
+                              if (isSelected) {
+                                return DsCores.admin.softBackground;
+                              }
+                              if (states.contains(WidgetState.hovered) ||
+                                  states.contains(WidgetState.pressed)) {
+                                return DsCores.admin.softBackground.withValues(alpha: 0.50);
+                              }
+                              return Colors.transparent;
+                            }),
+                            overlayColor: WidgetStateProperty.all(Colors.transparent),
+                            padding: WidgetStateProperty.all(
+                              const EdgeInsets.symmetric(
+                                vertical: DsEspacamentos.md,
+                                horizontal: DsEspacamentos.md,
+                              ),
+                            ),
+                            minimumSize: WidgetStateProperty.all(
+                              Size(constraints.maxWidth, 48),
+                            ),
+                          ),
+                          child: SizedBox(
+                            width: constraints.maxWidth - 32,
+                            child: Text(
+                              item,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: DsTipografia.inputText.copyWith(
+                                color: isSelected ? DsCores.textPrimary : DsCores.textSecondary,
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    );
+                  },
+                );
+              },
             ),
           ),
         ],
@@ -156,5 +243,29 @@ class DsDropdown extends StatelessWidget {
         width: width,
       ),
     );
+  }
+}
+
+class _DsDropdownFormField extends FormField<String> {
+  const _DsDropdownFormField({
+    required String? value,
+    super.validator,
+    super.enabled,
+    required super.builder,
+  }) : super(
+          initialValue: value,
+        );
+
+  @override
+  FormFieldState<String> createState() => _DsDropdownFormFieldState();
+}
+
+class _DsDropdownFormFieldState extends FormFieldState<String> {
+  @override
+  void didUpdateWidget(_DsDropdownFormField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialValue != oldWidget.initialValue) {
+      setValue(widget.initialValue);
+    }
   }
 }

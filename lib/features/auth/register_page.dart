@@ -17,7 +17,6 @@ import 'package:conectea/app/routes.dart';
 import 'package:conectea/features/auth/utils/auth_cpf_validator.dart';
 import 'package:conectea/features/auth/widgets/registro/register_section_title.dart';
 
-import 'package:conectea/features/auth/widgets/registro/register_dropdown_field.dart';
 import 'package:conectea/features/auth/widgets/registro/register_terms_checkbox.dart';
 import 'package:conectea/features/auth/widgets/registro/register_scrollable_dialog.dart';
 import 'package:conectea/features/auth/widgets/registro/register_searchable_dropdown.dart';
@@ -622,14 +621,13 @@ class _RegisterPageState extends State<RegisterPage> {
                                    leading: Icon(PhosphorIcons.dna(), color: Colors.white.withValues(alpha: 0.5), size: 20),
                                   children: [
                                     const SizedBox(height: 12),
-                                    RegisterDropdownField<String>(
+                                    DsDropdown(
                                       label: 'Foi indicado por alguma instituição?',
                                       value: _indicacaoInstituicao,
-                                      items: const ['Não', 'Sim']
-                                          .map((t) => DropdownMenuItem(value: t, child: Text(t, style: const TextStyle(color: Colors.white))))
-                                          .toList(),
+                                      items: const ['Não', 'Sim'],
                                       icon: PhosphorIcons.bank(),
                                       onChanged: (v) => setState(() => _indicacaoInstituicao = v!),
+                                      semanticsLabel: 'Indicação por instituição',
                                     ),
                                     if (_indicacaoInstituicao == 'Sim') ...[
                                       const SizedBox(height: 16),
@@ -657,7 +655,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                     Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        RegisterDropdownField<String>(
+                                        DsDropdown(
                                           label: 'Gênero',
                                           value: _generoSelecionado,
                                           hint: 'Selecione',
@@ -667,12 +665,13 @@ class _RegisterPageState extends State<RegisterPage> {
                                             'Não binário',
                                             'Outro',
                                             'Prefiro não informar',
-                                          ].map((t) => DropdownMenuItem(value: t, child: Text(t, style: const TextStyle(fontSize: 14, color: Colors.white)))).toList(),
+                                          ],
                                           icon: PhosphorIcons.genderIntersex(),
                                           onChanged: (v) => setState(() => _generoSelecionado = v),
+                                          semanticsLabel: 'Gênero',
                                         ),
                                         const SizedBox(height: 16),
-                                        RegisterDropdownField<String>(
+                                        DsDropdown(
                                           label: 'Raça / Cor',
                                           value: _racaSelecionada,
                                           hint: 'Selecione',
@@ -683,9 +682,10 @@ class _RegisterPageState extends State<RegisterPage> {
                                             'Amarela',
                                             'Indígena',
                                             'Prefiro não informar',
-                                          ].map((t) => DropdownMenuItem(value: t, child: Text(t, style: const TextStyle(fontSize: 14, color: Colors.white)))).toList(),
+                                          ],
                                           icon: PhosphorIcons.usersThree(),
                                           onChanged: (v) => setState(() => _racaSelecionada = v),
+                                          semanticsLabel: 'Raça ou cor',
                                         ),
                                       ],
                                     ),
