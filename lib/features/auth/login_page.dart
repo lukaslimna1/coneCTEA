@@ -202,48 +202,26 @@ class _LoginPageState extends State<LoginPage> {
                         const SizedBox(height: 20),
 
                         // Campo de entrada: Senha com opção de visibilidade
-                        Text(
-                          'Senha',
-                          style: GoogleFonts.inter(
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.textPrimary,
-                            fontSize: 14,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        TextField(
+                        DsInput(
+                          label: 'Senha',
                           controller: _passwordController,
+                          hint: 'Digite sua senha',
+                          icon: PhosphorIcons.lockSimple(),
                           obscureText: _obscurePassword,
-                          style: GoogleFonts.inter(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600),
-                          decoration: InputDecoration(
-                            hintText: 'Digite sua senha',
-                            hintStyle: GoogleFonts.inter(color: AppColors.textSecondary.withValues(alpha: 0.3), fontSize: 15),
-                            prefixIcon: Icon(PhosphorIcons.lock(), color: Colors.white, size: 22),
-                            filled: true,
-                            fillColor: const Color(0xA60F172A),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(16),
-                              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(16),
-                              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(16),
-                              borderSide: const BorderSide(color: Color(0xFF7C3AED), width: 1.5),
-                            ),
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _obscurePassword ? PhosphorIcons.eyeSlash() : PhosphorIcons.eye(),
-                                color: AppColors.textSecondary.withValues(alpha: 0.5),
-                                size: 20,
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  _obscurePassword = !_obscurePassword;
-                                });
-                              },
+                          keyboardType: TextInputType.visiblePassword,
+                          textInputAction: TextInputAction.done,
+                          autofillHints: const [AutofillHints.password],
+                          semanticsLabel: 'Senha de acesso',
+                          suffixIcon: IconButton(
+                            onPressed: () {
+                              setState(() {
+                                _obscurePassword = !_obscurePassword;
+                              });
+                            },
+                            icon: Icon(
+                              _obscurePassword
+                                  ? PhosphorIcons.eye()
+                                  : PhosphorIcons.eyeSlash(),
                             ),
                           ),
                         ),
