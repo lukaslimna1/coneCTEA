@@ -169,7 +169,7 @@ class _DsSearchableDropdownState extends State<DsSearchableDropdown> {
                                   fontWeight: FontWeight.w700,
                                   height: 1.35,
                                 ),
-                                prefixIcon: widget.icon == null ? null : Icon(widget.icon),
+                                prefixIcon: widget.icon == null ? null : Icon(widget.icon, size: DsTamanhos.iconSm),
                                 prefixIconColor: effectiveIconColor,
                                 prefixIconConstraints: const BoxConstraints(
                                   minWidth: DsTamanhos.inputHeight,

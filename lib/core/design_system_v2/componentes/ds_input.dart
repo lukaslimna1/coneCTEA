@@ -156,7 +156,7 @@ class DsInput extends StatelessWidget {
                   fontWeight: FontWeight.w700,
                   height: 1.35,
                 ),
-                prefixIcon: icon == null ? null : Icon(icon),
+                prefixIcon: icon == null ? null : Icon(icon, size: DsTamanhos.iconSm),
                 prefixIconColor: effectiveIconColor,
                 prefixIconConstraints: const BoxConstraints(
                   minWidth: DsTamanhos.inputHeight,

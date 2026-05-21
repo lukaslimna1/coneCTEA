@@ -44,7 +44,7 @@ class CampoRacaCor extends StatelessWidget {
       items: OpcoesCadastrais.racaCor,
       onChanged: onChanged,
       enabled: enabled,
-      hint: hint ?? 'Selecione sua raça ou cor',
+      hint: hint ?? 'Selecione',
       helperText: helperText,
       icon: PhosphorIconsRegular.users,
       semanticsLabel: semanticsLabel,

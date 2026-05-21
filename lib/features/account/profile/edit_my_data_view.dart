@@ -1,11 +1,71 @@
 import 'package:flutter/material.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
+import 'package:conectea/core/campos_cadastrais/campos_cadastrais.dart';
 import 'package:conectea/features/account/profile/widgets/my_data_logged_header.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-class EditMyDataView extends StatelessWidget {
+class EditMyDataView extends StatefulWidget {
   const EditMyDataView({super.key});
+
+  @override
+  State<EditMyDataView> createState() => _EditMyDataViewState();
+}
+
+class _EditMyDataViewState extends State<EditMyDataView> {
+  late final TextEditingController _nomeCompletoController;
+  late final TextEditingController _nomeSocialController;
+  late final TextEditingController _dataNascimentoController;
+  late final TextEditingController _telefoneController;
+  late final TextEditingController _nomeInstituicaoController;
+
+  // Estados dos dropdowns
+  String? _estado;
+  String? _cidade;
+  String? _genero;
+  String? _racaCor;
+  String? _indicacaoInstituicao;
+
+  // Lista de estados e cidades para testes locais de layout.
+  // O IBGE real será integrado em serviço separado futuro.
+  final List<String> _estados = ['SP', 'RJ', 'MG', 'PR', 'SC'];
+  final List<String> _cidades = [
+    'Bauru',
+    'São Paulo',
+    'Rio de Janeiro',
+    'Belo Horizonte',
+    'São José do Rio Preto',
+    'Ribeirão Preto',
+    'Santa Bárbara d\'Oeste',
+    'Aparecida de Goiânia',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    // Campos editáveis iniciados vazios nesta fase visual para não induzir a falsos carregamentos.
+    _nomeCompletoController = TextEditingController(text: '');
+    _nomeSocialController = TextEditingController(text: '');
+    _dataNascimentoController = TextEditingController(text: '');
+    _telefoneController = TextEditingController(text: '');
+    _nomeInstituicaoController = TextEditingController(text: '');
+
+    _estado = null;
+    _cidade = null;
+    _genero = null;
+    _racaCor = null;
+    _indicacaoInstituicao = null;
+  }
+
+  @override
+  void dispose() {
+    _nomeCompletoController.dispose();
+    _nomeSocialController.dispose();
+    _dataNascimentoController.dispose();
+    _telefoneController.dispose();
+    _nomeInstituicaoController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,31 +121,74 @@ class EditMyDataView extends StatelessWidget {
 
                     _buildSectionTitle('Dados pessoais', PhosphorIconsRegular.identificationCard),
                     const SizedBox(height: 16),
-                    _buildDsInput(label: 'Nome completo', initialValue: 'Nome cadastrado', icon: PhosphorIconsRegular.user),
+                    CampoNomeCompleto(controller: _nomeCompletoController),
                     const SizedBox(height: 12),
-                    _buildDsInput(label: 'Nome social (opcional)', initialValue: '', icon: PhosphorIconsRegular.userCircle),
+                    CampoNomeSocial(controller: _nomeSocialController),
                     const SizedBox(height: 12),
-                    _buildDsInput(label: 'Data de nascimento', initialValue: '00/00/0000', icon: PhosphorIconsRegular.calendarBlank),
+                    CampoDataNascimento(controller: _dataNascimentoController),
                     const SizedBox(height: 12),
-                    _buildDsInput(label: 'Telefone', initialValue: '(00) 00000-0000', icon: PhosphorIconsRegular.phone),
+                    CampoTelefone(controller: _telefoneController),
 
                     const SizedBox(height: 32),
 
                     _buildSectionTitle('Localização', PhosphorIconsRegular.mapPin),
                     const SizedBox(height: 16),
-                    _buildDsDropdown(label: 'Estado', value: 'SP', icon: PhosphorIconsRegular.mapTrifold, items: ['SP']),
+                    CampoEstado(
+                      value: _estado,
+                      items: _estados,
+                      onChanged: (val) {
+                        setState(() {
+                          _estado = val;
+                        });
+                      },
+                    ),
                     const SizedBox(height: 12),
-                    _buildDsDropdown(label: 'Cidade', value: 'Bauru', icon: PhosphorIconsRegular.buildings, items: ['Bauru']),
+                    CampoCidade(
+                      value: _cidade,
+                      items: _cidades,
+                      onChanged: (val) {
+                        setState(() {
+                          _cidade = val;
+                        });
+                      },
+                    ),
 
                     const SizedBox(height: 32),
 
                     _buildSectionTitle('Dados complementares', PhosphorIconsRegular.listPlus),
                     const SizedBox(height: 16),
-                    _buildDsDropdown(label: 'Gênero', value: 'Prefiro não informar', icon: PhosphorIconsRegular.genderIntersex, items: ['Feminino', 'Masculino', 'Não binário', 'Outro', 'Prefiro não informar']),
+                    CampoGenero(
+                      value: _genero,
+                      onChanged: (val) {
+                        setState(() {
+                          _genero = val;
+                        });
+                      },
+                    ),
                     const SizedBox(height: 12),
-                    _buildDsDropdown(label: 'Raça / Cor', value: 'Prefiro não informar', icon: PhosphorIconsRegular.users, items: ['Branca', 'Preta', 'Parda', 'Amarela', 'Indígena', 'Prefiro não informar']),
+                    CampoRacaCor(
+                      value: _racaCor,
+                      onChanged: (val) {
+                        setState(() {
+                          _racaCor = val;
+                        });
+                      },
+                    ),
                     const SizedBox(height: 12),
-                    _buildDsDropdown(label: 'Indicado por instituição?', value: 'Não', icon: PhosphorIconsRegular.bank, items: ['Não', 'Sim']),
+                    CampoIndicacaoInstituicao(
+                      value: _indicacaoInstituicao,
+                      onChanged: (val) {
+                        setState(() {
+                          _indicacaoInstituicao = val;
+                        });
+                      },
+                    ),
+                    if (_indicacaoInstituicao == 'Sim') ...[
+                      const SizedBox(height: 12),
+                      CampoNomeInstituicao(
+                        controller: _nomeInstituicaoController,
+                      ),
+                    ],
 
                     const SizedBox(height: 32),
 
@@ -146,6 +249,8 @@ class EditMyDataView extends StatelessWidget {
         DsMolduraIcone(
           icon: icon,
           accentColor: color.accent,
+          size: 32, // Reduzido localmente para equilíbrio em telas de 360dp
+          iconSize: 18, // Proporcional ao tamanho reduzido
         ),
         const SizedBox(width: 12),
         Text(
@@ -153,24 +258,6 @@ class EditMyDataView extends StatelessWidget {
           style: DsTipografia.sectionTitle.copyWith(color: DsCores.textPrimary),
         ),
       ],
-    );
-  }
-
-  Widget _buildDsInput({required String label, required String initialValue, required IconData icon}) {
-    return DsInput(
-      label: label,
-      controller: TextEditingController(text: initialValue),
-      icon: icon,
-    );
-  }
-
-  Widget _buildDsDropdown({required String label, required String value, required IconData icon, required List<String> items}) {
-    return DsDropdown(
-      label: label,
-      value: value,
-      items: items,
-      icon: icon,
-      onChanged: (val) {},
     );
   }
 
