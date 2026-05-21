@@ -237,7 +237,7 @@ class DependentsView extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
                                   Text(
-                                    'Ao remover este dependente, o vínculo dele com a sua conta será encerrado. Os dados relacionados à carteirinha poderão ser apagados conforme nossas regras de segurança e privacidade. Essa ação não poderá ser desfeita. Se precisar cadastrar novamente, será necessário fazer uma nova solicitação e aguardar análise da equipe.',
+                                    'Ao remover este dependente, os dados vinculados a ele serão apagados do banco de dados operacional do ConeCTEA, incluindo informações cadastrais, solicitações e carteirinha comunitária vinculada, quando existirem. Essa ação pode ser irreversível.',
                                     style: DsTipografia.bodySmall.copyWith(color: DsCores.textSecondary),
                                     textAlign: TextAlign.center,
                                   ),

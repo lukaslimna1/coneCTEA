@@ -7,7 +7,7 @@ import 'package:conectea/services/auth_service.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:conectea/models/app_user.dart';
-import 'package:conectea/features/account/legal/consents_view.dart';
+import 'package:conectea/features/account/privacy/privacy_view.dart';
 import 'package:conectea/features/account/security/security_view.dart';
 import 'package:conectea/features/account/profile/my_data_view.dart';
 import 'package:conectea/features/account/institutional/about_conectea_view.dart';
@@ -141,7 +141,7 @@ class AccountView extends StatelessWidget {
           description: 'LGPD, dados e consentimentos.',
           token: DsCores.privacidade,
           layout: DsCardHubLayout.horizontal,
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ConsentsView())),
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const PrivacyView())),
         ),
         const SizedBox(height: 12),
         _buildMenuCard(

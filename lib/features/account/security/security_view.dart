@@ -131,7 +131,7 @@ class SecurityView extends StatelessWidget {
                                       crossAxisAlignment: CrossAxisAlignment.stretch,
                                       children: [
                                         Text(
-                                          'Ao excluir sua conta, seu acesso ao ConeCTEA será encerrado e os dados vinculados à conta serão apagados conforme nossas regras de segurança, privacidade e LGPD.\n\nEssa ação não poderá ser desfeita.\n\nSe quiser voltar a usar o app, será necessário criar um novo cadastro e passar novamente pelos processos necessários.',
+                                          'Ao excluir sua conta, você perde o acesso ao ConeCTEA e seus dados serão apagados do banco de dados operacional, incluindo dependentes, solicitações e carteirinhas comunitárias vinculadas, quando existirem.\n\nEssa ação não poderá ser desfeita. Registros técnicos mínimos ou mensagens já enviadas por canais externos podem não ser removidos por este processo.',
                                           style: DsTipografia.bodySmall.copyWith(color: DsCores.textSecondary),
                                           textAlign: TextAlign.center,
                                         ),
