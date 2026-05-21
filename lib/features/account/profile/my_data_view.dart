@@ -69,6 +69,23 @@ class MyDataView extends StatelessWidget {
                       Divider(color: Colors.white.withValues(alpha: 0.1), height: 1),
                       const CampoEmailProtegido(),
                     ], borderColor: DsCores.dadosProtegidos.border),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Use esta opção se CPF ou e-mail estiverem incorretos.',
+                      style: DsTipografia.bodySmall.copyWith(color: DsCores.textSecondary),
+                    ),
+                    const SizedBox(height: 12),
+                    DsBotao(
+                      label: 'Solicitar revisão de dados protegidos',
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Fluxo visual em construção.')),
+                        );
+                      },
+                      variante: DsBotaoVariante.acao,
+                      token: DsCores.correcao,
+                      icon: PhosphorIconsRegular.paperPlaneRight,
+                    ),
 
                     const SizedBox(height: 32),
 
@@ -82,18 +99,6 @@ class MyDataView extends StatelessWidget {
                       variante: DsBotaoVariante.acao,
                       token: DsCores.conta,
                       icon: PhosphorIconsRegular.pencilSimple,
-                    ),
-                    const SizedBox(height: 12),
-                    DsBotao(
-                      label: 'Solicitar correção de dados protegidos',
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Fluxo visual em construção.')),
-                        );
-                      },
-                      variante: DsBotaoVariante.acao,
-                      token: DsCores.correcao,
-                      icon: PhosphorIconsRegular.paperPlaneRight,
                     ),
 
                     const SizedBox(height: 40),

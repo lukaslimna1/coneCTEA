@@ -156,27 +156,6 @@ class _EditMyDataViewState extends State<EditMyDataView> {
                       'Atualize as informações permitidas do seu cadastro.',
                       style: DsTipografia.body.copyWith(color: DsCores.textSecondary),
                     ),
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: DsCores.dadosProtegidos.softBackground,
-                        borderRadius: BorderRadius.circular(DsRaios.md),
-                        border: Border.all(color: DsCores.dadosProtegidos.border),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(PhosphorIconsRegular.shieldCheck, color: DsCores.dadosProtegidos.accent, size: 20),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              'CPF e e-mail são protegidos e precisam de solicitação para correção.',
-                              style: DsTipografia.infoBody.copyWith(color: DsCores.dadosProtegidos.accent),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                     const SizedBox(height: 32),
 
                     _buildSectionTitle('Dados pessoais', PhosphorIconsRegular.identificationCard),
@@ -258,43 +237,6 @@ class _EditMyDataViewState extends State<EditMyDataView> {
                         controller: _nomeInstituicaoController,
                       ),
                     ],
-
-                    const SizedBox(height: 32),
-
-                    _buildSectionTitle('Dados protegidos', PhosphorIconsRegular.shieldCheck, color: DsCores.dadosProtegidos),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Para proteger sua conta, esses dados não são alterados diretamente por aqui.',
-                      style: DsTipografia.bodySmall.copyWith(color: DsCores.textSecondary),
-                    ),
-                    const SizedBox(height: 16),
-                    DsCard(
-                      padding: EdgeInsets.zero,
-                      borderColor: DsCores.dadosProtegidos.border,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                        child: Column(
-                          children: [
-                            const CampoCpfProtegido(),
-                            const SizedBox(height: 12),
-                            Divider(color: Colors.white.withValues(alpha: 0.1), height: 1),
-                            const CampoEmailProtegido(),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    DsBotao(
-                      label: 'Solicitar correção',
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Fluxo visual em construção.')),
-                        );
-                      },
-                      variante: DsBotaoVariante.acao,
-                      token: DsCores.correcao,
-                      icon: PhosphorIconsRegular.paperPlaneRight,
-                    ),
 
                     const SizedBox(height: 48),
 
