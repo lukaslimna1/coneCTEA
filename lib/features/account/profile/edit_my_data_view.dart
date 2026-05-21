@@ -268,9 +268,21 @@ class _EditMyDataViewState extends State<EditMyDataView> {
                       style: DsTipografia.bodySmall.copyWith(color: DsCores.textSecondary),
                     ),
                     const SizedBox(height: 16),
-                    _buildProtectedField('CPF', '***.***.***-**'),
-                    const SizedBox(height: 12),
-                    _buildProtectedField('E-mail', 'l***@email.com'),
+                    DsCard(
+                      padding: EdgeInsets.zero,
+                      borderColor: DsCores.dadosProtegidos.border,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        child: Column(
+                          children: [
+                            const CampoCpfProtegido(),
+                            const SizedBox(height: 12),
+                            Divider(color: Colors.white.withValues(alpha: 0.1), height: 1),
+                            const CampoEmailProtegido(),
+                          ],
+                        ),
+                      ),
+                    ),
                     const SizedBox(height: 12),
                     DsBotao(
                       label: 'Solicitar correção',
@@ -327,16 +339,6 @@ class _EditMyDataViewState extends State<EditMyDataView> {
           style: DsTipografia.sectionTitle.copyWith(color: DsCores.textPrimary),
         ),
       ],
-    );
-  }
-
-  Widget _buildProtectedField(String label, String value) {
-    return DsInput(
-      label: label,
-      controller: TextEditingController(text: value),
-      icon: PhosphorIconsRegular.lock,
-      readOnly: true,
-      enabled: false,
     );
   }
 }

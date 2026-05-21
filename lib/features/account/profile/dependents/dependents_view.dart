@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 import 'package:conectea/features/account/profile/widgets/my_data_logged_header.dart';
+import 'package:conectea/features/account/profile/dependents/dependent_details_view.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 /// Tela visual de Dependentes dentro de Meus Dados.
@@ -185,25 +186,16 @@ class DependentsView extends StatelessWidget {
               DsBotao(
                 label: 'Ver dados do dependente',
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Fluxo visual em construção.')),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const DependentDetailsView(),
+                    ),
                   );
                 },
                 variante: DsBotaoVariante.acao,
                 token: DsCores.dependente,
                 icon: PhosphorIconsRegular.identificationCard,
-              ),
-              const SizedBox(height: 10),
-              DsBotao(
-                label: 'Solicitar correção',
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Fluxo visual em construção.')),
-                  );
-                },
-                variante: DsBotaoVariante.acao,
-                token: DsCores.correcao,
-                icon: PhosphorIconsRegular.paperPlaneRight,
               ),
             ],
           ),

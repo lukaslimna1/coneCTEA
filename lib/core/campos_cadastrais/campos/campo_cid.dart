@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 import 'package:conectea/core/campos_cadastrais/validadores/validadores_cadastrais.dart';
+import '../helpers/dado_protegido_toggle.dart';
 
 /// Campo de formulário padronizado para CID (Classificação Internacional de Doenças).
 class CampoCid extends StatelessWidget {
@@ -52,6 +53,37 @@ class CampoCid extends StatelessWidget {
                     mensagem: 'CID é obrigatório',
                   )
               : null),
+    );
+  }
+}
+
+/// Campo de CID protegido de forma visual com Mostrar/Ocultar.
+///
+/// Desbloqueio real por senha/biometria será tratado em frente futura de segurança.
+/// Não realiza nenhuma validação de CID, não sugere diagnóstico e não chama serviços.
+class CampoCidProtegido extends StatelessWidget {
+  final String valorVisivel;
+  final String valorOculto;
+  final bool iniciarVisivel;
+  final String? semanticsLabel;
+
+  const CampoCidProtegido({
+    super.key,
+    this.valorVisivel = 'Não informado',
+    this.valorOculto = 'Oculto',
+    this.iniciarVisivel = false,
+    this.semanticsLabel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return CampoDadoProtegidoToggle(
+      label: 'CID',
+      valorVisivel: valorVisivel,
+      valorOculto: valorOculto,
+      icon: PhosphorIconsRegular.lock,
+      iniciarVisivel: iniciarVisivel,
+      semanticsLabel: semanticsLabel,
     );
   }
 }

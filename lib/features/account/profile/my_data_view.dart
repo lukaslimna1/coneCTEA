@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 import 'package:conectea/features/account/profile/edit_my_data_view.dart';
-import 'package:conectea/features/account/profile/dependents_view.dart';
+import 'package:conectea/features/account/profile/dependents/dependents_view.dart';
 import 'package:conectea/features/account/profile/widgets/my_data_logged_header.dart';
+import 'package:conectea/core/campos_cadastrais/campos_cadastrais.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class MyDataView extends StatelessWidget {
@@ -63,8 +64,10 @@ class MyDataView extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     _buildReadOnlyCard([
-                      _buildDataRow('CPF', '***.***.***-**', icon: PhosphorIconsRegular.lock),
-                      _buildDataRow('E-mail', 'l***@email.com', icon: PhosphorIconsRegular.lock, isLast: true),
+                      const CampoCpfProtegido(),
+                      const SizedBox(height: 12),
+                      Divider(color: Colors.white.withValues(alpha: 0.1), height: 1),
+                      const CampoEmailProtegido(),
                     ], borderColor: DsCores.dadosProtegidos.border),
 
                     const SizedBox(height: 32),
