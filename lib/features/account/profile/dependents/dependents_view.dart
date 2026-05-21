@@ -197,6 +197,123 @@ class DependentsView extends StatelessWidget {
                 token: DsCores.dependente,
                 icon: PhosphorIconsRegular.identificationCard,
               ),
+              const SizedBox(height: 12),
+              DsBotao(
+                label: 'Remover dependente',
+                onPressed: () {
+                  showDialog<bool>(
+                    context: context,
+                    builder: (context) {
+                      String texto = '';
+                      return StatefulBuilder(
+                        builder: (context, setState) {
+                          final bool isConfirmEnabled = texto == 'REMOVER';
+                          return AlertDialog(
+                            backgroundColor: const Color(0xFF0B1D3A),
+                            surfaceTintColor: Colors.transparent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(28),
+                              side: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
+                            ),
+                            title: Column(
+                              children: [
+                                DsMolduraIcone(
+                                  icon: PhosphorIconsRegular.warning,
+                                  accentColor: DsCores.perigo.accent,
+                                  size: 56,
+                                  iconSize: 28,
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'Remover dependente',
+                                  style: DsTipografia.sectionTitle.copyWith(color: DsCores.textPrimary),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ),
+                            content: SingleChildScrollView(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Text(
+                                    'Ao remover este dependente, o vínculo dele com a sua conta será encerrado. Os dados relacionados à carteirinha poderão ser apagados conforme nossas regras de segurança e privacidade. Essa ação não poderá ser desfeita. Se precisar cadastrar novamente, será necessário fazer uma nova solicitação e aguardar análise da equipe.',
+                                    style: DsTipografia.bodySmall.copyWith(color: DsCores.textSecondary),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 20),
+                                  DsInput(
+                                    label: 'Digite REMOVER para confirmar.',
+                                    hint: 'REMOVER',
+                                    textCapitalization: TextCapitalization.characters,
+                                    onChanged: (val) {
+                                      setState(() {
+                                        texto = val;
+                                      });
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                            actionsPadding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+                            actions: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  DsBotao(
+                                    label: 'Confirmar remoção',
+                                    onPressed: isConfirmEnabled
+                                        ? () {
+                                            Navigator.pop(context, true);
+                                          }
+                                        : null,
+                                    variante: DsBotaoVariante.acao,
+                                    token: DsCores.perigo,
+                                    icon: PhosphorIconsRegular.trash,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  DsBotao(
+                                    label: 'Cancelar',
+                                    onPressed: () {
+                                      Navigator.pop(context, false);
+                                    },
+                                    variante: DsBotaoVariante.secundario,
+                                  ),
+                                ],
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                  ).then((confirmed) {
+                    if (confirmed == true && context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Fluxo visual em construção.',
+                            style: DsTipografia.body.copyWith(color: DsCores.textPrimary),
+                          ),
+                          backgroundColor: DsCores.surfaceElevated,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      );
+                    }
+                  });
+                },
+                variante: DsBotaoVariante.acao,
+                token: DsCores.perigo,
+                icon: PhosphorIconsRegular.trash,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Essa ação será tratada com confirmação e segurança em uma etapa futura.',
+                style: DsTipografia.caption.copyWith(color: DsCores.textMuted),
+                textAlign: TextAlign.center,
+              ),
             ],
           ),
         ],

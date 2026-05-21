@@ -1,460 +1,275 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:conectea/core/widgets/premium/app_background.dart';
+import 'package:conectea/core/design_system_v2/design_system_v2.dart';
+import 'package:conectea/features/account/profile/widgets/my_data_logged_header.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'package:conectea/core/constants/colors.dart';
-import 'package:conectea/services/auth_service.dart';
-import 'package:conectea/core/widgets/premium/premium_hero.dart';
-import 'package:conectea/features/account/legal/terms_view.dart';
-import 'package:conectea/features/account/legal/privacy_policy_view.dart';
-import 'package:conectea/features/account/legal/consents_view.dart';
-import 'package:conectea/features/account/legal/stored_data_view.dart';
-import 'package:conectea/features/account/legal/information_usage_view.dart';
 
-class SecurityView extends StatefulWidget {
+class SecurityView extends StatelessWidget {
   const SecurityView({super.key});
 
   @override
-  State<SecurityView> createState() => _SecurityViewState();
-}
-
-class _SecurityViewState extends State<SecurityView> {
-  bool _isResettingPassword = false;
-  DateTime? _lastResetRequest;
-
-  @override
   Widget build(BuildContext context) {
-    final user = AuthService().currentUser;
-
     return Scaffold(
-      backgroundColor: const Color(0xFF020C1C),
+      backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-        leading: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Container(
-            decoration: BoxDecoration(
-              color: const Color(0xFF071326).withValues(alpha: 0.5),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-            ),
-            child: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 18),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ),
-        ),
-        title: Text(
-          'Segurança',
-          style: GoogleFonts.outfit(
-            fontWeight: FontWeight.w600,
-            fontSize: 18,
-            color: AppColors.textPrimary,
-          ),
-        ),
-      ),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
+      body: AppBackground(
         child: Column(
           children: [
-            const PremiumHero(
-              icon: PhosphorIconsRegular.shieldCheck,
-              title: 'Segurança e Privacidade',
-              subtitle: 'Gerencie suas configurações de acesso e proteção de dados.',
-            ),
-            
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildSectionHeader('ACESSO E AUTENTICAÇÃO'),
-                  _buildCard([
-                    _buildInfoTile(
-                      icon: PhosphorIconsRegular.envelope,
-                      title: 'E-mail de login',
-                      subtitle: user?.email ?? 'Não identificado',
-                    ),
-                    _buildActionTile(
-                      icon: PhosphorIconsRegular.lock,
-                      title: 'Alterar senha',
-                      subtitle: _lastResetRequest != null ? 'E-mail enviado recentemente' : 'Redefinir sua senha de acesso',
-                      isLoading: _isResettingPassword,
-                      onTap: () => _handleResetPassword(context),
-                    ),
-                  ]),
-                  
-                  const SizedBox(height: 32),
-                  _buildSectionHeader('PRIVACIDADE DOS DADOS'),
-                  _buildCard([
-                    _buildActionTile(
-                      icon: PhosphorIconsRegular.database,
-                      title: 'Dados armazenados',
-                      subtitle: 'Veja quais informações coletamos',
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const StoredDataView()),
-                      ),
-                    ),
-                    _buildActionTile(
-                      icon: PhosphorIconsRegular.eye,
-                      title: 'Uso das informações',
-                      subtitle: 'Entenda para que servem seus dados',
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const InformationUsageView()),
-                      ),
-                    ),
-                  ]),
-                  
-                  const SizedBox(height: 32),
-                  _buildSectionHeader('TERMOS E CONSENTIMENTOS'),
-                  _buildCard([
-                    _buildActionTile(
-                      icon: PhosphorIconsRegular.fileText,
-                      title: 'Termos de Uso',
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const TermsView()),
-                      ),
-                    ),
-                    _buildActionTile(
-                      icon: PhosphorIconsRegular.shieldCheck,
-                      title: 'Política de Privacidade',
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const PrivacyPolicyView()),
-                      ),
-                    ),
-                    _buildActionTile(
-                      icon: PhosphorIconsRegular.checkCircle,
-                      title: 'Meus Consentimentos',
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const ConsentsView()),
-                      ),
-                    ),
-                  ]),
-                  
-                  const SizedBox(height: 32),
-                  _buildSectionHeader('CONTA'),
-                  _buildCard([
-                    _buildActionTile(
-                      icon: PhosphorIconsRegular.trash,
-                      title: 'Solicitar exclusão da conta',
-                      titleColor: AppColors.errorRed,
-                      onTap: () => _showDeleteAccountDialog(context),
-                    ),
-                  ]),
-                  
-                  const SizedBox(height: 40),
-                  Center(
-                    child: Column(
-                      children: [
-                        Text(
-                          'ConeCTEA v1.0.0',
-                          style: GoogleFonts.inter(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.textSecondary.withValues(alpha: 0.5),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Protegido por LGPD',
-                          style: GoogleFonts.inter(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                            color: AppColors.textSecondary.withValues(alpha: 0.3),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 60),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSectionHeader(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 4, bottom: 12),
-      child: Text(
-        title,
-        style: GoogleFonts.inter(
-          fontSize: 11,
-          fontWeight: FontWeight.w800,
-          color: AppColors.textSecondary.withValues(alpha: 0.6),
-          letterSpacing: 1.2,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCard(List<Widget> children) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF0B1D3A).withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-      ),
-      child: Column(
-        children: children.asMap().entries.map((entry) {
-          final isLast = entry.key == children.length - 1;
-          return Column(
-            children: [
-              entry.value,
-              if (!isLast)
-                Divider(
-                  height: 1,
-                  thickness: 1,
-                  color: Colors.white.withValues(alpha: 0.03),
-                  indent: 64,
-                  endIndent: 20,
-                ),
-            ],
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildInfoTile({required IconData icon, required String title, required String subtitle}) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: AppColors.primary, size: 22),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionTile({
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-    String? subtitle,
-    Color? titleColor,
-    bool isLoading = false,
-  }) {
-    return InkWell(
-      onTap: isLoading ? null : onTap,
-      borderRadius: BorderRadius.circular(24),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: (titleColor ?? AppColors.textPrimary).withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: isLoading 
-                ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary))
-                : Icon(icon, color: titleColor ?? AppColors.textPrimary, size: 22),
-            ),
-            const SizedBox(width: 16),
+            const MyDataLoggedHeader(),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: GoogleFonts.inter(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: titleColor ?? AppColors.textPrimary,
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(24, 20, 24, 120),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    DsBotaoVoltar(
+                      onPressed: () => Navigator.pop(context),
+                      token: DsCores.seguranca,
                     ),
-                  ),
-                  if (subtitle != null) ...[
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 24),
                     Text(
-                      subtitle,
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        color: titleColor != null ? titleColor.withValues(alpha: 0.7) : AppColors.textSecondary,
-                      ),
+                      'Segurança',
+                      style: DsTipografia.pageTitle.copyWith(color: DsCores.textPrimary),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Gerencie acessos, senha e proteção da sua conta.',
+                      style: DsTipografia.pageSubtitle.copyWith(color: DsCores.textSecondary),
+                    ),
+                    const SizedBox(height: 32),
+
+                    // Card 1 — Segurança da conta
+                    _buildSecurityCard(
+                      context,
+                      icon: PhosphorIconsRegular.shieldCheck,
+                      title: 'Segurança da conta',
+                      description: 'Confira recursos relacionados ao acesso e proteção da sua conta no ConeCTEA.',
+                      color: DsCores.seguranca,
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Card 2 — Alterar senha
+                    _buildSecurityCard(
+                      context,
+                      icon: PhosphorIconsRegular.key,
+                      title: 'Alterar senha',
+                      description: 'Atualize sua senha de acesso quando necessário.',
+                      actionLabel: 'Alterar senha',
+                      actionIcon: PhosphorIconsRegular.lockSimple,
+                      color: DsCores.seguranca,
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Card 3 — E-mail da conta
+                    _buildSecurityCard(
+                      context,
+                      icon: PhosphorIconsRegular.envelope,
+                      title: 'E-mail da conta',
+                      description: 'O e-mail é usado para acesso e comunicação da conta.',
+                      actionLabel: 'Solicitar alteração de e-mail',
+                      actionIcon: PhosphorIconsRegular.paperPlaneRight,
+                      color: DsCores.correcao,
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Card 4 — Acessos e sessões
+                    _buildSecurityCard(
+                      context,
+                      icon: PhosphorIconsRegular.deviceMobile,
+                      title: 'Acessos e sessões',
+                      description: 'Gerenciamento de dispositivos e sessões será tratado em uma etapa futura.',
+                      actionLabel: 'Ver acessos',
+                      actionIcon: PhosphorIconsRegular.eye,
+                      color: DsCores.seguranca,
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Card 5 — Conta e encerramento
+                    _buildSecurityCard(
+                      context,
+                      icon: PhosphorIconsRegular.warning,
+                      title: 'Conta e encerramento',
+                      description: 'A exclusão da conta é uma ação sensível e deve ser feita com cuidado.',
+                      actionLabel: 'Excluir conta',
+                      actionIcon: PhosphorIconsRegular.trash,
+                      color: DsCores.perigo,
+                      onPressed: () {
+                        showDialog<bool>(
+                          context: context,
+                          builder: (context) {
+                            String texto = '';
+                            return StatefulBuilder(
+                              builder: (context, setState) {
+                                final bool isConfirmEnabled = texto == 'EXCLUIR CONTA';
+                                return AlertDialog(
+                                  backgroundColor: const Color(0xFF0B1D3A),
+                                  surfaceTintColor: Colors.transparent,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(28),
+                                    side: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
+                                  ),
+                                  title: Column(
+                                    children: [
+                                      DsMolduraIcone(
+                                        icon: PhosphorIconsRegular.warning,
+                                        accentColor: DsCores.perigo.accent,
+                                        size: 56,
+                                        iconSize: 28,
+                                      ),
+                                      const SizedBox(height: 16),
+                                      Text(
+                                        'Excluir conta',
+                                        style: DsTipografia.sectionTitle.copyWith(color: DsCores.textPrimary),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ],
+                                  ),
+                                  content: SingleChildScrollView(
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                                      children: [
+                                        Text(
+                                          'Ao excluir sua conta, seu acesso ao ConeCTEA será encerrado e os dados vinculados à conta serão apagados conforme nossas regras de segurança, privacidade e LGPD.\n\nEssa ação não poderá ser desfeita.\n\nSe quiser voltar a usar o app, será necessário criar um novo cadastro e passar novamente pelos processos necessários.',
+                                          style: DsTipografia.bodySmall.copyWith(color: DsCores.textSecondary),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                        const SizedBox(height: 20),
+                                        DsInput(
+                                          label: 'Digite EXCLUIR CONTA para confirmar.',
+                                          hint: 'EXCLUIR CONTA',
+                                          textCapitalization: TextCapitalization.characters,
+                                          onChanged: (val) {
+                                            setState(() {
+                                              texto = val;
+                                            });
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  actionsPadding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+                                  actions: [
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                                      children: [
+                                        DsBotao(
+                                          label: 'Confirmar exclusão',
+                                          onPressed: isConfirmEnabled
+                                              ? () {
+                                                  Navigator.pop(context, true);
+                                                }
+                                              : null,
+                                          variante: DsBotaoVariante.acao,
+                                          token: DsCores.perigo,
+                                          icon: PhosphorIconsRegular.trash,
+                                        ),
+                                        const SizedBox(height: 12),
+                                        DsBotao(
+                                          label: 'Cancelar',
+                                          onPressed: () {
+                                            Navigator.pop(context, false);
+                                          },
+                                          variante: DsBotaoVariante.secundario,
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                        ).then((confirmed) {
+                          if (confirmed == true && context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Fluxo visual em construção.',
+                                  style: DsTipografia.body.copyWith(color: DsCores.textPrimary),
+                                ),
+                                backgroundColor: DsCores.surfaceElevated,
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            );
+                          }
+                        });
+                      },
                     ),
                   ],
-                ],
+                ),
               ),
             ),
-            if (!isLoading)
-              Icon(
-                PhosphorIconsRegular.caretRight,
-                color: (titleColor ?? AppColors.textSecondary).withValues(alpha: 0.3),
-                size: 18,
-              ),
           ],
         ),
       ),
     );
   }
 
-  Future<void> _showDeleteAccountDialog(BuildContext context) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF0B1D3A),
-        surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28), side: BorderSide(color: Colors.white.withValues(alpha: 0.05))),
-        title: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AppColors.errorRed.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(PhosphorIconsRegular.warning, color: AppColors.errorRed, size: 40),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Solicitar Exclusão',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.outfit(fontWeight: FontWeight.w700, color: AppColors.textPrimary, fontSize: 22),
-            ),
-          ],
-        ),
-        content: Text(
-          'Esta ação é irreversível. Todos os seus dados, documentos e histórico serão excluídos permanentemente de acordo com a LGPD.\n\nVocê deseja continuar com a solicitação?',
-          style: GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 14, height: 1.5),
-          textAlign: TextAlign.center,
-        ),
-        actionsPadding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
-        actions: [
+  Widget _buildSecurityCard(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String description,
+    required DsCorVisual color,
+    String? actionLabel,
+    IconData? actionIcon,
+    VoidCallback? onPressed,
+  }) {
+    return DsCard(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           Row(
             children: [
-              Expanded(
-                child: TextButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
-                  child: Text('Cancelar', style: GoogleFonts.inter(color: AppColors.textSecondary, fontWeight: FontWeight.w700)),
-                ),
+              DsMolduraIcone(
+                icon: icon,
+                accentColor: color.accent,
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context, true),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.errorRed,
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  child: Text('Excluir Conta', style: GoogleFonts.inter(fontWeight: FontWeight.w800)),
+                child: Text(
+                  title,
+                  style: DsTipografia.cardTitle.copyWith(color: DsCores.textPrimary),
                 ),
               ),
             ],
           ),
+          const SizedBox(height: 12),
+          Text(
+            description,
+            style: DsTipografia.bodySmall.copyWith(color: DsCores.textSecondary),
+          ),
+          if (actionLabel != null) ...[
+            const SizedBox(height: 16),
+            DsBotao(
+              label: actionLabel,
+              onPressed: onPressed ?? () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Fluxo visual em construção.',
+                      style: DsTipografia.body.copyWith(color: DsCores.textPrimary),
+                    ),
+                    backgroundColor: DsCores.surfaceElevated,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                );
+              },
+              variante: DsBotaoVariante.acao,
+              token: color,
+              icon: actionIcon,
+            ),
+          ],
         ],
       ),
     );
-
-    if (confirmed == true) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Sua solicitação foi enviada para análise da nossa equipe de privacidade.',
-              style: GoogleFonts.inter(fontWeight: FontWeight.w600),
-            ),
-            backgroundColor: AppColors.surfaceDark,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-        );
-      }
-    }
-  }
-
-  Future<void> _handleResetPassword(BuildContext context) async {
-    if (_lastResetRequest != null && DateTime.now().difference(_lastResetRequest!).inMinutes < 1) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Aguarde um momento antes de solicitar novamente.'),
-          backgroundColor: AppColors.alertOrange,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      return;
-    }
-
-    final email = AuthService().currentUser?.email;
-    if (email == null) return;
-
-    setState(() => _isResettingPassword = true);
-
-    try {
-      await AuthService().sendPasswordResetEmail(email);
-      _lastResetRequest = DateTime.now();
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('E-mail de redefinição enviado para $email'),
-          backgroundColor: AppColors.statusGreen,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    } catch (e) {
-      if (!context.mounted) return;
-      
-      String errorMsg = 'Erro ao enviar e-mail de redefinição';
-      if (e.toString().contains('rate_limit')) {
-        errorMsg = 'Muitas solicitações. Por favor, aguarde um minuto.';
-      }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(errorMsg),
-          backgroundColor: AppColors.errorRed,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    } finally {
-      if (mounted) setState(() => _isResettingPassword = false);
-    }
   }
 }
-
