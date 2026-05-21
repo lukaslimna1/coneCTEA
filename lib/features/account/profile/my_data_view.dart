@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 import 'package:conectea/features/account/profile/edit_my_data_view.dart';
+import 'package:conectea/features/account/profile/dependents_view.dart';
 import 'package:conectea/features/account/profile/widgets/my_data_logged_header.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -178,8 +179,9 @@ class MyDataView extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Área de dependentes em construção.')),
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const DependentsView()),
           );
         },
         borderRadius: BorderRadius.circular(DsRaios.lg),
