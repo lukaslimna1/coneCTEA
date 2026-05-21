@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 import 'package:conectea/core/campos_cadastrais/campos_cadastrais.dart';
-import 'package:conectea/core/servicos/localizacao/localizacao_service.dart';
 import 'package:conectea/features/account/profile/widgets/my_data_logged_header.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -20,23 +19,12 @@ class _EditMyDataViewState extends State<EditMyDataView> {
   late final TextEditingController _telefoneController;
   late final TextEditingController _nomeInstituicaoController;
 
-  // Serviço IBGE — instância local, sem persistência.
-  final IbgeLocalizacaoService _ibgeService = IbgeLocalizacaoService();
-
   // Estados dos dropdowns
   String? _estado;
   String? _cidade;
   String? _genero;
   String? _racaCor;
   String? _indicacaoInstituicao;
-
-  // Listas dinâmicas carregadas via IBGE
-  List<String> _estados = [];
-  List<String> _cidades = [];
-
-  // Flags de carregamento
-  bool _carregandoEstados = false;
-  bool _carregandoCidades = false;
 
   @override
   void initState() {
@@ -53,8 +41,6 @@ class _EditMyDataViewState extends State<EditMyDataView> {
     _genero = null;
     _racaCor = null;
     _indicacaoInstituicao = null;
-
-    _carregarEstados();
   }
 
   @override
@@ -67,68 +53,8 @@ class _EditMyDataViewState extends State<EditMyDataView> {
     super.dispose();
   }
 
-  /// Carrega estados do IBGE e converte para lista de siglas (UF).
-  Future<void> _carregarEstados() async {
-    setState(() => _carregandoEstados = true);
-    try {
-      final resultado = await _ibgeService.buscarEstados();
-      if (mounted) {
-        setState(() {
-          _estados = resultado.map((e) => e.sigla).toList();
-          _carregandoEstados = false;
-        });
-      }
-    } catch (_) {
-      if (mounted) {
-        setState(() => _carregandoEstados = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Não foi possível carregar os estados.')),
-        );
-      }
-    }
-  }
-
-  /// Carrega cidades do IBGE para a UF selecionada e converte para lista de nomes.
-  Future<void> _carregarCidades(String uf) async {
-    setState(() {
-      _carregandoCidades = true;
-      _cidades = [];
-    });
-    try {
-      final resultado = await _ibgeService.buscarCidadesPorUf(uf);
-      if (mounted) {
-        setState(() {
-          _cidades = resultado.map((c) => c.nome).toList();
-          _carregandoCidades = false;
-        });
-      }
-    } catch (_) {
-      if (mounted) {
-        setState(() => _carregandoCidades = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Não foi possível carregar as cidades.')),
-        );
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    // Hint dinâmico para Estado
-    final String hintEstado = _carregandoEstados
-        ? 'Carregando estados...'
-        : 'Selecione o estado';
-
-    // Hint dinâmico para Cidade
-    final String hintCidade;
-    if (_carregandoCidades) {
-      hintCidade = 'Carregando cidades...';
-    } else if (_estado == null) {
-      hintCidade = 'Escolha o estado';
-    } else {
-      hintCidade = 'Selecione a cidade';
-    }
-
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
@@ -172,28 +98,21 @@ class _EditMyDataViewState extends State<EditMyDataView> {
 
                     _buildSectionTitle('Localização', PhosphorIconsRegular.mapPin),
                     const SizedBox(height: 16),
+                    // CampoEstado carrega estados via IBGE internamente.
                     CampoEstado(
                       value: _estado,
-                      items: _estados,
-                      hint: hintEstado,
-                      enabled: !_carregandoEstados,
                       onChanged: (val) {
                         setState(() {
                           _estado = val;
-                          _cidade = null;
-                          _cidades = [];
+                          _cidade = null; // Limpa cidade ao trocar estado
                         });
-                        if (val != null && val.isNotEmpty) {
-                          _carregarCidades(val);
-                        }
                       },
                     ),
                     const SizedBox(height: 12),
+                    // CampoCidade carrega cidades via IBGE internamente usando estadoUf.
                     CampoCidade(
                       value: _cidade,
-                      items: _cidades,
-                      hint: hintCidade,
-                      enabled: _estado != null && !_carregandoCidades,
+                      estadoUf: _estado,
                       onChanged: (val) {
                         setState(() {
                           _cidade = val;

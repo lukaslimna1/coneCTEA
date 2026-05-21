@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 import 'package:conectea/features/account/profile/widgets/my_data_logged_header.dart';
+import 'package:conectea/features/account/profile/dependents/dependent_correction_view.dart';
 import 'package:conectea/core/campos_cadastrais/campos_cadastrais.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -116,13 +117,16 @@ class DependentDetailsView extends StatelessWidget {
 
                     const SizedBox(height: 40),
 
-                    // Ação — Solicitar correção (visual/mockado)
+                    // Ação — Solicitar correção: abre DependentCorrectionView.
                     // Coluna vertical para evitar overflow em 360dp.
                     DsBotao(
                       label: 'Solicitar correção',
                       onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Fluxo visual em construção.')),
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const DependentCorrectionView(),
+                          ),
                         );
                       },
                       variante: DsBotaoVariante.acao,

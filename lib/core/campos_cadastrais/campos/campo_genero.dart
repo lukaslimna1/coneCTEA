@@ -44,7 +44,7 @@ class CampoGenero extends StatelessWidget {
       items: OpcoesCadastrais.genero,
       onChanged: onChanged,
       enabled: enabled,
-      hint: hint ?? 'Selecione seu gênero',
+      hint: hint ?? 'Selecione',
       helperText: helperText,
       icon: PhosphorIconsRegular.genderIntersex,
       semanticsLabel: semanticsLabel,

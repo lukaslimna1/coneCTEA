@@ -44,7 +44,7 @@ class CampoTipoSanguineo extends StatelessWidget {
       items: OpcoesCadastrais.tipoSanguineo,
       onChanged: onChanged,
       enabled: enabled,
-      hint: hint ?? 'Selecione o tipo sanguíneo',
+      hint: hint ?? 'Selecione',
       helperText: helperText,
       icon: PhosphorIconsRegular.drop,
       semanticsLabel: semanticsLabel,
