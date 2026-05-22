@@ -1,11 +1,156 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 import 'package:conectea/features/account/profile/widgets/my_data_logged_header.dart';
+import 'package:conectea/core/services/device_auth_service.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-class SecurityView extends StatelessWidget {
+class SecurityView extends StatefulWidget {
   const SecurityView({super.key});
+
+  @override
+  State<SecurityView> createState() => _SecurityViewState();
+}
+
+class _SecurityViewState extends State<SecurityView> {
+  final DeviceAuthService _deviceAuthService = DeviceAuthService();
+  bool _isDeviceUnlockEnabled = false;
+  bool _isLoading = true;
+  bool _isProcessing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDeviceUnlockPreference();
+  }
+
+  Future<void> _loadDeviceUnlockPreference() async {
+    final enabled = await _deviceAuthService.isDeviceUnlockEnabled();
+    if (mounted) {
+      setState(() {
+        _isDeviceUnlockEnabled = enabled;
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _toggleDeviceUnlock(bool value) async {
+    if (_isProcessing) return;
+
+    if (value) {
+      setState(() {
+        _isProcessing = true;
+      });
+
+      try {
+        // Valida que o aparelho suporta e que a autenticação local é bem-sucedida
+        final authenticated = await _deviceAuthService.authenticate();
+        if (authenticated) {
+          final success = await _deviceAuthService.setDeviceUnlockEnabled(true);
+          if (success && mounted) {
+            setState(() {
+              _isDeviceUnlockEnabled = true;
+            });
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Desbloqueio do aparelho ativado com sucesso!',
+                  style: DsTipografia.body.copyWith(color: DsCores.textPrimary),
+                ),
+                backgroundColor: DsCores.seguranca.accent,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            );
+          } else {
+            throw Exception('Falha ao salvar preferência local.');
+          }
+        } else {
+          throw Exception('Autenticação cancelada ou não suportada.');
+        }
+      } catch (_) {
+        // Garante que o valor local seja mantido falso em caso de qualquer falha
+        await _deviceAuthService.setDeviceUnlockEnabled(false);
+        if (mounted) {
+          setState(() {
+            _isDeviceUnlockEnabled = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Não foi possível ativar o desbloqueio do aparelho.',
+                style: DsTipografia.body.copyWith(color: DsCores.textPrimary),
+              ),
+              backgroundColor: DsCores.perigo.accent,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isProcessing = false;
+          });
+        }
+      }
+    } else {
+      // Ao desativar, não exige nova autenticação do usuário
+      setState(() {
+        _isProcessing = true;
+      });
+      try {
+        final success = await _deviceAuthService.setDeviceUnlockEnabled(false);
+        if (success && mounted) {
+          setState(() {
+            _isDeviceUnlockEnabled = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Desbloqueio do aparelho desativado.',
+                style: DsTipografia.body.copyWith(color: DsCores.textPrimary),
+              ),
+              backgroundColor: DsCores.surfaceElevated,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          );
+        } else {
+          throw Exception('Falha ao desativar preferência local.');
+        }
+      } catch (_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Não foi possível desativar o desbloqueio do aparelho.',
+                style: DsTipografia.body.copyWith(color: DsCores.textPrimary),
+              ),
+              backgroundColor: DsCores.perigo.accent,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isProcessing = false;
+          });
+        }
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +193,12 @@ class SecurityView extends StatelessWidget {
                       color: DsCores.seguranca,
                     ),
                     const SizedBox(height: 16),
+
+                    // Card local — Desbloqueio do aparelho
+                    if (!_isLoading) ...[
+                      _buildDeviceUnlockCard(context),
+                      const SizedBox(height: 16),
+                    ],
 
                     // Card 2 — Alterar senha
                     _buildSecurityCard(
@@ -205,6 +356,36 @@ class SecurityView extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildDeviceUnlockCard(BuildContext context) {
+    final bool isWeb = kIsWeb;
+    return DsCard(
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          DsMolduraIcone(
+            icon: PhosphorIconsRegular.deviceMobile,
+            accentColor: DsCores.seguranca.accent,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: DsSwitch(
+              value: isWeb ? false : _isDeviceUnlockEnabled,
+              onChanged: (isWeb || _isProcessing)
+                  ? null
+                  : (value) => _toggleDeviceUnlock(value),
+              label: 'Desbloqueio do aparelho',
+              description: isWeb
+                  ? 'Indisponível no navegador. Use em um aparelho celular compatível.'
+                  : 'Use a segurança do seu celular para proteger o acesso ao ConeCTEA.',
+              token: DsCores.seguranca,
+            ),
+          ),
+        ],
       ),
     );
   }
