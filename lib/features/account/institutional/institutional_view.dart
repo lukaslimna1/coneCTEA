@@ -2,12 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 import 'package:conectea/features/account/profile/widgets/my_data_logged_header.dart';
+import 'package:conectea/features/account/institutional/about_conectea_view.dart';
+import 'package:conectea/features/account/institutional/family_tea_view.dart';
+import 'package:conectea/features/account/institutional/projects_actions_view.dart';
+import 'package:conectea/features/account/institutional/partners_supporters_view.dart';
+import 'package:conectea/features/account/support/support_view.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-/// Tela visual/mockada Institucional.
+/// Tela principal Institucional da Central do Usuário.
 ///
-/// Apresenta informações sobre o ConeCTEA, a comunidade Família TEA Bauru,
-/// a natureza comunitária da iniciativa e os limites da carteirinha digital.
+/// Apresenta informações sobre a iniciativa ConeCTEA, a Família TEA Bauru,
+/// a natureza comunitária do projeto, finalidade da carteirinha e projetos.
 class InstitutionalView extends StatelessWidget {
   const InstitutionalView({super.key});
 
@@ -38,18 +43,18 @@ class InstitutionalView extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Conheça a iniciativa, a comunidade responsável e os limites da carteirinha comunitária.',
+                      'Conheça o ConeCTEA, a Família TEA Bauru, os projetos comunitários e a finalidade da carteirinha.',
                       style: DsTipografia.pageSubtitle.copyWith(color: DsCores.textSecondary),
                     ),
                     const SizedBox(height: 32),
 
-                    // Card Introdutório — ConeCTEA
+                    // Card destaque inicial — ConeCTEA
                     _buildIntroCard(context),
                     const SizedBox(height: 32),
 
-                    // Seção de cards informativos
+                    // Título da Seção
                     Text(
-                      'INFORMAÇÕES INSTITUCIONAIS',
+                      'SOBRE A INICIATIVA',
                       style: DsTipografia.caption.copyWith(
                         color: DsCores.institucional.accent,
                         fontWeight: FontWeight.bold,
@@ -63,38 +68,37 @@ class InstitutionalView extends StatelessWidget {
                       context,
                       icon: PhosphorIconsRegular.usersThree,
                       title: 'Família TEA Bauru',
-                      description: 'Rede de apoio comunitária, informal, social e colaborativa com atuação principal em Bauru/SP.',
-                      dataLabel: 'Comunidade responsável pela iniciativa',
-                      actionLabel: 'Conhecer a comunidade',
-                      actionIcon: PhosphorIconsRegular.arrowSquareOut,
-                      onPressed: () => _showMockSnackBar(context, 'Conteúdo visual em construção.'),
+                      description:
+                          'Comunidade e rede de apoio formada por famílias, responsáveis, voluntários, profissionais e parceiros unidos por inclusão, respeito e acolhimento.',
+                      dataLabel: 'Comunidade responsável pelo ConeCTEA',
+                      actionLabel: 'Conhecer comunidade',
+                      actionIcon: PhosphorIconsRegular.arrowRight,
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const FamilyTeaView()),
+                      ),
                     ),
                     const SizedBox(height: 16),
 
                     // Card 2 — Natureza da iniciativa
                     _buildInstitutionalCard(
                       context,
-                      icon: PhosphorIconsRegular.leaf,
-                      title: 'Natureza da iniciativa',
-                      description: 'O ConeCTEA apoia uma iniciativa comunitária. Ele não representa serviço público, órgão governamental ou documento oficial.',
+                      icon: PhosphorIconsRegular.globeSimple,
+                      title: 'Iniciativa comunitária',
+                      description:
+                          'O ConeCTEA apoia a organização de ações comunitárias da Família TEA Bauru. Ele não é órgão público, serviço governamental, clínica, empresa ou documento oficial.',
                       dataLabel: 'Social, comunitário e colaborativo',
-                      actionLabel: 'Entendi',
-                      actionIcon: PhosphorIconsRegular.checkCircle,
-                      onPressed: () => _showMockSnackBar(context, 'Informação visual em construção.'),
                     ),
                     const SizedBox(height: 16),
 
-                    // Card 3 — Carteirinha comunitária (com cor semântica DsCores.alerta moderada)
+                    // Card 3 — Carteirinha comunitária
                     _buildInstitutionalCard(
                       context,
                       icon: PhosphorIconsRegular.identificationCard,
                       title: 'Carteirinha comunitária',
-                      description: 'A carteirinha do ConeCTEA é interna e comunitária. Ela não substitui CIPTEA, RG, CPF, CNH, laudo, diagnóstico ou serviço público.',
-                      dataLabel: 'Não é documento oficial',
-                      actionLabel: 'Ver orientação',
-                      actionIcon: PhosphorIconsRegular.info,
-                      token: DsCores.alerta,
-                      onPressed: () => _showMockSnackBar(context, 'Orientação visual em construção.'),
+                      description:
+                          'A carteirinha do ConeCTEA tem uso interno e comunitário. Ela ajuda na organização da comunidade, mas não é documento oficial e não substitui CIPTEA, RG, CPF, CNH, laudo, diagnóstico ou serviço público.',
+                      dataLabel: 'Uso interno e comunitário',
                     ),
                     const SizedBox(height: 16),
 
@@ -103,28 +107,72 @@ class InstitutionalView extends StatelessWidget {
                       context,
                       icon: PhosphorIconsRegular.mapPin,
                       title: 'Atuação principal',
-                      description: 'A atuação principal da comunidade acontece em Bauru/SP, com foco em apoio, informação e articulação comunitária.',
+                      description:
+                          'A atuação principal da Família TEA Bauru acontece em Bauru/SP, com ações de apoio, informação, acolhimento e articulação comunitária.',
                       dataLabel: 'Bauru/SP',
-                      actionLabel: 'Ver detalhes',
-                      actionIcon: PhosphorIconsRegular.eye,
-                      onPressed: () => _showMockSnackBar(context, 'Conteúdo visual em construção.'),
                     ),
                     const SizedBox(height: 16),
 
-                    // Card 5 — Canais oficiais
+                    // Card 5 — Projetos e ações
+                    _buildInstitutionalCard(
+                      context,
+                      icon: PhosphorIconsRegular.clipboardText,
+                      title: 'Projetos e ações',
+                      description:
+                          'Conheça projetos, chamamentos, eventos e ações comunitárias organizadas ou apoiadas pela Família TEA Bauru.',
+                      dataLabel: 'Fada do Dente, Vidas e eventos',
+                      actionLabel: 'Ver projetos',
+                      actionIcon: PhosphorIconsRegular.arrowRight,
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const ProjectsActionsView()),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Card — Parceiros e apoiadores
+                    _buildInstitutionalCard(
+                      context,
+                      icon: PhosphorIconsRegular.handshake,
+                      title: 'Parceiros e apoiadores',
+                      description:
+                          'Conheça profissionais, clínicas, empresas e apoiadores que colaboram com ações da comunidade, incluindo parceiros que oferecem condições, descontos ou apoio para pessoas com a carteirinha comunitária ConeCTEA.',
+                      dataLabel: 'Rede de apoio e benefícios comunitários',
+                      actionLabel: 'Ver parceiros',
+                      actionIcon: PhosphorIconsRegular.arrowRight,
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const PartnersSupportersView()),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Card 6 — Canais oficiais
                     _buildInstitutionalCard(
                       context,
                       icon: PhosphorIconsRegular.headset,
                       title: 'Canais oficiais',
-                      description: 'Os canais oficiais de contato e comunicação ficam disponíveis na área de Ajuda e Suporte.',
-                      dataLabel: 'WhatsApp, Instagram, e-mails e grupo comunitário',
+                      description:
+                          'Use os canais oficiais para falar com a Família TEA Bauru, acompanhar avisos, pedir suporte ou buscar orientações sobre o ConeCTEA.',
+                      dataLabel: 'Contato e suporte da comunidade',
                       actionLabel: 'Ir para suporte',
                       actionIcon: PhosphorIconsRegular.arrowRight,
-                      onPressed: () => _showMockSnackBar(context, 'Navegação visual em construção.'),
+                      onPressed: () {
+                        // Navega para a tela de suporte se estiver disponível no build context,
+                        // senão exibe snackbar temporário conforme especificado.
+                        try {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const SupportView()),
+                          );
+                        } catch (_) {
+                          _showMockSnackBar(context, 'Acesse a área de suporte pelos canais oficiais.');
+                        }
+                      },
                     ),
                     const SizedBox(height: 32),
 
-                    // Card de Orientação Importante — Importante
+                    // Card final — Importante
                     _buildWarningCard(context),
                   ],
                 ),
@@ -162,9 +210,9 @@ class InstitutionalView extends StatelessWidget {
         children: [
           Row(
             children: [
-              DsMolduraIcone(
+              const DsMolduraIcone(
                 icon: PhosphorIconsRegular.info,
-                accentColor: DsCores.institucional.accent,
+                accentColor: Color(0xFFA78BFA), // token institucional accent
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -177,14 +225,29 @@ class InstitutionalView extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'O ConeCTEA é uma iniciativa social e comunitária voltada à organização de informações, carteirinha comunitária e apoio à rede da Família TEA Bauru.',
-            style: DsTipografia.body.copyWith(color: DsCores.textPrimary),
+            'O ConeCTEA é o app comunitário da Família TEA Bauru, criado para apoiar a organização de informações, solicitações, carteirinhas comunitárias, comunicações e ações da comunidade.',
+            style: DsTipografia.body.copyWith(color: DsCores.textSecondary, height: 1.4),
           ),
           const SizedBox(height: 16),
-          // Selo/Badge discreto "Iniciativa comunitária"
+          // Selo/Badge "App comunitário"
           DsSelo.fromCorVisual(
-            label: 'Iniciativa comunitária',
+            label: 'App comunitário',
             token: DsCores.institucional,
+          ),
+          const SizedBox(height: 16),
+          // Botão "Saiba mais"
+          SizedBox(
+            width: double.infinity,
+            child: DsBotao(
+              label: 'Saiba mais',
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AboutConecteaView()),
+              ),
+              variante: DsBotaoVariante.acao,
+              token: DsCores.institucional,
+              icon: PhosphorIconsRegular.arrowRight,
+            ),
           ),
         ],
       ),
@@ -198,14 +261,13 @@ class InstitutionalView extends StatelessWidget {
     required String title,
     required String description,
     required String dataLabel,
-    required String actionLabel,
-    required IconData actionIcon,
+    String? actionLabel,
+    IconData? actionIcon,
     DsCorVisual token = DsCores.institucional,
-    required VoidCallback onPressed,
+    VoidCallback? onPressed,
   }) {
     return DsCard(
       padding: const EdgeInsets.all(20),
-      borderColor: token == DsCores.alerta ? token.border.withValues(alpha: 0.3) : null,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -227,11 +289,11 @@ class InstitutionalView extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             description,
-            style: DsTipografia.bodySmall.copyWith(color: DsCores.textSecondary),
+            style: DsTipografia.bodySmall.copyWith(color: DsCores.textSecondary, height: 1.4),
           ),
           const SizedBox(height: 16),
 
-          // Dado destacado
+          // Dado destacado/Selo descritivo
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -248,16 +310,19 @@ class InstitutionalView extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 16),
-
-          // Botão de ação do card
-          DsBotao(
-            label: actionLabel,
-            onPressed: onPressed,
-            variante: DsBotaoVariante.acao,
-            token: token,
-            icon: actionIcon,
-          ),
+          if (actionLabel != null && onPressed != null) ...[
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: DsBotao(
+                label: actionLabel,
+                onPressed: onPressed,
+                variante: DsBotaoVariante.acao,
+                token: token,
+                icon: actionIcon,
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -268,9 +333,9 @@ class InstitutionalView extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: DsCores.alerta.softBackground.withValues(alpha: 0.3),
+        color: DsCores.alerta.softBackground.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(DsRaios.lg),
-        border: Border.all(color: DsCores.alerta.border.withValues(alpha: 0.5)),
+        border: Border.all(color: DsCores.alerta.border.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -292,7 +357,7 @@ class InstitutionalView extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'O ConeCTEA não é um serviço médico, não realiza diagnóstico e não substitui atendimento profissional, documentos oficiais ou serviços públicos.',
+            'O ConeCTEA não é serviço médico, não realiza diagnóstico e não substitui atendimento profissional, laudos, documentos oficiais ou serviços públicos. A carteirinha é comunitária e deve ser usada apenas dentro da finalidade do app.',
             style: DsTipografia.bodySmall.copyWith(
               color: DsCores.textPrimary,
               height: 1.4,
