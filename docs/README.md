@@ -14,6 +14,19 @@ O `README.md` da raiz apresenta o projeto.
 O `DOCTecnico.md` da raiz mantém a visão técnica principal.
 A pasta `docs/` guarda os documentos detalhados por tema.
 
+> [!NOTE]
+> **Central do Usuário:** A Central do Usuário recebeu novas telas visuais para privacidade, segurança, termos, política, dependentes e institucional. Algumas áreas ainda são mockadas/visuais e não representam persistência real de dados. A documentação sobre essa evolução está detalhada em:
+> *   [Central do Usuário](arquitetura/ACCOUNT.md)
+> *   [Governança de Dados](governanca/GOVERNANCA_DADOS.md)
+> *   [LGPD](governanca/LGPD.md)
+> *   [Segurança](governanca/SEGURANCA.md)
+> *   [Documentos Sensíveis](governanca/DOCUMENTOS_SENSIVEIS.md)
+> *   [Fluxos Usuário](operacao/FLUXOS_USUARIO.md)
+> *   [Suporte](operacao/SUPORTE.md)
+> *   [Checklist de Testes](qa/CHECKLIST_TESTES.md)
+> *   [Google Play](release/GOOGLE_PLAY.md)
+> *   [Histórico de Frentes](historico/FRENTES.md)
+
 ---
 
 ## Índice

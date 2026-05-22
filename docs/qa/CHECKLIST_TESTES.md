@@ -202,3 +202,43 @@ Verificações estruturais e operacionais para garantir a consistência do desca
 ### 5. Integridade do Fluxo Administrativo e Comunicações
 - [x] **Ausência de Notificações de Saída:** Validar que ao sair sem salvar, nenhuma entrada de notificação é gerada para o usuário titular ou para o painel do administrador.
 - [x] **Preservação de Status:** Atentar para que o status do cadastro do membro não mude (ex: continue em `reviewing_data` ou `waiting_docs` exatamente como estava antes de abrir a tela), permitindo que a pendência permaneça visível na lista para correção futura.
+
+---
+
+## Checklist de Validação Visual da Central do Usuário
+
+Diretrizes de QA específicas para garantir a alta fidelidade estética (*Night Blue / Dark Glass Premium*), a responsividade estrutural e a barreira lógica nas telas e diálogos da Central do Usuário:
+
+### 1. Privacidade e Dados
+- [ ] **Dados Armazenados:** Abrir a tela de categorias e rolar o conteúdo completo em largura estreita (360dp, ex: Samsung A05/A06), validando que não há overflows e que as descrições de dados possíveis são totalmente legíveis.
+- [ ] **Uso das Informações:** Rolar o conteúdo informativo em 360dp, garantindo clearance inferior adequado e alinhamento do botão "Entendi".
+- [ ] **Consentimentos e Autorizações:** Confirmar que todos os switches funcionam localmente (ativar/desativar), apresentando adequadamente os selos dinâmicos **"Ativo"** (verde soft) ou **"Desativado"** (cinza/opaco). Validar que nenhuma persistência no banco Supabase ou chamada de rede é realizada, pois os switches são puramente visuais nesta etapa.
+- [ ] **Termos de Uso:** Acessar a tela interna e validar que o conteúdo Markdown estático é renderizado com formatações de negrito e listas organizadas (bullets), **sem exibir** sintaxe bruta como `**` ou `-`.
+- [ ] **Política de Privacidade:** Acessar a tela interna de leitura e validar a renderização livre de marcações brutas (negrito e listas convertidos semânticamente).
+- [ ] **Ação do Botão "Entendi":** Certificar-se de que ao pressionar o botão "Entendi" nos Termos de Uso ou na Política de Privacidade, a tela apenas retorna (`Navigator.pop`) e **não registra** ou persiste aceite real no banco.
+
+### 2. Segurança da Conta
+- [ ] **Modal de Exclusão de Conta:** Abrir o diálogo de segurança em dispositivos estreitos (Samsung A05/A06 com largura de 360dp) e verificar se o modal completo e seus campos de validação cabem perfeitamente.
+- [ ] **Barreira de Confirmação:** Tentar clicar em "Confirmar Exclusão" sem preencher o input. Validar que o botão está completamente desabilitado.
+- [ ] **Texto de Validação:** Digitar exatamente `"EXCLUIR CONTA"` no campo. Validar que o botão só é habilitado após a correspondência exata de letras.
+- [ ] **Teclado Virtual (IME Clearance):** Confirmar que o teclado virtual não esconde o campo de texto nem o botão de ação do modal, mantendo a janela de diálogo rolável/visível.
+- [ ] **Caráter Mockado:** Certificar-se de que a ação de confirmação de exclusão emite apenas um feedback visual local e fecha o modal, **sem alterar** dados de sessão em `AuthService` ou disparar deleções em Supabase.
+
+### 3. Dependentes e Correções
+- [ ] **Modal de Remoção de Dependente:** Abrir o modal a partir do botão "Remover" nos detalhes do dependente e testar em 360dp.
+- [ ] **Barreira de Confirmação:** Digitar exatamente `"REMOVER"`. Validar que o botão de ação só é liberado mediante preenchimento exato da palavra de confirmação em letras maiúsculas.
+- [ ] **Rolagem de Detalhes:** Validar que a tela de detalhes de dependentes e de solicitação de correção por campo (`DependentCorrectionView`) rola suavemente, sem overflows horizontais ou verticais em telefones estreitos.
+- [ ] **Caráter Mockado:** Confirmar que a solicitação de correção por campo e a remoção final de dependente não persistem dados remotamente nem modificam o estado no Supabase.
+
+### 4. Estrutura Institucional e Hub Informativo
+- [ ] **Rolagem do Hub:** Acessar a tela principal `InstitutionalView` e garantir que todos os cards informativos em coluna única e o aviso "Importante" inferior são visíveis via rolagem até o fim em 360dp.
+- [ ] **Preservação de Cards Sem Ação:** Validar que os cards de "Natureza da iniciativa", "Carteirinha comunitária" e "Atuação principal" permanecem estáticos, sem botões de ação e sem efeito visual de clique.
+- [ ] **Separação de Projetos e Parceiros:**
+  - [ ] Acessar `ProjectsActionsView` e confirmar que ela lista apenas Fada do Dente, Vidas e Eventos, sem menções, cards ou referências diretas à rede de parceiros comerciais.
+  - [ ] Acessar `PartnersSupportersView` via card separado da `InstitutionalView` e verificar se a listagem visual de parceiros de benefícios e apoiadores é apresentada isoladamente.
+- [ ] **Navegação de Retorno:** Testar abertura e botões "Entendi"/voltar em todas as subviews (`AboutConecteaView`, `FamilyTeaView`, `ProjectsActionsView`, `PartnersSupportersView`) garantindo retorno seguro à página de origem.
+
+### 5. Informações do ConeCTEA
+- [ ] **Compatibilidade em 360dp:** Acionar o modal e validar que toda a estrutura de versão/build, ambiente e tecnologias de apoio cabe perfeitamente nas dimensões físicas sem gerar cortes.
+- [ ] **Tecnologias de Apoio:** Validar a legibilidade e clareza da listagem de tecnologias integradas (Supabase, Flutter, Drive/GAS, OneSignal).
+- [ ] **Acessibilidade do Botão Fechar:** Confirmar que o botão "Fechar" do modal permanece acessível e operável mesmo em resoluções estreitas.

@@ -1,9 +1,9 @@
 # Histórico Técnico de Frentes — ConeCTEA
 
 **App:** 0.7.1-dev
-**Documentação:** 4.5.0
+**Documentação:** 4.6.0
 **Status:** Desenvolvimento  
-**Atualizado em:** 19/05/2026
+**Atualizado em:** 22/05/2026
 
 ---
 
@@ -63,6 +63,7 @@ Este arquivo existe para manter rastreabilidade sem sobrecarregar o `DOCTecnico.
 | 27A.2 | Concluída | Reorganização do Painel de Gestão em Hub modular mobile-first, criação dos ConecteaVisualTokens e do componente global ConecteaRoleBadge. Commits `1ea7d50` e `7a718d2`. | Todos os cargos administrativos visualizam o Hub, com controle de entrada em cada módulo por permissão. |
 | 27B.1 | Concluída | Refinamento do módulo Usuários e Permissões com travas hierárquicas, edição limitada a e-mail/CPF (protegido) e experiência visual Dark Glass / teclado aware. Commits `5e0b4e8`, `c32d29c`, `584f557`. | Travas defensivas aplicadas somente na camada de interface (segurança de UI/UX). |
 | 27C.2 | Concluída | Revisão do Supabase Realtime: otimização em Notificações, estabilização de streams na Home/Carteirinhas/RequestsView e remoção do N+1 administrativo em Gestão de Carteirinhas. Commits `5685c8c`, `f0a6234`, `e95b173`, `37f0f3e`. | Reduz conexões e vazamentos de stream, preparando a arquitetura para escala. |
+| 28A | Concluída nesta etapa | Evolução da Central do Usuário — Privacidade, Segurança, Institucional e documentos legais. | Estruturação e criação das telas de dados, segurança, dependentes, suporte e hub institucional no padrão premium, inteiramente visual/estático na UI. |
 
 ### Detalhes das Frentes Recentes
 
@@ -126,6 +127,37 @@ A frente não alterou banco de dados, Supabase, RLS, `DatabaseService`, models, 
 
 ---
 
+#### Frente 28A — Evolução da Central do Usuário — Privacidade, Segurança, Institucional e documentos legais
+**Status:** concluída nesta etapa
+**Tipo:** conformidade legal, transparência, segurança de UI/UX, responsividade e reestruturação institucional
+
+##### Resumo
+Esta frente realizou a estruturação, modernização e refino visual da Central do Usuário, focando em transparência de dados, conformidade legal, segurança nas ações de barreira e organização comunitária.
+
+**Entregas principais:**
+- **Privacidade e Dados:** Estruturação da tela informativa em categorias claras, com a criação das telas internas de "Dados armazenados" e "Uso das informações".
+- **Switches de Consentimentos:** Implementação da tela visual de consentimentos com selos reativos locais ("Ativo" em verde soft / "Desativado" em cinza opaco). Como são focados em interface de usuário, as preferências ainda não são gravadas de forma persistente no banco.
+- **Telas Legais Estáticas:** Integração e renderização semântica offline da Política de Privacidade e dos Termos de Uso. O conteúdo foi derivado literalmente dos documentos Markdown oficiais (`docs/legal/`), garantindo compatibilidade estética premium e rolagem suave sem tags cruas. Clicar em "Entendi" apenas fecha a tela e não persiste o aceite.
+- **Segurança da Conta:** Reformulação da tela de segurança e implementação de um modal de barreira lógica contra cliques acidentais para exclusão de conta, exigindo a digitação literal do texto `"EXCLUIR CONTA"` para liberar o botão. A exclusão de conta real não foi acoplada ao backend nesta fase.
+- **Dependentes e Correções:** Exibição da listagem visual de dependentes, tela de detalhes e solicitação visual de correção por campo. O botão de remoção de dependente foi protegido com barreira que exige a digitação da palavra `"REMOVER"`. A deleção física não está funcional nesta etapa.
+- **Estrutura Institucional:** Reorganização completa do hub institucional (`InstitutionalView`) em colunas de rolagem vertical única, compatíveis com viewports estreitas de 360dp (Samsung A05/A06).
+  - Cards sem botões de ação foram mantidos inteiramente estáticos e sem cliques.
+  - Tela **Sobre o ConeCTEA** esclarece os limites do aplicativo e da carteirinha comunitária interna (não substitui RG, CPF, laudos ou a CIPTEA oficial, e o app não faz diagnósticos).
+  - Tela **Família TEA Bauru** consolida dados históricos da comunidade organizadora e canais oficiais.
+  - Separação rigorosa entre a tela **Projetos e Ações** (Fada do Dente, Vidas e Eventos, puramente visual e sem menção a parceiros comerciais) e a nova tela **Parceiros e Apoiadores** (rede de apoio comercial e benefícios locais com a carteirinha comunitária).
+- **Informações do App:** O modal foi reformulado esteticamente para conter detalhes de versão/build, ambiente e uma seção dedicada às tecnologias de apoio integradas ao ecossistema.
+
+**Pendências e Limitações Mapeadas:**
+- **Home/Navbar:** A navbar premium não sofreu alterações nas rotas globais ou layouts fora da Central do Usuário.
+- **Integração Real de Parceiros e Eventos:** Os botões de chamada à ação ("Participar", "Ver rotas", "Obter benefício") emitem apenas snackbars informativos locais e mockados.
+- **Detalhes Reais:** Fada do Dente e Vidas ainda não contam com inscrições ou cronogramas integrados de forma reativa com o banco.
+- **Persistência Real de Consentimento:** O salvamento de preferências de consentimento no banco Supabase ou armazenamento seguro local está pendente.
+- **Exclusão Real de Conta:** A deleção física e desvinculação em Supabase Auth/Drive não foi ativada.
+- **Remoção Real de Dependentes:** A exclusão física no banco de dependentes e descarte de laudos/RG anexos no Drive requer desenvolvimento futuro integrado de limpeza de documentos.
+- **Correção Real de Dados:** O envio de solicitações de alteração de campos cadastrais ou cadastros de dependentes deve passar por homologação e fila de aprovação antes de persistir alterações automáticas.
+
+---
+
 ## Observações de Rastreabilidade
 
 Não preencher lacunas de numeração com suposições.
@@ -137,6 +169,7 @@ Se uma frente como `24D.1`, `24D.2`, `25B.1` ou `25B.2` não estiver registrada 
 ## Roadmap Técnico
 
 ### Concluído recentemente
+- Frente 28A (Evolução da Central do Usuário — Privacidade, Segurança, Institucional e documentos legais);
 - Frente 27C.2 (Realtime, performance e consumo de streams, otimização de notificações e admin);
 - Frente 27B.1 (Usuários e Permissões no Painel de Gestão, travas hierárquicas, e-mail/CPF restrito e Dark Glass);
 - Frente 27A.2 (Hub de Gestão modular, ConecteaVisualTokens e ConecteaRoleBadge global);

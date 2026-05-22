@@ -96,3 +96,22 @@ Sob as premissas de integridade dos dados e segurança da informação, a Frente
 * **Prevenção contra Adulterações Locais:** O rastreamento de prazos e validades baseia-se exclusivamente no fuso oficial do projeto (`America/Sao_Paulo` UTC-3), processado e calculado no banco de dados. Isso impede a manipulação de tempos locais por usuários que poderiam tentar adiar prazos de revisão ou prolongar de forma ilegal a validade civil de suas carteirinhas alterando as configurações de relógio do celular.
 * **Segurança e Rastreabilidade:** Triggers automáticos no banco gerenciam a transição lógica dos status e datas limitadoras, fornecendo trilhas cronológicas idôneas para auditorias técnicas, mantendo o ecossistema robusto e em conformidade conceitual com os princípios de segurança, integridade de dados e responsabilidade da LGPD.
 
+---
+
+## 8. Transparência no App (Evolução Central do Usuário)
+
+Como pilar de conformidade prática e boa-fé com a LGPD, o aplicativo ConeCTEA disponibiliza a área de **Privacidade e dados** na Central do Usuário, atuando ativamente na educação e informação das famílias.
+
+### Interfaces Dedicadas à Transparência:
+*   **Dados Armazenados (`StoredDataView`):** Detalha de forma didática todas as classes de dados retidos pela Família TEA Bauru, ajudando a esclarecer as dúvidas e diminuir a apreensão das famílias sobre quais informações estão sob a custódia do app.
+*   **Uso das Informações (`InformationUsageView`):** Explicita de forma clara as finalidades específicas de cada dado cadastral e sensível coletado no app.
+*   **Consentimentos e Autorizações (`ConsentsView`):** Interface que categoriza os tratamentos de dados.
+    *   *Nota de Limitação:* Os switches de consentimento funcionam atualmente de forma visual e local, sem persistência no banco remoto Supabase nesta versão.
+*   **Telas Legais Internas (`TermsOfUseView` e `PrivacyPolicyView`):** Oferecem acesso contínuo e irrestrito aos textos completos dos Termos de Uso e Política de Privacidade do app. O fechamento das telas (botão "Entendi") serve para controle de navegação e não configura aceite vinculante no banco, cuja ação é gerida no cadastro/login.
+*   **Modal de Informações do ConeCTEA:** Nova estrutura institucional de transparência que exibe detalhes técnicos do app, ambiente de compilação e a seção **Tecnologias de apoio** (Supabase, Google Drive/GAS, OneSignal, etc.), informando claramente como a infraestrutura técnica está distribuída.
+
+### Princípios de Comunicação Legal e Limitações:
+1.  **Não Comercialização:** O app comunica explicitamente que **não vende, aluga ou compartilha dados pessoais** das famílias com empresas ou instituições externas para fins comerciais.
+2.  **Cuidado Especial com Dados Sensíveis:** Documentos comprovatórios (identificações e laudos) são evidenciados como dados de alta sensibilidade, cujo tratamento segue regras restritas de visualização administrativa e exclusão programada pós-aprovação.
+3.  **Finalidade Comunitária:** Os termos jurídicos e a interface reiteram ativamente que a Carteirinha ConeCTEA é de natureza puramente interna/comunitária, não substituindo o documento oficial CIPTEA (carteirinha oficial do governo) ou documentos de identificação civil (RG, CPF).
+4.  **Limites Clínicos:** O aplicativo reforça enfaticamente que **não realiza triagem médica, diagnóstico, tratamento** ou qualquer intervenção clínica, não substituindo consultas e avaliações profissionais de saúde.

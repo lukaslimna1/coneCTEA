@@ -77,3 +77,47 @@ Este fluxo oferece mais conforto e flexibilidade às famílias, permitindo que e
    - Se novos documentos foram carregados temporariamente na nuvem durante aquela sessão, o aplicativo inicia em segundo plano uma tentativa de exclusão física seletiva dessas URLs recém-geradas no Google Drive institucional, preservando a higiene do espaço remoto de armazenamento e a privacidade dos dados.
    - Os documentos oficiais antigos que já haviam sido salvos anteriormente ou dados salvos **permanecem completamente preservados e intocados**, garantindo a segurança histórica do cadastro.
    - O status da solicitação não sofre nenhuma alteração, nenhuma notificação nova é criada no sistema ou enviada ao administrador, e a pendência permanece disponível no painel de solicitações do usuário para que ele volte a editá-la e corrigi-la posteriormente, no momento em que lhe for mais oportuno.
+
+---
+
+## Fluxos da Central do Usuário (Evolução Account)
+
+A Central do Usuário atua como um hub central de navegação e serviços para o usuário logado, mapeando jornadas cruciais de segurança, dados, privacidade, acompanhamento de dependentes e contato institucional.
+
+### 1. Fluxo de Edição de Perfil (Meus Dados)
+*   O usuário acessa o card **Meus Dados** a partir do menu principal da Central.
+*   A interface direciona para a `EditProfileView` onde é possível visualizar o avatar oficial (`ConecteaAvatar`) e alterar dados comuns cadastrais.
+*   *Restrição:* Os campos CPF e E-mail encontram-se bloqueados e protegidos contra edição direta.
+
+### 2. Fluxo de Gerenciamento de Dependentes
+*   O usuário acessa o card **Dependentes** (`DependentsView`), visualizando a listagem de membros associados.
+*   Toca em um dependente específico para abrir a tela de **Detalhes** (`DependentDetailsView`), onde consulta os dados cadastrados.
+*   A partir de Detalhes, o usuário possui duas opções de ação:
+    *   **Solicitar Correção:** Abre a `DependentCorrectionView` apresentando um formulário visual estruturado para descrever pendências específicas campo a campo.
+        *   *Nota de Limitação:* Este formulário e o envio da correção são mockados visualmente nesta etapa.
+    *   **Remover Dependente:** Abre um modal de confirmação exigindo que o usuário digite textualmente a palavra `REMOVER` para liberar a exclusão.
+        *   *Nota de Limitação:* A remoção é puramente de interface e não exclui os registros do banco de dados remoto Supabase nesta versão.
+
+### 3. Fluxo de Segurança e Exclusão de Conta
+*   O usuário acessa o card **Segurança da conta** (`SecurityView`).
+*   Toca no botão de exclusão e visualiza um modal com aviso explicativo sobre perda de dados e dependentes.
+*   O usuário deve digitar exatamente `EXCLUIR CONTA` para que o botão final seja desbloqueado na interface.
+*   *Nota de Limitação:* A exclusão é mockada/visual nesta versão e não executa chamadas técnicas reais no Supabase Auth ou tabelas.
+
+### 4. Fluxo de Privacidade e Leitura Legal
+*   O usuário acessa o card **Privacidade e dados** (`PrivacyView`).
+*   O usuário pode tocar em:
+    *   **Dados armazenados:** Visualização informativa detalhada de todas as categorias de dados pessoais.
+    *   **Uso das informações:** Visualização informativa sobre os objetivos legítimos do tratamento de dados.
+    *   **Consentimentos:** Tela com switches locais para gerenciar consentimentos e termos.
+        *   *Nota de Limitação:* Os switches atuam apenas em estado de memória local sem persistência física no banco remoto.
+    *   **Termos de Uso / Política de Privacidade:** Abrem telas internas dedicadas para leitura dos documentos oficiais. O botão "Entendi" serve apenas como Navigator de retorno.
+
+### 5. Fluxo Institucional (Comunidade, Projetos e Apoiadores)
+*   O usuário acessa o card **Institucional** (`InstitutionalView`).
+*   A partir do hub institucional, o usuário acessa:
+    *   **Sobre o ConeCTEA (`AboutConecteaView`):** Leitura de objetivos e esclarecimento sobre limites da carteirinha comunitária.
+    *   **Família TEA Bauru (`FamilyTeaView`):** Histórico da comunidade e visualização detalhada de canais de atendimento oficiais.
+    *   **Projetos e ações (`ProjectsActionsView`):** Acessa a lista unificada de projetos (Fada do Dente, Vidas e Eventos) dispostos em coluna única. Os botões "Ver detalhes" e "Ver eventos" disparam SnackBars informativos simulando o comportamento futuro.
+        *   *Não menciona parceiros:* O conteúdo de benefícios comerciais e parceiros foi isolado e não aparece mais nesta tela.
+    *   **Parceiros e apoiadores (`PartnersSupportersView`):** Abre a nova tela visual e estática descrevendo a rede de descontos e apoiadores comunitários com a carteirinha.
