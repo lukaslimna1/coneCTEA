@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 import 'package:conectea/features/account/profile/widgets/my_data_logged_header.dart';
+import 'package:conectea/features/account/privacy/stored_data_view.dart';
+import 'package:conectea/features/account/privacy/information_usage_view.dart';
+import 'package:conectea/features/account/privacy/consents_view.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 /// Tela visual/mockada de Privacidade e Dados dentro da Central do Usuário.
@@ -51,6 +54,14 @@ class PrivacyView extends StatelessWidget {
                       description: 'Veja quais tipos de dados podem estar vinculados à sua conta.',
                       actionLabel: 'Ver dados armazenados',
                       actionIcon: PhosphorIconsRegular.eye,
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const StoredDataView(),
+                          ),
+                        );
+                      },
                     ),
                     const SizedBox(height: 16),
 
@@ -62,6 +73,14 @@ class PrivacyView extends StatelessWidget {
                       description: 'Entenda como as informações são utilizadas dentro do ConeCTEA.',
                       actionLabel: 'Ver uso das informações',
                       actionIcon: PhosphorIconsRegular.article,
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const InformationUsageView(),
+                          ),
+                        );
+                      },
                     ),
                     const SizedBox(height: 16),
 
@@ -73,6 +92,14 @@ class PrivacyView extends StatelessWidget {
                       description: 'Gerencie permissões e consentimentos importantes.',
                       actionLabel: 'Ver consentimentos',
                       actionIcon: PhosphorIconsRegular.sliders,
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ConsentsView(),
+                          ),
+                        );
+                      },
                     ),
                     const SizedBox(height: 16),
 
