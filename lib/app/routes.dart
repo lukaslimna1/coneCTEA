@@ -8,6 +8,7 @@ import 'package:conectea/features/requests/add_member_page.dart';
 import 'package:conectea/features/admin/admin_dashboard_page.dart';
 import 'package:conectea/features/admin/scanner_view.dart';
 import 'package:conectea/core/notifiers/auth_notifier.dart';
+import 'package:conectea/core/widgets/device_auth_guard.dart';
 
 /// Definição centralizada das rotas de navegação do aplicativo utilizando GoRouter.
 /// Gerencia redirecionamentos baseados no estado de autenticação.
@@ -50,7 +51,7 @@ class AppRoutes {
       ),
       GoRoute(
         path: '/home',
-        builder: (context, state) => const HomePage(),
+        builder: (context, state) => const DeviceAuthGuard(child: HomePage()),
       ),
       GoRoute(
         path: '/add-member',
