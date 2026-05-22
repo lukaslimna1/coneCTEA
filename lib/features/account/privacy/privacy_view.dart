@@ -5,6 +5,7 @@ import 'package:conectea/features/account/profile/widgets/my_data_logged_header.
 import 'package:conectea/features/account/privacy/stored_data_view.dart';
 import 'package:conectea/features/account/privacy/information_usage_view.dart';
 import 'package:conectea/features/account/privacy/consents_view.dart';
+import 'package:conectea/features/account/privacy/terms_of_use_view.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 /// Tela visual/mockada de Privacidade e Dados dentro da Central do Usuário.
@@ -138,17 +139,10 @@ class PrivacyView extends StatelessWidget {
                       actionLabel: 'Ler termos de uso',
                       actionIcon: PhosphorIconsRegular.scroll,
                       onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Os Termos de Uso serão disponibilizados nesta área.',
-                              style: DsTipografia.body.copyWith(color: DsCores.textPrimary),
-                            ),
-                            backgroundColor: DsCores.surfaceElevated,
-                            behavior: SnackBarBehavior.floating,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const TermsOfUseView(),
                           ),
                         );
                       },
