@@ -200,34 +200,154 @@ class AccountView extends StatelessWidget {
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF0B1D3A),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Text('Informações do App', style: GoogleFonts.outfit(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildVersionItem('Versão', '1.0.0'),
-            _buildVersionItem('Build', '2026.05.13'),
-            _buildVersionItem('Ambiente', 'Produção'),
-          ],
+        title: Text(
+          'Informações do ConeCTEA',
+          style: GoogleFonts.outfit(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 1. Bloco inicial compacto
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.03),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                  ),
+                  child: Column(
+                    children: [
+                      _buildVersionRow('Versão', '1.0.0'),
+                      Divider(color: Colors.white.withValues(alpha: 0.05), height: 16),
+                      _buildVersionRow('Build', '2026.05.13'),
+                      Divider(color: Colors.white.withValues(alpha: 0.05), height: 16),
+                      _buildVersionRow('Ambiente', 'Produção'),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // 2. Tecnologias de apoio
+                Text(
+                  'Tecnologias de apoio',
+                  style: GoogleFonts.outfit(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _buildTechBlock('Supabase', 'Autenticação, banco de dados e organização segura das informações do app.'),
+                _buildTechBlock('OneSignal', 'Envio de notificações importantes sobre conta, solicitações, carteirinha e comunicados.'),
+                _buildTechBlock('Google Apps Script / Google Drive', 'Apoio operacional para recebimento e organização temporária de documentos, conforme as regras de privacidade.'),
+                _buildTechBlock('Flutter', 'Tecnologia usada para construir a experiência mobile do ConeCTEA.'),
+                const SizedBox(height: 12),
+
+                // 3. Transparência
+                Text(
+                  'Transparência',
+                  style: GoogleFonts.outfit(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: DsCores.institucional.softBackground.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: DsCores.institucional.border.withValues(alpha: 0.2)),
+                  ),
+                  child: Text(
+                    'O ConeCTEA utiliza serviços de terceiros para manter o app funcionando com segurança, organização e comunicação. As marcas citadas pertencem aos seus respectivos titulares. A citação desses serviços não representa parceria oficial, patrocínio ou endosso comercial.',
+                    style: GoogleFonts.inter(
+                      color: AppColors.textSecondary,
+                      fontSize: 12,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Fechar', style: TextStyle(color: AppColors.primary)),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8.0, left: 8.0, right: 8.0),
+            child: SizedBox(
+              width: double.infinity,
+              child: DsBotao(
+                label: 'Fechar',
+                onPressed: () => Navigator.pop(context),
+                variante: DsBotaoVariante.acao,
+                token: DsCores.manutencao,
+                icon: PhosphorIconsRegular.x,
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildVersionItem(String label, String value) {
+  Widget _buildVersionRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.inter(
+            color: AppColors.textSecondary,
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        Text(
+          value,
+          style: GoogleFonts.inter(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTechBlock(String title, String description) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 13)),
-          Text(value, style: GoogleFonts.inter(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 13)),
+          Text(
+            title,
+            style: GoogleFonts.outfit(
+              color: DsCores.manutencao.accent,
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            description,
+            style: GoogleFonts.inter(
+              color: AppColors.textSecondary,
+              fontSize: 13,
+              height: 1.3,
+            ),
+          ),
         ],
       ),
     );
