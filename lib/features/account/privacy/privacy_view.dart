@@ -6,6 +6,7 @@ import 'package:conectea/features/account/privacy/stored_data_view.dart';
 import 'package:conectea/features/account/privacy/information_usage_view.dart';
 import 'package:conectea/features/account/privacy/consents_view.dart';
 import 'package:conectea/features/account/privacy/terms_of_use_view.dart';
+import 'package:conectea/features/account/privacy/privacy_policy_view.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 /// Tela visual/mockada de Privacidade e Dados dentro da Central do Usuário.
@@ -113,17 +114,10 @@ class PrivacyView extends StatelessWidget {
                       actionLabel: 'Ler política',
                       actionIcon: PhosphorIconsRegular.shieldCheck,
                       onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'A Política de Privacidade será disponibilizada nesta área.',
-                              style: DsTipografia.body.copyWith(color: DsCores.textPrimary),
-                            ),
-                            backgroundColor: DsCores.surfaceElevated,
-                            behavior: SnackBarBehavior.floating,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const PrivacyPolicyView(),
                           ),
                         );
                       },
