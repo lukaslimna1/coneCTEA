@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:conectea/core/constants/colors.dart';
 import 'package:conectea/core/widgets/premium/premium_card.dart';
 import 'package:conectea/services/auth_service.dart';
@@ -27,6 +29,7 @@ class _LoginPageState extends State<LoginPage> {
   bool _isLoading = false;
   bool _obscurePassword = true;
   String? _errorMessage;
+  bool _keepConnected = true;
 
   @override
   void dispose() {
@@ -53,6 +56,15 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       if (response.user != null) {
+        try {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setBool('conectea_keep_connected', _keepConnected);
+        } catch (_) {
+          if (kDebugMode) {
+            debugPrint('[Auth] Falha ao persistir a preferência local de manter conectado.');
+          }
+        }
+
         final profile = await _databaseService.getUserProfile(response.user!.id);
         if (profile != null) {
           if (!mounted) return;
@@ -311,6 +323,27 @@ class _LoginPageState extends State<LoginPage> {
                               ],
                             );
                           },
+                        ),
+                        const SizedBox(height: 16),
+
+                        DsCheckbox(
+                          value: _keepConnected,
+                          onChanged: (val) {
+                            setState(() {
+                              _keepConnected = val ?? true;
+                            });
+                          },
+                          label: Text(
+                            'Manter conectado',
+                            style: GoogleFonts.inter(
+                              color: AppColors.textPrimary,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          description: 'Ao desmarcar, você entrará novamente ao abrir o app.',
+                          token: DsCores.sucesso,
+                          semanticsLabel: 'Manter a conta conectada no dispositivo',
                         ),
                         const SizedBox(height: 24),
 
