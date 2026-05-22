@@ -11,7 +11,7 @@ import 'package:conectea/features/account/privacy/privacy_view.dart';
 import 'package:conectea/features/account/security/security_view.dart';
 import 'package:conectea/features/account/profile/my_data_view.dart';
 import 'package:conectea/features/account/institutional/about_conectea_view.dart';
-import 'package:conectea/features/account/support/help_support_view.dart';
+import 'package:conectea/features/account/support/support_view.dart';
 
 
 class AccountView extends StatelessWidget {
@@ -150,7 +150,7 @@ class AccountView extends StatelessWidget {
           description: 'Suporte, dúvidas e problemas.',
           token: DsCores.suporte,
           layout: DsCardHubLayout.horizontal,
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const HelpSupportView())),
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SupportView())),
         ),
         const SizedBox(height: 12),
         _buildMenuCard(
