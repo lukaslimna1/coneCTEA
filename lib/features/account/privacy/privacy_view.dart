@@ -41,7 +41,7 @@ class PrivacyView extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Gerencie informações, consentimentos e documentos legais do app.',
+                      'Consulte como suas informações são tratadas, gerencie autorizações e acesse os documentos legais do ConeCTEA.',
                       style: DsTipografia.pageSubtitle.copyWith(color: DsCores.textSecondary),
                     ),
                     const SizedBox(height: 32),
@@ -51,7 +51,7 @@ class PrivacyView extends StatelessWidget {
                       context,
                       icon: PhosphorIconsRegular.database,
                       title: 'Dados armazenados',
-                      description: 'Veja quais tipos de dados podem estar vinculados à sua conta.',
+                      description: 'Veja quais tipos de informações podem estar vinculadas à sua conta, dependentes, solicitações e carteirinhas comunitárias.',
                       actionLabel: 'Ver dados armazenados',
                       actionIcon: PhosphorIconsRegular.eye,
                       onPressed: () {
@@ -70,7 +70,7 @@ class PrivacyView extends StatelessWidget {
                       context,
                       icon: PhosphorIconsRegular.info,
                       title: 'Uso das informações',
-                      description: 'Entenda como as informações são utilizadas dentro do ConeCTEA.',
+                      description: 'Entenda para quais finalidades seus dados podem ser usados no app, como conta, segurança, solicitações, programas e suporte.',
                       actionLabel: 'Ver uso das informações',
                       actionIcon: PhosphorIconsRegular.article,
                       onPressed: () {
@@ -89,7 +89,7 @@ class PrivacyView extends StatelessWidget {
                       context,
                       icon: PhosphorIconsRegular.checkSquare,
                       title: 'Consentimentos',
-                      description: 'Gerencie permissões e consentimentos importantes.',
+                      description: 'Consulte autorizações necessárias e opcionais relacionadas ao uso dos seus dados, comunicações, programas e ações com parceiros.',
                       actionLabel: 'Ver consentimentos',
                       actionIcon: PhosphorIconsRegular.sliders,
                       onPressed: () {
@@ -108,9 +108,24 @@ class PrivacyView extends StatelessWidget {
                       context,
                       icon: PhosphorIconsRegular.fileLock,
                       title: 'Política de privacidade',
-                      description: 'Consulte a política de privacidade do app.',
-                      actionLabel: 'Ver política',
+                      description: 'Leia como o ConeCTEA coleta, utiliza, protege, compartilha e descarta dados pessoais, documentos e informações sensíveis.',
+                      actionLabel: 'Ler política',
                       actionIcon: PhosphorIconsRegular.shieldCheck,
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'A Política de Privacidade será disponibilizada nesta área.',
+                              style: DsTipografia.body.copyWith(color: DsCores.textPrimary),
+                            ),
+                            backgroundColor: DsCores.surfaceElevated,
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                     const SizedBox(height: 16),
 
@@ -118,9 +133,9 @@ class PrivacyView extends StatelessWidget {
                     _buildPrivacyCard(
                       context,
                       icon: PhosphorIconsRegular.fileText,
-                      title: 'Termos de Uso',
+                      title: 'Termos de uso',
                       description: 'Conheça as regras de uso do ConeCTEA, os limites da carteirinha comunitária e as responsabilidades de usuários, comunidade e parceiros.',
-                      actionLabel: 'Ler Termos de Uso',
+                      actionLabel: 'Ler termos de uso',
                       actionIcon: PhosphorIconsRegular.scroll,
                       onPressed: () {
                         ScaffoldMessenger.of(context).showSnackBar(
