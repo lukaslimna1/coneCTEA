@@ -10,7 +10,7 @@ import 'package:conectea/models/app_user.dart';
 import 'package:conectea/features/account/privacy/privacy_view.dart';
 import 'package:conectea/features/account/security/security_view.dart';
 import 'package:conectea/features/account/profile/my_data_view.dart';
-import 'package:conectea/features/account/institutional/about_conectea_view.dart';
+import 'package:conectea/features/account/institutional/institutional_view.dart';
 import 'package:conectea/features/account/support/support_view.dart';
 
 
@@ -159,7 +159,7 @@ class AccountView extends StatelessWidget {
           description: 'ConeCTEA, Família TEA e projetos.',
           token: DsCores.institucional,
           layout: DsCardHubLayout.horizontal,
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const AboutConecteaView())),
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const InstitutionalView())),
         ),
         const SizedBox(height: 12),
         _buildMenuCard(
