@@ -39,105 +39,218 @@ class StoredDataView extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Veja quais tipos de informações podem estar vinculadas à sua conta.',
+                      'Veja quais tipos de informações podem estar vinculadas à sua conta no ConeCTEA.',
                       style: DsTipografia.pageSubtitle.copyWith(color: DsCores.textSecondary),
                     ),
                     const SizedBox(height: 32),
+
+                    // Bloco Introdutório — Sobre esta área
+                    _buildAboutSection(context),
+                    const SizedBox(height: 32),
+
+                    // Seção de cards informativos
+                    Text(
+                      'CATEGORIAS DE DADOS',
+                      style: DsTipografia.caption.copyWith(
+                        color: DsCores.privacidade.accent,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
 
                     // Card 1 — Dados da conta
                     _buildDataCategoryCard(
                       context,
                       icon: PhosphorIconsRegular.user,
                       title: 'Dados da conta',
-                      description: 'Informações usadas para identificar e manter sua conta no app.',
+                      description: 'Informações usadas para identificar sua conta e permitir o acesso ao app.',
                       items: [
-                        'Nome completo do titular da conta',
-                        'Endereço de e-mail de acesso',
-                        'Número de telefone/celular informado',
-                        'Cidade e estado de residência',
+                        'Nome completo',
+                        'E-mail de acesso',
+                        'Telefone/celular informado',
+                        'Data de nascimento',
+                        'Cidade e estado',
+                        'CPF usado para identificação cadastral',
+                        'Senha protegida pelo sistema de autenticação',
                       ],
                     ),
                     const SizedBox(height: 16),
 
-                    // Card 2 — Dados de dependentes
+                    // Card 2 — Dados opcionais do cadastro
                     _buildDataCategoryCard(
                       context,
-                      icon: PhosphorIconsRegular.usersThree,
-                      title: 'Dados de dependentes',
-                      description: 'Informações vinculadas aos dependentes cadastrados na sua conta.',
+                      icon: PhosphorIconsRegular.pencilSimple,
+                      title: 'Dados opcionais do cadastro',
+                      description: 'Informações complementares que podem ajudar na identificação, organização comunitária e compreensão do público atendido.',
                       items: [
-                        'Dados cadastrais e de identificação',
-                        'Nome e vínculo do responsável legal',
-                        'Informações de contato de emergência',
-                        'Informações complementares e de apoio',
+                        'Nome social, quando informado',
+                        'Gênero, quando informado',
+                        'Raça/cor, quando informado',
+                        'Indicação por instituição, comunidade, grupo, parceiro ou pessoa',
                       ],
                     ),
                     const SizedBox(height: 16),
 
-                    // Card 3 — Carteirinhas comunitárias
+                    // Card 3 — Dependentes e pessoas vinculadas
+                    _buildDataCategoryCard(
+                      context,
+                      icon: PhosphorIconsRegular.users,
+                      title: 'Dependentes e pessoas vinculadas',
+                      description: 'Informações relacionadas a dependentes, crianças, adolescentes, familiares ou pessoas vinculadas à sua conta.',
+                      items: [
+                        'Dados cadastrais do dependente',
+                        'Informações de vínculo com o responsável',
+                        'Dados do responsável pela conta',
+                        'Contato de emergência, quando informado',
+                        'Informações necessárias para solicitações e programas',
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Card 4 — Carteirinhas comunitárias
                     _buildDataCategoryCard(
                       context,
                       icon: PhosphorIconsRegular.identificationCard,
                       title: 'Carteirinhas comunitárias',
-                      description: 'Informações usadas para emissão, análise e manutenção da carteirinha comunitária.',
+                      description: 'Informações usadas para solicitar, analisar, emitir, validar e acompanhar a carteirinha comunitária ConeCTEA.',
                       items: [
-                        'Solicitações de emissão realizadas',
-                        'Status da análise e emissão',
-                        'Validade da carteirinha emitida',
-                        'Histórico administrativo de controle interno',
+                        'Solicitações realizadas',
+                        'Status da análise',
+                        'Data de validade da carteirinha',
+                        'TEA ID',
+                        'Código QR de validação interna',
+                        'Motivos de pendência, recusa ou suspensão, quando houver',
+                        'Histórico administrativo necessário',
                       ],
                     ),
                     const SizedBox(height: 16),
 
-                    // Card 4 — Documentos sensíveis
+                    // Card 5 — Documentos e laudos
                     _buildDataCategoryCard(
                       context,
                       icon: PhosphorIconsRegular.fileText,
-                      title: 'Documentos sensíveis',
-                      description: 'Documentos usados apenas quando necessários para análise administrativa.',
+                      title: 'Documentos e laudos',
+                      description: 'Documentos usados somente quando necessários para conferência administrativa da solicitação.',
                       items: [
-                        'Documento oficial de identificação com foto',
-                        'Laudo médico para comprovação de diagnóstico',
-                        'Outros comprovantes solicitados na validação',
+                        'Documento com foto',
+                        'Laudo médico ou documento equivalente',
+                        'Comprovantes solicitados na análise',
+                        'Arquivos renomeados tecnicamente pelo sistema',
+                        'Documentos descartados conforme as regras de aprovação, reprovação, pendência ou suspensão',
                       ],
                     ),
                     const SizedBox(height: 16),
 
-                    // Card 5 — Registros técnicos
+                    // Card 6 — Programas comunitários
                     _buildDataCategoryCard(
                       context,
-                      icon: PhosphorIconsRegular.terminalWindow,
-                      title: 'Registros técnicos',
-                      description: 'Alguns registros mínimos podem existir para segurança, funcionamento e auditoria do app.',
+                      icon: PhosphorIconsRegular.calendarHeart,
+                      title: 'Programas comunitários',
+                      description: 'Informações usadas para inscrição, organização, seleção e encaminhamento inicial em ações da Família TEA Bauru.',
                       items: [
-                        'Registro simplificado de data/hora de acesso',
+                        'Inscrições em chamamentos',
+                        'Listas de interesse',
+                        'Status de seleção ou aprovação',
+                        'Dados necessários para contato',
+                        'Agendamento inicial, quando houver',
+                        'Programa relacionado, como Fada do Dente, Vidas ou outras ações futuras',
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Card 7 — Dados compartilhados com parceiros (com nota de rodapé)
+                    _buildDataCategoryCard(
+                      context,
+                      icon: PhosphorIconsRegular.handshake,
+                      title: 'Dados compartilhados com parceiros',
+                      description: 'Quando necessário, alguns dados mínimos podem ser compartilhados com profissionais, clínicas ou parceiros participantes de programas comunitários.',
+                      items: [
+                        'Nome do participante',
+                        'Nome do responsável, quando aplicável',
+                        'Telefone de contato',
+                        'Programa selecionado',
+                        'Data e horário de agendamento',
+                        'Informações mínimas necessárias para organização da ação',
+                      ],
+                      extraWidget: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 8),
+                          Text(
+                            'Como regra, documento com foto, laudo, CPF completo, CID e dados sensíveis não fazem parte do compartilhamento mínimo com parceiros.',
+                            style: DsTipografia.caption.copyWith(
+                              color: DsCores.textMuted,
+                              fontStyle: FontStyle.italic,
+                              height: 1.35,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Card 8 — Notificações e comunicações
+                    _buildDataCategoryCard(
+                      context,
+                      icon: PhosphorIconsRegular.bell,
+                      title: 'Notificações e comunicações',
+                      description: 'Informações usadas para enviar avisos importantes sobre conta, solicitações, carteirinha e programas.',
+                      items: [
                         'Notificações enviadas ao dispositivo',
-                        'Eventos técnicos mínimos de estabilidade',
+                        'Avisos de pendência',
+                        'Avisos de aprovação ou recusa',
+                        'Lembretes de programas ou agendamentos',
+                        'Mensagens de suporte e orientação',
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Card 9 — Registros técnicos e segurança
+                    _buildDataCategoryCard(
+                      context,
+                      icon: PhosphorIconsRegular.shieldCheck,
+                      title: 'Registros técnicos e segurança',
+                      description: 'Registros mínimos podem existir para segurança, funcionamento, prevenção de falhas e suporte técnico.',
+                      items: [
+                        'Identificadores internos de usuário',
+                        'Registros de sessão',
+                        'Data e horário de ações relevantes',
+                        'Identificadores de notificação',
+                        'Registros técnicos mínimos de erro ou estabilidade',
+                        'Informações básicas necessárias ao funcionamento do app',
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Card 10 — Dados estatísticos
+                    _buildDataCategoryCard(
+                      context,
+                      icon: PhosphorIconsRegular.chartBar,
+                      title: 'Dados estatísticos',
+                      description: 'Alguns dados podem ser usados de forma agrupada para relatórios comunitários, sem identificar pessoas individualmente.',
+                      items: [
+                        'Quantidade geral de usuários cadastrados',
+                        'Quantidade de carteirinhas solicitadas ou ativas',
+                        'Cidades atendidas de forma geral',
+                        'Faixas etárias agrupadas',
+                        'Participação em programas comunitários',
+                        'Indicadores de impacto social',
                       ],
                     ),
                     const SizedBox(height: 32),
 
-                    // Ação visual no final
+                    // Bloco final de orientação — Importante
+                    _buildWarningCard(context),
+                    const SizedBox(height: 32),
+
+                    // Botão de ação do final da tela
                     DsBotao(
                       label: 'Solicitar informações',
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Solicitação visual em construção.',
-                              style: DsTipografia.body.copyWith(color: DsCores.textPrimary),
-                            ),
-                            backgroundColor: DsCores.surfaceElevated,
-                            behavior: SnackBarBehavior.floating,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                        );
-                      },
+                      onPressed: () => _showMockSnackBar(context, 'Solicitação visual em construção.'),
                       variante: DsBotaoVariante.acao,
                       token: DsCores.privacidade,
-                      icon: PhosphorIconsRegular.export,
+                      icon: PhosphorIconsRegular.envelope,
                     ),
                   ],
                 ),
@@ -149,6 +262,55 @@ class StoredDataView extends StatelessWidget {
     );
   }
 
+  /// Exibe um SnackBar mockado flutuante.
+  void _showMockSnackBar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: DsTipografia.body.copyWith(color: DsCores.textPrimary),
+        ),
+        backgroundColor: DsCores.surfaceElevated,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+    );
+  }
+
+  /// Construtor do Bloco Introdutório "Sobre esta área".
+  Widget _buildAboutSection(BuildContext context) {
+    return DsCard(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              DsMolduraIcone(
+                icon: PhosphorIconsRegular.info,
+                accentColor: DsCores.privacidade.accent,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Sobre esta área',
+                  style: DsTipografia.cardTitle.copyWith(color: DsCores.textPrimary),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'O ConeCTEA pode armazenar dados necessários para cadastro, segurança da conta, solicitações, carteirinhas comunitárias, dependentes, programas comunitários e suporte. Nem todos os dados aparecem em todos os casos: isso depende das funcionalidades usadas por você.',
+            style: DsTipografia.body.copyWith(color: DsCores.textPrimary),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// Construtor de card de categoria de dados Dark Glass.
   Widget _buildDataCategoryCard(
     BuildContext context, {
@@ -156,6 +318,7 @@ class StoredDataView extends StatelessWidget {
     required String title,
     required String description,
     required List<String> items,
+    Widget? extraWidget,
   }) {
     return DsCard(
       padding: const EdgeInsets.all(20),
@@ -219,6 +382,47 @@ class StoredDataView extends StatelessWidget {
                 ),
               );
             }).toList(),
+          ),
+          ?extraWidget,
+        ],
+      ),
+    );
+  }
+
+  /// Construtor de Card de Orientação Importante.
+  Widget _buildWarningCard(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: DsCores.alerta.softBackground.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(DsRaios.lg),
+        border: Border.all(color: DsCores.alerta.border.withValues(alpha: 0.5)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              DsMolduraIcone(
+                icon: PhosphorIconsRegular.warning,
+                accentColor: DsCores.alerta.accent,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Importante',
+                  style: DsTipografia.cardTitle.copyWith(color: DsCores.textPrimary),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'O ConeCTEA não vende dados pessoais. Documentos sensíveis, como documento com foto e laudo médico, são tratados com cuidado especial e seguem regras próprias de retenção e descarte.',
+            style: DsTipografia.bodySmall.copyWith(
+              color: DsCores.textPrimary,
+              height: 1.4,
+            ),
           ),
         ],
       ),
