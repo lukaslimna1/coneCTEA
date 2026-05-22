@@ -545,17 +545,12 @@ class _ConsentsViewState extends State<ConsentsView> {
               ),
               const SizedBox(width: 12),
 
-              // Switch visual premium customizado
-              IgnorePointer(
-                ignoring: isEssential,
-                child: Switch(
-                  value: value,
-                  onChanged: onChanged ?? (_) {},
-                  activeThumbColor: DsCores.privacidade.accent,
-                  activeTrackColor: DsCores.privacidade.softBackground,
-                  inactiveThumbColor: DsCores.textSecondary,
-                  inactiveTrackColor: Colors.white.withValues(alpha: 0.1),
-                ),
+              // Switch visual premium customizado da DS V2
+              DsSwitch(
+                value: value,
+                onChanged: isEssential ? null : (v) => onChanged?.call(v),
+                token: DsCores.privacidade,
+                enabled: !isEssential,
               ),
             ],
           ),

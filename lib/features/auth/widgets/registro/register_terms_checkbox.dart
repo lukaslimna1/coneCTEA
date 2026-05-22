@@ -16,24 +16,11 @@ class RegisterTermsCheckbox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        SizedBox(
-          height: 24,
-          width: 24,
-          child: Checkbox(
-            value: value,
-            onChanged: onChanged,
-            activeColor: DsCores.sucesso.accent,
-            side: BorderSide(color: Colors.white.withValues(alpha: 0.5), width: 1.5),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(6),
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(child: text),
-      ],
+    return DsCheckbox(
+      value: value,
+      onChanged: onChanged,
+      label: text,
+      token: DsCores.sucesso,
     );
   }
 }
