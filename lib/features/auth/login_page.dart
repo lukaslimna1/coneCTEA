@@ -9,7 +9,6 @@ import 'package:conectea/services/auth_service.dart';
 import 'package:conectea/services/database_service.dart';
 import 'package:conectea/models/app_user.dart';
 import 'package:conectea/core/widgets/premium_auth_background.dart';
-import 'package:conectea/core/widgets/premium/premium_button.dart';
 import '../../core/design_system_v2/design_system_v2.dart';
 
 class LoginPage extends StatefulWidget {
@@ -222,6 +221,7 @@ class _LoginPageState extends State<LoginPage> {
                               _obscurePassword
                                   ? PhosphorIcons.eye()
                                   : PhosphorIcons.eyeSlash(),
+                              color: DsCores.visualizacao.accent,
                             ),
                           ),
                         ),
@@ -244,7 +244,7 @@ class _LoginPageState extends State<LoginPage> {
                                     child: Text(
                                       'Recuperar e-mail',
                                       style: GoogleFonts.inter(
-                                        color: Colors.white.withValues(alpha: 0.7),
+                                        color: DsCores.seguranca.accent,
                                         fontWeight: FontWeight.w700,
                                         fontSize: 13,
                                       ),
@@ -259,7 +259,7 @@ class _LoginPageState extends State<LoginPage> {
                                     child: Text(
                                       'Recuperar senha',
                                       style: GoogleFonts.inter(
-                                        color: Colors.white.withValues(alpha: 0.7),
+                                        color: DsCores.seguranca.accent,
                                         fontWeight: FontWeight.w700,
                                         fontSize: 13,
                                       ),
@@ -282,7 +282,7 @@ class _LoginPageState extends State<LoginPage> {
                                     child: Text(
                                       'Recuperar e-mail',
                                       style: GoogleFonts.inter(
-                                        color: Colors.white.withValues(alpha: 0.7),
+                                        color: DsCores.seguranca.accent,
                                         fontWeight: FontWeight.w700,
                                         fontSize: 13,
                                       ),
@@ -301,7 +301,7 @@ class _LoginPageState extends State<LoginPage> {
                                     child: Text(
                                       'Recuperar senha',
                                       style: GoogleFonts.inter(
-                                        color: Colors.white.withValues(alpha: 0.7),
+                                        color: DsCores.seguranca.accent,
                                         fontWeight: FontWeight.w700,
                                         fontSize: 13,
                                       ),
@@ -315,19 +315,22 @@ class _LoginPageState extends State<LoginPage> {
                         const SizedBox(height: 24),
 
                         // Botão de ação principal (Entrar)
-                        PremiumButton(
-                          text: 'Entrar',
+                        DsBotao(
+                          label: 'Entrar',
                           onPressed: _handleLogin,
                           isLoading: _isLoading,
                           icon: PhosphorIcons.signIn(),
+                          variante: DsBotaoVariante.acao,
+                          token: DsCores.sucesso,
                         ),
                         const SizedBox(height: 16),
 
                         // Botão para novos usuários (Outlined)
-                        PremiumButton(
-                          text: 'Criar conta',
+                        DsBotao(
+                          label: 'Criar conta',
                           onPressed: () => context.push('/register'),
-                          variant: PremiumButtonVariant.outline,
+                          variante: DsBotaoVariante.acao,
+                          token: DsCores.conta,
                           icon: PhosphorIcons.userPlus(),
                         ),
                         const SizedBox(height: 32),
@@ -336,27 +339,20 @@ class _LoginPageState extends State<LoginPage> {
                         Container(
                           padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                const Color(0xFF1B3D71).withValues(alpha: 0.1),
-                                const Color(0xFF1B3D71).withValues(alpha: 0.05),
-                              ],
-                            ),
+                            color: DsCores.dependente.softBackground,
                             borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                            border: Border.all(color: DsCores.dependente.border),
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.info_outline_rounded, color: Color(0xFF7C3AED), size: 28), 
+                              Icon(PhosphorIcons.info(), color: DsCores.dependente.accent, size: 28),
                               const SizedBox(width: 16),
                               Expanded(
                                 child: Text(
                                   'Responsáveis podem acessar e alternar entre membros vinculados à conta.',
                                   style: GoogleFonts.inter(
                                     fontSize: 14,
-                                    color: AppColors.textSecondary.withValues(alpha: 0.8),
+                                    color: DsCores.textSecondary,
                                     height: 1.5,
                                     fontWeight: FontWeight.w600,
                                   ),
@@ -377,14 +373,14 @@ class _LoginPageState extends State<LoginPage> {
                             children: [
                               Icon(
                                 PhosphorIcons.shieldCheck(PhosphorIconsStyle.fill),
-                                color: AppColors.cyan.withValues(alpha: 0.5),
+                                color: DsCores.seguranca.accent.withValues(alpha: 0.70),
                                 size: 16,
                               ),
                               Text(
                                 'Ambiente seguro. Dados protegidos.',
                                 textAlign: TextAlign.center,
                                 style: GoogleFonts.inter(
-                                  color: AppColors.textSecondary.withValues(alpha: 0.5),
+                                  color: DsCores.textMuted,
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,
                                 ),
