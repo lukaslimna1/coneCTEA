@@ -4,7 +4,7 @@ import 'package:conectea/core/constants/colors.dart';
 
 import 'package:conectea/models/app_user.dart';
 import 'package:conectea/core/widgets/premium/premium_qr_button.dart';
-import 'package:conectea/core/widgets/premium/conectea_role_badge.dart';
+import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 
 class HomeGreetingHeader extends StatelessWidget {
   final String displayName;
@@ -77,7 +77,7 @@ class HomeGreetingHeader extends StatelessWidget {
       triggerMode: TooltipTriggerMode.tap,
       child: Semantics(
         label: _getRoleTooltip(),
-        child: ConecteaRoleBadge.compact(role: role!),
+        child: DsSeloCargo.compacto(role: role!),
       ),
     );
   }

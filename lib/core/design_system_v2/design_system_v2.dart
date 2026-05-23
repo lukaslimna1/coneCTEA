@@ -28,3 +28,4 @@ export 'componentes/ds_status_dialog.dart';
 // Padrões
 export 'padroes/ds_card_hub.dart';
 export 'padroes/ds_selo_status.dart';
+export 'padroes/ds_selo_cargo.dart';
