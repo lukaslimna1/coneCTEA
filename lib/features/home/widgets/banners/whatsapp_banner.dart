@@ -56,7 +56,7 @@ class WhatsAppBanner extends StatelessWidget {
         ],
         ctaColor: const Color(0xFF25D366).withValues(alpha: 0.2),
         ctaTextColor: const Color(0xFF69F0AE),
-        illustrationAssetPath: 'assets/images/whatsapp_banner_art.png',
+        illustrationAssetPath: 'assets/images/whatsapp_banner_art.webp',
         illustrationWidthFactor: 0.60,
         illustrationRightOffset: -32,
         illustrationOpacity: 0.45, // Ajuste para 0.40 a 0.50

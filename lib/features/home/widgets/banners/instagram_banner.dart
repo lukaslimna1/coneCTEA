@@ -55,7 +55,7 @@ class InstagramBanner extends StatelessWidget {
         ],
         ctaColor: const Color(0xFFE1306C).withValues(alpha: 0.2),
         ctaTextColor: const Color(0xFFFFC0B3),
-        illustrationAssetPath: 'assets/images/instagram_banner_art.png',
+        illustrationAssetPath: 'assets/images/instagram_banner_art.webp',
         illustrationWidthFactor: 0.75, // Bem maior para avançar nas bordas
         illustrationRightOffset: -60, // Empurrado bem para a direita para respirar e cortar o lado direito
         illustrationOpacity: 0.35, // Ainda mais discreto

@@ -56,7 +56,7 @@ class VoluntariadoBanner extends StatelessWidget {
         ],
         ctaColor: const Color(0xFFFF5E7E).withValues(alpha: 0.2),
         ctaTextColor: const Color(0xFFFFB199),
-        illustrationAssetPath: 'assets/images/voluntariado_banner_art.png',
+        illustrationAssetPath: 'assets/images/voluntariado_banner_art.webp',
         illustrationWidthFactor: 0.60,
         illustrationRightOffset: -32,
         illustrationOpacity: 0.48, // Ajuste para 0.45 a 0.52

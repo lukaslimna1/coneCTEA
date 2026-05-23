@@ -30,7 +30,7 @@ class SiteBanner extends StatelessWidget {
         ],
         ctaColor: const Color(0xFF00C6FF).withValues(alpha: 0.2),
         ctaTextColor: const Color(0xFF80D8FF),
-        illustrationAssetPath: 'assets/images/site_banner_art.png',
+        illustrationAssetPath: 'assets/images/site_banner_art.webp',
         illustrationWidthFactor: 0.60,
         illustrationRightOffset: -40,
         illustrationOpacity: 0.40, // Ajuste para 0.36 a 0.46
