@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:conectea/models/card_request.dart';
-import 'package:conectea/core/theme/status_visual_tokens.dart';
+import 'package:conectea/core/design_system_v2/tokens/ds_tokens_status.dart';
 import 'package:conectea/core/utils/conectea_date_time_helper.dart';
 
 /// Classe que encapsula todas as informações visuais de um status na HomeView.
@@ -67,7 +67,7 @@ class HomeStatusHelper {
       memberStatus: rawStatus,
       memberRequest: memberRequest,
     );
-    final tokens = StatusVisualTokens.fromStatus(status);
+    final tokens = DsTokenStatus.fromStatus(status);
 
     return HomeStatusInfo(
       shortLabel: tokens.label,
@@ -91,7 +91,7 @@ class HomeStatusHelper {
       memberRequest: memberRequest,
     );
     final effectiveStatus = isExpired ? 'expired' : status;
-    final tokens = StatusVisualTokens.fromStatus(effectiveStatus);
+    final tokens = DsTokenStatus.fromStatus(effectiveStatus);
 
     String? deadlineTitle;
     String? deadlineMessage;

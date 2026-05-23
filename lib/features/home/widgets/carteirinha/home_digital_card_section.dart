@@ -7,10 +7,10 @@ import 'package:conectea/core/widgets/premium/status_action_button.dart';
 import 'package:conectea/models/member.dart';
 import 'package:conectea/models/card_request.dart';
 import 'package:conectea/models/digital_card.dart';
-import 'package:conectea/core/widgets/premium/premium_card.dart';
+import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 import 'package:conectea/features/cards/widgets/carteirinha_digital/digital_card_widget.dart';
 import 'package:conectea/features/home/utils/home_status_helper.dart';
-import 'package:conectea/core/widgets/premium/premium_status_dialog.dart';
+
 
 class HomeDigitalCardSection extends StatelessWidget {
   final List<Member> members;
@@ -41,7 +41,7 @@ class HomeDigitalCardSection extends StatelessWidget {
     if (members.isEmpty) {
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: PremiumCard(
+        child: DsCard(
           padding: const EdgeInsets.all(24),
           margin: EdgeInsets.zero,
           child: Column(
@@ -71,34 +71,12 @@ class HomeDigitalCardSection extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: onRequestCard,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.add_circle_outline_rounded, size: 20),
-                      const SizedBox(width: 10),
-                      Text(
-                        'Solicitar Carteirinha',
-                        style: GoogleFonts.inter(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 15,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              DsBotao(
+                label: 'Solicitar Carteirinha',
+                onPressed: onRequestCard,
+                variante: DsBotaoVariante.acao,
+                token: DsCores.solicitacao,
+                icon: Icons.add_circle_outline_rounded,
               ),
             ],
           ),
@@ -143,7 +121,6 @@ class HomeDigitalCardSection extends StatelessWidget {
     );
     final effectiveStatus = isExpired ? 'expired' : rawStatus;
 
-    final String statusDisplay = statusInfo.fullLabel;
     final Color statusColor = statusInfo.color;
     final bool isActive = statusInfo.isActive;
 
@@ -277,48 +254,10 @@ class HomeDigitalCardSection extends StatelessWidget {
                               ),
                               // Selo de Status Centralizado (Horizontal Pill)
                               if (!isActive)
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(20),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 8,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.black.withValues(alpha: 0.85),
-                                      borderRadius: BorderRadius.circular(20),
-                                      border: Border.all(
-                                        color: statusColor.withValues(alpha: 0.5),
-                                        width: 1.5,
-                                      ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: statusColor.withValues(alpha: 0.25),
-                                          blurRadius: 12,
-                                        ),
-                                      ],
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(
-                                          statusInfo.icon,
-                                          size: 16,
-                                          color: statusColor,
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          statusDisplay.toUpperCase(),
-                                          style: GoogleFonts.inter(
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.w900,
-                                            color: statusColor,
-                                            letterSpacing: 1.0,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+                                DsSeloStatus(
+                                  status: effectiveStatus,
+                                  shortLabel: false,
+                                  uppercase: true,
                                 ),
                             ],
                           ),
@@ -517,7 +456,7 @@ class HomeDigitalCardSection extends StatelessWidget {
     HomeStatusInfo statusInfo,
     String notes,
   ) {
-    PremiumStatusDialog.show(
+    DsStatusDialog.show(
       context,
       statusInfo: statusInfo,
       notes: notes,
