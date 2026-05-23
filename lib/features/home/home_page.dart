@@ -162,7 +162,10 @@ class _HomePageState extends State<HomePage> {
   Widget _getCurrentPage() {
     switch (_currentIndex) {
       case 0:
-        return HomeView(onNavigate: (index) => setState(() => _currentIndex = index));
+        return HomeView(
+          user: _user,
+          onNavigate: (index) => setState(() => _currentIndex = index),
+        );
       case 1:
         return const CardsView();
       case 2:
@@ -176,7 +179,10 @@ class _HomePageState extends State<HomePage> {
       case 6:
         return const PartnersSupportersView(isTab: true);
       default:
-        return HomeView(onNavigate: (index) => setState(() => _currentIndex = index));
+        return HomeView(
+          user: _user,
+          onNavigate: (index) => setState(() => _currentIndex = index),
+        );
     }
   }
 

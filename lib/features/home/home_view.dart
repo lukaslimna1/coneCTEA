@@ -26,9 +26,14 @@ import 'package:conectea/features/requests/add_member_page.dart';
 import 'package:conectea/features/home/widgets/dinamico/home_dynamic_content.dart';
 
 class HomeView extends StatefulWidget {
+  final AppUser? user;
   final Function(int) onNavigate;
 
-  const HomeView({super.key, required this.onNavigate});
+  const HomeView({
+    super.key,
+    this.user,
+    required this.onNavigate,
+  });
 
   @override
   State<HomeView> createState() => _HomeViewState();
@@ -60,7 +65,18 @@ class _HomeViewState extends State<HomeView> {
   @override
   void initState() {
     super.initState();
+    _user = widget.user;
     _loadData();
+  }
+
+  @override
+  void didUpdateWidget(covariant HomeView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.user != oldWidget.user) {
+      setState(() {
+        _user = widget.user;
+      });
+    }
   }
 
   Future<void> _loadData() async {
@@ -70,7 +86,7 @@ class _HomeViewState extends State<HomeView> {
     try {
       final userId = _authService.currentUser?.id;
       if (userId != null) {
-        var user = await _databaseService.getUserProfile(userId);
+        var user = widget.user;
 
         if (user == null) {
           final email = _authService.currentUser?.email ?? '';
