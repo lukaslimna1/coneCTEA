@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'package:conectea/features/home/widgets/informacoes/info_action_card.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
+import 'package:conectea/features/home/widgets/informacoes/info_action_card.dart';
 
-/// Card específico para a tela Sobre o App.
-class SobreAppCard extends StatelessWidget {
+/// Card específico para conhecer Projetos e Ações.
+class ProjetosAcoesCard extends StatelessWidget {
   final double width;
   final VoidCallback onTap;
 
-  const SobreAppCard({
+  const ProjetosAcoesCard({
     super.key,
     required this.width,
     required this.onTap,
@@ -18,9 +18,9 @@ class SobreAppCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return InfoActionCard(
       width: width,
-      icon: PhosphorIcons.info(PhosphorIconsStyle.fill),
-      title: 'Sobre o ConeCTEA',
-      subtitle: 'Entenda o aplicativo.',
+      icon: PhosphorIcons.star(PhosphorIconsStyle.fill), // Icone coerente
+      title: 'Projetos e Ações',
+      subtitle: 'Conheça as iniciativas.',
       accentColor: DsCores.institucional.accent,
       onTap: onTap,
     );

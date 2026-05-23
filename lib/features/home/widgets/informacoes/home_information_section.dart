@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:conectea/features/home/widgets/comum/home_horizontal_section.dart';
 import 'package:conectea/features/home/widgets/informacoes/sobre_app_card.dart';
 import 'package:conectea/features/home/widgets/informacoes/familia_tea_card.dart';
+import 'package:conectea/features/home/widgets/informacoes/projetos_acoes_card.dart';
 
 /// Seção de "Informações" e suporte do dashboard.
 /// Modulariza o antigo '_buildBlock3' da HomeView.
@@ -10,6 +11,7 @@ class HomeInformationSection extends StatelessWidget {
   final VoidCallback onAboutTap;
   final VoidCallback onSecurityTap;
   final VoidCallback onFamilyTeaTap;
+  final VoidCallback onProjectsActionsTap;
 
   const HomeInformationSection({
     super.key,
@@ -17,6 +19,7 @@ class HomeInformationSection extends StatelessWidget {
     required this.onAboutTap,
     required this.onSecurityTap,
     required this.onFamilyTeaTap,
+    required this.onProjectsActionsTap,
   });
 
   @override
@@ -36,6 +39,10 @@ class HomeInformationSection extends StatelessWidget {
         FamiliaTeaCard(
           width: cardWidth,
           onTap: onFamilyTeaTap,
+        ),
+        ProjetosAcoesCard(
+          width: cardWidth,
+          onTap: onProjectsActionsTap,
         ),
       ],
     );
