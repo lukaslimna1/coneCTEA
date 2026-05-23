@@ -70,9 +70,8 @@ class HomeDynamicContent extends StatelessWidget {
         ),
         const SizedBox(height: 40),
         HomeQuickAccessSection(
-          onOpenDigitalCard: onOpenDigitalCard,
           onRequestCard: onRequestCard,
-          onOpenMural: onOpenMural,
+          onSupportTap: onSupportTap,
         ),
       ],
     );

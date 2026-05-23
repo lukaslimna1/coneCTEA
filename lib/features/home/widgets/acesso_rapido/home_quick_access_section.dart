@@ -1,21 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:conectea/features/home/widgets/comum/home_horizontal_section.dart';
-import 'package:conectea/features/home/widgets/acesso_rapido/ver_carteirinha_card.dart';
 import 'package:conectea/features/home/widgets/acesso_rapido/solicitar_carteirinha_card.dart';
-import 'package:conectea/features/home/widgets/acesso_rapido/mural_card.dart';
+import 'package:conectea/features/home/widgets/informacoes/suporte_card.dart';
+import 'package:conectea/features/home/widgets/informacoes/seguranca_card.dart';
+import 'package:conectea/features/account/security/security_view.dart';
 
 /// Seção de "Acesso Rápido" do dashboard.
 /// Modulariza o antigo '_buildBlock1' da HomeView.
 class HomeQuickAccessSection extends StatelessWidget {
-  final VoidCallback onOpenDigitalCard;
   final VoidCallback onRequestCard;
-  final VoidCallback onOpenMural;
+  final VoidCallback onSupportTap;
 
   const HomeQuickAccessSection({
     super.key,
-    required this.onOpenDigitalCard,
     required this.onRequestCard,
-    required this.onOpenMural,
+    required this.onSupportTap,
   });
 
   @override
@@ -27,17 +26,20 @@ class HomeQuickAccessSection extends StatelessWidget {
       title: 'Acesso Rápido',
       height: 148,
       items: [
-        VerCarteirinhaCard(
-          width: cardWidth,
-          onTap: onOpenDigitalCard,
-        ),
         SolicitarCarteirinhaCard(
           width: cardWidth,
           onTap: onRequestCard,
         ),
-        MuralCard(
+        SegurancaCard(
           width: cardWidth,
-          onTap: onOpenMural,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const SecurityView()),
+          ),
+        ),
+        SuporteCard(
+          width: cardWidth,
+          onTap: onSupportTap,
         ),
       ],
     );

@@ -250,7 +250,7 @@ class EmBreveServiceCard extends StatelessWidget {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                'Novas ferramentas\nchegando para você.',
+                                'Recursos, programas e novidades\nchegando para você.',
                                 style: TextStyle(
                                   color: Colors.white.withValues(alpha: 0.55),
                                   fontSize: 13,

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:conectea/features/home/widgets/comum/home_horizontal_section.dart';
-import 'package:conectea/features/home/widgets/informacoes/suporte_card.dart';
 import 'package:conectea/features/home/widgets/informacoes/sobre_app_card.dart';
-import 'package:conectea/features/home/widgets/informacoes/seguranca_card.dart';
 import 'package:conectea/features/home/widgets/informacoes/familia_tea_card.dart';
 
 /// Seção de "Informações" e suporte do dashboard.
@@ -31,17 +29,9 @@ class HomeInformationSection extends StatelessWidget {
       height: 80,
       titleSpacing: 10,
       items: [
-        SuporteCard(
-          width: cardWidth,
-          onTap: onSupportTap,
-        ),
         SobreAppCard(
           width: cardWidth,
           onTap: onAboutTap,
-        ),
-        SegurancaCard(
-          width: cardWidth,
-          onTap: onSecurityTap,
         ),
         FamiliaTeaCard(
           width: cardWidth,
