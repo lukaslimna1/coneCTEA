@@ -1,15 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// Banner institucional premium com design Night Blue e efeitos de brilho.
+import 'package:conectea/core/design_system_v2/design_system_v2.dart';
+
+class BannerTheme {
+  final List<Color> backgroundColors;
+  final List<Color> primaryGlowColors;
+  final List<Color> secondaryGlowColors;
+  final Widget customIllustration;
+  final String? illustrationAssetPath;
+  final Color ctaColor;
+  final Color ctaTextColor;
+
+  const BannerTheme({
+    required this.backgroundColors,
+    required this.primaryGlowColors,
+    required this.secondaryGlowColors,
+    required this.customIllustration,
+    this.illustrationAssetPath,
+    required this.ctaColor,
+    required this.ctaTextColor,
+  });
+}
+
+/// Banner institucional premium com design rico em glow, profundidade e ilustrações customizadas.
 class HighlightBanner extends StatelessWidget {
   final String eyebrow;
   final String title;
   final String subtitle;
   final String ctaLabel;
   final VoidCallback onTap;
-  final Color eyebrowColor;
-  final IconData? illustration;
+  final DsCorVisual semanticToken;
+  final BannerTheme theme;
 
   const HighlightBanner({
     super.key,
@@ -18,37 +40,32 @@ class HighlightBanner extends StatelessWidget {
     required this.subtitle,
     required this.ctaLabel,
     required this.onTap,
-    this.eyebrowColor = const Color(0xFFA855F7),
-    this.illustration,
+    required this.semanticToken,
+    required this.theme,
   });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.only(right: 16),
       child: Container(
-        width: double.infinity,
-        constraints: const BoxConstraints(minHeight: 152),
+        constraints: const BoxConstraints(minHeight: 180),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
-          gradient: const LinearGradient(
+          gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF1B235A),
-              Color(0xFF132D55),
-              Color(0xFF0A3A57),
-            ],
+            colors: theme.backgroundColors,
           ),
           border: Border.all(
-            color: Colors.white.withValues(alpha: 0.08),
+            color: Colors.white.withValues(alpha: 0.1),
             width: 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.3),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
+              color: Colors.black.withValues(alpha: 0.4),
+              blurRadius: 24,
+              offset: const Offset(0, 12),
             ),
           ],
         ),
@@ -56,107 +73,153 @@ class HighlightBanner extends StatelessWidget {
           borderRadius: BorderRadius.circular(24),
           child: Stack(
             children: [
-              // Brilho decorativo
+              // Brilho decorativo dinâmico primário
               Positioned(
-                right: -30,
-                top: -30,
+                right: -60,
+                top: -60,
                 child: Container(
-                  width: 150,
-                  height: 150,
+                  width: 250,
+                  height: 250,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
-                      colors: [
-                        const Color(0xFF22D3EE).withValues(alpha: 0.1),
-                        const Color(0xFF22D3EE).withValues(alpha: 0),
-                      ],
+                      colors: theme.primaryGlowColors,
                     ),
                   ),
                 ),
               ),
-              // Illustration decorativa sutil
-              if (illustration != null)
-                Positioned(
-                  right: -15,
-                  bottom: -15,
-                  child: Icon(
-                    illustration,
-                    size: 140,
-                    color: Colors.white.withValues(alpha: 0.04),
+              // Brilho decorativo dinâmico secundário
+              Positioned(
+                left: -40,
+                bottom: -40,
+                child: Container(
+                  width: 180,
+                  height: 180,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: theme.secondaryGlowColors,
+                    ),
                   ),
                 ),
-              // Conteúdo interativo
-              Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: onTap,
-                  borderRadius: BorderRadius.circular(24),
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.stars_rounded,
-                              size: 14,
-                              color: eyebrowColor,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              eyebrow.toUpperCase(),
-                              style: GoogleFonts.inter(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w800,
-                                color: eyebrowColor,
-                                letterSpacing: 1.2,
-                              ),
-                            ),
-                          ],
+              ),
+              // Illustration decorativa robusta em Flutter puro ou asset futuro
+              if (theme.illustrationAssetPath != null)
+                Positioned(
+                  right: -40,
+                  bottom: -20,
+                  top: 20,
+                  child: Opacity(
+                    opacity: 0.32,
+                    child: Image.asset(
+                      theme.illustrationAssetPath!,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                )
+              else
+                theme.customIllustration,
+              // Camada de proteção de leitura sutil à esquerda
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.black.withValues(alpha: 0.45),
+                        Colors.transparent,
+                      ],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                      stops: const [0.0, 0.55],
+                    ),
+                  ),
+                ),
+              ),
+              // Conteúdo textual
+              Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    DsSelo.fromCorVisual(
+                      label: eyebrow,
+                      token: semanticToken,
+                      compact: true,
+                    ),
+                    const SizedBox(height: 14),
+                    Text(
+                      title,
+                      style: GoogleFonts.inter(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                        letterSpacing: -0.5,
+                        height: 1.1,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.58,
+                      child: Text(
+                        subtitle,
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: const Color(0xFFD6E1F0),
+                          height: 1.3,
                         ),
-                        const SizedBox(height: 10),
-                        Text(
-                          title,
-                          style: GoogleFonts.inter(
-                            fontSize: 19,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white,
-                            letterSpacing: -0.5,
-                            height: 1.1,
-                          ),
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const Spacer(),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: theme.ctaColor,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.2),
                         ),
-                        const SizedBox(height: 8),
-                        SizedBox(
-                          width: MediaQuery.of(context).size.width * 0.6,
-                          child: Text(
-                            subtitle,
+                        boxShadow: [
+                           BoxShadow(
+                             color: theme.ctaColor.withValues(alpha: 0.5),
+                             blurRadius: 10,
+                             offset: const Offset(0, 4),
+                           ),
+                        ]
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            ctaLabel,
                             style: GoogleFonts.inter(
                               fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                              color: const Color(0xFFD6E1F0),
-                              height: 1.3,
+                              fontWeight: FontWeight.w700,
+                              color: theme.ctaTextColor,
                             ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
                           ),
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Text(
-                              '$ctaLabel →',
-                              style: GoogleFonts.inter(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w800,
-                                color: const Color(0xFF22D3EE),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                          const SizedBox(width: 4),
+                          Icon(
+                            Icons.arrow_forward_rounded,
+                            size: 14,
+                            color: theme.ctaTextColor,
+                          ),
+                        ],
+                      ),
                     ),
+                  ],
+                ),
+              ),
+              // Camada clicável em todo o container
+              Positioned.fill(
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: onTap,
+                    borderRadius: BorderRadius.circular(24),
                   ),
                 ),
               ),

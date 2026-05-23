@@ -8,7 +8,7 @@ import 'package:conectea/models/app_user.dart';
 import 'package:conectea/models/member.dart';
 import 'package:conectea/models/card_request.dart';
 import 'package:conectea/models/digital_card.dart';
-import 'package:url_launcher/url_launcher.dart';
+
 import 'package:url_launcher/url_launcher_string.dart';
 
 import 'package:conectea/features/account/profile/edit_profile_view.dart';
@@ -18,7 +18,7 @@ import 'package:conectea/features/account/institutional/family_tea_view.dart';
 import 'package:conectea/features/account/institutional/projects_actions_view.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 
-import 'package:conectea/features/home/widgets/banners/highlight_banner.dart';
+import 'package:conectea/features/home/widgets/banners/home_banners_section.dart';
 import 'package:conectea/features/home/widgets/novidades/home_services_section.dart';
 import 'package:conectea/features/home/widgets/informacoes/home_information_section.dart';
 
@@ -435,36 +435,7 @@ class _HomeViewState extends State<HomeView> {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    HighlightBanner(
-                      eyebrow: 'Família TEA Bauru',
-                      title: 'Acompanhe novidades e projetos',
-                      subtitle:
-                          'Conheça projetos, ações e atualizações da Família TEA Bauru.',
-                      ctaLabel: 'Ver Instagram',
-                      eyebrowColor: const Color(0xFFA855F7),
-                      illustration: Icons.volunteer_activism_rounded,
-                      onTap: () async {
-                        final Uri instagramUri = Uri.parse(
-                          "https://www.instagram.com/familiateabauru/",
-                        );
-                        try {
-                          await launchUrl(
-                            instagramUri,
-                            mode: LaunchMode.externalApplication,
-                          );
-                        } catch (e) {
-                          if (!context.mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Não foi possível abrir o Instagram agora. Tente novamente em instantes.',
-                              ),
-                              backgroundColor: AppColors.alertOrange,
-                            ),
-                          );
-                        }
-                      },
-                    ),
+                    const HomeBannersSection(),
                     const SizedBox(height: 40),
                   ],
                 ),
