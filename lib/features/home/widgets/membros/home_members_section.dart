@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../core/widgets/premium/conectea_avatar.dart';
+import '../../../../core/design_system_v2/design_system_v2.dart';
 import 'package:conectea/core/constants/colors.dart';
 import 'package:conectea/models/member.dart';
 import 'package:conectea/models/card_request.dart';
@@ -89,7 +89,7 @@ class HomeMembersSection extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      ConecteaAvatar(
+                      DsAvatar(
                         initials: initials,
                         size: 34,
                         isInactive: !isSelected,
