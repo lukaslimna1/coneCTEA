@@ -4,11 +4,24 @@ import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 /// Tela interna informativa: Parceiros e apoiadores.
+///
+/// Adaptado para funcionar também como aba rolável ("Clube") na DS V2 via flag [isTab].
 class PartnersSupportersView extends StatelessWidget {
-  const PartnersSupportersView({super.key});
+  /// Se a tela está sendo exibida como aba da navbar principal.
+  final bool isTab;
+
+  const PartnersSupportersView({
+    super.key,
+    this.isTab = false,
+  });
 
   @override
   Widget build(BuildContext context) {
+    // Se estiver sendo exibida como aba, omitimos Scaffold, AppBackground e botões de fechamento.
+    if (isTab) {
+      return _buildTabContent(context);
+    }
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
@@ -66,7 +79,7 @@ class PartnersSupportersView extends StatelessWidget {
                             ),
                             const SizedBox(height: 12),
                             Text(
-                              'Esta área reunirá profissionais, clínicas, empresas e apoiadores que colaboram com ações, descontos, condições especiais ou apoio à comunidade, conforme regras de cada parceiro.',
+                              'Esta área reunirá profissionais, clínicas, empresas e apoiadores que colaboram com ações, descontos, conditions especiais ou apoio à comunidade, conforme regras de cada parceiro.',
                               style: DsTipografia.body.copyWith(
                                 color: DsCores.textSecondary,
                                 height: 1.5,
@@ -101,6 +114,71 @@ class PartnersSupportersView extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  /// Conteúdo adaptado para exibição como aba.
+  Widget _buildTabContent(BuildContext context) {
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      // Espaçamento confortável de topo para a header do app e base para a navbar flutuante
+      padding: const EdgeInsets.fromLTRB(24, 110, 24, 120),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Parceiros e apoiadores',
+            style: DsTipografia.pageTitle.copyWith(color: DsCores.textPrimary),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Conheça a rede de apoio comunitária ligada ao ConeCTEA.',
+            style: DsTipografia.pageSubtitle.copyWith(color: DsCores.textSecondary),
+          ),
+          const SizedBox(height: 32),
+
+          // Bloco informativo inicial
+          DsCard(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Row(
+                  children: [
+                    DsMolduraIcone(
+                      icon: PhosphorIconsRegular.handshake,
+                      accentColor: Color(0xFFA78BFA), // token institucional accent
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Rede de apoio',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: DsCores.textPrimary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Esta área reunirá profissionais, clínicas, empresas e apoiadores que colaboram com ações, descontos, condições especiais ou apoio à comunidade, conforme regras de cada parceiro.',
+                  style: DsTipografia.body.copyWith(
+                    color: DsCores.textSecondary,
+                    height: 1.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Bloco de cuidado/Importante
+          _buildWarningCard(context),
+        ],
       ),
     );
   }

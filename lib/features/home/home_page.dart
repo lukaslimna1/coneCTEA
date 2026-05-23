@@ -4,7 +4,6 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../core/widgets/premium/app_top_header.dart';
 import '../../core/widgets/premium/app_background.dart';
-import '../../core/widgets/premium/premium_bottom_nav_bar.dart';
 import '../../services/auth_service.dart';
 import '../../services/database_service.dart';
 import '../../models/app_user.dart';
@@ -16,6 +15,8 @@ import '../requests/requests_view.dart';
 import '../notifications/notifications_view.dart';
 import '../account/account_view.dart';
 import '../admin/admin_view.dart';
+import '../account/institutional/partners_supporters_view.dart';
+import '../../core/design_system_v2/design_system_v2.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -108,40 +109,51 @@ class _HomePageState extends State<HomePage> {
           child: _getCurrentPage(),
         ),
       ),
-      bottomNavigationBar: PremiumBottomNavBar(
+      bottomNavigationBar: DsBottomNavBar(
         currentIndex: _getNavIndex(),
         onTap: (index) {
           setState(() => _currentIndex = _getPageIndex(index));
         },
         items: [
-          PremiumNavItem(
+          DsBottomNavItem(
             activeIcon: PhosphorIcons.house(PhosphorIconsStyle.fill),
             inactiveIcon: PhosphorIcons.house(),
             label: 'Início',
+            token: DsCores.comunicacao,
           ),
-          PremiumNavItem(
+          DsBottomNavItem(
             activeIcon: PhosphorIcons.identificationCard(
               PhosphorIconsStyle.fill,
             ),
             inactiveIcon: PhosphorIcons.identificationCard(),
             label: 'Carteirinha',
+            token: DsCores.carteirinha,
           ),
-          PremiumNavItem(
+          DsBottomNavItem(
+            activeIcon: PhosphorIcons.handshake(PhosphorIconsStyle.fill),
+            inactiveIcon: PhosphorIcons.handshake(),
+            label: 'Clube',
+            token: DsCores.suporte,
+          ),
+          DsBottomNavItem(
             activeIcon: PhosphorIcons.fileText(PhosphorIconsStyle.fill),
             inactiveIcon: PhosphorIcons.fileText(),
             label: 'Solicitações',
+            token: DsCores.solicitacao,
           ),
-          if (_user?.role.isAdmin ?? false)
-            PremiumNavItem(
-              activeIcon: PhosphorIcons.bank(PhosphorIconsStyle.fill),
-              inactiveIcon: PhosphorIcons.bank(),
-              label: 'Gestão',
-            ),
-          PremiumNavItem(
+          DsBottomNavItem(
             activeIcon: PhosphorIcons.user(PhosphorIconsStyle.fill),
             inactiveIcon: PhosphorIcons.user(),
             label: 'Conta',
+            token: DsCores.conta,
           ),
+          if (_user?.role.isAdmin ?? false)
+            DsBottomNavItem(
+              activeIcon: PhosphorIcons.bank(PhosphorIconsStyle.fill),
+              inactiveIcon: PhosphorIcons.bank(),
+              label: 'Gestão',
+              token: DsCores.admin,
+            ),
         ],
       ),
     );
@@ -161,6 +173,8 @@ class _HomePageState extends State<HomePage> {
         return AccountView(user: _user);
       case 5:
         return const AdminView();
+      case 6:
+        return const PartnersSupportersView(isTab: true);
       default:
         return HomeView(onNavigate: (index) => setState(() => _currentIndex = index));
     }
@@ -168,29 +182,25 @@ class _HomePageState extends State<HomePage> {
 
   int _getNavIndex() {
     final isAdmin = _user?.role.isAdmin ?? false;
-    if (_currentIndex == 0) return 0;
-    if (_currentIndex == 1) return 1;
-    if (_currentIndex == 2) return 2;
+    if (_currentIndex == 0) return 0; // Início
+    if (_currentIndex == 1) return 1; // Cartão
+    if (_currentIndex == 6) return 2; // Clube
+    if (_currentIndex == 2) return 3; // Pedido
+    if (_currentIndex == 4) return 4; // Conta
     if (_currentIndex == 5 && isAdmin) {
-      return 3; // AdminView is 4th item if admin
+      return 5; // Gestão
     }
-    if (_currentIndex == 4) {
-      return isAdmin ? 4 : 3; // AccountView is 5th if admin, else 4th
-    }
-    return 0; // Default to home for notifications (3) or others
+    return 0; // Default para notificações (3) or outros
   }
 
   int _getPageIndex(int navIndex) {
     final isAdmin = _user?.role.isAdmin ?? false;
-    if (navIndex == 0) return 0;
-    if (navIndex == 1) return 1;
-    if (navIndex == 2) return 2;
-    if (isAdmin) {
-      if (navIndex == 3) return 5; // Gestão
-      if (navIndex == 4) return 4; // Conta
-    } else {
-      if (navIndex == 3) return 4; // Conta
-    }
+    if (navIndex == 0) return 0; // Início
+    if (navIndex == 1) return 1; // Cartão
+    if (navIndex == 2) return 6; // Clube
+    if (navIndex == 3) return 2; // Pedido
+    if (navIndex == 4) return 4; // Conta
+    if (navIndex == 5 && isAdmin) return 5; // Gestão
     return 0;
   }
 }

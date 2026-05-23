@@ -21,6 +21,7 @@ export 'componentes/ds_selo.dart';
 export 'componentes/ds_switch.dart';
 export 'componentes/ds_checkbox.dart';
 export 'componentes/ds_avatar.dart';
+export 'componentes/ds_bottom_nav_bar.dart';
 
 // Padrões
 export 'padroes/ds_card_hub.dart';
