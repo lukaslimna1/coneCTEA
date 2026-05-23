@@ -25,6 +25,7 @@ import 'package:conectea/features/home/widgets/informacoes/home_information_sect
 import 'package:conectea/features/home/widgets/header/home_greeting_header.dart';
 import 'package:conectea/features/requests/add_member_page.dart';
 import 'package:conectea/features/home/widgets/dinamico/home_dynamic_content.dart';
+import 'package:conectea/features/home/widgets/acesso_rapido/home_quick_access_section.dart';
 
 class HomeView extends StatefulWidget {
   final AppUser? user;
@@ -402,6 +403,12 @@ class _HomeViewState extends State<HomeView> {
                           },
                         );
                       },
+                    ),
+
+                    const SizedBox(height: 40),
+                    HomeQuickAccessSection(
+                      onRequestCard: _handleRequestCard,
+                      onSupportTap: _handleSupportTap,
                     ),
 
                     const SizedBox(height: 24),

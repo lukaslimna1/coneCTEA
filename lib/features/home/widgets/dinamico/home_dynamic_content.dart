@@ -5,7 +5,6 @@ import 'package:conectea/models/digital_card.dart';
 
 import 'package:conectea/features/home/widgets/membros/home_members_section.dart';
 import 'package:conectea/features/home/widgets/carteirinha/home_digital_card_section.dart';
-import 'package:conectea/features/home/widgets/acesso_rapido/home_quick_access_section.dart';
 
 class HomeDynamicContent extends StatelessWidget {
   final List<Member> members;
@@ -66,11 +65,6 @@ class HomeDynamicContent extends StatelessWidget {
           onOpenDigitalCard: onOpenDigitalCard,
           onEditPendingRequest: onEditPendingRequest,
           onRequestRenewal: onRequestRenewal,
-          onSupportTap: onSupportTap,
-        ),
-        const SizedBox(height: 40),
-        HomeQuickAccessSection(
-          onRequestCard: onRequestCard,
           onSupportTap: onSupportTap,
         ),
       ],
