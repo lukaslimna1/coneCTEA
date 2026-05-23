@@ -68,7 +68,7 @@ class _LoginPageState extends State<LoginPage> {
         final profile = await _databaseService.getUserProfile(response.user!.id);
         if (profile != null) {
           if (!mounted) return;
-          
+
           if (profile.role.isAdmin) {
             context.go('/home');
           } else {
@@ -88,6 +88,9 @@ class _LoginPageState extends State<LoginPage> {
       }
     }
   }
+
+
+
 
   String _getAuthErrorMessage(String message) {
     if (message.contains('Invalid login credentials')) {
