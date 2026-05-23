@@ -19,7 +19,7 @@ import 'package:conectea/features/account/institutional/projects_actions_view.da
 import 'package:conectea/core/widgets/premium/app_background.dart';
 
 import 'package:conectea/features/home/widgets/banners/highlight_banner.dart';
-import 'package:conectea/features/home/widgets/outros_servicos/home_services_section.dart';
+import 'package:conectea/features/home/widgets/novidades/home_services_section.dart';
 import 'package:conectea/features/home/widgets/informacoes/home_information_section.dart';
 
 import 'package:conectea/features/home/widgets/header/home_greeting_header.dart';

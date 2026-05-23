@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:conectea/features/home/widgets/outros_servicos/em_breve_service_card.dart';
+import 'package:conectea/features/home/widgets/novidades/em_breve_service_card.dart';
 import 'package:conectea/features/home/widgets/comum/home_horizontal_section.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 

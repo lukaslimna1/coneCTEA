@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:conectea/features/home/widgets/comum/home_horizontal_section.dart';
 import 'package:conectea/features/home/widgets/acesso_rapido/solicitar_carteirinha_card.dart';
-import 'package:conectea/features/home/widgets/informacoes/suporte_card.dart';
-import 'package:conectea/features/home/widgets/informacoes/seguranca_card.dart';
+import 'package:conectea/features/home/widgets/acesso_rapido/suporte_card.dart';
+import 'package:conectea/features/home/widgets/acesso_rapido/seguranca_card.dart';
 import 'package:conectea/features/account/security/security_view.dart';
 import 'package:conectea/features/account/support/support_view.dart';
 
