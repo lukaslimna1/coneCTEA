@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'package:conectea/core/widgets/premium/conectea_avatar.dart';
+import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 
 class MyDataLoggedHeader extends StatelessWidget {
   const MyDataLoggedHeader({super.key});
@@ -74,7 +74,7 @@ class MyDataLoggedHeader extends StatelessWidget {
           const SnackBar(content: Text('Área em construção.')),
         );
       },
-      child: const ConecteaAvatar(
+      child: const DsAvatar(
         initials: 'US', // Placeholder visual seguro
         size: 38,
         showGlow: true,

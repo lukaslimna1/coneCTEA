@@ -7,6 +7,7 @@ export 'tokens/ds_medidas.dart';
 export 'tokens/ds_tipografia.dart';
 
 export 'tokens/ds_tokens_status.dart';
+export 'tokens/ds_paletas_avatar.dart';
 
 // Componentes
 export 'componentes/ds_botao.dart';
@@ -19,6 +20,7 @@ export 'componentes/ds_botao_voltar.dart';
 export 'componentes/ds_selo.dart';
 export 'componentes/ds_switch.dart';
 export 'componentes/ds_checkbox.dart';
+export 'componentes/ds_avatar.dart';
 
 // Padrões
 export 'padroes/ds_card_hub.dart';
