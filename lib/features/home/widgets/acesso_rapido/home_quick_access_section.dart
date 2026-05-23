@@ -4,6 +4,7 @@ import 'package:conectea/features/home/widgets/acesso_rapido/solicitar_carteirin
 import 'package:conectea/features/home/widgets/informacoes/suporte_card.dart';
 import 'package:conectea/features/home/widgets/informacoes/seguranca_card.dart';
 import 'package:conectea/features/account/security/security_view.dart';
+import 'package:conectea/features/account/support/support_view.dart';
 
 /// Seção de "Acesso Rápido" do dashboard.
 /// Modulariza o antigo '_buildBlock1' da HomeView.
@@ -39,7 +40,10 @@ class HomeQuickAccessSection extends StatelessWidget {
         ),
         SuporteCard(
           width: cardWidth,
-          onTap: onSupportTap,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const SupportView()),
+          ),
         ),
       ],
     );
