@@ -8,8 +8,6 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'dart:convert';
 import 'package:conectea/core/constants/colors.dart';
 import 'package:conectea/services/auth_service.dart';
-import 'package:conectea/services/database_service.dart';
-import 'package:conectea/models/app_user.dart';
 import 'package:conectea/core/widgets/premium_auth_background.dart';
 import 'package:conectea/core/widgets/premium/premium_button.dart';
 import 'package:conectea/core/widgets/premium/premium_card.dart';
@@ -35,6 +33,7 @@ class _RegisterPageState extends State<RegisterPage> {
   // Principais
   final _nomeController = TextEditingController();
   final _emailController = TextEditingController();
+  final _confirmEmailController = TextEditingController();
   final _telefoneController = TextEditingController();
   final _cpfController = TextEditingController();
   final _dataNascimentoController = TextEditingController();
@@ -59,7 +58,8 @@ class _RegisterPageState extends State<RegisterPage> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
-  // Termos
+  // Termos e Consentimentos
+  bool _declaraMaioridade = false;
   bool _concordaTermos = false;
   bool _autorizaDados = false;
   bool _autorizaSaude = false;
@@ -135,6 +135,7 @@ class _RegisterPageState extends State<RegisterPage> {
   void dispose() {
     _nomeController.dispose();
     _emailController.dispose();
+    _confirmEmailController.dispose();
     _telefoneController.dispose();
     _cpfController.dispose();
     _dataNascimentoController.dispose();
@@ -149,30 +150,62 @@ class _RegisterPageState extends State<RegisterPage> {
     if (!_formKey.currentState!.validate()) return;
 
     if (_selectedState == null || _selectedCity == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Selecione Estado e Cidade')),
+      _showRegisterFeedback('Selecione Estado e Cidade');
+      return;
+    }
+
+    // 1. VALIDAÇÃO LOCAL DE MAIORIDADE MÍNIMA (18 ANOS)
+    final birthStr = _dataNascimentoController.text.trim();
+    final dateRegex = RegExp(r'^\d{2}/\d{2}/\d{4}$');
+    if (!dateRegex.hasMatch(birthStr)) {
+      _showRegisterFeedback('Formato de data de nascimento inválido. Use DD/MM/AAAA.');
+      return;
+    }
+
+    final parts = birthStr.split('/');
+    final day = int.tryParse(parts[0]) ?? 0;
+    final month = int.tryParse(parts[1]) ?? 0;
+    final year = int.tryParse(parts[2]) ?? 0;
+
+    final birthDate = DateTime(year, month, day);
+
+    // Validação rígida round-trip (evita datas fictícias como 31/11/2000 que viram 01/12/2000)
+    if (birthDate.year != year || birthDate.month != month || birthDate.day != day) {
+      _showRegisterFeedback('Data de nascimento inválida. Use o formato DD/MM/AAAA.');
+      return;
+    }
+
+    final today = DateTime.now();
+    int age = today.year - birthDate.year;
+    if (today.month < birthDate.month || (today.month == birthDate.month && today.day < birthDate.day)) {
+      age--;
+    }
+
+    if (age < 18) {
+      _showRegisterFeedback(
+        'O cadastro próprio é permitido apenas para maiores de 18 anos. Caso você seja menor de idade, peça para seu responsável legal realizar o cadastro.',
       );
+      return;
+    }
+
+    // 2. CHECKBOXES E CONSENTIMENTOS OBRIGATÓRIOS
+    if (!_declaraMaioridade) {
+      _showRegisterFeedback('Para continuar, declare que possui 18 anos ou mais e assume responsabilidade.');
       return;
     }
 
     if (!_concordaTermos) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Você precisa concordar com os Termos de Uso e Privacidade.')),
-      );
+      _showRegisterFeedback('Você precisa concordar com os Termos de Uso e Política de Privacidade.');
       return;
     }
 
     if (!_autorizaDados) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Você precisa autorizar o tratamento de dados pessoais.')),
-      );
+      _showRegisterFeedback('Você precisa autorizar o tratamento de dados pessoais comuns.');
       return;
     }
 
     if (!_autorizaSaude) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Você precisa autorizar o tratamento de dados de saúde.')),
-      );
+      _showRegisterFeedback('Você precisa autorizar o tratamento de dados de saúde.');
       return;
     }
 
@@ -181,34 +214,9 @@ class _RegisterPageState extends State<RegisterPage> {
     AppRoutes.authNotifier.setSuppressRedirect(true);
 
     try {
-      final databaseService = DatabaseService();
-      
-      // Verifica se o e-mail já existe
-      final emailExists = await databaseService.isEmailRegistered(_emailController.text.trim());
-      if (emailExists) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Este e-mail já está cadastrado.'), backgroundColor: Colors.red),
-          );
-        }
-        setState(() => _isLoading = false);
-        return;
-      }
-
-      // Verifica se o CPF já existe
-      final cleanCpf = _cpfController.text.replaceAll(RegExp(r'[^0-9]'), '');
-      final cpfExists = await databaseService.isCpfRegistered(cleanCpf);
-      if (cpfExists) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Este CPF já está cadastrado.'), backgroundColor: Colors.red),
-          );
-        }
-        setState(() => _isLoading = false);
-        return;
-      }
-
       final authService = AuthService();
+
+      // Metadados LGPD e consentimentos a serem gravados via trigger atômica
       final userData = {
         'name': _nomeController.text.trim(),
         'cpf': _cpfController.text.replaceAll(RegExp(r'[^0-9]'), ''),
@@ -220,8 +228,19 @@ class _RegisterPageState extends State<RegisterPage> {
         'gender': _generoSelecionado ?? '',
         'race': _racaSelecionada ?? '',
         'social_name': _nomeSocialController.text,
+
+        // Consentimentos e declarações para fins de auditoria LGPD
+        'consent_terms_accepted': _concordaTermos,
+        'consent_privacy_accepted': _concordaTermos,
+        'consent_personal_data_accepted': _autorizaDados,
+        'consent_health_data_accepted': _autorizaSaude,
+        'legal_age_declared': _declaraMaioridade,
+        'consent_terms_version': '1.0',
+        'consent_privacy_version': '1.0',
+        'consent_source': 'register',
       };
 
+      // Chamada atômica do Supabase Auth
       final credential = await authService.signUpWithEmailPassword(
         _emailController.text.trim(),
         _passwordController.text,
@@ -229,33 +248,7 @@ class _RegisterPageState extends State<RegisterPage> {
       );
 
       if (credential.user != null) {
-        final newUser = AppUser(
-          id: credential.user!.id,
-          name: _nomeController.text.trim(),
-          email: _emailController.text.trim(),
-          cpf: _cpfController.text.replaceAll(RegExp(r'[^0-9]'), ''),
-          phone: _telefoneController.text,
-          role: UserRole.user,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-          isActive: true,
-          dateOfBirth: _dataNascimentoController.text,
-          city: _selectedCity ?? '',
-          state: _selectedState ?? '',
-          institution: _indicacaoInstituicao == 'Sim'
-              ? _nomeInstituicaoController.text
-              : '',
-          gender: _generoSelecionado ?? '',
-          race: _racaSelecionada ?? '',
-          socialName: _nomeSocialController.text,
-        );
-
-        try {
-          await databaseService.createUserProfile(newUser);
-        } catch (dbError) {
-          debugPrint('Erro ao salvar perfil no DB: $dbError');
-        }
-        
+        // Desconecta do client imediatamente para limpar a sessão parcial provisória
         await authService.signOut();
 
         if (mounted) {
@@ -302,20 +295,28 @@ class _RegisterPageState extends State<RegisterPage> {
         }
       }
     } on AuthException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.message), backgroundColor: Colors.red),
-        );
+      String friendlyMessage = e.message;
+
+      // Mapeamento cirúrgico de erros do Postgres / Trigger / Constraints sem expor stack traces
+      if (e.message.contains('profiles_cpf_unique') ||
+          e.message.contains('Este CPF já está cadastrado') ||
+          e.message.contains('Database error saving new user') ||
+          e.message.toLowerCase().contains('database error saving new user') ||
+          e.message.contains('unexpected_failure')) {
+        friendlyMessage = 'Este CPF já está associado a outra conta. Se necessário, use a Recuperação de E-mail.';
+      } else if (e.message.contains('duplicate key value violates unique constraint') && e.message.contains('email')) {
+        friendlyMessage = 'Este e-mail já está cadastrado. Se necessário, use a Recuperação de Senha.';
+      } else if (e.message.contains('cadastro próprio é permitido apenas para maiores')) {
+        friendlyMessage = 'O cadastro próprio é permitido apenas para maiores de 18 anos. Caso você seja menor de idade, peça para seu responsável legal realizar o cadastro.';
+      } else if (e.message.contains('precisa ler e aceitar') || e.message.contains('autorizar o tratamento') || e.message.contains('declaração de maioridade')) {
+        friendlyMessage = 'Para continuar, aceite os termos e consentimentos obrigatórios.';
+      } else if (e.message.contains('User already registered') || e.message.contains('already exists')) {
+        friendlyMessage = 'Este e-mail já está cadastrado. Se necessário, use a Recuperação de Senha.';
       }
+
+      _showRegisterFeedback(friendlyMessage);
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Não foi possível criar sua conta agora. Verifique os dados e tente novamente.'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      _showRegisterFeedback('Não foi possível concluir o cadastro agora. Tente novamente em instantes.');
     } finally {
       await Future.delayed(const Duration(milliseconds: 500));
       AppRoutes.authNotifier.setSuppressRedirect(false);
@@ -526,6 +527,25 @@ class _RegisterPageState extends State<RegisterPage> {
                                   return null;
                                 },
                               ),
+                              const SizedBox(height: 20),
+                              DsInput(
+                                label: 'Confirmar E-mail*',
+                                controller: _confirmEmailController,
+                                hint: 'Repita seu e-mail',
+                                icon: PhosphorIcons.envelopeSimple(),
+                                keyboardType: TextInputType.emailAddress,
+                                textInputAction: TextInputAction.next,
+                                autofillHints: const [AutofillHints.email],
+                                semanticsLabel: 'Confirmar E-mail',
+                                helperText: 'Repita o e-mail para confirmação.',
+                                validator: (v) {
+                                  if (v!.isEmpty) return 'Campo obrigatório';
+                                  if (v.trim().toLowerCase() != _emailController.text.trim().toLowerCase()) {
+                                    return 'Os e-mails informados não conferem.';
+                                  }
+                                  return null;
+                                },
+                              ),
                               const SizedBox(height: 32),
                                RegisterSectionTitle(icon: PhosphorIcons.mapPin(), title: 'Localização', iconColor: Colors.greenAccent),
                               const SizedBox(height: 20),
@@ -699,6 +719,21 @@ class _RegisterPageState extends State<RegisterPage> {
                                 ),
                               ),
                               const Divider(height: 48, color: Colors.white10),
+                              DsCheckbox(
+                                value: _declaraMaioridade,
+                                onChanged: (v) => setState(() => _declaraMaioridade = v!),
+                                label: Text(
+                                  'Declaro que tenho 18 anos ou mais e sou responsável pelas informações fornecidas neste cadastro.',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 14,
+                                    color: Colors.white.withValues(alpha: 0.9),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                token: DsCores.sucesso,
+                                semanticsLabel: 'Declaração de maioridade e responsabilidade pelo cadastro',
+                              ),
+                              const SizedBox(height: 16),
                               RegisterTermsCheckbox(
                                 value: _concordaTermos,
                                 onChanged: (v) => setState(() => _concordaTermos = v!),
@@ -848,6 +883,62 @@ class _RegisterPageState extends State<RegisterPage> {
       builder: (context) => const RegisterScrollableDialog(
         title: 'Política de Privacidade',
         content: RegisterLegalTexts.privacyPolicy,
+      ),
+    );
+  }
+
+  void _showRegisterFeedback(String message, {bool isError = true}) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).clearSnackBars();
+
+    final accentColor = isError ? DsCores.perigo.accent : DsCores.sucesso.accent;
+    final iconData = isError ? PhosphorIcons.warningCircle() : PhosphorIcons.checkCircle();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: accentColor.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                iconData,
+                color: accentColor,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: GoogleFonts.inter(
+                  color: DsCores.textPrimary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: DsCores.glassStrong,
+        behavior: SnackBarBehavior.floating,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        margin: const EdgeInsets.all(16),
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(
+            color: accentColor.withValues(alpha: 0.25),
+            width: 1.5,
+          ),
+        ),
+        duration: const Duration(seconds: 4),
       ),
     );
   }
