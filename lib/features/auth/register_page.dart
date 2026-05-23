@@ -9,8 +9,6 @@ import 'dart:convert';
 import 'package:conectea/core/constants/colors.dart';
 import 'package:conectea/services/auth_service.dart';
 import 'package:conectea/core/widgets/premium_auth_background.dart';
-import 'package:conectea/core/widgets/premium/premium_button.dart';
-import 'package:conectea/core/widgets/premium/premium_card.dart';
 import 'package:conectea/app/routes.dart';
 import 'package:conectea/features/auth/utils/auth_cpf_validator.dart';
 import 'package:conectea/features/auth/widgets/registro/register_section_title.dart';
@@ -334,38 +332,15 @@ class _RegisterPageState extends State<RegisterPage> {
             physics: const BouncingScrollPhysics(),
             slivers: [
               SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        onPressed: () => context.pop(),
-                        icon: Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.05),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-                          ),
-                          child: Icon(PhosphorIcons.arrowLeft(), color: Colors.white, size: 20),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Voltar',
-                        style: GoogleFonts.inter(
-                          color: Colors.white.withValues(alpha: 0.6),
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
+                child: DsBotaoVoltar(
+                  onPressed: () => context.pop(),
+                  token: DsCores.conta,
+                  margin: const EdgeInsets.fromLTRB(24, 20, 24, 0),
                 ),
               ),
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  padding: const EdgeInsets.symmetric(horizontal: DsEspacamentos.edge),
                   child: Column(
                     children: [
                       const SizedBox(height: 20),
@@ -377,31 +352,21 @@ class _RegisterPageState extends State<RegisterPage> {
                           fit: BoxFit.contain,
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: DsEspacamentos.lg),
                       Text(
                         'Criar sua conta',
-                        style: GoogleFonts.outfit(
-                          fontSize: 32,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                          letterSpacing: -0.8,
-                        ),
+                        style: DsTipografia.pageTitle,
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: DsEspacamentos.sm),
                       Text(
                         'Preencha seus dados para acessar\nsolicitações e sua carteirinha digital.',
                         textAlign: TextAlign.center,
-                        style: GoogleFonts.inter(
-                          fontSize: 15,
-                          color: AppColors.textSecondary.withValues(alpha: 0.7),
-                          height: 1.4,
-                          fontWeight: FontWeight.w500,
-                        ),
+                        style: DsTipografia.pageSubtitle,
                       ),
-                      const SizedBox(height: 32),
-                      PremiumCard(
+                      const SizedBox(height: DsEspacamentos.xl),
+                      DsCard(
                         hasGradient: true,
-                        padding: const EdgeInsets.all(24),
+                        padding: const EdgeInsets.all(DsEspacamentos.lg),
                         child: Form(
                           key: _formKey,
                           child: Column(
@@ -718,7 +683,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                   ],
                                 ),
                               ),
-                              const Divider(height: 48, color: Colors.white10),
+                              const Divider(height: DsEspacamentos.xxl, color: Colors.white10),
                               DsCheckbox(
                                 value: _declaraMaioridade,
                                 onChanged: (v) => setState(() => _declaraMaioridade = v!),
@@ -733,7 +698,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                 token: DsCores.sucesso,
                                 semanticsLabel: 'Declaração de maioridade e responsabilidade pelo cadastro',
                               ),
-                              const SizedBox(height: 16),
+                              const SizedBox(height: DsEspacamentos.md),
                               RegisterTermsCheckbox(
                                 value: _concordaTermos,
                                 onChanged: (v) => setState(() => _concordaTermos = v!),
@@ -792,7 +757,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                   ),
                                 ),
                               ),
-                              const SizedBox(height: 16),
+                              const SizedBox(height: DsEspacamentos.md),
                               RegisterTermsCheckbox(
                                 value: _autorizaDados,
                                 onChanged: (v) => setState(() => _autorizaDados = v!),
@@ -804,7 +769,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                   ),
                                 ),
                               ),
-                              const SizedBox(height: 12),
+                              const SizedBox(height: DsEspacamentos.sm),
                               RegisterTermsCheckbox(
                                 value: _autorizaSaude,
                                 onChanged: (v) => setState(() => _autorizaSaude = v!),
@@ -816,17 +781,16 @@ class _RegisterPageState extends State<RegisterPage> {
                                   ),
                                 ),
                               ),
-                              const SizedBox(height: 40),
-                              const SizedBox(height: 40),
-                              PremiumButton(
-                                text: 'Criar minha conta',
+                              const SizedBox(height: DsEspacamentos.xl),
+                              DsBotao(
+                                label: 'Criar minha conta',
                                 onPressed: _handleRegister,
                                 isLoading: _isLoading,
-                                variant: PremiumButtonVariant.premiumCard,
-                                colorOverride: Colors.greenAccent,
+                                variante: DsBotaoVariante.acao,
+                                token: DsCores.conta,
                                 icon: PhosphorIcons.userCirclePlus(),
                               ),
-                              const SizedBox(height: 24),
+                              const SizedBox(height: DsEspacamentos.lg),
                               Center(
                                 child: TextButton(
                                   onPressed: () => context.go('/login'),
