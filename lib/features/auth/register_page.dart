@@ -332,13 +332,6 @@ class _RegisterPageState extends State<RegisterPage> {
             physics: const BouncingScrollPhysics(),
             slivers: [
               SliverToBoxAdapter(
-                child: DsBotaoVoltar(
-                  onPressed: () => context.pop(),
-                  token: DsCores.conta,
-                  margin: const EdgeInsets.fromLTRB(24, 20, 24, 0),
-                ),
-              ),
-              SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: DsEspacamentos.edge),
                   child: Column(
