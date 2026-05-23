@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-import '../../core/widgets/premium/app_top_header.dart';
 import '../../core/widgets/premium/app_background.dart';
 import '../../services/auth_service.dart';
 import '../../services/database_service.dart';
@@ -95,13 +94,14 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
       extendBody: true,
-      appBar: AppTopHeader(
+      appBar: DsAppTopHeader(
         userName: _user?.name,
         userPhotoUrl: null, // Add if available
         notificationCount: _unreadCount,
         paletteSeed: _user?.id,
         onNotificationTap: () => setState(() => _currentIndex = 3),
         onAvatarTap: () => setState(() => _currentIndex = 4),
+        onLogoTap: () => setState(() => _currentIndex = 0),
       ),
       body: AppBackground(
         child: Padding(
