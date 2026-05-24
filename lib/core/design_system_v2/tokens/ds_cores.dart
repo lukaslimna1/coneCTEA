@@ -330,6 +330,21 @@ class DsCores {
   );
 
   // ---------------------------------------------------------------------------
+  // PARCERIAS E BENEFÍCIOS
+  // ---------------------------------------------------------------------------
+
+  /// Clube de benefícios, parceiros e rede de apoio.
+  static const DsCorVisual clube = DsCorVisual(
+    key: 'clube',
+    semanticName: 'Clube',
+    description: 'Clube Família TEA, parceiros e benefícios exclusivos.',
+    accent: Color(0xFFEC4899),
+    softBackground: Color(0x14EC4899),
+    border: Color(0x26EC4899),
+    iconBackground: Color(0x1FEC4899),
+  );
+
+  // ---------------------------------------------------------------------------
   // ADMINISTRAÇÃO, RESTRIÇÃO E MANUTENÇÃO
   // ---------------------------------------------------------------------------
 
@@ -578,6 +593,21 @@ class DsCores {
       case 'maintenance':
       case 'debug':
         return manutencao;
+
+      case 'clube':
+      case 'club':
+      case 'parceiro':
+      case 'parceiros':
+      case 'partner':
+      case 'partners':
+      case 'beneficio':
+      case 'benefícios':
+      case 'benefits':
+      case 'apoiador':
+      case 'apoiadores':
+      case 'supporter':
+      case 'supporters':
+        return clube;
 
       case 'admin':
       case 'administrador':
