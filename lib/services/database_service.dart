@@ -543,12 +543,6 @@ class DatabaseService {
       actionRoute: '/requests',
     ));
 
-    // 6. Disparar Push Notification via OneSignal
-    await _sendPushNotification(
-      userId: userId,
-      title: title,
-      message: message,
-    );
   }
 
   Future<void> updateCardRequest(CardRequest request) async {
@@ -584,22 +578,6 @@ class DatabaseService {
         memberId: request.memberId,
       );
     }
-  }
-
-  /// Método neutralizado no cliente por segurança.
-  /// O disparo de Push Notifications via OneSignal REST API deve ser realizado
-  /// exclusivamente através de backend ou Supabase Edge Functions para proteger a API Key.
-  Future<void> _sendPushNotification({
-    required String userId,
-    required String title,
-    required String message,
-  }) async {
-    // Registro em debug para rastrear a intenção de envio
-    debugPrint('🔔 PUSH_PENDING: Enviando notificação remota.');
-    debugPrint('Nota: O disparo real deve ser implementado via Edge Function.');
-    
-    // As notificações internas (NotificationItem) continuam sendo criadas no banco
-    // e lidas pelo app via Stream em tempo real.
   }
 
   Future<void> updateRequestFileUrl(String requestId, String field, String url) async {
