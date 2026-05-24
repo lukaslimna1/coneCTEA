@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:conectea/services/database_service.dart';
@@ -21,8 +22,9 @@ class _NotificationsViewState extends State<NotificationsView> {
   final DatabaseService _databaseService = DatabaseService();
   final AuthService _authService = AuthService();
   List<NotificationItem> _notifications = [];
-  Stream<List<NotificationItem>>? _notificationsStream;
+  StreamSubscription<List<NotificationItem>>? _subscription;
   final Set<String> _readNotificationsLocally = {};
+  bool _isLoading = true;
 
   bool get _hasUnread {
     return _notifications.any((item) {
@@ -35,6 +37,12 @@ class _NotificationsViewState extends State<NotificationsView> {
   void initState() {
     super.initState();
     _loadNotifications();
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
   }
 
   Future<void> _markAllAsRead() async {
@@ -74,11 +82,25 @@ class _NotificationsViewState extends State<NotificationsView> {
   Future<void> _loadNotifications() async {
     final userId = _authService.currentUser?.id;
     if (userId != null) {
-      _notificationsStream = _databaseService.notificationsStream(userId);
-      final notifications = await _databaseService.getNotifications(userId);
+      _subscription?.cancel();
+
+      final stream = _databaseService.notificationsStream(userId);
+      _subscription = stream.listen((data) {
+        if (mounted) {
+          setState(() {
+            _notifications = data;
+            _isLoading = false;
+          });
+        }
+      });
+
+      try {
+        await stream.first.timeout(const Duration(seconds: 3));
+      } catch (_) {}
+    } else {
       if (mounted) {
         setState(() {
-          _notifications = notifications;
+          _isLoading = false;
         });
       }
     }
@@ -148,50 +170,30 @@ class _NotificationsViewState extends State<NotificationsView> {
                 ),
               ),
               Expanded(
-                child: StreamBuilder<List<NotificationItem>>(
-                  stream: _notificationsStream,
-                  initialData: _notifications,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting && _notifications.isEmpty) {
-                      return Center(child: CircularProgressIndicator(color: DsCores.conta.accent));
-                    }
+                child: _isLoading && _notifications.isEmpty
+                    ? Center(child: CircularProgressIndicator(color: DsCores.conta.accent))
+                    : _notifications.isEmpty
+                        ? _buildEmptyState()
+                        : ListView.builder(
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                            physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+                            itemCount: _notifications.length,
+                            itemBuilder: (context, index) {
+                              final item = _notifications[index];
+                              final showHeader = index == 0 || !_isSameDay(item.createdAt, _notifications[index - 1].createdAt);
 
-                    final notifications = snapshot.data ?? [];
-
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      if (mounted && _notifications.length != notifications.length) {
-                        setState(() {
-                          _notifications = notifications;
-                        });
-                      }
-                    });
-
-                    if (notifications.isEmpty) {
-                      return _buildEmptyState();
-                    }
-
-                    return ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                      physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-                      itemCount: notifications.length,
-                      itemBuilder: (context, index) {
-                        final item = notifications[index];
-                        final showHeader = index == 0 || !_isSameDay(item.createdAt, notifications[index - 1].createdAt);
-
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (showHeader) _buildDateHeader(item.createdAt),
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: _buildNotificationItem(item),
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  },
-                ),
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  if (showHeader) _buildDateHeader(item.createdAt),
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 12),
+                                    child: _buildNotificationItem(item),
+                                  ),
+                                ],
+                              );
+                            },
+                          ),
               ),
             ],
           ),
