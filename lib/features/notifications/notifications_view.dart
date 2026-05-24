@@ -112,7 +112,7 @@ class _NotificationsViewState extends State<NotificationsView> {
                     ],
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Expanded(
                           child: Column(
@@ -135,14 +135,15 @@ class _NotificationsViewState extends State<NotificationsView> {
                           ),
                         ),
                         if (_notifications.isNotEmpty) ...[
-                          if (_hasUnread) ...[
-                            _buildMarkAllReadButton(),
-                            const SizedBox(width: DsEspacamentos.sm),
-                          ],
+                          const SizedBox(width: DsEspacamentos.sm),
                           _buildClearButton(),
                         ],
                       ],
                     ),
+                    if (_notifications.isNotEmpty && _hasUnread) ...[
+                      const SizedBox(height: DsEspacamentos.md),
+                      _buildMarkAllReadButton(),
+                    ],
                   ],
                 ),
               ),
@@ -200,13 +201,31 @@ class _NotificationsViewState extends State<NotificationsView> {
   }
 
   Widget _buildMarkAllReadButton() {
-    return DsBotao(
-      label: 'Marcar lidas',
-      onPressed: _markAllAsRead,
-      variante: DsBotaoVariante.contorno,
-      token: DsCores.comunicacao,
-      fullWidth: false,
-      height: 42,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: _markAllAsRead,
+        borderRadius: BorderRadius.circular(DsRaios.pill),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.25),
+            border: Border.all(color: DsCores.comunicacao.border.withValues(alpha: 0.3), width: 1),
+            borderRadius: BorderRadius.circular(DsRaios.pill),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(PhosphorIconsRegular.checkCircle, size: 16, color: Colors.white70),
+              const SizedBox(width: 8),
+              Text(
+                'Marcar lidas',
+                style: DsTipografia.label.copyWith(color: Colors.white),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
