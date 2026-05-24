@@ -11,7 +11,6 @@ import 'package:conectea/core/utils/conectea_date_time_helper.dart';
 class NotificationsView extends StatefulWidget {
   final VoidCallback? onBack;
   final VoidCallback? onUnreadStatusChanged;
-
   const NotificationsView({super.key, this.onBack, this.onUnreadStatusChanged});
 
   @override
@@ -155,9 +154,9 @@ class _NotificationsViewState extends State<NotificationsView> {
                     if (snapshot.connectionState == ConnectionState.waiting && _notifications.isEmpty) {
                       return Center(child: CircularProgressIndicator(color: DsCores.conta.accent));
                     }
-                    
+
                     final notifications = snapshot.data ?? [];
-                    
+
                     WidgetsBinding.instance.addPostFrameCallback((_) {
                       if (mounted && _notifications.length != notifications.length) {
                         setState(() {
