@@ -127,9 +127,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         onTap: (index) {
           final newIndex = _getPageIndex(index);
           setState(() => _currentIndex = newIndex);
-          if (newIndex == 0) {
-            _refreshUnreadNotificationsIndicator();
-          }
+          _refreshUnreadNotificationsIndicator();
         },
         items: [
           DsBottomNavItem(
@@ -188,10 +186,15 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       case 2:
         return const RequestsView();
       case 3:
-        return NotificationsView(onBack: () async {
-          setState(() => _currentIndex = 0);
-          await _refreshUnreadNotificationsIndicator();
-        });
+        return NotificationsView(
+          onBack: () async {
+            setState(() => _currentIndex = 0);
+            await _refreshUnreadNotificationsIndicator();
+          },
+          onUnreadStatusChanged: () {
+            _refreshUnreadNotificationsIndicator();
+          },
+        );
       case 4:
         return AccountView(user: _user);
       case 5:

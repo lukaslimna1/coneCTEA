@@ -13,8 +13,9 @@ import 'package:conectea/core/utils/conectea_date_time_helper.dart';
 
 class NotificationsView extends StatefulWidget {
   final VoidCallback? onBack;
+  final VoidCallback? onUnreadStatusChanged;
 
-  const NotificationsView({super.key, this.onBack});
+  const NotificationsView({super.key, this.onBack, this.onUnreadStatusChanged});
 
   @override
   State<NotificationsView> createState() => _NotificationsViewState();
@@ -28,17 +29,40 @@ class _NotificationsViewState extends State<NotificationsView> {
   final Set<String> _expandedNotifications = {};
   final Set<String> _readNotificationsLocally = {};
 
+  bool get _hasUnread {
+    return _notifications.any((item) {
+      final key = item.id.isNotEmpty ? item.id : '${item.createdAt.toIso8601String()}_${item.title}';
+      return !item.isRead && !_readNotificationsLocally.contains(key);
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     _loadNotifications();
-    _markAllAsRead();
   }
 
   Future<void> _markAllAsRead() async {
     final userId = _authService.currentUser?.id;
     if (userId != null) {
-      await _databaseService.markAllNotificationsAsRead(userId);
+      if (mounted) {
+        setState(() {
+          for (var item in _notifications) {
+            if (!item.isRead) {
+              final key = item.id.isNotEmpty ? item.id : '${item.createdAt.toIso8601String()}_${item.title}';
+              _readNotificationsLocally.add(key);
+            }
+          }
+        });
+      }
+      try {
+        await _databaseService.markAllNotificationsAsRead(userId);
+        if (mounted) {
+          widget.onUnreadStatusChanged?.call();
+        }
+      } catch (e) {
+        debugPrint('Erro ao marcar todas como lidas: $e');
+      }
     }
   }
 
@@ -46,6 +70,9 @@ class _NotificationsViewState extends State<NotificationsView> {
     final userId = _authService.currentUser?.id;
     if (userId != null) {
       await _databaseService.clearAllNotifications(userId);
+      if (mounted) {
+        widget.onUnreadStatusChanged?.call();
+      }
     }
   }
 
@@ -162,7 +189,10 @@ class _NotificationsViewState extends State<NotificationsView> {
                           ),
                         ),
                         if (_notifications.isNotEmpty) ...[
-                          const SizedBox(width: 16),
+                          if (_hasUnread) ...[
+                            _buildMarkAllReadButton(),
+                            const SizedBox(width: 8),
+                          ],
                           _buildClearButton(),
                         ],
                       ],
@@ -217,6 +247,43 @@ class _NotificationsViewState extends State<NotificationsView> {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMarkAllReadButton() {
+    return GestureDetector(
+      onTap: () {
+        _markAllAsRead();
+      },
+      child: Container(
+        height: 42,
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        decoration: BoxDecoration(
+          color: const Color(0xA60F172A), // Dark Glass base
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: const Color(0x2E94A3B8), // Glass border
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Center(
+          child: Text(
+            'Marcar lidas',
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: AppColors.cyan,
+            ),
           ),
         ),
       ),
@@ -642,6 +709,9 @@ class _NotificationsViewState extends State<NotificationsView> {
       });
       try {
         await _databaseService.markNotificationAsRead(item.id);
+        if (mounted) {
+          widget.onUnreadStatusChanged?.call();
+        }
       } catch (e) {
         debugPrint('Erro ao marcar notificação como lida: $e');
       }
