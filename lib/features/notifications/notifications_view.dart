@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'package:conectea/core/constants/colors.dart';
 import 'package:conectea/services/database_service.dart';
 import 'package:conectea/services/auth_service.dart';
 import 'package:conectea/models/notification_item.dart';
@@ -100,7 +98,7 @@ class _NotificationsViewState extends State<NotificationsView> {
       body: AppBackground(
         child: RefreshIndicator(
           onRefresh: _loadNotifications,
-          color: AppColors.primary,
+          color: DsCores.conta.accent,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -110,53 +108,12 @@ class _NotificationsViewState extends State<NotificationsView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (widget.onBack != null) ...[
-                      GestureDetector(
-                        onTap: widget.onBack,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              width: 42,
-                              height: 42,
-                              decoration: BoxDecoration(
-                                color: const Color(0xA60F172A), // Dark Glass base
-                                borderRadius: BorderRadius.circular(14),
-                                border: Border.all(
-                                  color: const Color(0x2E94A3B8), // Glass border
-                                  width: 1,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.1),
-                                    blurRadius: 6,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: const Center(
-                                child: Icon(
-                                  PhosphorIconsRegular.caretLeft,
-                                  color: AppColors.cyan,
-                                  size: 18,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Text(
-                              'Voltar',
-                              style: GoogleFonts.inter(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: const Color(0xE6FFFFFF), // Branco suave
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 12),
+                      DsBotaoVoltar(onPressed: widget.onBack),
+                      const SizedBox(height: DsEspacamentos.md),
                     ],
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Expanded(
                           child: Column(
@@ -166,22 +123,14 @@ class _NotificationsViewState extends State<NotificationsView> {
                                 'Notificações',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.inter(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppColors.cardTitle,
-                                  letterSpacing: -0.5,
-                                ),
+                                style: DsTipografia.pageTitle,
                               ),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: DsEspacamentos.xs),
                               Text(
                                 'Mantenha-se informado',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.inter(
-                                  fontSize: 14,
-                                  color: AppColors.cardSubtitle,
-                                ),
+                                style: DsTipografia.pageSubtitle,
                               ),
                             ],
                           ),
@@ -189,7 +138,7 @@ class _NotificationsViewState extends State<NotificationsView> {
                         if (_notifications.isNotEmpty) ...[
                           if (_hasUnread) ...[
                             _buildMarkAllReadButton(),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: DsEspacamentos.sm),
                           ],
                           _buildClearButton(),
                         ],
@@ -204,7 +153,7 @@ class _NotificationsViewState extends State<NotificationsView> {
                   initialData: _notifications,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting && _notifications.isEmpty) {
-                      return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+                      return Center(child: CircularProgressIndicator(color: DsCores.conta.accent));
                     }
                     
                     final notifications = snapshot.data ?? [];
@@ -252,70 +201,25 @@ class _NotificationsViewState extends State<NotificationsView> {
   }
 
   Widget _buildMarkAllReadButton() {
-    return GestureDetector(
-      onTap: () {
-        _markAllAsRead();
-      },
-      child: Container(
-        height: 42,
-        padding: const EdgeInsets.symmetric(horizontal: 14),
-        decoration: BoxDecoration(
-          color: const Color(0xA60F172A), // Dark Glass base
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: const Color(0x2E94A3B8), // Glass border
-            width: 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Center(
-          child: Text(
-            'Marcar lidas',
-            style: GoogleFonts.inter(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: AppColors.cyan,
-            ),
-          ),
-        ),
-      ),
+    return DsBotao(
+      label: 'Marcar lidas',
+      onPressed: _markAllAsRead,
+      variante: DsBotaoVariante.contorno,
+      token: DsCores.comunicacao,
+      fullWidth: false,
+      height: 42,
     );
   }
 
   Widget _buildClearButton() {
     return GestureDetector(
-      onTap: () => _showClearDialog(),
-      child: Container(
-        width: 42,
-        height: 42,
-        decoration: BoxDecoration(
-          color: const Color(0xA60F172A), // Dark Glass base
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: const Color(0x2E94A3B8), // Glass border
-            width: 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: const Center(
-          child: Icon(
-            PhosphorIconsRegular.trash,
-            color: Color(0xFFFF5555), // Refined premium red
-            size: 20,
-          ),
-        ),
+      onTap: _showClearDialog,
+      child: DsMolduraIcone(
+        icon: PhosphorIconsRegular.trash,
+        accentColor: DsCores.perigo.accent,
+        size: 42,
+        iconSize: 20,
+        radius: 14,
       ),
     );
   }
@@ -324,20 +228,20 @@ class _NotificationsViewState extends State<NotificationsView> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppColors.surfaceCard,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        backgroundColor: DsCores.surfaceCard,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(DsRaios.modal)),
         title: Text(
           'Limpar notificações?',
-          style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: AppColors.cardTitle),
+          style: DsTipografia.sectionTitle,
         ),
         content: Text(
           'Isso removerá permanentemente todas as suas notificações.',
-          style: GoogleFonts.inter(color: AppColors.cardSubtitle),
+          style: DsTipografia.infoBody,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('CANCELAR', style: GoogleFonts.inter(fontWeight: FontWeight.w700, color: AppColors.cardMutedText)),
+            child: Text('CANCELAR', style: DsTipografia.button.copyWith(color: DsCores.textMuted)),
           ),
           TextButton(
             onPressed: () async {
@@ -347,22 +251,22 @@ class _NotificationsViewState extends State<NotificationsView> {
                 await _clearNotifications();
                 if (mounted) {
                   scaffold.showSnackBar(
-                    const SnackBar(content: Text('Notificações removidas!'), backgroundColor: AppColors.statusGreen),
+                    SnackBar(content: const Text('Notificações removidas!'), backgroundColor: DsCores.sucesso.accent),
                   );
                 }
               } catch (e) {
                 if (mounted) {
                   scaffold.showSnackBar(
-                    const SnackBar(
-                      content: Text('Não foi possível limpar as notificações agora. Tente novamente.'),
-                      backgroundColor: AppColors.errorRed,
+                    SnackBar(
+                      content: const Text('Não foi possível limpar as notificações agora. Tente novamente.'),
+                      backgroundColor: DsCores.perigo.accent,
                     ),
                   );
                 }
               }
               navigator.pop();
             },
-            child: Text('LIMPAR TUDO', style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: AppColors.errorRed)),
+            child: Text('LIMPAR TUDO', style: DsTipografia.button.copyWith(color: DsCores.perigo.accent)),
           ),
         ],
       ),
@@ -375,30 +279,23 @@ class _NotificationsViewState extends State<NotificationsView> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            padding: const EdgeInsets.all(32),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.05),
+            padding: const EdgeInsets.all(DsEspacamentos.xl),
+            decoration: const BoxDecoration(
+              color: DsCores.iconFrameBackground,
               shape: BoxShape.circle,
             ),
-            child: const Icon(PhosphorIconsRegular.bellSlash, size: 64, color: AppColors.cardMutedText),
+            child: const Icon(PhosphorIconsRegular.bellSlash, size: DsTamanhos.iconLg, color: DsCores.iconMuted),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: DsEspacamentos.lg),
           Text(
             'Tudo limpo por aqui!',
-            style: GoogleFonts.inter(
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-              color: AppColors.cardTitle,
-            ),
+            style: DsTipografia.sectionTitle,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: DsEspacamentos.xs),
           Text(
             'Você não tem novas notificações no momento.',
             textAlign: TextAlign.center,
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              color: AppColors.cardSubtitle,
-            ),
+            style: DsTipografia.infoBody,
           ),
         ],
       ),
@@ -516,22 +413,20 @@ class _NotificationsViewState extends State<NotificationsView> {
         children: [
           Text(
             dateStr,
-            style: GoogleFonts.inter(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: AppColors.cardTitle.withValues(alpha: 0.85),
+            style: DsTipografia.label.copyWith(
+              color: DsCores.textSecondary,
               letterSpacing: 0.5,
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: DsEspacamentos.sm),
           Expanded(
             child: Container(
               height: 1,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    AppColors.cyan.withValues(alpha: 0.25),
-                    AppColors.cyan.withValues(alpha: 0.0),
+                    DsCores.border,
+                    DsCores.border.withValues(alpha: 0.0),
                   ],
                 ),
               ),
