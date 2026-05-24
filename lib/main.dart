@@ -6,6 +6,7 @@ import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -30,7 +31,9 @@ void main() async {
   } catch (e) {
     keepConnected = false; // Fail-Closed
     if (kDebugMode) {
-      debugPrint("[Auth] Falha ao verificar preferência de persistência da sessão. Ativando proteção fail-closed.");
+      debugPrint(
+        "[Auth] Falha ao verificar preferência de persistência da sessão. Ativando proteção fail-closed.",
+      );
     }
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -40,7 +43,9 @@ void main() async {
       }
     } catch (_) {
       if (kDebugMode) {
-        debugPrint("[Auth] Falha crítica ao invalidar sessão no fallback de segurança.");
+        debugPrint(
+          "[Auth] Falha crítica ao invalidar sessão no fallback de segurança.",
+        );
       }
     }
   }
@@ -50,19 +55,21 @@ void main() async {
       // Inicialização Padrão com persistência de sessão ativada
       await Supabase.initialize(
         url: 'https://jyxpofhoohxdqmkdgwtu.supabase.co',
-        anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp5eHBvZmhvb2h4ZHFta2Rnd3R1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwOTc4NDUsImV4cCI6MjA5MzY3Mzg0NX0.GDk-_n8DfA8zMMT2RyoRCab0-HPuWKtKN21LwMxz0cI',
+        anonKey:
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp5eHBvZmhvb2h4ZHFta2Rnd3R1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwOTc4NDUsImV4cCI6MjA5MzY3Mzg0NX0.GDk-_n8DfA8zMMT2RyoRCab0-HPuWKtKN21LwMxz0cI',
       );
     } else {
       // Inicialização com EmptyLocalStorage para desativar completamente a persistência e restauração de sessão
       await Supabase.initialize(
         url: 'https://jyxpofhoohxdqmkdgwtu.supabase.co',
-        anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp5eHBvZmhvb2h4ZHFta2Rnd3R1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwOTc4NDUsImV4cCI6MjA5MzY3Mzg0NX0.GDk-_n8DfA8zMMT2RyoRCab0-HPuWKtKN21LwMxz0cI',
+        anonKey:
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp5eHBvZmhvb2h4ZHFta2Rnd3R1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwOTc4NDUsImV4cCI6MjA5MzY3Mzg0NX0.GDk-_n8DfA8zMMT2RyoRCab0-HPuWKtKN21LwMxz0cI',
         authOptions: const FlutterAuthClientOptions(
           localStorage: EmptyLocalStorage(),
         ),
       );
     }
-    
+
     // Configuração do OneSignal para Push Notifications (apenas mobile)
     if (!kIsWeb) {
       // Evita logs excessivos em produção ajustando nível verbose para debug apenas
@@ -76,14 +83,60 @@ void main() async {
     }
   } catch (e) {
     if (kDebugMode) {
-      debugPrint('[Init] Falha ao inicializar serviços essenciais do aplicativo.');
+      debugPrint(
+        '[Init] Falha ao inicializar serviços essenciais do aplicativo.',
+      );
     }
   }
-  
+
   // Remove a splash nativa agora que a inicialização terminou
   FlutterNativeSplash.remove();
-  
-  runApp(const ConeCTEAApp());
+
+  const String sentryDsn = String.fromEnvironment(
+    'SENTRY_DSN',
+    defaultValue: '',
+  );
+
+  if (sentryDsn.isNotEmpty) {
+    await SentryFlutter.init((options) {
+      options.dsn = sentryDsn;
+      options.sendDefaultPii = false;
+      options.attachScreenshot = false;
+      options.tracesSampleRate = 0.0;
+      options.beforeSend = (event, hint) {
+        final allContent = event.toJson().toString().toLowerCase();
+
+        final blockedTerms = [
+          'cpf',
+          'laudo',
+          'documento',
+          'fileid',
+          'drive',
+          'token',
+          'authorization',
+          'bearer',
+          'qr',
+          'cid',
+          'diagnóstico',
+          'diagnostico',
+          'supabase',
+          'storage',
+          'signedurl',
+          'refresh_token',
+          'access_token',
+        ];
+
+        for (var term in blockedTerms) {
+          if (allContent.contains(term)) {
+            return null; // Descarta o evento para proteger dados sensíveis
+          }
+        }
+        return event;
+      };
+    }, appRunner: () => runApp(const ConeCTEAApp()));
+  } else {
+    runApp(const ConeCTEAApp());
+  }
 }
 
 class ConeCTEAApp extends StatelessWidget {
