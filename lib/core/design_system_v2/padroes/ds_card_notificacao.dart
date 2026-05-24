@@ -147,8 +147,10 @@ class _DsCardNotificacaoState extends State<DsCardNotificacao> {
                             const SizedBox(height: DsEspacamentos.xs),
                             Text(
                               _expandido ? 'Ver menos' : 'Ver mais',
-                              style: DsTipografia.label
-                                  .copyWith(color: DsCores.textSecondary),
+                              style: DsTipografia.label.copyWith(
+                                color: accentColor,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ],
                           if (widget.dataTexto != null) ...[
