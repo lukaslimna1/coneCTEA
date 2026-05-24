@@ -687,9 +687,10 @@ class DatabaseService {
     try {
       final List<dynamic> data = await _supabase
           .from('notifications')
-          .select()
+          .select('id, title, message, type, is_read, created_at')
           .eq('user_id', userId)
-          .order('created_at', ascending: false);
+          .order('created_at', ascending: false)
+          .limit(50);
       
       return data.map((json) => NotificationItem.fromJson(json)).toList();
     } catch (e) {
@@ -714,6 +715,7 @@ class DatabaseService {
         .stream(primaryKey: ['id'])
         .eq('user_id', userId)
         .order('created_at', ascending: false)
+        .limit(50)
         .map((data) => data
             .map((json) => NotificationItem.fromJson(json))
             .toList());
