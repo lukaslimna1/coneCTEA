@@ -751,6 +751,19 @@ class DatabaseService {
             .length);
   }
 
+  Future<bool> hasUnreadNotifications() async {
+    try {
+      final response = await _supabase.rpc('has_unread_notifications');
+      if (response is bool) {
+        return response;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Erro ao verificar notificações não lidas: $e');
+      return false;
+    }
+  }
+
   Future<void> markNotificationAsRead(String notificationId) async {
     await _supabase
         .from('notifications')

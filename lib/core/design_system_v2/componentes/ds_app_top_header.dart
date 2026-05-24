@@ -10,6 +10,7 @@ class DsAppTopHeader extends StatelessWidget implements PreferredSizeWidget {
   final String? userName;
   final String? userPhotoUrl;
   final int notificationCount;
+  final bool hasUnreadNotifications;
   final VoidCallback? onNotificationTap;
   final VoidCallback? onAvatarTap;
   final VoidCallback? onLogoTap;
@@ -20,6 +21,7 @@ class DsAppTopHeader extends StatelessWidget implements PreferredSizeWidget {
     this.userName,
     this.userPhotoUrl,
     this.notificationCount = 0,
+    this.hasUnreadNotifications = false,
     this.onNotificationTap,
     this.onAvatarTap,
     this.onLogoTap,
@@ -109,7 +111,34 @@ class DsAppTopHeader extends StatelessWidget implements PreferredSizeWidget {
             ),
           ),
         ),
-        if (notificationCount > 0)
+        if (hasUnreadNotifications)
+          Positioned(
+            top: 0,
+            right: 0,
+            child: IgnorePointer(
+              child: Container(
+                width: 10,
+                height: 10,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFF43F5E), Color(0xFFE11D48)], // Ruby / Rose Premium
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: const Color(0xFF020617), width: 1.5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFE11D48).withValues(alpha: 0.3),
+                      blurRadius: 4,
+                      spreadRadius: 0.5,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          )
+        else if (notificationCount > 0)
           Positioned(
             top: -2,
             right: -2,

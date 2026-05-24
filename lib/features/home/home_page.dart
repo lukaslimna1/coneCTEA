@@ -6,7 +6,6 @@ import '../../core/widgets/premium/app_background.dart';
 import '../../services/auth_service.dart';
 import '../../services/database_service.dart';
 import '../../models/app_user.dart';
-import '../../models/notification_item.dart';
 
 import 'home_view.dart';
 import '../cards/cards_view.dart';
@@ -24,24 +23,44 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   int _currentIndex = 0;
   final AuthService _authService = AuthService();
   final DatabaseService _databaseService = DatabaseService();
   AppUser? _user;
-  StreamSubscription<List<NotificationItem>>? _notificationsSubscription;
-  int _unreadCount = 0;
+  bool _hasUnreadNotifications = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadData();
   }
 
   @override
   void dispose() {
-    _notificationsSubscription?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _refreshUnreadNotificationsIndicator();
+    }
+  }
+
+  Future<void> _refreshUnreadNotificationsIndicator() async {
+    try {
+      final hasUnread = await _databaseService.hasUnreadNotifications();
+      if (mounted) {
+        setState(() {
+          _hasUnreadNotifications = hasUnread;
+        });
+      }
+    } catch (_) {
+      // Fallback silencioso sem expor logs excessivos
+    }
   }
 
   Future<void> _loadData() async {
@@ -70,21 +89,14 @@ class _HomePageState extends State<HomePage> {
         );
       }
 
-      await _notificationsSubscription?.cancel();
+      final hasUnread = await _databaseService.hasUnreadNotifications();
 
       if (mounted) {
         setState(() {
           _user = user;
+          _hasUnreadNotifications = hasUnread;
         });
       }
-
-      _notificationsSubscription = _databaseService.notificationsStream(userId).listen((list) {
-        if (mounted) {
-          setState(() {
-            _unreadCount = list.where((n) => !n.isRead).length;
-          });
-        }
-      });
     }
   }
 
@@ -97,7 +109,8 @@ class _HomePageState extends State<HomePage> {
       appBar: DsAppTopHeader(
         userName: _user?.name,
         userPhotoUrl: null, // Add if available
-        notificationCount: _unreadCount,
+        notificationCount: 0,
+        hasUnreadNotifications: _hasUnreadNotifications,
         paletteSeed: _user?.id,
         onNotificationTap: () => setState(() => _currentIndex = 3),
         onAvatarTap: () => setState(() => _currentIndex = 4),
@@ -112,7 +125,11 @@ class _HomePageState extends State<HomePage> {
       bottomNavigationBar: DsBottomNavBar(
         currentIndex: _getNavIndex(),
         onTap: (index) {
-          setState(() => _currentIndex = _getPageIndex(index));
+          final newIndex = _getPageIndex(index);
+          setState(() => _currentIndex = newIndex);
+          if (newIndex == 0) {
+            _refreshUnreadNotificationsIndicator();
+          }
         },
         items: [
           DsBottomNavItem(
@@ -171,7 +188,10 @@ class _HomePageState extends State<HomePage> {
       case 2:
         return const RequestsView();
       case 3:
-        return NotificationsView(onBack: () => setState(() => _currentIndex = 0));
+        return NotificationsView(onBack: () async {
+          setState(() => _currentIndex = 0);
+          await _refreshUnreadNotificationsIndicator();
+        });
       case 4:
         return AccountView(user: _user);
       case 5:
