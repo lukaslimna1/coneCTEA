@@ -3,12 +3,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
-import '../../core/constants/colors.dart';
-import '../../core/widgets/premium_auth_background.dart';
-import '../../core/widgets/premium/premium_card.dart';
-import '../../core/widgets/premium/premium_button.dart';
-import '../../core/design_system_v2/design_system_v2.dart';
-import '../../services/database_service.dart';
+import '../../../core/constants/colors.dart';
+import '../../../core/widgets/premium_auth_background.dart';
+import '../../../core/widgets/premium/premium_card.dart';
+import '../../../core/widgets/premium/premium_button.dart';
+import '../../../core/design_system_v2/design_system_v2.dart';
+import '../../../services/database_service.dart';
 
 class ForgotEmailPage extends StatefulWidget {
   const ForgotEmailPage({super.key});
@@ -67,10 +67,16 @@ class _ForgotEmailPageState extends State<ForgotEmailPage> {
         });
       } else {
         // CPF não encontrado ou erro de RLS (que retorna found=false na Edge Function)
-        setState(() => _error = 'Não encontramos uma conta com esses dados. Verifique o CPF informado ou fale com o suporte.');
+        setState(
+          () => _error =
+              'Não encontramos uma conta com esses dados. Verifique o CPF informado ou fale com o suporte.',
+        );
       }
     } catch (e) {
-      setState(() => _error = 'Não foi possível consultar agora. Tente novamente em instantes ou fale com o suporte.');
+      setState(
+        () => _error =
+            'Não foi possível consultar agora. Tente novamente em instantes ou fale com o suporte.',
+      );
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -100,9 +106,15 @@ class _ForgotEmailPageState extends State<ForgotEmailPage> {
                           decoration: BoxDecoration(
                             color: Colors.white.withValues(alpha: 0.05),
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.1),
+                            ),
                           ),
-                          child: Icon(PhosphorIcons.arrowLeft(), color: Colors.white, size: 20),
+                          child: Icon(
+                            PhosphorIcons.arrowLeft(),
+                            color: Colors.white,
+                            size: 20,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -163,7 +175,9 @@ class _ForgotEmailPageState extends State<ForgotEmailPage> {
                             'Informe o CPF cadastrado para localizarmos seu e-mail de acesso.',
                             style: GoogleFonts.inter(
                               fontSize: 15,
-                              color: AppColors.textSecondary.withValues(alpha: 0.7),
+                              color: AppColors.textSecondary.withValues(
+                                alpha: 0.7,
+                              ),
                               height: 1.5,
                               fontWeight: FontWeight.w500,
                             ),
@@ -184,11 +198,17 @@ class _ForgotEmailPageState extends State<ForgotEmailPage> {
                                   decoration: BoxDecoration(
                                     color: Colors.red.withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(16),
-                                    border: Border.all(color: Colors.red.withValues(alpha: 0.2)),
+                                    border: Border.all(
+                                      color: Colors.red.withValues(alpha: 0.2),
+                                    ),
                                   ),
                                   child: Row(
                                     children: [
-                                      Icon(PhosphorIcons.warningCircle(), color: Colors.redAccent, size: 20),
+                                      Icon(
+                                        PhosphorIcons.warningCircle(),
+                                        color: Colors.redAccent,
+                                        size: 20,
+                                      ),
                                       const SizedBox(width: 12),
                                       Expanded(
                                         child: Text(
@@ -247,7 +267,9 @@ class _ForgotEmailPageState extends State<ForgotEmailPage> {
                             'Encontramos uma conta associada ao CPF informado.',
                             style: GoogleFonts.inter(
                               fontSize: 15,
-                              color: AppColors.textSecondary.withValues(alpha: 0.7),
+                              color: AppColors.textSecondary.withValues(
+                                alpha: 0.7,
+                              ),
                               height: 1.5,
                               fontWeight: FontWeight.w500,
                             ),
@@ -263,10 +285,18 @@ class _ForgotEmailPageState extends State<ForgotEmailPage> {
                               Container(
                                 padding: const EdgeInsets.all(16),
                                 decoration: BoxDecoration(
-                                  color: AppColors.statusGreen.withValues(alpha: 0.1),
+                                  color: AppColors.statusGreen.withValues(
+                                    alpha: 0.1,
+                                  ),
                                   shape: BoxShape.circle,
                                 ),
-                                child: Icon(PhosphorIcons.checkCircle(PhosphorIconsStyle.fill), color: AppColors.statusGreen, size: 40),
+                                child: Icon(
+                                  PhosphorIcons.checkCircle(
+                                    PhosphorIconsStyle.fill,
+                                  ),
+                                  color: AppColors.statusGreen,
+                                  size: 40,
+                                ),
                               ),
                               const SizedBox(height: 20),
                               Text(
@@ -279,12 +309,17 @@ class _ForgotEmailPageState extends State<ForgotEmailPage> {
                               ),
                               const SizedBox(height: 8),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
                                 width: double.infinity,
                                 decoration: BoxDecoration(
                                   color: Colors.white.withValues(alpha: 0.05),
                                   borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                                  border: Border.all(
+                                    color: Colors.white.withValues(alpha: 0.1),
+                                  ),
                                 ),
                                 child: Text(
                                   _maskedEmail ?? '',
@@ -301,12 +336,14 @@ class _ForgotEmailPageState extends State<ForgotEmailPage> {
 
                               Text(
                                 _emailSent
-                                  ? 'Também enviamos uma mensagem para esse e-mail com instruções.'
-                                  : 'Não foi possível enviar a mensagem agora. Tente novamente em instantes.',
+                                    ? 'Também enviamos uma mensagem para esse e-mail com instruções.'
+                                    : 'Não foi possível enviar a mensagem agora. Tente novamente em instantes.',
                                 textAlign: TextAlign.center,
                                 style: GoogleFonts.inter(
                                   fontSize: 13,
-                                  color: _emailSent ? AppColors.textSecondary : Colors.redAccent,
+                                  color: _emailSent
+                                      ? AppColors.textSecondary
+                                      : Colors.redAccent,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),

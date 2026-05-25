@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import '../../core/constants/colors.dart';
-import '../../core/widgets/premium_auth_background.dart';
-import '../../core/widgets/premium/premium_card.dart';
-import '../../core/widgets/premium/premium_button.dart';
-import '../../core/design_system_v2/design_system_v2.dart';
-import '../../services/auth_service.dart';
+import '../../../core/constants/colors.dart';
+import '../../../core/widgets/premium_auth_background.dart';
+import '../../../core/widgets/premium/premium_card.dart';
+import '../../../core/widgets/premium/premium_button.dart';
+import '../../../core/design_system_v2/design_system_v2.dart';
+import '../../../services/auth_service.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
   const ForgotPasswordPage({super.key});
@@ -84,9 +84,15 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                           decoration: BoxDecoration(
                             color: Colors.white.withValues(alpha: 0.05),
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.1),
+                            ),
                           ),
-                          child: Icon(PhosphorIcons.arrowLeft(), color: Colors.white, size: 20),
+                          child: Icon(
+                            PhosphorIcons.arrowLeft(),
+                            color: Colors.white,
+                            size: 20,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -147,7 +153,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                             'Informe o e-mail associado à sua conta e enviaremos as instruções para você criar uma nova senha.',
                             style: GoogleFonts.inter(
                               fontSize: 15,
-                              color: AppColors.textSecondary.withValues(alpha: 0.7),
+                              color: AppColors.textSecondary.withValues(
+                                alpha: 0.7,
+                              ),
                               height: 1.5,
                               fontWeight: FontWeight.w500,
                             ),
@@ -168,17 +176,24 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                   decoration: BoxDecoration(
                                     color: Colors.red.withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(16),
-                                    border: Border.all(color: Colors.red.withValues(alpha: 0.2)),
+                                    border: Border.all(
+                                      color: Colors.red.withValues(alpha: 0.2),
+                                    ),
                                   ),
                                   child: Row(
                                     children: [
-                                      Icon(PhosphorIcons.warningCircle(), color: Colors.redAccent, size: 20),
+                                      Icon(
+                                        PhosphorIcons.warningCircle(),
+                                        color: Colors.redAccent,
+                                        size: 20,
+                                      ),
                                       const SizedBox(width: 12),
                                       Expanded(
                                         child: Text(
                                           _errorMessage!,
                                           style: GoogleFonts.inter(
-                                            color: Colors.white,                                            fontSize: 13,
+                                            color: Colors.white,
+                                            fontSize: 13,
                                             fontWeight: FontWeight.w600,
                                           ),
                                         ),
@@ -218,9 +233,16 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                           decoration: BoxDecoration(
                             color: Colors.green.withValues(alpha: 0.1),
                             shape: BoxShape.circle,
-                            border: Border.all(color: Colors.green.withValues(alpha: 0.2), width: 2),
+                            border: Border.all(
+                              color: Colors.green.withValues(alpha: 0.2),
+                              width: 2,
+                            ),
                           ),
-                          child: Icon(PhosphorIcons.checkCircle(PhosphorIconsStyle.fill), size: 80, color: Colors.greenAccent),
+                          child: Icon(
+                            PhosphorIcons.checkCircle(PhosphorIconsStyle.fill),
+                            size: 80,
+                            color: Colors.greenAccent,
+                          ),
                         ),
                         const SizedBox(height: 32),
                         Text(
@@ -238,7 +260,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                             'Se este e-mail estiver cadastrado, enviaremos as instruções de recuperação.',
                             style: GoogleFonts.inter(
                               fontSize: 16,
-                              color: AppColors.textSecondary.withValues(alpha: 0.7),
+                              color: AppColors.textSecondary.withValues(
+                                alpha: 0.7,
+                              ),
                               height: 1.5,
                               fontWeight: FontWeight.w500,
                             ),
