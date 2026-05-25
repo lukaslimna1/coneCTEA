@@ -6,7 +6,6 @@ import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -92,51 +91,7 @@ void main() async {
   // Remove a splash nativa agora que a inicialização terminou
   FlutterNativeSplash.remove();
 
-  const String sentryDsn = String.fromEnvironment(
-    'SENTRY_DSN',
-    defaultValue: '',
-  );
-
-  if (sentryDsn.isNotEmpty) {
-    await SentryFlutter.init((options) {
-      options.dsn = sentryDsn;
-      options.sendDefaultPii = false;
-      options.attachScreenshot = false;
-      options.tracesSampleRate = 0.0;
-      options.beforeSend = (event, hint) {
-        final allContent = event.toJson().toString().toLowerCase();
-
-        final blockedTerms = [
-          'cpf',
-          'laudo',
-          'documento',
-          'fileid',
-          'drive',
-          'token',
-          'authorization',
-          'bearer',
-          'qr',
-          'cid',
-          'diagnóstico',
-          'diagnostico',
-          'supabase',
-          'storage',
-          'signedurl',
-          'refresh_token',
-          'access_token',
-        ];
-
-        for (var term in blockedTerms) {
-          if (allContent.contains(term)) {
-            return null; // Descarta o evento para proteger dados sensíveis
-          }
-        }
-        return event;
-      };
-    }, appRunner: () => runApp(const ConeCTEAApp()));
-  } else {
-    runApp(const ConeCTEAApp());
-  }
+  runApp(const ConeCTEAApp());
 }
 
 class ConeCTEAApp extends StatelessWidget {
