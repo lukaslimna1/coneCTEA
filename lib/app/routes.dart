@@ -1,8 +1,8 @@
 import 'package:go_router/go_router.dart';
-import 'package:conectea/features/auth/login/login_page.dart';
-import 'package:conectea/features/auth/cadastro/register_page.dart';
-import 'package:conectea/features/auth/recuperacao/forgot_password_page.dart';
-import 'package:conectea/features/auth/recuperacao/forgot_email_page.dart';
+import 'package:conectea/features/acesso/login/login_page.dart';
+import 'package:conectea/features/acesso/cadastro/register_page.dart';
+import 'package:conectea/features/acesso/recuperacao/forgot_password_page.dart';
+import 'package:conectea/features/acesso/recuperacao/forgot_email_page.dart';
 import 'package:conectea/features/home/home_page.dart';
 import 'package:conectea/features/requests/add_member_page.dart';
 import 'package:conectea/features/admin/admin_dashboard_page.dart';

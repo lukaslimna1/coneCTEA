@@ -10,11 +10,11 @@ import 'package:conectea/core/constants/colors.dart';
 import 'package:conectea/services/auth_service.dart';
 import 'package:conectea/core/widgets/premium_auth_background.dart';
 import 'package:conectea/app/routes.dart';
-import 'package:conectea/features/auth/cadastro/utils/auth_cpf_validator.dart';
-import 'package:conectea/features/auth/cadastro/widgets/register_section_title.dart';
-import 'package:conectea/features/auth/cadastro/widgets/register_terms_checkbox.dart';
-import 'package:conectea/features/auth/cadastro/widgets/register_scrollable_dialog.dart';
-import 'package:conectea/features/auth/cadastro/content/register_legal_texts.dart';
+import 'package:conectea/features/acesso/cadastro/utils/auth_cpf_validator.dart';
+import 'package:conectea/features/acesso/cadastro/widgets/register_section_title.dart';
+import 'package:conectea/features/acesso/cadastro/widgets/register_terms_checkbox.dart';
+import 'package:conectea/features/acesso/cadastro/widgets/register_scrollable_dialog.dart';
+import 'package:conectea/features/acesso/cadastro/content/register_legal_texts.dart';
 import '../../../core/design_system_v2/design_system_v2.dart';
 
 class RegisterPage extends StatefulWidget {
