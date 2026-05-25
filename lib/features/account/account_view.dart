@@ -10,9 +10,8 @@ import 'package:conectea/models/app_user.dart';
 import 'package:conectea/features/account/privacy/privacy_view.dart';
 import 'package:conectea/features/account/security/security_view.dart';
 import 'package:conectea/features/account/profile/my_data_view.dart';
-import 'package:conectea/features/account/institutional/institutional_view.dart';
-import 'package:conectea/features/account/support/support_view.dart';
-
+import 'package:conectea/features/account/institucional/institutional_view.dart';
+import 'package:conectea/features/account/suporte/support_view.dart';
 
 class AccountView extends StatelessWidget {
   final AppUser? user;
@@ -25,7 +24,8 @@ class AccountView extends StatelessWidget {
     final double topSafeArea = MediaQuery.paddingOf(context).top;
     const double headerVisualHeight = 64.0;
     const double headerClearance = 4.0;
-    final double topPadding = topSafeArea + headerVisualHeight + headerClearance;
+    final double topPadding =
+        topSafeArea + headerVisualHeight + headerClearance;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -38,12 +38,15 @@ class AccountView extends StatelessWidget {
             children: [
               _buildProfileHeader(user),
               const SizedBox(height: 32),
-              
-              _buildSectionHeader('Central do Usuário', 'Gerencie conta, dados, segurança e suporte.'),
+
+              _buildSectionHeader(
+                'Central do Usuário',
+                'Gerencie conta, dados, segurança e suporte.',
+              ),
               const SizedBox(height: 16),
-              
+
               _buildGridMenu(context),
-              
+
               const SizedBox(height: 32),
               _buildLogoutButton(context, authService),
             ],
@@ -87,7 +90,7 @@ class AccountView extends StatelessWidget {
     final displayName = user?.name.isNotEmpty == true
         ? user!.name
         : (user?.email ?? 'Usuário');
-        
+
     return Column(
       children: [
         ConecteaAvatar(
@@ -123,7 +126,10 @@ class AccountView extends StatelessWidget {
           description: 'Perfil, dependentes e correções.',
           token: DsCores.conta,
           layout: DsCardHubLayout.horizontal,
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const MyDataView())),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const MyDataView()),
+          ),
         ),
         const SizedBox(height: 12),
         _buildMenuCard(
@@ -132,7 +138,10 @@ class AccountView extends StatelessWidget {
           description: 'Acesso e proteção da conta.',
           token: DsCores.seguranca,
           layout: DsCardHubLayout.horizontal,
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SecurityView())),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const SecurityView()),
+          ),
         ),
         const SizedBox(height: 12),
         _buildMenuCard(
@@ -141,7 +150,10 @@ class AccountView extends StatelessWidget {
           description: 'LGPD, dados e consentimentos.',
           token: DsCores.privacidade,
           layout: DsCardHubLayout.horizontal,
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const PrivacyView())),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const PrivacyView()),
+          ),
         ),
         const SizedBox(height: 12),
         _buildMenuCard(
@@ -150,7 +162,10 @@ class AccountView extends StatelessWidget {
           description: 'Suporte, dúvidas e problemas.',
           token: DsCores.suporte,
           layout: DsCardHubLayout.horizontal,
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SupportView())),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const SupportView()),
+          ),
         ),
         const SizedBox(height: 12),
         _buildMenuCard(
@@ -159,7 +174,10 @@ class AccountView extends StatelessWidget {
           description: 'ConeCTEA, Família TEA e projetos.',
           token: DsCores.institucional,
           layout: DsCardHubLayout.horizontal,
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const InstitutionalView())),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const InstitutionalView()),
+          ),
         ),
         const SizedBox(height: 12),
         _buildMenuCard(
@@ -222,14 +240,22 @@ class AccountView extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.03),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.05),
+                    ),
                   ),
                   child: Column(
                     children: [
                       _buildVersionRow('Versão', '1.0.0'),
-                      Divider(color: Colors.white.withValues(alpha: 0.05), height: 16),
+                      Divider(
+                        color: Colors.white.withValues(alpha: 0.05),
+                        height: 16,
+                      ),
                       _buildVersionRow('Build', '2026.05.13'),
-                      Divider(color: Colors.white.withValues(alpha: 0.05), height: 16),
+                      Divider(
+                        color: Colors.white.withValues(alpha: 0.05),
+                        height: 16,
+                      ),
                       _buildVersionRow('Ambiente', 'Produção'),
                     ],
                   ),
@@ -246,10 +272,22 @@ class AccountView extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
-                _buildTechBlock('Supabase', 'Autenticação, banco de dados e organização segura das informações do app.'),
-                _buildTechBlock('OneSignal', 'Envio de notificações importantes sobre conta, solicitações, carteirinha e comunicados.'),
-                _buildTechBlock('Google Apps Script / Google Drive', 'Apoio operacional para recebimento e organização temporária de documentos, conforme as regras de privacidade.'),
-                _buildTechBlock('Flutter', 'Tecnologia usada para construir a experiência mobile do ConeCTEA.'),
+                _buildTechBlock(
+                  'Supabase',
+                  'Autenticação, banco de dados e organização segura das informações do app.',
+                ),
+                _buildTechBlock(
+                  'OneSignal',
+                  'Envio de notificações importantes sobre conta, solicitações, carteirinha e comunicados.',
+                ),
+                _buildTechBlock(
+                  'Google Apps Script / Google Drive',
+                  'Apoio operacional para recebimento e organização temporária de documentos, conforme as regras de privacidade.',
+                ),
+                _buildTechBlock(
+                  'Flutter',
+                  'Tecnologia usada para construir a experiência mobile do ConeCTEA.',
+                ),
                 const SizedBox(height: 12),
 
                 // 3. Transparência
@@ -265,9 +303,15 @@ class AccountView extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: DsCores.institucional.softBackground.withValues(alpha: 0.1),
+                    color: DsCores.institucional.softBackground.withValues(
+                      alpha: 0.1,
+                    ),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: DsCores.institucional.border.withValues(alpha: 0.2)),
+                    border: Border.all(
+                      color: DsCores.institucional.border.withValues(
+                        alpha: 0.2,
+                      ),
+                    ),
                   ),
                   child: Text(
                     'O ConeCTEA utiliza serviços de terceiros para manter o app funcionando com segurança, organização e comunicação. As marcas citadas pertencem aos seus respectivos titulares. A citação desses serviços não representa parceria oficial, patrocínio ou endosso comercial.',
@@ -360,7 +404,11 @@ class AccountView extends StatelessWidget {
         onPressed: () async {
           await authService.signOut();
         },
-        icon: const Icon(PhosphorIconsRegular.signOut, color: AppColors.errorRed, size: 20),
+        icon: const Icon(
+          PhosphorIconsRegular.signOut,
+          color: AppColors.errorRed,
+          size: 20,
+        ),
         label: Text(
           'Sair da Conta',
           style: GoogleFonts.inter(

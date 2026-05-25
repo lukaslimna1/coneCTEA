@@ -13,8 +13,8 @@ import 'package:url_launcher/url_launcher_string.dart';
 
 import 'package:conectea/features/account/profile/edit_profile_view.dart';
 import 'package:conectea/features/account/security/security_view.dart';
-import 'package:conectea/features/account/institutional/about_conectea_view.dart';
-import 'package:conectea/features/account/institutional/family_tea_view.dart';
+import 'package:conectea/features/account/institucional/about_conectea_view.dart';
+import 'package:conectea/features/account/institucional/family_tea_view.dart';
 import 'package:conectea/features/participar/projects_actions_view.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 
