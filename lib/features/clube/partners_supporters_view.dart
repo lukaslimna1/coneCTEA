@@ -10,10 +10,7 @@ class PartnersSupportersView extends StatelessWidget {
   /// Se a tela está sendo exibida como aba da navbar principal.
   final bool isTab;
 
-  const PartnersSupportersView({
-    super.key,
-    this.isTab = false,
-  });
+  const PartnersSupportersView({super.key, this.isTab = false});
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +29,10 @@ class PartnersSupportersView extends StatelessWidget {
               Expanded(
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 20,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -43,12 +43,16 @@ class PartnersSupportersView extends StatelessWidget {
                       const SizedBox(height: 24),
                       Text(
                         'Parceiros e apoiadores',
-                        style: DsTipografia.pageTitle.copyWith(color: DsCores.textPrimary),
+                        style: DsTipografia.pageTitle.copyWith(
+                          color: DsCores.textPrimary,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'Conheça a rede de apoio comunitária ligada ao ConeCTEA.',
-                        style: DsTipografia.pageSubtitle.copyWith(color: DsCores.textSecondary),
+                        style: DsTipografia.pageSubtitle.copyWith(
+                          color: DsCores.textSecondary,
+                        ),
                       ),
                       const SizedBox(height: 32),
 
@@ -62,7 +66,9 @@ class PartnersSupportersView extends StatelessWidget {
                               children: [
                                 DsMolduraIcone(
                                   icon: PhosphorIconsRegular.handshake,
-                                  accentColor: Color(0xFFA78BFA), // token institucional accent
+                                  accentColor: Color(
+                                    0xFFA78BFA,
+                                  ), // token institucional accent
                                 ),
                                 SizedBox(width: 12),
                                 Expanded(
@@ -134,7 +140,9 @@ class PartnersSupportersView extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             'Conheça a rede de apoio comunitária ligada ao ConeCTEA.',
-            style: DsTipografia.pageSubtitle.copyWith(color: DsCores.textSecondary),
+            style: DsTipografia.pageSubtitle.copyWith(
+              color: DsCores.textSecondary,
+            ),
           ),
           const SizedBox(height: 32),
 
@@ -148,7 +156,9 @@ class PartnersSupportersView extends StatelessWidget {
                   children: [
                     DsMolduraIcone(
                       icon: PhosphorIconsRegular.handshake,
-                      accentColor: Color(0xFFA78BFA), // token institucional accent
+                      accentColor: Color(
+                        0xFFA78BFA,
+                      ), // token institucional accent
                     ),
                     SizedBox(width: 12),
                     Expanded(
@@ -204,7 +214,9 @@ class PartnersSupportersView extends StatelessWidget {
               Expanded(
                 child: Text(
                   'Atenção',
-                  style: DsTipografia.cardTitle.copyWith(color: DsCores.textPrimary),
+                  style: DsTipografia.cardTitle.copyWith(
+                    color: DsCores.textPrimary,
+                  ),
                 ),
               ),
             ],

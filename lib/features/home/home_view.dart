@@ -15,7 +15,7 @@ import 'package:conectea/features/account/profile/edit_profile_view.dart';
 import 'package:conectea/features/account/security/security_view.dart';
 import 'package:conectea/features/account/institutional/about_conectea_view.dart';
 import 'package:conectea/features/account/institutional/family_tea_view.dart';
-import 'package:conectea/features/account/institutional/projects_actions_view.dart';
+import 'package:conectea/features/participar/projects_actions_view.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 
 import 'package:conectea/features/home/widgets/banners/home_banners_section.dart';

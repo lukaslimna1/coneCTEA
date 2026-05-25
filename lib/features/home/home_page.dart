@@ -12,8 +12,8 @@ import '../cards/cards_view.dart';
 import '../notifications/notifications_view.dart';
 import '../account/account_view.dart';
 import '../admin/admin_view.dart';
-import '../account/institutional/partners_supporters_view.dart';
-import '../account/institutional/projects_actions_view.dart';
+import '../clube/partners_supporters_view.dart';
+import '../participar/projects_actions_view.dart';
 import '../../core/design_system_v2/design_system_v2.dart';
 
 class HomePage extends StatefulWidget {

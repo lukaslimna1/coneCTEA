@@ -19,7 +19,10 @@ class ProjectsActionsView extends StatelessWidget {
               Expanded(
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 20,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -30,12 +33,16 @@ class ProjectsActionsView extends StatelessWidget {
                       const SizedBox(height: 24),
                       Text(
                         'Projetos e ações',
-                        style: DsTipografia.pageTitle.copyWith(color: DsCores.textPrimary),
+                        style: DsTipografia.pageTitle.copyWith(
+                          color: DsCores.textPrimary,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'Conheça projetos, chamamentos, eventos e iniciativas comunitárias da Família TEA Bauru.',
-                        style: DsTipografia.pageSubtitle.copyWith(color: DsCores.textSecondary),
+                        style: DsTipografia.pageSubtitle.copyWith(
+                          color: DsCores.textSecondary,
+                        ),
                       ),
                       const SizedBox(height: 32),
 
@@ -44,7 +51,8 @@ class ProjectsActionsView extends StatelessWidget {
                         context,
                         icon: PhosphorIconsRegular.star,
                         title: 'Fada do Dente',
-                        text: 'Ação comunitária voltada ao encaminhamento inicial para atendimento odontológico com profissional parceiro, conforme disponibilidade e regras da ação.',
+                        text:
+                            'Ação comunitária voltada ao encaminhamento inicial para atendimento odontológico com profissional parceiro, conforme disponibilidade e regras da ação.',
                         seloLabel: 'Ação comunitária',
                         actionLabel: 'Ver detalhes',
                         onPressed: () => _showSnackBar(
@@ -59,7 +67,8 @@ class ProjectsActionsView extends StatelessWidget {
                         context,
                         icon: PhosphorIconsRegular.heartbeat,
                         title: 'Vidas',
-                        text: 'Ação comunitária voltada ao apoio inicial para consultas com profissionais parceiros, conforme disponibilidade, critérios e organização da Família TEA Bauru.',
+                        text:
+                            'Ação comunitária voltada ao apoio inicial para consultas com profissionais parceiros, conforme disponibilidade, critérios e organização da Família TEA Bauru.',
                         seloLabel: 'Ação comunitária',
                         actionLabel: 'Ver detalhes',
                         onPressed: () => _showSnackBar(
@@ -74,7 +83,8 @@ class ProjectsActionsView extends StatelessWidget {
                         context,
                         icon: PhosphorIconsRegular.calendar,
                         title: 'Eventos',
-                        text: 'Eventos, encontros, palestras e ações comunitárias divulgadas pela Família TEA Bauru, incluindo ações maiores como a EXPO Viva Inclusão.',
+                        text:
+                            'Eventos, encontros, palestras e ações comunitárias divulgadas pela Família TEA Bauru, incluindo ações maiores como a EXPO Viva Inclusão.',
                         seloLabel: 'Eventos e encontros',
                         actionLabel: 'Ver eventos',
                         onPressed: () => _showSnackBar(
@@ -121,9 +131,7 @@ class ProjectsActionsView extends StatelessWidget {
         ),
         backgroundColor: DsCores.surfaceElevated,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
@@ -146,13 +154,17 @@ class ProjectsActionsView extends StatelessWidget {
             children: [
               DsMolduraIcone(
                 icon: icon,
-                accentColor: const Color(0xFFA78BFA), // token institucional accent
+                accentColor: const Color(
+                  0xFFA78BFA,
+                ), // token institucional accent
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   title,
-                  style: DsTipografia.cardTitle.copyWith(color: DsCores.textPrimary),
+                  style: DsTipografia.cardTitle.copyWith(
+                    color: DsCores.textPrimary,
+                  ),
                 ),
               ),
             ],
@@ -166,10 +178,7 @@ class ProjectsActionsView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          DsSelo.fromCorVisual(
-            label: seloLabel,
-            token: DsCores.institucional,
-          ),
+          DsSelo.fromCorVisual(label: seloLabel, token: DsCores.institucional),
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
@@ -207,7 +216,9 @@ class ProjectsActionsView extends StatelessWidget {
               Expanded(
                 child: Text(
                   'Importante',
-                  style: DsTipografia.cardTitle.copyWith(color: DsCores.textPrimary),
+                  style: DsTipografia.cardTitle.copyWith(
+                    color: DsCores.textPrimary,
+                  ),
                 ),
               ),
             ],
