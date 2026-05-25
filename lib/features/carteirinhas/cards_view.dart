@@ -9,15 +9,15 @@ import 'package:conectea/services/auth_service.dart';
 import 'package:conectea/services/database_service.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/widgets/premium/premium_qr_button.dart';
-import 'package:conectea/features/cards/widgets/digital/digital_card_widget.dart';
-import 'package:conectea/features/cards/full_screen_card_page.dart';
+import 'package:conectea/features/carteirinhas/widgets/digital/digital_card_widget.dart';
+import 'package:conectea/features/carteirinhas/full_screen_card_page.dart';
 import 'package:conectea/models/app_user.dart';
 import 'package:conectea/features/account/profile/edit_profile_view.dart';
-import 'package:conectea/features/cards/widgets/tela/cards_member_selector.dart';
-import 'package:conectea/features/cards/widgets/tela/cards_pending_state.dart';
-import 'package:conectea/features/cards/widgets/tela/cards_empty_state.dart';
-import 'package:conectea/features/cards/widgets/tela/cards_details_section.dart';
-import 'package:conectea/features/cards/widgets/tela/cards_error_state.dart';
+import 'package:conectea/features/carteirinhas/widgets/tela/cards_member_selector.dart';
+import 'package:conectea/features/carteirinhas/widgets/tela/cards_pending_state.dart';
+import 'package:conectea/features/carteirinhas/widgets/tela/cards_empty_state.dart';
+import 'package:conectea/features/carteirinhas/widgets/tela/cards_details_section.dart';
+import 'package:conectea/features/carteirinhas/widgets/tela/cards_error_state.dart';
 import 'package:conectea/features/requests/add_member_page.dart';
 
 class CardsView extends StatefulWidget {

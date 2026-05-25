@@ -8,7 +8,7 @@ import 'package:conectea/models/member.dart';
 import 'package:conectea/models/card_request.dart';
 import 'package:conectea/models/digital_card.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
-import 'package:conectea/features/cards/widgets/digital/digital_card_widget.dart';
+import 'package:conectea/features/carteirinhas/widgets/digital/digital_card_widget.dart';
 import 'package:conectea/features/home/utils/home_status_helper.dart';
 
 class HomeDigitalCardSection extends StatelessWidget {
