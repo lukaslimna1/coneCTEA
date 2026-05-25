@@ -2,21 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 import 'package:conectea/features/account/profile/widgets/my_data_logged_header.dart';
-import 'package:conectea/features/account/privacy/privacy_policy_content.dart';
+import 'package:conectea/features/account/privacidade/terms_of_use_content.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-/// Tela visual de leitura da Política de Privacidade do ConeCTEA.
+/// Tela visual de leitura dos Termos de Uso do ConeCTEA.
 ///
 /// Apresenta o documento de forma organizada em cards individuais,
-/// sem exigência de checkbox ou trava de leitura, pois é uma tela apenas para consulta.
-class PrivacyPolicyView extends StatefulWidget {
-  const PrivacyPolicyView({super.key});
+/// com detecção de rolagem para habilitar a confirmação de leitura.
+class TermsOfUseView extends StatefulWidget {
+  const TermsOfUseView({super.key});
 
   @override
-  State<PrivacyPolicyView> createState() => _PrivacyPolicyViewState();
+  State<TermsOfUseView> createState() => _TermsOfUseViewState();
 }
 
-class _PrivacyPolicyViewState extends State<PrivacyPolicyView> {
+class _TermsOfUseViewState extends State<TermsOfUseView> {
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -56,7 +56,11 @@ class _PrivacyPolicyViewState extends State<PrivacyPolicyView> {
   }
 
   /// Renderiza uma única linha tratando o bullet point "- " e trechos em negrito.
-  Widget _renderMarkdownLine(String line, TextStyle baseStyle, {Color? bulletColor}) {
+  Widget _renderMarkdownLine(
+    String line,
+    TextStyle baseStyle, {
+    Color? bulletColor,
+  }) {
     final String trimmedLine = line.trim();
     if (trimmedLine.isEmpty) {
       return const SizedBox(height: 8);
@@ -77,7 +81,7 @@ class _PrivacyPolicyViewState extends State<PrivacyPolicyView> {
               width: 6,
               height: 6,
               decoration: BoxDecoration(
-                color: bulletColor ?? DsCores.privacidade.accent,
+                color: bulletColor ?? DsCores.termos.accent,
                 shape: BoxShape.circle,
               ),
             ),
@@ -98,20 +102,27 @@ class _PrivacyPolicyViewState extends State<PrivacyPolicyView> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),
       child: Text.rich(
-        TextSpan(
-          children: _parseInlineMarkdown(line, baseStyle),
-        ),
+        TextSpan(children: _parseInlineMarkdown(line, baseStyle)),
         style: baseStyle,
       ),
     );
   }
 
   /// Renderiza o bloco de texto Markdown completo, linha por linha.
-  Widget _renderMarkdownContent(String rawText, TextStyle baseStyle, {Color? bulletColor}) {
+  Widget _renderMarkdownContent(
+    String rawText,
+    TextStyle baseStyle, {
+    Color? bulletColor,
+  }) {
     final List<String> lines = rawText.split('\n');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: lines.map((line) => _renderMarkdownLine(line, baseStyle, bulletColor: bulletColor)).toList(),
+      children: lines
+          .map(
+            (line) =>
+                _renderMarkdownLine(line, baseStyle, bulletColor: bulletColor),
+          )
+          .toList(),
     );
   }
 
@@ -132,23 +143,28 @@ class _PrivacyPolicyViewState extends State<PrivacyPolicyView> {
                     child: SingleChildScrollView(
                       controller: _scrollController,
                       physics: const BouncingScrollPhysics(),
+                      // Padding inferior reduzido de 220 para 140, pois o rodapé agora é mais compacto.
                       padding: const EdgeInsets.fromLTRB(24, 20, 24, 140),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           DsBotaoVoltar(
                             onPressed: () => Navigator.pop(context),
-                            token: DsCores.privacidade,
+                            token: DsCores.termos,
                           ),
                           const SizedBox(height: 24),
                           Text(
-                            'Política de privacidade',
-                            style: DsTipografia.pageTitle.copyWith(color: DsCores.textPrimary),
+                            'Termos de Uso',
+                            style: DsTipografia.pageTitle.copyWith(
+                              color: DsCores.textPrimary,
+                            ),
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Entenda como suas informações pessoais, documentos e laudos são protegidos no app.',
-                            style: DsTipografia.pageSubtitle.copyWith(color: DsCores.textSecondary),
+                            'Leia as regras de uso do ConeCTEA e os limites da carteirinha comunitária.',
+                            style: DsTipografia.pageSubtitle.copyWith(
+                              color: DsCores.textSecondary,
+                            ),
                           ),
                           const SizedBox(height: 32),
 
@@ -160,7 +176,7 @@ class _PrivacyPolicyViewState extends State<PrivacyPolicyView> {
                           _buildImportantNoticeCard(),
                           const SizedBox(height: 24),
 
-                          // Cards das Seções de 1 a 18
+                          // Cards das Seções de 1 a 25
                           ..._buildSectionsList(),
                         ],
                       ),
@@ -193,14 +209,16 @@ class _PrivacyPolicyViewState extends State<PrivacyPolicyView> {
           Row(
             children: [
               DsMolduraIcone(
-                icon: PhosphorIconsRegular.shieldCheck,
-                accentColor: DsCores.privacidade.accent,
+                icon: PhosphorIconsRegular.scroll,
+                accentColor: DsCores.termos.accent,
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  PrivacyPolicyContent.documentTitle,
-                  style: DsTipografia.cardTitle.copyWith(color: DsCores.textPrimary),
+                  TermsOfUseContent.documentTitle,
+                  style: DsTipografia.cardTitle.copyWith(
+                    color: DsCores.textPrimary,
+                  ),
                 ),
               ),
             ],
@@ -208,15 +226,24 @@ class _PrivacyPolicyViewState extends State<PrivacyPolicyView> {
           const SizedBox(height: 16),
           Divider(color: Colors.white.withValues(alpha: 0.05), height: 1),
           const SizedBox(height: 16),
-          _buildMetadataRow('Versão', PrivacyPolicyContent.version),
+          _buildMetadataRow('Versão', TermsOfUseContent.version),
           const SizedBox(height: 10),
-          _buildMetadataRow('Última atualização', PrivacyPolicyContent.lastUpdated),
+          _buildMetadataRow(
+            'Última atualização',
+            TermsOfUseContent.lastUpdated,
+          ),
           const SizedBox(height: 10),
-          _buildMetadataRow('Aplicativo', PrivacyPolicyContent.appName),
+          _buildMetadataRow('Aplicativo', TermsOfUseContent.appName),
           const SizedBox(height: 10),
-          _buildMetadataRow('Comunidade responsável', PrivacyPolicyContent.responsibleCommunity),
+          _buildMetadataRow(
+            'Comunidade responsável',
+            TermsOfUseContent.responsibleCommunity,
+          ),
           const SizedBox(height: 10),
-          _buildMetadataRow('Cidade de atuação principal', PrivacyPolicyContent.mainCity),
+          _buildMetadataRow(
+            'Cidade de atuação principal',
+            TermsOfUseContent.mainCity,
+          ),
         ],
       ),
     );
@@ -249,7 +276,7 @@ class _PrivacyPolicyViewState extends State<PrivacyPolicyView> {
     );
   }
 
-  /// Bloco especial de Aviso Importante estilizado com DsCores.alerta.
+  /// Bloco especial de Aviso Importante estilizado de forma moderada com DsCores.alerta.
   Widget _buildImportantNoticeCard() {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -271,17 +298,17 @@ class _PrivacyPolicyViewState extends State<PrivacyPolicyView> {
               Expanded(
                 child: Text(
                   'Aviso importante',
-                  style: DsTipografia.cardTitle.copyWith(color: DsCores.textPrimary),
+                  style: DsTipografia.cardTitle.copyWith(
+                    color: DsCores.textPrimary,
+                  ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
           _renderMarkdownContent(
-            PrivacyPolicyContent.importantNotice,
-            DsTipografia.legalBody.copyWith(
-              color: DsCores.textPrimary,
-            ),
+            TermsOfUseContent.importantNotice,
+            DsTipografia.legalBody.copyWith(color: DsCores.textPrimary),
             bulletColor: DsCores.alerta.accent,
           ),
         ],
@@ -289,9 +316,9 @@ class _PrivacyPolicyViewState extends State<PrivacyPolicyView> {
     );
   }
 
-  /// Constrói em loop a lista de cards das seções 1 a 18.
+  /// Constrói em loop a lista de cards das seções 1 a 25.
   List<Widget> _buildSectionsList() {
-    return PrivacyPolicyContent.sections.map((section) {
+    return TermsOfUseContent.sections.map((section) {
       return Padding(
         padding: const EdgeInsets.only(bottom: 16),
         child: DsCard(
@@ -304,13 +331,15 @@ class _PrivacyPolicyViewState extends State<PrivacyPolicyView> {
                 children: [
                   DsMolduraIcone(
                     icon: PhosphorIconsRegular.article,
-                    accentColor: DsCores.privacidade.accent,
+                    accentColor: DsCores.termos.accent,
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       '${section.number}. ${section.title}',
-                      style: DsTipografia.legalTitle.copyWith(color: DsCores.textPrimary),
+                      style: DsTipografia.legalTitle.copyWith(
+                        color: DsCores.textPrimary,
+                      ),
                     ),
                   ),
                 ],
@@ -335,12 +364,7 @@ class _PrivacyPolicyViewState extends State<PrivacyPolicyView> {
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
       decoration: const BoxDecoration(
         color: DsCores.glassStrong,
-        border: Border(
-          top: BorderSide(
-            color: DsCores.border,
-            width: 1,
-          ),
-        ),
+        border: Border(top: BorderSide(color: DsCores.border, width: 1)),
       ),
       child: SafeArea(
         top: false,
@@ -348,7 +372,7 @@ class _PrivacyPolicyViewState extends State<PrivacyPolicyView> {
           label: 'Entendi',
           onPressed: () => Navigator.pop(context),
           variante: DsBotaoVariante.acao,
-          token: DsCores.privacidade,
+          token: DsCores.termos,
           icon: PhosphorIconsRegular.check,
         ),
       ),

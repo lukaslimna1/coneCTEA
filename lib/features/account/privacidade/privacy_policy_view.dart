@@ -2,21 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 import 'package:conectea/features/account/profile/widgets/my_data_logged_header.dart';
-import 'package:conectea/features/account/privacy/terms_of_use_content.dart';
+import 'package:conectea/features/account/privacidade/privacy_policy_content.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-/// Tela visual de leitura dos Termos de Uso do ConeCTEA.
+/// Tela visual de leitura da Política de Privacidade do ConeCTEA.
 ///
 /// Apresenta o documento de forma organizada em cards individuais,
-/// com detecção de rolagem para habilitar a confirmação de leitura.
-class TermsOfUseView extends StatefulWidget {
-  const TermsOfUseView({super.key});
+/// sem exigência de checkbox ou trava de leitura, pois é uma tela apenas para consulta.
+class PrivacyPolicyView extends StatefulWidget {
+  const PrivacyPolicyView({super.key});
 
   @override
-  State<TermsOfUseView> createState() => _TermsOfUseViewState();
+  State<PrivacyPolicyView> createState() => _PrivacyPolicyViewState();
 }
 
-class _TermsOfUseViewState extends State<TermsOfUseView> {
+class _PrivacyPolicyViewState extends State<PrivacyPolicyView> {
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -56,7 +56,11 @@ class _TermsOfUseViewState extends State<TermsOfUseView> {
   }
 
   /// Renderiza uma única linha tratando o bullet point "- " e trechos em negrito.
-  Widget _renderMarkdownLine(String line, TextStyle baseStyle, {Color? bulletColor}) {
+  Widget _renderMarkdownLine(
+    String line,
+    TextStyle baseStyle, {
+    Color? bulletColor,
+  }) {
     final String trimmedLine = line.trim();
     if (trimmedLine.isEmpty) {
       return const SizedBox(height: 8);
@@ -77,7 +81,7 @@ class _TermsOfUseViewState extends State<TermsOfUseView> {
               width: 6,
               height: 6,
               decoration: BoxDecoration(
-                color: bulletColor ?? DsCores.termos.accent,
+                color: bulletColor ?? DsCores.privacidade.accent,
                 shape: BoxShape.circle,
               ),
             ),
@@ -98,20 +102,27 @@ class _TermsOfUseViewState extends State<TermsOfUseView> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),
       child: Text.rich(
-        TextSpan(
-          children: _parseInlineMarkdown(line, baseStyle),
-        ),
+        TextSpan(children: _parseInlineMarkdown(line, baseStyle)),
         style: baseStyle,
       ),
     );
   }
 
   /// Renderiza o bloco de texto Markdown completo, linha por linha.
-  Widget _renderMarkdownContent(String rawText, TextStyle baseStyle, {Color? bulletColor}) {
+  Widget _renderMarkdownContent(
+    String rawText,
+    TextStyle baseStyle, {
+    Color? bulletColor,
+  }) {
     final List<String> lines = rawText.split('\n');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: lines.map((line) => _renderMarkdownLine(line, baseStyle, bulletColor: bulletColor)).toList(),
+      children: lines
+          .map(
+            (line) =>
+                _renderMarkdownLine(line, baseStyle, bulletColor: bulletColor),
+          )
+          .toList(),
     );
   }
 
@@ -132,24 +143,27 @@ class _TermsOfUseViewState extends State<TermsOfUseView> {
                     child: SingleChildScrollView(
                       controller: _scrollController,
                       physics: const BouncingScrollPhysics(),
-                      // Padding inferior reduzido de 220 para 140, pois o rodapé agora é mais compacto.
                       padding: const EdgeInsets.fromLTRB(24, 20, 24, 140),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           DsBotaoVoltar(
                             onPressed: () => Navigator.pop(context),
-                            token: DsCores.termos,
+                            token: DsCores.privacidade,
                           ),
                           const SizedBox(height: 24),
                           Text(
-                            'Termos de Uso',
-                            style: DsTipografia.pageTitle.copyWith(color: DsCores.textPrimary),
+                            'Política de privacidade',
+                            style: DsTipografia.pageTitle.copyWith(
+                              color: DsCores.textPrimary,
+                            ),
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Leia as regras de uso do ConeCTEA e os limites da carteirinha comunitária.',
-                            style: DsTipografia.pageSubtitle.copyWith(color: DsCores.textSecondary),
+                            'Entenda como suas informações pessoais, documentos e laudos são protegidos no app.',
+                            style: DsTipografia.pageSubtitle.copyWith(
+                              color: DsCores.textSecondary,
+                            ),
                           ),
                           const SizedBox(height: 32),
 
@@ -161,7 +175,7 @@ class _TermsOfUseViewState extends State<TermsOfUseView> {
                           _buildImportantNoticeCard(),
                           const SizedBox(height: 24),
 
-                          // Cards das Seções de 1 a 25
+                          // Cards das Seções de 1 a 18
                           ..._buildSectionsList(),
                         ],
                       ),
@@ -194,14 +208,16 @@ class _TermsOfUseViewState extends State<TermsOfUseView> {
           Row(
             children: [
               DsMolduraIcone(
-                icon: PhosphorIconsRegular.scroll,
-                accentColor: DsCores.termos.accent,
+                icon: PhosphorIconsRegular.shieldCheck,
+                accentColor: DsCores.privacidade.accent,
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  TermsOfUseContent.documentTitle,
-                  style: DsTipografia.cardTitle.copyWith(color: DsCores.textPrimary),
+                  PrivacyPolicyContent.documentTitle,
+                  style: DsTipografia.cardTitle.copyWith(
+                    color: DsCores.textPrimary,
+                  ),
                 ),
               ),
             ],
@@ -209,15 +225,24 @@ class _TermsOfUseViewState extends State<TermsOfUseView> {
           const SizedBox(height: 16),
           Divider(color: Colors.white.withValues(alpha: 0.05), height: 1),
           const SizedBox(height: 16),
-          _buildMetadataRow('Versão', TermsOfUseContent.version),
+          _buildMetadataRow('Versão', PrivacyPolicyContent.version),
           const SizedBox(height: 10),
-          _buildMetadataRow('Última atualização', TermsOfUseContent.lastUpdated),
+          _buildMetadataRow(
+            'Última atualização',
+            PrivacyPolicyContent.lastUpdated,
+          ),
           const SizedBox(height: 10),
-          _buildMetadataRow('Aplicativo', TermsOfUseContent.appName),
+          _buildMetadataRow('Aplicativo', PrivacyPolicyContent.appName),
           const SizedBox(height: 10),
-          _buildMetadataRow('Comunidade responsável', TermsOfUseContent.responsibleCommunity),
+          _buildMetadataRow(
+            'Comunidade responsável',
+            PrivacyPolicyContent.responsibleCommunity,
+          ),
           const SizedBox(height: 10),
-          _buildMetadataRow('Cidade de atuação principal', TermsOfUseContent.mainCity),
+          _buildMetadataRow(
+            'Cidade de atuação principal',
+            PrivacyPolicyContent.mainCity,
+          ),
         ],
       ),
     );
@@ -250,7 +275,7 @@ class _TermsOfUseViewState extends State<TermsOfUseView> {
     );
   }
 
-  /// Bloco especial de Aviso Importante estilizado de forma moderada com DsCores.alerta.
+  /// Bloco especial de Aviso Importante estilizado com DsCores.alerta.
   Widget _buildImportantNoticeCard() {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -272,17 +297,17 @@ class _TermsOfUseViewState extends State<TermsOfUseView> {
               Expanded(
                 child: Text(
                   'Aviso importante',
-                  style: DsTipografia.cardTitle.copyWith(color: DsCores.textPrimary),
+                  style: DsTipografia.cardTitle.copyWith(
+                    color: DsCores.textPrimary,
+                  ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
           _renderMarkdownContent(
-            TermsOfUseContent.importantNotice,
-            DsTipografia.legalBody.copyWith(
-              color: DsCores.textPrimary,
-            ),
+            PrivacyPolicyContent.importantNotice,
+            DsTipografia.legalBody.copyWith(color: DsCores.textPrimary),
             bulletColor: DsCores.alerta.accent,
           ),
         ],
@@ -290,9 +315,9 @@ class _TermsOfUseViewState extends State<TermsOfUseView> {
     );
   }
 
-  /// Constrói em loop a lista de cards das seções 1 a 25.
+  /// Constrói em loop a lista de cards das seções 1 a 18.
   List<Widget> _buildSectionsList() {
-    return TermsOfUseContent.sections.map((section) {
+    return PrivacyPolicyContent.sections.map((section) {
       return Padding(
         padding: const EdgeInsets.only(bottom: 16),
         child: DsCard(
@@ -305,13 +330,15 @@ class _TermsOfUseViewState extends State<TermsOfUseView> {
                 children: [
                   DsMolduraIcone(
                     icon: PhosphorIconsRegular.article,
-                    accentColor: DsCores.termos.accent,
+                    accentColor: DsCores.privacidade.accent,
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       '${section.number}. ${section.title}',
-                      style: DsTipografia.legalTitle.copyWith(color: DsCores.textPrimary),
+                      style: DsTipografia.legalTitle.copyWith(
+                        color: DsCores.textPrimary,
+                      ),
                     ),
                   ),
                 ],
@@ -336,12 +363,7 @@ class _TermsOfUseViewState extends State<TermsOfUseView> {
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
       decoration: const BoxDecoration(
         color: DsCores.glassStrong,
-        border: Border(
-          top: BorderSide(
-            color: DsCores.border,
-            width: 1,
-          ),
-        ),
+        border: Border(top: BorderSide(color: DsCores.border, width: 1)),
       ),
       child: SafeArea(
         top: false,
@@ -349,7 +371,7 @@ class _TermsOfUseViewState extends State<TermsOfUseView> {
           label: 'Entendi',
           onPressed: () => Navigator.pop(context),
           variante: DsBotaoVariante.acao,
-          token: DsCores.termos,
+          token: DsCores.privacidade,
           icon: PhosphorIconsRegular.check,
         ),
       ),

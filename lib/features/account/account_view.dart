@@ -7,7 +7,7 @@ import 'package:conectea/services/auth_service.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:conectea/models/app_user.dart';
-import 'package:conectea/features/account/privacy/privacy_view.dart';
+import 'package:conectea/features/account/privacidade/privacy_view.dart';
 import 'package:conectea/features/account/security/security_view.dart';
 import 'package:conectea/features/account/profile/my_data_view.dart';
 import 'package:conectea/features/account/institucional/institutional_view.dart';
