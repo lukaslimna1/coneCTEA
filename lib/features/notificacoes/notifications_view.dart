@@ -8,7 +8,6 @@ import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 import 'package:conectea/core/utils/conectea_date_time_helper.dart';
 
-
 class NotificationsView extends StatefulWidget {
   final VoidCallback? onBack;
   final VoidCallback? onUnreadStatusChanged;
@@ -28,7 +27,9 @@ class _NotificationsViewState extends State<NotificationsView> {
 
   bool get _hasUnread {
     return _notifications.any((item) {
-      final key = item.id.isNotEmpty ? item.id : '${item.createdAt.toIso8601String()}_${item.title}';
+      final key = item.id.isNotEmpty
+          ? item.id
+          : '${item.createdAt.toIso8601String()}_${item.title}';
       return !item.isRead && !_readNotificationsLocally.contains(key);
     });
   }
@@ -52,7 +53,9 @@ class _NotificationsViewState extends State<NotificationsView> {
         setState(() {
           for (var item in _notifications) {
             if (!item.isRead) {
-              final key = item.id.isNotEmpty ? item.id : '${item.createdAt.toIso8601String()}_${item.title}';
+              final key = item.id.isNotEmpty
+                  ? item.id
+                  : '${item.createdAt.toIso8601String()}_${item.title}';
               _readNotificationsLocally.add(key);
             }
           }
@@ -111,7 +114,8 @@ class _NotificationsViewState extends State<NotificationsView> {
     final double topSafeArea = MediaQuery.paddingOf(context).top;
     const double headerVisualHeight = 64.0;
     const double headerClearance = 4.0;
-    final double topPadding = topSafeArea + headerVisualHeight + headerClearance;
+    final double topPadding =
+        topSafeArea + headerVisualHeight + headerClearance;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -171,29 +175,43 @@ class _NotificationsViewState extends State<NotificationsView> {
               ),
               Expanded(
                 child: _isLoading && _notifications.isEmpty
-                    ? Center(child: CircularProgressIndicator(color: DsCores.conta.accent))
+                    ? Center(
+                        child: CircularProgressIndicator(
+                          color: DsCores.conta.accent,
+                        ),
+                      )
                     : _notifications.isEmpty
-                        ? _buildEmptyState()
-                        : ListView.builder(
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                            physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-                            itemCount: _notifications.length,
-                            itemBuilder: (context, index) {
-                              final item = _notifications[index];
-                              final showHeader = index == 0 || !_isSameDay(item.createdAt, _notifications[index - 1].createdAt);
-
-                              return Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  if (showHeader) _buildDateHeader(item.createdAt),
-                                  Padding(
-                                    padding: const EdgeInsets.only(bottom: 12),
-                                    child: _buildNotificationItem(item),
-                                  ),
-                                ],
+                    ? _buildEmptyState()
+                    : ListView.builder(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 16,
+                        ),
+                        physics: const AlwaysScrollableScrollPhysics(
+                          parent: BouncingScrollPhysics(),
+                        ),
+                        itemCount: _notifications.length,
+                        itemBuilder: (context, index) {
+                          final item = _notifications[index];
+                          final showHeader =
+                              index == 0 ||
+                              !_isSameDay(
+                                item.createdAt,
+                                _notifications[index - 1].createdAt,
                               );
-                            },
-                          ),
+
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (showHeader) _buildDateHeader(item.createdAt),
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: _buildNotificationItem(item),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
               ),
             ],
           ),
@@ -212,13 +230,20 @@ class _NotificationsViewState extends State<NotificationsView> {
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
             color: Colors.black.withValues(alpha: 0.25),
-            border: Border.all(color: DsCores.comunicacao.border.withValues(alpha: 0.3), width: 1),
+            border: Border.all(
+              color: DsCores.comunicacao.border.withValues(alpha: 0.3),
+              width: 1,
+            ),
             borderRadius: BorderRadius.circular(DsRaios.pill),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(PhosphorIconsRegular.checkCircle, size: 16, color: Colors.white70),
+              const Icon(
+                PhosphorIconsRegular.checkCircle,
+                size: 16,
+                color: Colors.white70,
+              ),
               const SizedBox(width: 8),
               Text(
                 'Marcar lidas',
@@ -249,11 +274,10 @@ class _NotificationsViewState extends State<NotificationsView> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: DsCores.surfaceCard,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(DsRaios.modal)),
-        title: Text(
-          'Limpar notificações?',
-          style: DsTipografia.sectionTitle,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(DsRaios.modal),
         ),
+        title: Text('Limpar notificações?', style: DsTipografia.sectionTitle),
         content: Text(
           'Isso removerá permanentemente todas as suas notificações.',
           style: DsTipografia.infoBody,
@@ -261,7 +285,10 @@ class _NotificationsViewState extends State<NotificationsView> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('CANCELAR', style: DsTipografia.button.copyWith(color: DsCores.textMuted)),
+            child: Text(
+              'CANCELAR',
+              style: DsTipografia.button.copyWith(color: DsCores.textMuted),
+            ),
           ),
           TextButton(
             onPressed: () async {
@@ -271,14 +298,19 @@ class _NotificationsViewState extends State<NotificationsView> {
                 await _clearNotifications();
                 if (mounted) {
                   scaffold.showSnackBar(
-                    SnackBar(content: const Text('Notificações removidas!'), backgroundColor: DsCores.sucesso.accent),
+                    SnackBar(
+                      content: const Text('Notificações removidas!'),
+                      backgroundColor: DsCores.sucesso.accent,
+                    ),
                   );
                 }
               } catch (e) {
                 if (mounted) {
                   scaffold.showSnackBar(
                     SnackBar(
-                      content: const Text('Não foi possível limpar as notificações agora. Tente novamente.'),
+                      content: const Text(
+                        'Não foi possível limpar as notificações agora. Tente novamente.',
+                      ),
                       backgroundColor: DsCores.perigo.accent,
                     ),
                   );
@@ -286,7 +318,10 @@ class _NotificationsViewState extends State<NotificationsView> {
               }
               navigator.pop();
             },
-            child: Text('LIMPAR TUDO', style: DsTipografia.button.copyWith(color: DsCores.perigo.accent)),
+            child: Text(
+              'LIMPAR TUDO',
+              style: DsTipografia.button.copyWith(color: DsCores.perigo.accent),
+            ),
           ),
         ],
       ),
@@ -304,13 +339,14 @@ class _NotificationsViewState extends State<NotificationsView> {
               color: DsCores.iconFrameBackground,
               shape: BoxShape.circle,
             ),
-            child: const Icon(PhosphorIconsRegular.bellSlash, size: DsTamanhos.iconLg, color: DsCores.iconMuted),
+            child: const Icon(
+              PhosphorIconsRegular.bellSlash,
+              size: DsTamanhos.iconLg,
+              color: DsCores.iconMuted,
+            ),
           ),
           const SizedBox(height: DsEspacamentos.lg),
-          Text(
-            'Tudo limpo por aqui!',
-            style: DsTipografia.sectionTitle,
-          ),
+          Text('Tudo limpo por aqui!', style: DsTipografia.sectionTitle),
           const SizedBox(height: DsEspacamentos.xs),
           Text(
             'Você não tem novas notificações no momento.',
@@ -325,7 +361,9 @@ class _NotificationsViewState extends State<NotificationsView> {
   Widget _buildNotificationItem(NotificationItem item) {
     final timeFormatted = _formatNotificationTime(item.createdAt);
     final ui = _getTypeUI(item);
-    final key = item.id.isNotEmpty ? item.id : '${item.createdAt.toIso8601String()}_${item.title}';
+    final key = item.id.isNotEmpty
+        ? item.id
+        : '${item.createdAt.toIso8601String()}_${item.title}';
     final isRead = item.isRead || _readNotificationsLocally.contains(key);
 
     return DsCardNotificacao(
@@ -355,10 +393,16 @@ class _NotificationsViewState extends State<NotificationsView> {
 
     // 2. Tipos estruturados de reenvio/solicitação
     if (type == 'new_request') {
-      return _TypeUI(icon: PhosphorIconsRegular.filePlus, status: DsTokenStatus.waitingApproval);
+      return _TypeUI(
+        icon: PhosphorIconsRegular.filePlus,
+        status: DsTokenStatus.waitingApproval,
+      );
     }
     if (type == 'request_updated') {
-      return _TypeUI(icon: PhosphorIconsRegular.arrowsClockwise, status: DsTokenStatus.waitingApproval);
+      return _TypeUI(
+        icon: PhosphorIconsRegular.arrowsClockwise,
+        status: DsTokenStatus.waitingApproval,
+      );
     }
 
     // 3. Fallback textual ultra seguro para status_update sem sufixo (notificações antigas)
@@ -367,48 +411,87 @@ class _NotificationsViewState extends State<NotificationsView> {
           title.contains('reprovad') ||
           title.contains('rejeitad') ||
           title.contains('❌')) {
-        return _TypeUI(icon: DsTokenStatus.rejected.icon, status: DsTokenStatus.rejected);
+        return _TypeUI(
+          icon: DsTokenStatus.rejected.icon,
+          status: DsTokenStatus.rejected,
+        );
       }
       if (title.contains('suspens') || title.contains('⚠️')) {
-        return _TypeUI(icon: DsTokenStatus.suspended.icon, status: DsTokenStatus.suspended);
+        return _TypeUI(
+          icon: DsTokenStatus.suspended.icon,
+          status: DsTokenStatus.suspended,
+        );
       }
       if (title.contains('documento') ||
           title.contains('pendente') ||
           title.contains('📄')) {
-        return _TypeUI(icon: DsTokenStatus.waitingDocs.icon, status: DsTokenStatus.waitingDocs);
+        return _TypeUI(
+          icon: DsTokenStatus.waitingDocs.icon,
+          status: DsTokenStatus.waitingDocs,
+        );
       }
       if (title.contains('revisão') ||
           title.contains('corrigid') ||
           title.contains('✏️')) {
-        return _TypeUI(icon: DsTokenStatus.reviewingData.icon, status: DsTokenStatus.reviewingData);
+        return _TypeUI(
+          icon: DsTokenStatus.reviewingData.icon,
+          status: DsTokenStatus.reviewingData,
+        );
       }
       if (title.contains('vencid') || title.contains('📅')) {
-        return _TypeUI(icon: DsTokenStatus.expired.icon, status: DsTokenStatus.expired);
+        return _TypeUI(
+          icon: DsTokenStatus.expired.icon,
+          status: DsTokenStatus.expired,
+        );
       }
       if (title.contains('renov')) {
-        return _TypeUI(icon: DsTokenStatus.renewing.icon, status: DsTokenStatus.renewing);
+        return _TypeUI(
+          icon: DsTokenStatus.renewing.icon,
+          status: DsTokenStatus.renewing,
+        );
       }
       if (title.contains('aprovad') ||
           title.contains('emitid') ||
           title.contains('🎉')) {
-        return _TypeUI(icon: DsTokenStatus.active.icon, status: DsTokenStatus.active);
+        return _TypeUI(
+          icon: DsTokenStatus.active.icon,
+          status: DsTokenStatus.active,
+        );
       }
     }
 
     // 4. Mapeamento de retrocompatibilidade com tipos legados
     switch (type) {
       case 'card_approved':
-        return _TypeUI(icon: DsTokenStatus.active.icon, status: DsTokenStatus.active);
+        return _TypeUI(
+          icon: DsTokenStatus.active.icon,
+          status: DsTokenStatus.active,
+        );
       case 'card_rejected':
-        return _TypeUI(icon: DsTokenStatus.rejected.icon, status: DsTokenStatus.rejected);
+        return _TypeUI(
+          icon: DsTokenStatus.rejected.icon,
+          status: DsTokenStatus.rejected,
+        );
       case 'doc_pending':
-        return _TypeUI(icon: DsTokenStatus.waitingDocs.icon, status: DsTokenStatus.waitingDocs);
+        return _TypeUI(
+          icon: DsTokenStatus.waitingDocs.icon,
+          status: DsTokenStatus.waitingDocs,
+        );
       case 'general_notice':
-        return _TypeUI(icon: PhosphorIconsRegular.info, visual: DsCores.comunicacao);
+        return _TypeUI(
+          icon: PhosphorIconsRegular.info,
+          visual: DsCores.comunicacao,
+        );
       case 'new_partner':
-        return _TypeUI(icon: PhosphorIconsRegular.handshake, visual: DsCores.clube);
+        return _TypeUI(
+          icon: PhosphorIconsRegular.handshake,
+          visual: DsCores.clube,
+        );
       default:
-        return _TypeUI(icon: PhosphorIconsRegular.bell, visual: DsCores.institucional);
+        return _TypeUI(
+          icon: PhosphorIconsRegular.bell,
+          visual: DsCores.institucional,
+        );
     }
   }
 
