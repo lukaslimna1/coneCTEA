@@ -38,10 +38,7 @@ class DsBottomNavBar extends StatelessWidget {
         gradient: const LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [
-            Color(0xFF071326),
-            Color(0xFF030B1A),
-          ],
+          colors: [Color(0xFF071326), Color(0xFF030B1A)],
         ),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
@@ -61,9 +58,7 @@ class DsBottomNavBar extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: items.asMap().entries.map((entry) {
-            return Expanded(
-              child: _buildNavItem(entry.key, entry.value),
-            );
+            return Expanded(child: _buildNavItem(entry.key, entry.value));
           }).toList(),
         ),
       ),
@@ -76,9 +71,7 @@ class DsBottomNavBar extends StatelessWidget {
 
     // Transformação rápida de labels para nomes curtos oficiais
     String displayLabel = item.label;
-    if (displayLabel == 'Carteirinha' || displayLabel == 'Carteirinhas') {
-      displayLabel = 'Cartão';
-    } else if (displayLabel == 'Solicitações') {
+    if (displayLabel == 'Solicitações') {
       displayLabel = 'Pedido';
     }
 
@@ -109,11 +102,7 @@ class DsBottomNavBar extends StatelessWidget {
                   ],
                 ),
                 child: Center(
-                  child: Icon(
-                    item.activeIcon,
-                    color: Colors.white,
-                    size: 25,
-                  ),
+                  child: Icon(item.activeIcon, color: Colors.white, size: 25),
                 ),
               ),
             )
