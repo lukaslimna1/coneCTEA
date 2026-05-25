@@ -31,11 +31,7 @@ class HomeView extends StatefulWidget {
   final AppUser? user;
   final Function(int) onNavigate;
 
-  const HomeView({
-    super.key,
-    this.user,
-    required this.onNavigate,
-  });
+  const HomeView({super.key, this.user, required this.onNavigate});
 
   @override
   State<HomeView> createState() => _HomeViewState();
@@ -371,7 +367,7 @@ class _HomeViewState extends State<HomeView> {
                                   digitalCards: digitalCards,
                                   selectedMember: selectedMember,
                                   paletteSeed: _user?.id,
-                                  onDetailsTap: () => widget.onNavigate(2),
+                                  onDetailsTap: () => widget.onNavigate(1),
                                   onMemberSelected: (member) {
                                     if (mounted) {
                                       setState(() {
@@ -393,7 +389,7 @@ class _HomeViewState extends State<HomeView> {
                                       ).then((_) => _loadData()),
                                   onRequestRenewal: _handleRenewalRequest,
                                   onSupportTap: _handleSupportTap,
-                                  onOpenMural: () => widget.onNavigate(2),
+                                  onOpenMural: () => widget.onNavigate(1),
                                   onViewAllMembers: () => widget.onNavigate(
                                     1,
                                   ), // Redireciona para aba Carteirinhas

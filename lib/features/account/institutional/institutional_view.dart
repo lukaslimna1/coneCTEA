@@ -4,8 +4,6 @@ import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 import 'package:conectea/features/account/profile/widgets/my_data_logged_header.dart';
 import 'package:conectea/features/account/institutional/about_conectea_view.dart';
 import 'package:conectea/features/account/institutional/family_tea_view.dart';
-import 'package:conectea/features/account/institutional/projects_actions_view.dart';
-import 'package:conectea/features/account/institutional/partners_supporters_view.dart';
 import 'package:conectea/features/account/support/support_view.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -39,12 +37,16 @@ class InstitutionalView extends StatelessWidget {
                     const SizedBox(height: 24),
                     Text(
                       'Institucional',
-                      style: DsTipografia.pageTitle.copyWith(color: DsCores.textPrimary),
+                      style: DsTipografia.pageTitle.copyWith(
+                        color: DsCores.textPrimary,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'Conheça o ConeCTEA, a Família TEA Bauru, os projetos comunitários e a finalidade da carteirinha.',
-                      style: DsTipografia.pageSubtitle.copyWith(color: DsCores.textSecondary),
+                      style: DsTipografia.pageSubtitle.copyWith(
+                        color: DsCores.textSecondary,
+                      ),
                     ),
                     const SizedBox(height: 32),
 
@@ -75,7 +77,9 @@ class InstitutionalView extends StatelessWidget {
                       actionIcon: PhosphorIconsRegular.arrowRight,
                       onPressed: () => Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const FamilyTeaView()),
+                        MaterialPageRoute(
+                          builder: (context) => const FamilyTeaView(),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -113,40 +117,6 @@ class InstitutionalView extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
 
-                    // Card 5 — Projetos e ações
-                    _buildInstitutionalCard(
-                      context,
-                      icon: PhosphorIconsRegular.clipboardText,
-                      title: 'Projetos e ações',
-                      description:
-                          'Conheça projetos, chamamentos, eventos e ações comunitárias organizadas ou apoiadas pela Família TEA Bauru.',
-                      dataLabel: 'Fada do Dente, Vidas e eventos',
-                      actionLabel: 'Ver projetos',
-                      actionIcon: PhosphorIconsRegular.arrowRight,
-                      onPressed: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const ProjectsActionsView()),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Card — Parceiros e apoiadores
-                    _buildInstitutionalCard(
-                      context,
-                      icon: PhosphorIconsRegular.handshake,
-                      title: 'Parceiros e apoiadores',
-                      description:
-                          'Conheça profissionais, clínicas, empresas e apoiadores que colaboram com ações da comunidade, incluindo parceiros que oferecem condições, descontos ou apoio para pessoas com a carteirinha comunitária ConeCTEA.',
-                      dataLabel: 'Rede de apoio e benefícios comunitários',
-                      actionLabel: 'Ver parceiros',
-                      actionIcon: PhosphorIconsRegular.arrowRight,
-                      onPressed: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const PartnersSupportersView()),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
                     // Card 6 — Canais oficiais
                     _buildInstitutionalCard(
                       context,
@@ -163,10 +133,15 @@ class InstitutionalView extends StatelessWidget {
                         try {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => const SupportView()),
+                            MaterialPageRoute(
+                              builder: (context) => const SupportView(),
+                            ),
                           );
                         } catch (_) {
-                          _showMockSnackBar(context, 'Acesse a área de suporte pelos canais oficiais.');
+                          _showMockSnackBar(
+                            context,
+                            'Acesse a área de suporte pelos canais oficiais.',
+                          );
                         }
                       },
                     ),
@@ -194,9 +169,7 @@ class InstitutionalView extends StatelessWidget {
         ),
         backgroundColor: DsCores.surfaceElevated,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
@@ -218,7 +191,9 @@ class InstitutionalView extends StatelessWidget {
               Expanded(
                 child: Text(
                   'ConeCTEA',
-                  style: DsTipografia.cardTitle.copyWith(color: DsCores.textPrimary),
+                  style: DsTipografia.cardTitle.copyWith(
+                    color: DsCores.textPrimary,
+                  ),
                 ),
               ),
             ],
@@ -226,7 +201,10 @@ class InstitutionalView extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             'O ConeCTEA é o app comunitário da Família TEA Bauru, criado para apoiar a organização de informações, solicitações, carteirinhas comunitárias, comunicações e ações da comunidade.',
-            style: DsTipografia.body.copyWith(color: DsCores.textSecondary, height: 1.4),
+            style: DsTipografia.body.copyWith(
+              color: DsCores.textSecondary,
+              height: 1.4,
+            ),
           ),
           const SizedBox(height: 16),
           // Selo/Badge "App comunitário"
@@ -242,7 +220,9 @@ class InstitutionalView extends StatelessWidget {
               label: 'Saiba mais',
               onPressed: () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const AboutConecteaView()),
+                MaterialPageRoute(
+                  builder: (context) => const AboutConecteaView(),
+                ),
               ),
               variante: DsBotaoVariante.acao,
               token: DsCores.institucional,
@@ -273,15 +253,14 @@ class InstitutionalView extends StatelessWidget {
         children: [
           Row(
             children: [
-              DsMolduraIcone(
-                icon: icon,
-                accentColor: token.accent,
-              ),
+              DsMolduraIcone(icon: icon, accentColor: token.accent),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   title,
-                  style: DsTipografia.cardTitle.copyWith(color: DsCores.textPrimary),
+                  style: DsTipografia.cardTitle.copyWith(
+                    color: DsCores.textPrimary,
+                  ),
                 ),
               ),
             ],
@@ -289,7 +268,10 @@ class InstitutionalView extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             description,
-            style: DsTipografia.bodySmall.copyWith(color: DsCores.textSecondary, height: 1.4),
+            style: DsTipografia.bodySmall.copyWith(
+              color: DsCores.textSecondary,
+              height: 1.4,
+            ),
           ),
           const SizedBox(height: 16),
 
@@ -350,7 +332,9 @@ class InstitutionalView extends StatelessWidget {
               Expanded(
                 child: Text(
                   'Importante',
-                  style: DsTipografia.cardTitle.copyWith(color: DsCores.textPrimary),
+                  style: DsTipografia.cardTitle.copyWith(
+                    color: DsCores.textPrimary,
+                  ),
                 ),
               ),
             ],

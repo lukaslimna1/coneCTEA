@@ -9,11 +9,11 @@ import '../../models/app_user.dart';
 
 import 'home_view.dart';
 import '../cards/cards_view.dart';
-import '../requests/requests_view.dart';
 import '../notifications/notifications_view.dart';
 import '../account/account_view.dart';
 import '../admin/admin_view.dart';
 import '../account/institutional/partners_supporters_view.dart';
+import '../account/institutional/projects_actions_view.dart';
 import '../../core/design_system_v2/design_system_v2.dart';
 
 class HomePage extends StatefulWidget {
@@ -151,9 +151,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             token: DsCores.suporte,
           ),
           DsBottomNavItem(
-            activeIcon: PhosphorIcons.fileText(PhosphorIconsStyle.fill),
-            inactiveIcon: PhosphorIcons.fileText(),
-            label: 'Solicitações',
+            activeIcon: PhosphorIcons.sparkle(PhosphorIconsStyle.fill),
+            inactiveIcon: PhosphorIcons.sparkle(),
+            label: 'Participar',
             token: DsCores.solicitacao,
           ),
           DsBottomNavItem(
@@ -184,7 +184,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       case 1:
         return const CardsView();
       case 2:
-        return const RequestsView();
+        return const ProjectsActionsView();
       case 3:
         return NotificationsView(
           onBack: () async {
