@@ -18,7 +18,7 @@ import 'package:conectea/features/carteirinhas/widgets/tela/cards_pending_state.
 import 'package:conectea/features/carteirinhas/widgets/tela/cards_empty_state.dart';
 import 'package:conectea/features/carteirinhas/widgets/tela/cards_details_section.dart';
 import 'package:conectea/features/carteirinhas/widgets/tela/cards_error_state.dart';
-import 'package:conectea/features/requests/add_member_page.dart';
+import 'package:conectea/features/carteirinhas/solicitacao/add_member_page.dart';
 
 class CardsView extends StatefulWidget {
   const CardsView({super.key});

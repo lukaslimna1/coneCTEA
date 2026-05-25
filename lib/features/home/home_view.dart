@@ -23,7 +23,7 @@ import 'package:conectea/features/home/widgets/novidades/home_services_section.d
 import 'package:conectea/features/home/widgets/informacoes/home_information_section.dart';
 
 import 'package:conectea/features/home/widgets/header/home_greeting_header.dart';
-import 'package:conectea/features/requests/add_member_page.dart';
+import 'package:conectea/features/carteirinhas/solicitacao/add_member_page.dart';
 import 'package:conectea/features/home/widgets/dinamico/home_dynamic_content.dart';
 import 'package:conectea/features/home/widgets/acesso_rapido/home_quick_access_section.dart';
 
