@@ -9,15 +9,15 @@ import 'package:conectea/services/auth_service.dart';
 import 'package:conectea/services/database_service.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/widgets/premium/premium_qr_button.dart';
-import 'package:conectea/features/cards/widgets/carteirinha_digital/digital_card_widget.dart';
+import 'package:conectea/features/cards/widgets/digital/digital_card_widget.dart';
 import 'package:conectea/features/cards/full_screen_card_page.dart';
 import 'package:conectea/models/app_user.dart';
 import 'package:conectea/features/account/profile/edit_profile_view.dart';
-import 'package:conectea/features/cards/widgets/tela_carteirinhas/cards_member_selector.dart';
-import 'package:conectea/features/cards/widgets/tela_carteirinhas/cards_pending_state.dart';
-import 'package:conectea/features/cards/widgets/tela_carteirinhas/cards_empty_state.dart';
-import 'package:conectea/features/cards/widgets/tela_carteirinhas/cards_details_section.dart';
-import 'package:conectea/features/cards/widgets/tela_carteirinhas/cards_error_state.dart';
+import 'package:conectea/features/cards/widgets/tela/cards_member_selector.dart';
+import 'package:conectea/features/cards/widgets/tela/cards_pending_state.dart';
+import 'package:conectea/features/cards/widgets/tela/cards_empty_state.dart';
+import 'package:conectea/features/cards/widgets/tela/cards_details_section.dart';
+import 'package:conectea/features/cards/widgets/tela/cards_error_state.dart';
 import 'package:conectea/features/requests/add_member_page.dart';
 
 class CardsView extends StatefulWidget {
@@ -146,7 +146,8 @@ class _CardsViewState extends State<CardsView> {
     final double topSafeArea = MediaQuery.paddingOf(context).top;
     const double headerVisualHeight = 64.0;
     const double headerClearance = 4.0;
-    final double topPadding = topSafeArea + headerVisualHeight + headerClearance;
+    final double topPadding =
+        topSafeArea + headerVisualHeight + headerClearance;
 
     final userId = _authService.currentUser?.id;
     if (userId == null) {
@@ -167,10 +168,10 @@ class _CardsViewState extends State<CardsView> {
                   stream: _cardRequestsStream,
                   builder: (ctx2, requestSnap) {
                     // Verificação de Erros nas Streams
-                    if (memberSnap.hasError || cardSnap.hasError || requestSnap.hasError) {
-                      return CardsErrorState(
-                        onRetry: _loadProfile,
-                      );
+                    if (memberSnap.hasError ||
+                        cardSnap.hasError ||
+                        requestSnap.hasError) {
+                      return CardsErrorState(onRetry: _loadProfile);
                     }
 
                     if (memberSnap.connectionState == ConnectionState.waiting ||
@@ -211,7 +212,9 @@ class _CardsViewState extends State<CardsView> {
                     );
 
                     if (members.isEmpty) {
-                      return CardsEmptyState(onAddMember: _handleRequestNewCard);
+                      return CardsEmptyState(
+                        onAddMember: _handleRequestNewCard,
+                      );
                     }
 
                     if (activeMembers.isEmpty) {
@@ -236,8 +239,7 @@ class _CardsViewState extends State<CardsView> {
                             children: [
                               Expanded(
                                 child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
                                       'Carteirinhas',
@@ -364,9 +366,6 @@ class _CardsViewState extends State<CardsView> {
     );
   }
 
-
-
-
   void _openFullScreen(
     Member member,
     List<Member> activeMembers,
@@ -383,8 +382,6 @@ class _CardsViewState extends State<CardsView> {
       ),
     );
   }
-
-
 
   String _getStatusLabel(String status) {
     switch (status) {

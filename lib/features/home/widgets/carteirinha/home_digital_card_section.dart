@@ -8,9 +8,8 @@ import 'package:conectea/models/member.dart';
 import 'package:conectea/models/card_request.dart';
 import 'package:conectea/models/digital_card.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
-import 'package:conectea/features/cards/widgets/carteirinha_digital/digital_card_widget.dart';
+import 'package:conectea/features/cards/widgets/digital/digital_card_widget.dart';
 import 'package:conectea/features/home/utils/home_status_helper.dart';
-
 
 class HomeDigitalCardSection extends StatelessWidget {
   final List<Member> members;
@@ -268,7 +267,9 @@ class HomeDigitalCardSection extends StatelessWidget {
                       Builder(
                         builder: (context) {
                           final protocol = memberRequest?.protocol;
-                          if (isActive || protocol == null || protocol.isEmpty) {
+                          if (isActive ||
+                              protocol == null ||
+                              protocol.isEmpty) {
                             return const SizedBox.shrink();
                           }
 
@@ -277,16 +278,24 @@ class HomeDigitalCardSection extends StatelessWidget {
                             child: GestureDetector(
                               behavior: HitTestBehavior.opaque,
                               onTap: () {
-                                Clipboard.setData(ClipboardData(text: protocol));
+                                Clipboard.setData(
+                                  ClipboardData(text: protocol),
+                                );
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Row(
                                       children: [
-                                        const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+                                        const Icon(
+                                          Icons.check_circle_rounded,
+                                          color: Colors.white,
+                                          size: 18,
+                                        ),
                                         const SizedBox(width: 10),
                                         Text(
                                           'Requerimento copiado',
-                                          style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                                          style: GoogleFonts.inter(
+                                            fontWeight: FontWeight.w600,
+                                          ),
                                         ),
                                       ],
                                     ),
@@ -294,12 +303,17 @@ class HomeDigitalCardSection extends StatelessWidget {
                                     backgroundColor: AppColors.primary,
                                     duration: const Duration(seconds: 2),
                                     margin: const EdgeInsets.all(20),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
                                   ),
                                 );
                               },
                               child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 4,
+                                  horizontal: 8,
+                                ),
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   mainAxisSize: MainAxisSize.min,
@@ -307,7 +321,9 @@ class HomeDigitalCardSection extends StatelessWidget {
                                     Icon(
                                       Icons.copy_rounded,
                                       size: 14,
-                                      color: AppColors.textSecondary.withValues(alpha: 0.4),
+                                      color: AppColors.textSecondary.withValues(
+                                        alpha: 0.4,
+                                      ),
                                     ),
                                     const SizedBox(width: 6),
                                     Text(
@@ -315,7 +331,8 @@ class HomeDigitalCardSection extends StatelessWidget {
                                       style: GoogleFonts.jetBrainsMono(
                                         fontSize: 11,
                                         fontWeight: FontWeight.w600,
-                                        color: AppColors.textSecondary.withValues(alpha: 0.6),
+                                        color: AppColors.textSecondary
+                                            .withValues(alpha: 0.6),
                                         letterSpacing: 0.5,
                                       ),
                                     ),
@@ -324,9 +341,8 @@ class HomeDigitalCardSection extends StatelessWidget {
                               ),
                             ),
                           );
-                        }
+                        },
                       ),
-
 
                       if (statusInfo.secondaryActionLabel != null) ...[
                         const SizedBox(height: 16),
@@ -353,7 +369,9 @@ class HomeDigitalCardSection extends StatelessWidget {
                             ),
                             style: TextButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 14),
-                              backgroundColor: statusColor.withValues(alpha: 0.1),
+                              backgroundColor: statusColor.withValues(
+                                alpha: 0.1,
+                              ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                               ),
@@ -369,20 +387,28 @@ class HomeDigitalCardSection extends StatelessWidget {
                             onPressed: onSupportTap,
                             icon: Icon(
                               Icons.support_agent_rounded,
-                              color: statusInfo.isSuspended ? statusColor : AppColors.errorRed,
+                              color: statusInfo.isSuspended
+                                  ? statusColor
+                                  : AppColors.errorRed,
                             ),
                             label: Text(
-                              statusInfo.isSuspended ? 'Pedir revisão' : 'Falar com Suporte',
+                              statusInfo.isSuspended
+                                  ? 'Pedir revisão'
+                                  : 'Falar com Suporte',
                               style: GoogleFonts.inter(
                                 fontWeight: FontWeight.w800,
                                 fontSize: 15,
-                                color: statusInfo.isSuspended ? statusColor : AppColors.errorRed,
+                                color: statusInfo.isSuspended
+                                    ? statusColor
+                                    : AppColors.errorRed,
                               ),
                             ),
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               side: BorderSide(
-                                color: statusInfo.isSuspended ? statusColor : AppColors.errorRed,
+                                color: statusInfo.isSuspended
+                                    ? statusColor
+                                    : AppColors.errorRed,
                                 width: 1.5,
                               ),
                               shape: RoundedRectangleBorder(
@@ -399,37 +425,41 @@ class HomeDigitalCardSection extends StatelessWidget {
                           statusKey: isActive
                               ? 'active'
                               : (effectiveStatus.isEmpty
-                                  ? 'waiting_approval'
-                                  : effectiveStatus),
+                                    ? 'waiting_approval'
+                                    : effectiveStatus),
                           label: isActive
                               ? 'Abrir Carteira Digital'
                               : (statusInfo.canRenew
-                                  ? 'Solicitar Renovação'
-                                  : (effectiveStatus == 'waiting_docs'
-                                      ? 'Enviar Documentos'
-                                      : (effectiveStatus == 'reviewing_data'
-                                          ? 'Revisar Dados'
-                                          : (statusInfo.isSuspended
-                                              ? 'Aguardando Revisão'
-                                              : 'Aguardando Aprovação')))),
+                                    ? 'Solicitar Renovação'
+                                    : (effectiveStatus == 'waiting_docs'
+                                          ? 'Enviar Documentos'
+                                          : (effectiveStatus == 'reviewing_data'
+                                                ? 'Revisar Dados'
+                                                : (statusInfo.isSuspended
+                                                      ? 'Aguardando Revisão'
+                                                      : 'Aguardando Aprovação')))),
                           iconOverride: isActive
                               ? Icons.qr_code_scanner_rounded
                               : (statusInfo.canRenew
-                                  ? Icons.autorenew_rounded
-                                  : (effectiveStatus == 'waiting_docs' ||
-                                          effectiveStatus == 'reviewing_data'
-                                      ? Icons.edit_document
-                                      : (statusInfo.isSuspended
-                                          ? Icons.hourglass_empty_rounded
-                                          : Icons.lock_outline_rounded))),
-                          onTap: (isActive ||
+                                    ? Icons.autorenew_rounded
+                                    : (effectiveStatus == 'waiting_docs' ||
+                                              effectiveStatus ==
+                                                  'reviewing_data'
+                                          ? Icons.edit_document
+                                          : (statusInfo.isSuspended
+                                                ? Icons.hourglass_empty_rounded
+                                                : Icons.lock_outline_rounded))),
+                          onTap:
+                              (isActive ||
                                   effectiveStatus == 'waiting_docs' ||
                                   effectiveStatus == 'reviewing_data' ||
-                                  (statusInfo.canRenew && memberRequest != null))
+                                  (statusInfo.canRenew &&
+                                      memberRequest != null))
                               ? () {
                                   if (isActive) {
                                     onOpenDigitalCard();
-                                  } else if (effectiveStatus == 'waiting_docs' ||
+                                  } else if (effectiveStatus ==
+                                          'waiting_docs' ||
                                       effectiveStatus == 'reviewing_data') {
                                     onEditPendingRequest(member, memberRequest);
                                   } else if (statusInfo.canRenew) {
@@ -456,10 +486,6 @@ class HomeDigitalCardSection extends StatelessWidget {
     HomeStatusInfo statusInfo,
     String notes,
   ) {
-    DsStatusDialog.show(
-      context,
-      statusInfo: statusInfo,
-      notes: notes,
-    );
+    DsStatusDialog.show(context, statusInfo: statusInfo, notes: notes);
   }
 }

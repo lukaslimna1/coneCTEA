@@ -6,7 +6,7 @@ import 'dart:math';
 import '../../core/constants/colors.dart';
 import '../../models/digital_card.dart';
 import '../../models/member.dart';
-import 'widgets/carteirinha_digital/digital_card_widget.dart';
+import 'widgets/digital/digital_card_widget.dart';
 
 class FullScreenCardPage extends StatefulWidget {
   final List<Member> members;
@@ -24,7 +24,8 @@ class FullScreenCardPage extends StatefulWidget {
   State<FullScreenCardPage> createState() => _FullScreenCardPageState();
 }
 
-class _FullScreenCardPageState extends State<FullScreenCardPage> with SingleTickerProviderStateMixin {
+class _FullScreenCardPageState extends State<FullScreenCardPage>
+    with SingleTickerProviderStateMixin {
   late int _selectedMemberIndex;
   late AnimationController _animationController;
   late Animation<double> _animation;
@@ -40,10 +41,7 @@ class _FullScreenCardPageState extends State<FullScreenCardPage> with SingleTick
       duration: const Duration(milliseconds: 600),
     );
     _animation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeInOut,
-      ),
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
   }
 
@@ -80,10 +78,7 @@ class _FullScreenCardPageState extends State<FullScreenCardPage> with SingleTick
                 gradient: RadialGradient(
                   center: Alignment.center,
                   radius: 1.5,
-                  colors: [
-                    Color(0xFF0E2A52),
-                    AppColors.background,
-                  ],
+                  colors: [Color(0xFF0E2A52), AppColors.background],
                 ),
               ),
             ),
@@ -91,12 +86,10 @@ class _FullScreenCardPageState extends State<FullScreenCardPage> with SingleTick
           Positioned.fill(
             child: Opacity(
               opacity: 0.05,
-              child: CustomPaint(
-                painter: _GridPainter(),
-              ),
+              child: CustomPaint(painter: _GridPainter()),
             ),
           ),
-          
+
           SafeArea(
             child: OrientationBuilder(
               builder: (context, orientation) {
@@ -150,7 +143,9 @@ class _FullScreenCardPageState extends State<FullScreenCardPage> with SingleTick
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     return ConstrainedBox(
-                      constraints: BoxConstraints(maxHeight: constraints.maxHeight),
+                      constraints: BoxConstraints(
+                        maxHeight: constraints.maxHeight,
+                      ),
                       child: _buildCardDisplay(member, card),
                     );
                   },
@@ -221,7 +216,8 @@ class _FullScreenCardPageState extends State<FullScreenCardPage> with SingleTick
                                   enableParallax: false,
                                   enableEntryAnimation: false,
                                   showCpf: _showCpf,
-                                  onToggleCpf: () => setState(() => _showCpf = !_showCpf),
+                                  onToggleCpf: () =>
+                                      setState(() => _showCpf = !_showCpf),
                                 ),
                               )
                             : DigitalCardWidget(
@@ -231,7 +227,8 @@ class _FullScreenCardPageState extends State<FullScreenCardPage> with SingleTick
                                 enableParallax: false,
                                 enableEntryAnimation: false,
                                 showCpf: _showCpf,
-                                onToggleCpf: () => setState(() => _showCpf = !_showCpf),
+                                onToggleCpf: () =>
+                                    setState(() => _showCpf = !_showCpf),
                               ),
                       );
                     },
@@ -252,7 +249,11 @@ class _FullScreenCardPageState extends State<FullScreenCardPage> with SingleTick
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           IconButton(
-            icon: const Icon(PhosphorIconsRegular.x, color: Colors.white, size: 28),
+            icon: const Icon(
+              PhosphorIconsRegular.x,
+              color: Colors.white,
+              size: 28,
+            ),
             onPressed: () => Navigator.of(context).pop(),
           ),
           Hero(
@@ -282,7 +283,7 @@ class _FullScreenCardPageState extends State<FullScreenCardPage> with SingleTick
         itemBuilder: (context, index) {
           final member = widget.members[index];
           final isSelected = index == _selectedMemberIndex;
-          
+
           return GestureDetector(
             onTap: () {
               if (!isSelected) {
@@ -297,19 +298,25 @@ class _FullScreenCardPageState extends State<FullScreenCardPage> with SingleTick
               margin: const EdgeInsets.only(right: 12),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               decoration: BoxDecoration(
-                color: isSelected ? AppColors.primary : Colors.white.withValues(alpha: 0.1),
+                color: isSelected
+                    ? AppColors.primary
+                    : Colors.white.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(25),
                 border: Border.all(
-                  color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.2),
+                  color: isSelected
+                      ? Colors.white
+                      : Colors.white.withValues(alpha: 0.2),
                   width: 1.5,
                 ),
-                boxShadow: isSelected ? [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.4),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  )
-                ] : null,
+                boxShadow: isSelected
+                    ? [
+                        BoxShadow(
+                          color: AppColors.primary.withValues(alpha: 0.4),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ]
+                    : null,
               ),
               child: Text(
                 member.name.split(' ')[0],
@@ -332,7 +339,9 @@ class _FullScreenCardPageState extends State<FullScreenCardPage> with SingleTick
         ElevatedButton.icon(
           onPressed: _flipCard,
           icon: Icon(
-            _isBackVisible ? PhosphorIconsRegular.arrowsLeftRight : PhosphorIconsRegular.arrowsLeftRight,
+            _isBackVisible
+                ? PhosphorIconsRegular.arrowsLeftRight
+                : PhosphorIconsRegular.arrowsLeftRight,
             color: AppColors.primary,
           ),
           label: Text(
