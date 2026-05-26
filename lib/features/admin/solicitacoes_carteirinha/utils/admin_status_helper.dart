@@ -1,11 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:conectea/core/theme/status_visual_tokens.dart';
 
 class AdminStatusHelper {
-  static Color getStatusColor(String status) {
-    return StatusVisualTokens.fromStatus(status).primary;
-  }
-
   static String getStatusLabel(String status) {
     switch (status.toLowerCase()) {
       case 'waiting_approval':
@@ -31,9 +25,5 @@ class AdminStatusHelper {
       default:
         return status.toUpperCase();
     }
-  }
-
-  static IconData getStatusIcon(String status) {
-    return StatusVisualTokens.fromStatus(status).icon;
   }
 }

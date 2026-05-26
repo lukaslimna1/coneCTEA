@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:conectea/core/constants/colors.dart';
-import 'package:conectea/core/widgets/premium/premium_button.dart';
 import 'package:conectea/core/theme/status_visual_tokens.dart';
 import 'package:conectea/core/theme/conectea_visual_tokens.dart';
 import 'package:conectea/core/widgets/premium/status_action_button.dart';
@@ -33,8 +32,8 @@ class AdminDetailRow extends StatefulWidget {
   final Widget? customValue;
 
   const AdminDetailRow({
-    super.key, 
-    required this.label, 
+    super.key,
+    required this.label,
     this.value = '',
     this.isSensitive = false,
     this.customValue,
@@ -55,7 +54,8 @@ class _AdminDetailRowState extends State<AdminDetailRow> {
       if (widget.value.length >= 11) {
         final digits = widget.value.replaceAll(RegExp(r'\D'), '');
         if (digits.length == 11) {
-          displayedValue = '${digits.substring(0, 3)}.***.***-${digits.substring(9)}';
+          displayedValue =
+              '${digits.substring(0, 3)}.***.***-${digits.substring(9)}';
         } else {
           displayedValue = '***.***.***-**';
         }
@@ -91,34 +91,37 @@ class _AdminDetailRowState extends State<AdminDetailRow> {
             ),
           ),
           const SizedBox(height: 6),
-          widget.customValue ?? Row(
-            children: [
-              Expanded(
-                child: Text(
-                  displayedValue,
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w600,
+          widget.customValue ??
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      displayedValue,
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
-                ),
+                  if (widget.isSensitive) ...[
+                    const SizedBox(width: 8),
+                    IconButton(
+                      icon: Icon(
+                        _showValue
+                            ? Icons.visibility_off_rounded
+                            : Icons.visibility_rounded,
+                        size: 20,
+                        color: ConecteaVisualTokens.privacidade.accent,
+                      ),
+                      onPressed: () => setState(() => _showValue = !_showValue),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      splashRadius: 16,
+                    ),
+                  ],
+                ],
               ),
-              if (widget.isSensitive) ...[
-                const SizedBox(width: 8),
-                IconButton(
-                  icon: Icon(
-                    _showValue ? Icons.visibility_off_rounded : Icons.visibility_rounded,
-                    size: 20,
-                    color: ConecteaVisualTokens.privacidade.accent,
-                  ),
-                  onPressed: () => setState(() => _showValue = !_showValue),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  splashRadius: 16,
-                ),
-              ],
-            ],
-          ),
         ],
       ),
     );
@@ -178,7 +181,9 @@ class AdminDocumentLink extends StatelessWidget {
                 ),
                 child: Icon(
                   iconData,
-                  color: hasUrl ? docColor : AppColors.textSecondary.withValues(alpha: 0.4),
+                  color: hasUrl
+                      ? docColor
+                      : AppColors.textSecondary.withValues(alpha: 0.4),
                   size: isNarrowScreen ? 20 : 24,
                 ),
               ),
@@ -204,8 +209,12 @@ class AdminDocumentLink extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.inter(
                         fontSize: 12,
-                        color: hasUrl ? docColor : AppColors.textSecondary.withValues(alpha: 0.6),
-                        fontWeight: hasUrl ? FontWeight.w600 : FontWeight.normal,
+                        color: hasUrl
+                            ? docColor
+                            : AppColors.textSecondary.withValues(alpha: 0.6),
+                        fontWeight: hasUrl
+                            ? FontWeight.w600
+                            : FontWeight.normal,
                       ),
                     ),
                   ],
@@ -214,8 +223,11 @@ class AdminDocumentLink extends StatelessWidget {
               if (hasUrl) ...[
                 if (onDelete != null) ...[
                   IconButton(
-                    icon: const Icon(Icons.delete_outline_rounded,
-                        color: Colors.redAccent, size: 20),
+                    icon: const Icon(
+                      Icons.delete_outline_rounded,
+                      color: Colors.redAccent,
+                      size: 20,
+                    ),
                     onPressed: onDelete,
                     padding: const EdgeInsets.all(4),
                     constraints: const BoxConstraints(),
@@ -232,143 +244,6 @@ class AdminDocumentLink extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class AdminStatusChip extends StatelessWidget {
-  final String status;
-  final String label;
-  final bool isCurrent;
-  final VoidCallback onTap;
-
-  const AdminStatusChip({
-    super.key,
-    required this.status,
-    required this.label,
-    required this.isCurrent,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final tokens = StatusVisualTokens.fromStatus(status);
-
-    return GestureDetector(
-      onTap: isCurrent ? null : onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          color: isCurrent
-              ? const Color(0xFF020617).withValues(alpha: 0.90)
-              : Colors.white.withValues(alpha: 0.05),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isCurrent ? tokens.pillBorder : tokens.primary.withValues(alpha: 0.2),
-            width: isCurrent ? 1.5 : 1,
-          ),
-          boxShadow: isCurrent
-              ? [
-                  BoxShadow(
-                    color: tokens.primary.withValues(alpha: 0.2),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  )
-                ]
-              : [],
-        ),
-        child: Stack(
-          children: [
-            if (isCurrent)
-              Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: tokens.pillBackground,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (isCurrent) ...[
-                  Icon(tokens.icon, size: 14, color: tokens.primary),
-                  const SizedBox(width: 8),
-                ],
-                Text(
-                  label.toUpperCase(),
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w900,
-                    color: isCurrent
-                        ? tokens.primary
-                        : Colors.white.withValues(alpha: 0.5),
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class AdminRoleChip extends StatelessWidget {
-  final bool isAdmin;
-  const AdminRoleChip({super.key, required this.isAdmin});
-
-  @override
-  Widget build(BuildContext context) {
-    final color = isAdmin ? AppColors.primary : AppColors.textSecondary;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
-      ),
-      child: Text(
-        isAdmin ? 'ADMIN' : 'USUÁRIO',
-        style: GoogleFonts.inter(
-          fontSize: 10,
-          fontWeight: FontWeight.w900,
-          color: color,
-          letterSpacing: 0.5,
-        ),
-      ),
-    );
-  }
-}
-
-class AdminActionButton extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final Color color;
-  final VoidCallback onTap;
-  final bool isOutline;
-
-  const AdminActionButton({
-    super.key,
-    required this.label,
-    required this.icon,
-    required this.color,
-    required this.onTap,
-    this.isOutline = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return PremiumButton(
-      text: label,
-      icon: icon,
-      colorOverride: color,
-      variant: isOutline ? PremiumButtonVariant.outline : PremiumButtonVariant.primary,
-      onPressed: onTap,
-      height: 48,
-      isExpanded: false,
     );
   }
 }
@@ -397,4 +272,3 @@ class AdminStatusActionButton extends StatelessWidget {
     );
   }
 }
-
