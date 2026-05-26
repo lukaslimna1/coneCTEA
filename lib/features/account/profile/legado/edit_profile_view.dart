@@ -4,16 +4,16 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:conectea/features/account/profile/widgets/profile_support_dialog.dart';
+import 'package:conectea/features/account/profile/legado/widgets/profile_support_dialog.dart';
 import 'package:conectea/core/constants/colors.dart';
 import 'package:conectea/models/app_user.dart';
 import 'package:conectea/services/database_service.dart';
-import 'package:conectea/features/account/profile/widgets/profile_section_header.dart';
-import 'package:conectea/features/account/profile/widgets/profile_locked_field.dart';
-import 'package:conectea/features/account/profile/widgets/profile_input_field.dart';
-import 'package:conectea/features/account/profile/widgets/profile_dropdown_field.dart';
-import 'package:conectea/features/account/profile/widgets/profile_searchable_dropdown.dart';
-import 'package:conectea/features/account/profile/utils/profile_string_utils.dart';
+import 'package:conectea/features/account/profile/legado/widgets/profile_section_header.dart';
+import 'package:conectea/features/account/profile/legado/widgets/profile_locked_field.dart';
+import 'package:conectea/features/account/profile/legado/widgets/profile_input_field.dart';
+import 'package:conectea/features/account/profile/legado/widgets/profile_dropdown_field.dart';
+import 'package:conectea/features/account/profile/legado/widgets/profile_searchable_dropdown.dart';
+import 'package:conectea/features/account/profile/legado/utils/profile_string_utils.dart';
 
 class EditProfileView extends StatefulWidget {
   const EditProfileView({super.key});
@@ -102,16 +102,17 @@ class _EditProfileViewState extends State<EditProfileView> {
   Future<void> _fetchStates() async {
     try {
       final response = await http.get(
-        Uri.parse('https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome'),
+        Uri.parse(
+          'https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome',
+        ),
       );
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         if (mounted) {
           setState(() {
-            _states = data.map((s) => {
-              'sigla': s['sigla'],
-              'nome': s['nome'],
-            }).toList();
+            _states = data
+                .map((s) => {'sigla': s['sigla'], 'nome': s['nome']})
+                .toList();
           });
         }
       }
@@ -127,7 +128,9 @@ class _EditProfileViewState extends State<EditProfileView> {
     });
     try {
       final response = await http.get(
-        Uri.parse('https://servicodados.ibge.gov.br/api/v1/localidades/estados/$stateSigla/municipios?orderBy=nome'),
+        Uri.parse(
+          'https://servicodados.ibge.gov.br/api/v1/localidades/estados/$stateSigla/municipios?orderBy=nome',
+        ),
       );
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
@@ -157,13 +160,20 @@ class _EditProfileViewState extends State<EditProfileView> {
         _phoneController.text = profile.phone;
         _dobController.text = profile.dateOfBirth ?? '';
         _institutionController.text = profile.institution ?? '';
-        
-        _hasInstitution = (profile.institution != null && profile.institution!.isNotEmpty) ? 'Sim' : 'Não';
-        _selectedGender = _genderOptions.contains(profile.gender) ? profile.gender : null;
-        _selectedRace = _raceOptions.contains(profile.race) ? profile.race : null;
+
+        _hasInstitution =
+            (profile.institution != null && profile.institution!.isNotEmpty)
+            ? 'Sim'
+            : 'Não';
+        _selectedGender = _genderOptions.contains(profile.gender)
+            ? profile.gender
+            : null;
+        _selectedRace = _raceOptions.contains(profile.race)
+            ? profile.race
+            : null;
         _selectedState = profile.state;
         _selectedCity = profile.city;
-        
+
         _isLoading = false;
       });
       if (_selectedState != null) _fetchCities(_selectedState!);
@@ -172,22 +182,33 @@ class _EditProfileViewState extends State<EditProfileView> {
     }
   }
 
-
   void _confirmEditMode() {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Text('Editar Dados Pessoais',
-            style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
+        title: Text(
+          'Editar Dados Pessoais',
+          style: GoogleFonts.inter(
+            fontWeight: FontWeight.w800,
+            color: AppColors.textPrimary,
+          ),
+        ),
         content: Text(
           'Tem certeza que deseja editar seus dados? \n\nAlterações frequentes em informações de identificação podem passar por nova análise da equipe ConeCTEA.',
-          style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary, height: 1.5),
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            color: AppColors.textSecondary,
+            height: 1.5,
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('Cancelar', style: GoogleFonts.inter(color: AppColors.textSecondary)),
+            child: Text(
+              'Cancelar',
+              style: GoogleFonts.inter(color: AppColors.textSecondary),
+            ),
           ),
           ElevatedButton(
             onPressed: () {
@@ -196,9 +217,14 @@ class _EditProfileViewState extends State<EditProfileView> {
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
-            child: const Text('Sim, Editar', style: TextStyle(color: Colors.white)),
+            child: const Text(
+              'Sim, Editar',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -214,12 +240,16 @@ class _EditProfileViewState extends State<EditProfileView> {
     try {
       final data = {
         'name': _nameController.text.trim(),
-        'social_name': _socialNameController.text.trim().isEmpty ? null : _socialNameController.text.trim(),
+        'social_name': _socialNameController.text.trim().isEmpty
+            ? null
+            : _socialNameController.text.trim(),
         'phone': _phoneController.text.trim(),
         'date_of_birth': _dobController.text.trim(),
         'gender': _selectedGender ?? '',
         'race': _selectedRace ?? '',
-        'institution': _hasInstitution == 'Sim' ? _institutionController.text.trim() : '',
+        'institution': _hasInstitution == 'Sim'
+            ? _institutionController.text.trim()
+            : '',
         'state': _selectedState,
         'city': _selectedCity,
         'updated_at': DateTime.now().toIso8601String(),
@@ -230,14 +260,19 @@ class _EditProfileViewState extends State<EditProfileView> {
       if (mounted) {
         setState(() => _isEditMode = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Perfil atualizado com sucesso!'), backgroundColor: AppColors.statusGreen),
+          const SnackBar(
+            content: Text('Perfil atualizado com sucesso!'),
+            backgroundColor: AppColors.statusGreen,
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Não foi possível salvar seus dados agora. Verifique sua conexão e tente novamente.'),
+            content: Text(
+              'Não foi possível salvar seus dados agora. Verifique sua conexão e tente novamente.',
+            ),
             backgroundColor: AppColors.errorRed,
           ),
         );
@@ -257,11 +292,18 @@ class _EditProfileViewState extends State<EditProfileView> {
         elevation: 0,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.arrow_back_ios_rounded, color: AppColors.textPrimary),
+          icon: const Icon(
+            Icons.arrow_back_ios_rounded,
+            color: AppColors.textPrimary,
+          ),
         ),
         title: Text(
           'Dados Pessoais',
-          style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+          style: GoogleFonts.inter(
+            fontSize: 18,
+            fontWeight: FontWeight.w800,
+            color: AppColors.textPrimary,
+          ),
         ),
         actions: [
           if (!_isEditMode && !_isLoading)
@@ -280,8 +322,8 @@ class _EditProfileViewState extends State<EditProfileView> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _user == null
-              ? const Center(child: Text('Erro ao carregar perfil.'))
-              : _buildForm(),
+          ? const Center(child: Text('Erro ao carregar perfil.'))
+          : _buildForm(),
     );
   }
 
@@ -300,16 +342,25 @@ class _EditProfileViewState extends State<EditProfileView> {
                 decoration: BoxDecoration(
                   color: AppColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                  border: Border.all(
+                    color: AppColors.primary.withValues(alpha: 0.3),
+                  ),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.info_outline_rounded, color: AppColors.primary),
+                    const Icon(
+                      Icons.info_outline_rounded,
+                      color: AppColors.primary,
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         'Você está no modo de edição. O CPF e E-mail permanecem bloqueados por segurança.',
-                        style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primary),
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primary,
+                        ),
                       ),
                     ),
                   ],
@@ -331,7 +382,9 @@ class _EditProfileViewState extends State<EditProfileView> {
             // CPF — SEMPRE BLOQUEADO
             ProfileLockedField(
               label: 'CPF',
-              value: _user!.cpf.isNotEmpty ? ProfileStringUtils.formatCpf(_user!.cpf) : '—',
+              value: _user!.cpf.isNotEmpty
+                  ? ProfileStringUtils.formatCpf(_user!.cpf)
+                  : '—',
               icon: Icons.badge_outlined,
               alwaysLocked: true,
               onTap: () => ProfileSupportDialog.show(context, 'CPF'),
@@ -423,12 +476,17 @@ class _EditProfileViewState extends State<EditProfileView> {
             ProfileDropdownField<String>(
               label: 'Indicado por instituição?',
               value: _hasInstitution,
-              items: const ['Não', 'Sim'].map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
+              items: const [
+                'Não',
+                'Sim',
+              ].map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
               icon: Icons.account_balance_outlined,
-              onChanged: _isEditMode ? (v) => setState(() {
-                _hasInstitution = v!;
-                if (v == 'Não') _institutionController.clear();
-              }) : null,
+              onChanged: _isEditMode
+                  ? (v) => setState(() {
+                      _hasInstitution = v!;
+                      if (v == 'Não') _institutionController.clear();
+                    })
+                  : null,
               enabled: _isEditMode,
             ),
             if (_hasInstitution == 'Sim') ...[
@@ -454,10 +512,17 @@ class _EditProfileViewState extends State<EditProfileView> {
               label: 'Gênero',
               value: _selectedGender,
               items: _genderOptions
-                  .map((g) => DropdownMenuItem(value: g, child: Text(g, style: const TextStyle(fontSize: 14))))
+                  .map(
+                    (g) => DropdownMenuItem(
+                      value: g,
+                      child: Text(g, style: const TextStyle(fontSize: 14)),
+                    ),
+                  )
                   .toList(),
               icon: Icons.wc_outlined,
-              onChanged: _isEditMode ? (v) => setState(() => _selectedGender = v) : null,
+              onChanged: _isEditMode
+                  ? (v) => setState(() => _selectedGender = v)
+                  : null,
               enabled: _isEditMode,
             ),
             const SizedBox(height: 12),
@@ -465,10 +530,17 @@ class _EditProfileViewState extends State<EditProfileView> {
               label: 'Raça / Cor',
               value: _selectedRace,
               items: _raceOptions
-                  .map((r) => DropdownMenuItem(value: r, child: Text(r, style: const TextStyle(fontSize: 14))))
+                  .map(
+                    (r) => DropdownMenuItem(
+                      value: r,
+                      child: Text(r, style: const TextStyle(fontSize: 14)),
+                    ),
+                  )
                   .toList(),
               icon: Icons.groups_outlined,
-              onChanged: _isEditMode ? (v) => setState(() => _selectedRace = v) : null,
+              onChanged: _isEditMode
+                  ? (v) => setState(() => _selectedRace = v)
+                  : null,
               enabled: _isEditMode,
             ),
 
@@ -482,12 +554,20 @@ class _EditProfileViewState extends State<EditProfileView> {
                   onPressed: _isSaving ? null : _saveProfile,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
                   ),
                   child: _isSaving
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text('Salvar Alterações',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white)),
+                      : const Text(
+                          'Salvar Alterações',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                          ),
+                        ),
                 ),
               ),
             const SizedBox(height: 32),
@@ -496,5 +576,4 @@ class _EditProfileViewState extends State<EditProfileView> {
       ),
     );
   }
-
 }

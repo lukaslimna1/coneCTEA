@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:conectea/core/constants/colors.dart';
-import 'package:conectea/features/account/profile/widgets/profile_locked_field.dart';
+import 'package:conectea/features/account/profile/legado/widgets/profile_locked_field.dart';
 
 class ProfileInputField extends StatelessWidget {
   final TextEditingController controller;
@@ -66,9 +66,13 @@ class ProfileInputField extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(color: AppColors.borderLight),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
       ),
-      validator: validator ??
+      validator:
+          validator ??
           (value) {
             if (value == null || value.isEmpty) {
               return 'Campo obrigatório';

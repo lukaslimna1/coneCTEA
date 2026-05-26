@@ -12,7 +12,7 @@ import 'package:conectea/core/widgets/premium/premium_qr_button.dart';
 import 'package:conectea/features/carteirinhas/widgets/digital/digital_card_widget.dart';
 import 'package:conectea/features/carteirinhas/full_screen_card_page.dart';
 import 'package:conectea/models/app_user.dart';
-import 'package:conectea/features/account/profile/edit_profile_view.dart';
+import 'package:conectea/features/account/profile/legado/edit_profile_view.dart';
 import 'package:conectea/features/carteirinhas/widgets/tela/cards_member_selector.dart';
 import 'package:conectea/features/carteirinhas/widgets/tela/cards_pending_state.dart';
 import 'package:conectea/features/carteirinhas/widgets/tela/cards_empty_state.dart';
