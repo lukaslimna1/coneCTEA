@@ -491,7 +491,7 @@ class _CardsViewState extends State<CardsView> {
                       info.shortLabel.toUpperCase(),
                       style: GoogleFonts.inter(
                         color: info.color,
-                        fontSize: 9,
+                        fontSize: 10,
                         fontWeight: FontWeight.w900,
                         letterSpacing: 0.5,
                       ),
@@ -504,6 +504,8 @@ class _CardsViewState extends State<CardsView> {
           const SizedBox(height: 12),
           Text(
             member.name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: GoogleFonts.inter(
               color: AppColors.textPrimary,
               fontSize: 16,
@@ -520,32 +522,30 @@ class _CardsViewState extends State<CardsView> {
               ),
             ),
           ],
-          if (info.secondaryActionLabel != null) ...[
+          if (isActionable) ...[
             const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  if (isActionable) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            AddMemberPage(member: member, request: req),
-                      ),
-                    ).then((_) => _loadProfile());
-                  }
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          AddMemberPage(member: member, request: req),
+                    ),
+                  ).then((_) => _loadProfile());
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: isActionable ? info.color : Colors.white.withValues(alpha: 0.05),
-                  foregroundColor: isActionable ? Colors.white : AppColors.textPrimary,
+                  backgroundColor: info.color,
+                  foregroundColor: Colors.white,
                   elevation: 0,
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: Text(info.secondaryActionLabel!),
+                child: Text(info.secondaryActionLabel ?? 'Corrigir'),
               ),
             ),
           ],

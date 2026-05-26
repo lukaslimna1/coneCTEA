@@ -5,6 +5,7 @@ import 'package:conectea/core/constants/colors.dart';
 import 'package:conectea/core/widgets/premium/premium_card.dart';
 import 'package:conectea/models/member.dart';
 import 'package:conectea/models/card_request.dart';
+import 'package:conectea/features/carteirinhas/solicitacao/requests_view.dart';
 
 class CardsPendingState extends StatelessWidget {
   final List<Member> pendingMembers;
@@ -134,6 +135,8 @@ class CardsPendingState extends StatelessWidget {
                     children: [
                       Text(
                         m.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.inter(
                           fontWeight: FontWeight.w700,
                           color: AppColors.cardTitle,
@@ -158,6 +161,27 @@ class CardsPendingState extends StatelessWidget {
             ),
           );
         }),
+        const SizedBox(height: 24),
+        OutlinedButton.icon(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const RequestsView(),
+              ),
+            );
+          },
+          icon: const Icon(PhosphorIconsRegular.listDashes, size: 18),
+          label: const Text('Acompanhar solicitações'),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: AppColors.textSecondary,
+            side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        ),
       ],
     );
   }
