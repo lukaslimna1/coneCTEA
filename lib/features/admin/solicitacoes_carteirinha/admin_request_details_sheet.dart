@@ -24,7 +24,8 @@ class AdminRequestDetailsSheet extends StatefulWidget {
   });
 
   @override
-  State<AdminRequestDetailsSheet> createState() => _AdminRequestDetailsSheetState();
+  State<AdminRequestDetailsSheet> createState() =>
+      _AdminRequestDetailsSheetState();
 }
 
 class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
@@ -59,7 +60,11 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Não foi possível carregar os detalhes agora. Tente novamente.')),
+          const SnackBar(
+            content: Text(
+              'Não foi possível carregar os detalhes agora. Tente novamente.',
+            ),
+          ),
         );
       }
     }
@@ -84,9 +89,13 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
 
     try {
       // 1. Tentar deletar do Drive se clearDocument for verdadeiro e URL válida
-      if (clearDocument && widget.request.documentUrl.isNotEmpty && widget.request.documentUrl.contains('drive.google.com')) {
+      if (clearDocument &&
+          widget.request.documentUrl.isNotEmpty &&
+          widget.request.documentUrl.contains('drive.google.com')) {
         try {
-          final success = await _driveService.deleteFile(widget.request.documentUrl);
+          final success = await _driveService.deleteFile(
+            widget.request.documentUrl,
+          );
           if (!success) {
             driveCleanupSuccess = false;
             debugPrint('Falha ao deletar documento com foto antigo no Drive.');
@@ -98,9 +107,13 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
       }
 
       // 2. Tentar deletar do Drive se clearMedicalReport for verdadeiro e URL válida
-      if (clearMedicalReport && widget.request.medicalReportUrl.isNotEmpty && widget.request.medicalReportUrl.contains('drive.google.com')) {
+      if (clearMedicalReport &&
+          widget.request.medicalReportUrl.isNotEmpty &&
+          widget.request.medicalReportUrl.contains('drive.google.com')) {
         try {
-          final success = await _driveService.deleteFile(widget.request.medicalReportUrl);
+          final success = await _driveService.deleteFile(
+            widget.request.medicalReportUrl,
+          );
           if (!success) {
             driveCleanupSuccess = false;
             debugPrint('Falha ao deletar laudo medico antigo no Drive.');
@@ -138,7 +151,7 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
       if (mounted) {
         // 1. Fechar o dialog de carregamento
         Navigator.of(context, rootNavigator: true).pop();
-        
+
         // 2. Mostrar feedback de sucesso ANTES de fechar o sheet para garantir o contexto
         if (newStatus == 'active') {
           if (cleanupSuccess) {
@@ -152,18 +165,23 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Carteirinha aprovada, mas a limpeza automática dos documentos precisa ser revisada.'),
+                content: Text(
+                  'Carteirinha aprovada, mas a limpeza automática dos documentos precisa ser revisada.',
+                ),
                 backgroundColor: Colors.orange,
                 behavior: SnackBarBehavior.floating,
                 duration: Duration(seconds: 5),
               ),
             );
           }
-        } else if (newStatus == 'waiting_docs' || newStatus == 'reviewing_data') {
+        } else if (newStatus == 'waiting_docs' ||
+            newStatus == 'reviewing_data') {
           if (driveCleanupSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Solicitação de reenvio enviada e documentos antigos limpos!'),
+                content: Text(
+                  'Solicitação de reenvio enviada e documentos antigos limpos!',
+                ),
                 backgroundColor: Colors.green,
                 behavior: SnackBarBehavior.floating,
               ),
@@ -171,7 +189,9 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('A revisão foi enviada, mas a limpeza física de um arquivo no Drive precisa ser verificada.'),
+                content: Text(
+                  'A revisão foi enviada, mas a limpeza física de um arquivo no Drive precisa ser verificada.',
+                ),
                 backgroundColor: Colors.orange,
                 behavior: SnackBarBehavior.floating,
                 duration: Duration(seconds: 5),
@@ -187,7 +207,7 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
             ),
           );
         }
-        
+
         // 3. Fechar o sheet de detalhes
         Navigator.of(context).pop();
 
@@ -198,10 +218,12 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
       if (mounted) {
         // Fechar o dialog de carregamento em caso de erro
         Navigator.of(context, rootNavigator: true).pop();
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Não foi possível atualizar o status agora. Tente novamente.'),
+            content: Text(
+              'Não foi possível atualizar o status agora. Tente novamente.',
+            ),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
           ),
@@ -212,7 +234,8 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
 
   void _confirmStatusUpdate(String status, String label) async {
     // Aprovar e Renovar não precisam de justificativa, processam direto
-    if (status == 'active' || (status == 'renewing' && widget.request.status == 'renewing')) {
+    if (status == 'active' ||
+        (status == 'renewing' && widget.request.status == 'renewing')) {
       _updateStatus(status, 'Solicitação aprovada e processada.');
       return;
     }
@@ -226,22 +249,26 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
 
     if (status == 'reviewing_data') {
       options = [
-        'Nome Completo', 
-        'CPF', 
-        'Data de Nascimento', 
+        'Nome Completo',
+        'CPF',
+        'Data de Nascimento',
         'Telefone',
         'Contato de Emergência',
         'Tipo Sanguíneo',
-        'Estado', 
-        'Cidade'
+        'Estado',
+        'Cidade',
       ];
-      
+
       // Adicionar Responsável apenas se for menor de 18 anos
       if (_member != null && _member!.dateOfBirth.isNotEmpty) {
         try {
           final parts = _member!.dateOfBirth.split('/');
           if (parts.length == 3) {
-            final birthDate = DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
+            final birthDate = DateTime(
+              int.parse(parts[2]),
+              int.parse(parts[1]),
+              int.parse(parts[0]),
+            );
             final age = DateTime.now().year - birthDate.year;
             if (age < 18) {
               options.add('Responsável');
@@ -257,7 +284,7 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
     for (var opt in options) {
       selectedOptions[opt] = false;
     }
-    
+
     int selectedDays = 7;
 
     final confirm = await showDialog<bool>(
@@ -334,30 +361,45 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
                       controller: notesController,
                       maxLines: 4,
                       cursorColor: statusColor,
-                      style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary),
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        color: AppColors.textPrimary,
+                      ),
                       decoration: InputDecoration(
                         hintText: 'Descreva detalhadamente o motivo...',
-                        hintStyle: GoogleFonts.inter(color: AppColors.inputPlaceholder, fontSize: 13),
+                        hintStyle: GoogleFonts.inter(
+                          color: AppColors.inputPlaceholder,
+                          fontSize: 13,
+                        ),
                         filled: true,
                         fillColor: Colors.black.withValues(alpha: 0.25),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
-                          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+                          borderSide: BorderSide(
+                            color: Colors.white.withValues(alpha: 0.08),
+                          ),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
-                          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+                          borderSide: BorderSide(
+                            color: Colors.white.withValues(alpha: 0.08),
+                          ),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
-                          borderSide: BorderSide(color: statusColor, width: 1.5),
+                          borderSide: BorderSide(
+                            color: statusColor,
+                            width: 1.5,
+                          ),
                         ),
                       ),
                     ),
                     if (options.isNotEmpty) ...[
                       const SizedBox(height: 24),
                       Text(
-                        status == 'reviewing_data' ? '📋 CAMPOS PARA CORREÇÃO' : '📄 DOCUMENTOS SOLICITADOS',
+                        status == 'reviewing_data'
+                            ? '📋 CAMPOS PARA CORREÇÃO'
+                            : '📄 DOCUMENTOS SOLICITADOS',
                         style: GoogleFonts.inter(
                           fontSize: 10,
                           fontWeight: FontWeight.w800,
@@ -370,7 +412,9 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
                         decoration: BoxDecoration(
                           color: Colors.black.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.06),
+                          ),
                         ),
                         clipBehavior: Clip.antiAlias,
                         child: Column(
@@ -383,16 +427,24 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
                                   opt,
                                   style: GoogleFonts.inter(
                                     fontSize: 13,
-                                    color: isSelected ? AppColors.textPrimary : AppColors.textSecondary,
-                                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                                  )
+                                    color: isSelected
+                                        ? AppColors.textPrimary
+                                        : AppColors.textSecondary,
+                                    fontWeight: isSelected
+                                        ? FontWeight.w600
+                                        : FontWeight.w500,
+                                  ),
                                 ),
                                 value: isSelected,
                                 dense: true,
                                 activeColor: statusColor,
                                 checkColor: Colors.white,
-                                controlAffinity: ListTileControlAffinity.leading,
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+                                controlAffinity:
+                                    ListTileControlAffinity.leading,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 2,
+                                ),
                                 onChanged: (val) {
                                   setDialogState(() {
                                     selectedOptions[opt] = val ?? false;
@@ -405,7 +457,9 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
                                         hasAny = true;
                                       }
                                     });
-                                    notesController.text = hasAny ? newNotes : "";
+                                    notesController.text = hasAny
+                                        ? newNotes
+                                        : "";
                                   });
                                 },
                               ),
@@ -425,31 +479,56 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
                       ),
                       const SizedBox(height: 12),
                       DropdownButtonFormField<int>(
-                        initialValue: [7, 15, 30].contains(selectedDays) ? selectedDays : 7,
+                        initialValue: [7, 15, 30].contains(selectedDays)
+                            ? selectedDays
+                            : 7,
                         dropdownColor: const Color(0xFF0B1224),
-                        style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary, fontWeight: FontWeight.w600),
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.w600,
+                        ),
                         iconEnabledColor: statusColor,
                         decoration: InputDecoration(
                           filled: true,
                           fillColor: Colors.black.withValues(alpha: 0.25),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+                            borderSide: BorderSide(
+                              color: Colors.white.withValues(alpha: 0.08),
+                            ),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+                            borderSide: BorderSide(
+                              color: Colors.white.withValues(alpha: 0.08),
+                            ),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide(color: statusColor, width: 1.5),
+                            borderSide: BorderSide(
+                              color: statusColor,
+                              width: 1.5,
+                            ),
                           ),
                         ),
                         items: const [
-                          DropdownMenuItem(value: 7, child: Text('7 dias úteis')),
-                          DropdownMenuItem(value: 15, child: Text('15 dias úteis')),
-                          DropdownMenuItem(value: 30, child: Text('30 dias úteis')),
+                          DropdownMenuItem(
+                            value: 7,
+                            child: Text('7 dias úteis'),
+                          ),
+                          DropdownMenuItem(
+                            value: 15,
+                            child: Text('15 dias úteis'),
+                          ),
+                          DropdownMenuItem(
+                            value: 30,
+                            child: Text('30 dias úteis'),
+                          ),
                         ],
                         onChanged: (val) {
                           if (val != null) {
@@ -483,7 +562,9 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
                           color: Colors.black.withValues(alpha: 0.22),
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
-                            color: const Color(0xFFE11D48).withValues(alpha: 0.35),
+                            color: const Color(
+                              0xFFE11D48,
+                            ).withValues(alpha: 0.35),
                             width: 1.2,
                           ),
                           boxShadow: [
@@ -516,7 +597,9 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
                         onTap: () {
                           if (notesController.text.trim().isEmpty) {
                             ScaffoldMessenger.of(ctx).showSnackBar(
-                              const SnackBar(content: Text('Justificativa obrigatória')),
+                              const SnackBar(
+                                content: Text('Justificativa obrigatória'),
+                              ),
                             );
                             return;
                           }
@@ -526,21 +609,22 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
                         child: Container(
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
-                              colors: [
-                                Color(0xFF065F46),
-                                Color(0xFF047857),
-                              ],
+                              colors: [Color(0xFF065F46), Color(0xFF047857)],
                               begin: Alignment.centerLeft,
                               end: Alignment.centerRight,
                             ),
                             borderRadius: BorderRadius.circular(14),
                             border: Border.all(
-                              color: const Color(0xFF34D399).withValues(alpha: 0.25),
+                              color: const Color(
+                                0xFF34D399,
+                              ).withValues(alpha: 0.25),
                               width: 1.2,
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF047857).withValues(alpha: 0.15),
+                                color: const Color(
+                                  0xFF047857,
+                                ).withValues(alpha: 0.15),
                                 blurRadius: 8,
                                 offset: const Offset(0, 3),
                               ),
@@ -572,12 +656,16 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
       DateTime? expiresAt;
       if (options.isNotEmpty) {
         try {
-          expiresAt = await widget.databaseService.getAdminDeadlineFromServer(selectedDays);
+          expiresAt = await widget.databaseService.getAdminDeadlineFromServer(
+            selectedDays,
+          );
         } catch (e) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Erro ao obter prazo do servidor. Ação cancelada.'),
+                content: Text(
+                  'Erro ao obter prazo do servidor. Ação cancelada.',
+                ),
                 backgroundColor: Colors.red,
                 behavior: SnackBarBehavior.floating,
               ),
@@ -586,7 +674,8 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
           return;
         }
       }
-      final bool clearDocument = selectedOptions['Documento com Foto (RG/CNH)'] ?? false;
+      final bool clearDocument =
+          selectedOptions['Documento com Foto (RG/CNH)'] ?? false;
       final bool clearMedicalReport = selectedOptions['Laudo Médico'] ?? false;
 
       _updateStatus(
@@ -604,9 +693,14 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Deletar Arquivo?'),
-        content: const Text('Isso removerá o arquivo permanentemente do Google Drive.'),
+        content: const Text(
+          'Isso removerá o arquivo permanentemente do Google Drive.',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancelar'),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
@@ -618,25 +712,41 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
 
     if (confirm == true) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Deletando arquivo...')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Deletando arquivo...')));
 
       final success = await _driveService.deleteFile(url);
       if (success) {
         try {
-          await widget.databaseService.updateRequestFileUrl(widget.request.id, fieldKey, '');
+          await widget.databaseService.updateRequestFileUrl(
+            widget.request.id,
+            fieldKey,
+            '',
+          );
           if (mounted) {
             widget.onStatusChanged();
             Navigator.pop(context); // Close sheet to refresh
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Arquivo deletado com sucesso!')));
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Arquivo deletado com sucesso!')),
+            );
           }
         } catch (e) {
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Arquivo removido, mas não foi possível atualizar o registro agora.')));
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Arquivo removido, mas não foi possível atualizar o registro agora.',
+                ),
+              ),
+            );
           }
         }
       } else {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Falha ao deletar arquivo no Drive.')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Falha ao deletar arquivo no Drive.')),
+          );
         }
       }
     }
@@ -685,31 +795,46 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
           ),
           Expanded(
             child: _isLoading
-                ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                ? const Center(
+                    child: CircularProgressIndicator(color: AppColors.primary),
+                  )
                 : SingleChildScrollView(
                     padding: const EdgeInsets.all(24),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const AdminSectionTitle(title: 'Dados da Solicitação'),
-                        AdminDetailRow(label: 'Protocolo', value: widget.request.protocol),
                         AdminDetailRow(
-                          label: 'Tipo', 
-                          value: (widget.request.type == 'new_card' || widget.request.type == 'Primeira via' || widget.request.type == 'Emissão Digital') 
-                              ? 'Emissão Digital' 
-                              : widget.request.type
+                          label: 'Protocolo',
+                          value: widget.request.protocol,
+                        ),
+                        AdminDetailRow(
+                          label: 'Tipo',
+                          value:
+                              (widget.request.type == 'new_card' ||
+                                  widget.request.type == 'Primeira via' ||
+                                  widget.request.type == 'Emissão Digital')
+                              ? 'Emissão Digital'
+                              : widget.request.type,
                         ),
                         AdminDetailRow(
                           label: 'Status Atual',
                           customValue: Row(
                             children: [
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF020617).withValues(alpha: 0.75),
+                                  color: const Color(
+                                    0xFF020617,
+                                  ).withValues(alpha: 0.75),
                                   borderRadius: BorderRadius.circular(10),
                                   border: Border.all(
-                                    color: StatusVisualTokens.fromStatus(widget.request.status).pillBorder,
+                                    color: StatusVisualTokens.fromStatus(
+                                      widget.request.status,
+                                    ).pillBorder,
                                     width: 1,
                                   ),
                                 ),
@@ -718,8 +843,12 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
                                     Positioned.fill(
                                       child: Container(
                                         decoration: BoxDecoration(
-                                          color: StatusVisualTokens.fromStatus(widget.request.status).pillBackground,
-                                          borderRadius: BorderRadius.circular(10),
+                                          color: StatusVisualTokens.fromStatus(
+                                            widget.request.status,
+                                          ).pillBackground,
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -727,17 +856,26 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         Icon(
-                                          StatusVisualTokens.fromStatus(widget.request.status).icon,
-                                          color: StatusVisualTokens.fromStatus(widget.request.status).primary,
+                                          StatusVisualTokens.fromStatus(
+                                            widget.request.status,
+                                          ).icon,
+                                          color: StatusVisualTokens.fromStatus(
+                                            widget.request.status,
+                                          ).primary,
                                           size: 14,
                                         ),
                                         const SizedBox(width: 8),
                                         Text(
-                                          AdminStatusHelper.getStatusLabel(widget.request.status).toUpperCase(),
+                                          AdminStatusHelper.getStatusLabel(
+                                            widget.request.status,
+                                          ).toUpperCase(),
                                           style: GoogleFonts.inter(
                                             fontSize: 10,
                                             fontWeight: FontWeight.w900,
-                                            color: StatusVisualTokens.fromStatus(widget.request.status).primary,
+                                            color:
+                                                StatusVisualTokens.fromStatus(
+                                                  widget.request.status,
+                                                ).primary,
                                             letterSpacing: 0.5,
                                           ),
                                         ),
@@ -751,7 +889,8 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
                         ),
                         AdminDetailRow(
                           label: 'Data',
-                          value: '${widget.request.createdAt.day}/${widget.request.createdAt.month}/${widget.request.createdAt.year}',
+                          value:
+                              '${widget.request.createdAt.day}/${widget.request.createdAt.month}/${widget.request.createdAt.year}',
                         ),
 
                         const SizedBox(height: 24),
@@ -761,34 +900,66 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
                           url: widget.request.documentUrl,
                           iconData: Icons.badge_outlined,
                           onTap: () => _openUrl(widget.request.documentUrl),
-                          onDelete: () => _handleDeleteDocument(widget.request.documentUrl, 'document_url'),
+                          onDelete: () => _handleDeleteDocument(
+                            widget.request.documentUrl,
+                            'document_url',
+                          ),
                         ),
                         AdminDocumentLink(
                           label: 'Laudo Médico',
                           url: widget.request.medicalReportUrl,
                           iconData: Icons.medical_information_outlined,
-                          onTap: () => _openUrl(widget.request.medicalReportUrl),
-                          onDelete: () => _handleDeleteDocument(widget.request.medicalReportUrl, 'medical_report_url'),
+                          onTap: () =>
+                              _openUrl(widget.request.medicalReportUrl),
+                          onDelete: () => _handleDeleteDocument(
+                            widget.request.medicalReportUrl,
+                            'medical_report_url',
+                          ),
                         ),
 
                         const SizedBox(height: 24),
                         const AdminSectionTitle(title: 'Membro (Beneficiário)'),
                         if (_member != null) ...[
                           AdminDetailRow(label: 'Nome', value: _member!.name),
-                          AdminDetailRow(label: 'CPF', value: _member!.cpf, isSensitive: true),
-                          AdminDetailRow(label: 'Nascimento', value: _member!.dateOfBirth),
-                          AdminDetailRow(label: 'Localização', value: '${_member!.city} - ${_member!.state}'),
+                          AdminDetailRow(
+                            label: 'CPF',
+                            value: _member!.cpf,
+                            isSensitive: true,
+                          ),
+                          AdminDetailRow(
+                            label: 'Nascimento',
+                            value: _member!.dateOfBirth,
+                          ),
+                          AdminDetailRow(
+                            label: 'Localização',
+                            value: '${_member!.city} - ${_member!.state}',
+                          ),
                           AdminDetailRow(label: 'CID', value: _member!.cid),
-                          AdminDetailRow(label: 'Tipo Sanguíneo', value: _member!.bloodType),
-                          AdminDetailRow(label: 'Contato Emergência', value: _member!.emergencyContact),
+                          AdminDetailRow(
+                            label: 'Tipo Sanguíneo',
+                            value: _member!.bloodType,
+                          ),
+                          AdminDetailRow(
+                            label: 'Contato Emergência',
+                            value: _member!.emergencyContact,
+                          ),
                         ],
 
                         const SizedBox(height: 24),
                         const AdminSectionTitle(title: 'Usuário Solicitante'),
                         if (_requester != null) ...[
-                          AdminDetailRow(label: 'Nome', value: _requester!.name),
-                          AdminDetailRow(label: 'E-mail', value: _requester!.email),
-                          AdminDetailRow(label: 'Telefone', value: _requester!.phone),
+                          AdminDetailRow(
+                            label: 'Nome',
+                            value: _requester!.name,
+                          ),
+                          AdminDetailRow(
+                            label: 'E-mail',
+                            value: _requester!.email,
+                          ),
+                          AdminDetailRow(
+                            label: 'Telefone',
+                            value: _requester!.phone,
+                          ),
                         ],
 
                         const SizedBox(height: 24),
@@ -799,7 +970,9 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
                           decoration: BoxDecoration(
                             color: Colors.white.withValues(alpha: 0.02),
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.05),
+                            ),
                           ),
                           child: Text(
                             widget.request.adminNotes.trim().isNotEmpty
@@ -809,8 +982,11 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
                               fontSize: 14,
                               color: widget.request.adminNotes.trim().isNotEmpty
                                   ? AppColors.textPrimary
-                                  : AppColors.textSecondary.withValues(alpha: 0.5),
-                              fontStyle: widget.request.adminNotes.trim().isNotEmpty
+                                  : AppColors.textSecondary.withValues(
+                                      alpha: 0.5,
+                                    ),
+                              fontStyle:
+                                  widget.request.adminNotes.trim().isNotEmpty
                                   ? FontStyle.normal
                                   : FontStyle.italic,
                               height: 1.5,
@@ -843,11 +1019,16 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
           ),
         ),
         const SizedBox(height: 16),
-        
+
         // Ações Positivas
         Text(
           'CONCORDÂNCIA E APROVAÇÃO',
-          style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w800, color: AppColors.textSecondary, letterSpacing: 1),
+          style: GoogleFonts.inter(
+            fontSize: 10,
+            fontWeight: FontWeight.w800,
+            color: AppColors.textSecondary,
+            letterSpacing: 1,
+          ),
         ),
         const SizedBox(height: 8),
         Wrap(
@@ -855,13 +1036,14 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
           runSpacing: 12,
           children: [
             // Só mostra aprovar se não estiver ativa e não for renovação
-            if (widget.request.status != 'active' && widget.request.status != 'renewing')
+            if (widget.request.status != 'active' &&
+                widget.request.status != 'renewing')
               AdminStatusActionButton(
                 label: 'APROVAR',
                 statusKey: 'active',
                 onTap: () => _confirmStatusUpdate('active', 'Aprovar'),
               ),
-            
+
             // Só mostra renovar se o status for renovação (solicitado pelo user)
             if (widget.request.status == 'renewing')
               AdminStatusActionButton(
@@ -871,13 +1053,18 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
               ),
           ],
         ),
-        
+
         const SizedBox(height: 24),
-        
+
         // Ações de Análise
         Text(
           'ANÁLISE E PENDÊNCIAS',
-          style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w800, color: AppColors.textSecondary, letterSpacing: 1),
+          style: GoogleFonts.inter(
+            fontSize: 10,
+            fontWeight: FontWeight.w800,
+            color: AppColors.textSecondary,
+            letterSpacing: 1,
+          ),
         ),
         const SizedBox(height: 8),
         Wrap(
@@ -887,22 +1074,29 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
             AdminStatusActionButton(
               label: 'SOLICITAR DOCS',
               statusKey: 'waiting_docs',
-              onTap: () => _confirmStatusUpdate('waiting_docs', 'Solicitar Documentos'),
+              onTap: () =>
+                  _confirmStatusUpdate('waiting_docs', 'Solicitar Documentos'),
             ),
             AdminStatusActionButton(
               label: 'REVISAR DADOS',
               statusKey: 'reviewing_data',
-              onTap: () => _confirmStatusUpdate('reviewing_data', 'Revisar Dados'),
+              onTap: () =>
+                  _confirmStatusUpdate('reviewing_data', 'Revisar Dados'),
             ),
           ],
         ),
-        
+
         const SizedBox(height: 24),
-        
+
         // Ações Negativas/Perigosas
         Text(
           'AÇÕES RESTRITIVAS',
-          style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w800, color: AppColors.textSecondary, letterSpacing: 1),
+          style: GoogleFonts.inter(
+            fontSize: 10,
+            fontWeight: FontWeight.w800,
+            color: AppColors.textSecondary,
+            letterSpacing: 1,
+          ),
         ),
         const SizedBox(height: 8),
         Wrap(
@@ -925,39 +1119,46 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
     );
   }
 
-
   Future<bool> _cleanupDocumentsAfterApproval() async {
     bool allSuccess = true;
     try {
       // 1. Limpar Documento com Foto
-      if (widget.request.documentUrl.isNotEmpty && 
+      if (widget.request.documentUrl.isNotEmpty &&
           widget.request.documentUrl.contains('drive.google.com')) {
-        final success = await _driveService.deleteFile(widget.request.documentUrl);
+        final success = await _driveService.deleteFile(
+          widget.request.documentUrl,
+        );
         if (success) {
           await widget.databaseService.updateRequestFileUrl(
-            widget.request.id, 
-            'document_url', 
+            widget.request.id,
+            'document_url',
             '',
           );
         } else {
           allSuccess = false;
-          debugPrint('Falha ao deletar documento com foto no Drive: ${widget.request.documentUrl}');
+          debugPrint(
+            'Falha ao deletar documento com foto no Drive: ${widget.request.documentUrl}',
+          );
         }
       }
 
       // 2. Limpar Laudo Médico
-      if (widget.request.medicalReportUrl.isNotEmpty && 
+      if (widget.request.medicalReportUrl.isNotEmpty &&
           widget.request.medicalReportUrl.contains('drive.google.com')) {
-        final success = await _driveService.deleteFile(widget.request.medicalReportUrl);
+        final success = await _driveService.deleteFile(
+          widget.request.medicalReportUrl,
+        );
         if (success) {
           await widget.databaseService.updateRequestFileUrl(
-            widget.request.id, 
-            'medical_report_url', 
+            widget.request.id,
+            'medical_report_url',
             '',
           );
         } else {
           allSuccess = false;
-          debugPrint('Falha ao deletar laudo médico no Drive: ${widget.request.medicalReportUrl}');
+          debugPrint(
+            'Falha ao deletar laudo médico no Drive: ${widget.request.medicalReportUrl}',
+          );
         }
       }
     } catch (e) {
@@ -972,6 +1173,4 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
       await launchUrlString(url);
     }
   }
-
-
 }

@@ -7,7 +7,7 @@ import 'package:conectea/core/widgets/loading_shimmer.dart';
 import 'package:conectea/services/database_service.dart';
 import 'package:conectea/models/card_request.dart';
 import 'package:conectea/features/admin/solicitacoes_carteirinha/admin_request_card.dart';
-import 'package:conectea/features/admin/widgets/admin_request_details_sheet.dart';
+import 'package:conectea/features/admin/solicitacoes_carteirinha/admin_request_details_sheet.dart';
 import 'package:conectea/core/theme/conectea_visual_tokens.dart';
 
 class AdminRequestsTab extends StatefulWidget {
