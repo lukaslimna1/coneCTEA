@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import '../../core/constants/colors.dart';
-import '../../services/database_service.dart';
-import '../../models/digital_card.dart';
+import '../../../core/constants/colors.dart';
+import '../../../services/database_service.dart';
+import '../../../models/digital_card.dart';
 import 'package:intl/intl.dart';
 
 import 'package:conectea/core/utils/conectea_date_time_helper.dart';

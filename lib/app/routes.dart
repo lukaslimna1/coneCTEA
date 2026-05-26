@@ -6,7 +6,7 @@ import 'package:conectea/features/acesso/recuperacao/forgot_email_page.dart';
 import 'package:conectea/features/home/home_page.dart';
 import 'package:conectea/features/carteirinhas/solicitacao/add_member_page.dart';
 import 'package:conectea/features/admin/admin_dashboard_page.dart';
-import 'package:conectea/features/admin/scanner_view.dart';
+import 'package:conectea/features/admin/scanner/scanner_view.dart';
 import 'package:conectea/core/notifiers/auth_notifier.dart';
 import 'package:conectea/core/widgets/device_auth_guard.dart';
 

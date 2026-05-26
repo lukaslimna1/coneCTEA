@@ -12,7 +12,7 @@ import 'package:conectea/models/app_user.dart';
 import 'package:conectea/features/admin/widgets/admin_requests_tab.dart';
 import 'package:conectea/features/admin/widgets/admin_user_dialogs.dart';
 import 'package:conectea/features/admin/widgets/admin_users_tab.dart';
-import 'package:conectea/features/admin/widgets/admin_management_hub.dart';
+import 'package:conectea/features/admin/hub/admin_management_hub.dart';
 import 'package:conectea/core/widgets/premium/conectea_role_badge.dart';
 import 'package:conectea/core/theme/conectea_visual_tokens.dart';
 
@@ -25,7 +25,8 @@ class AdminView extends StatefulWidget {
 
 class _AdminViewState extends State<AdminView> {
   final DatabaseService _databaseService = DatabaseService();
-  final GlobalKey<AdminUsersTabState> _usersTabKey = GlobalKey<AdminUsersTabState>();
+  final GlobalKey<AdminUsersTabState> _usersTabKey =
+      GlobalKey<AdminUsersTabState>();
 
   AppUser? _currentUser;
   String? _selectedModule; // null ou 'hub', 'requests', 'users'
@@ -55,22 +56,25 @@ class _AdminViewState extends State<AdminView> {
     final double topSafeArea = MediaQuery.paddingOf(context).top;
     const double headerVisualHeight = 64.0;
     const double headerClearance = 4.0;
-    final double topPadding = topSafeArea + headerVisualHeight + headerClearance;
+    final double topPadding =
+        topSafeArea + headerVisualHeight + headerClearance;
 
     final String? moduleTitle = _selectedModule == 'requests'
         ? 'Gestão de Carteirinhas'
         : _selectedModule == 'users'
-            ? 'Usuários e Permissões'
-            : null;
+        ? 'Usuários e Permissões'
+        : null;
 
     final String? moduleSubtitle = _selectedModule == 'requests'
         ? 'Solicitações, revisões e status das carteirinhas.'
         : _selectedModule == 'users'
-            ? 'Contas, cargos e acessos administrativos.'
-            : null;
+        ? 'Contas, cargos e acessos administrativos.'
+        : null;
 
     final bool hasSelectedModule = _selectedModule != null;
-    final double computedHeaderTopPadding = hasSelectedModule ? 12.0 : topPadding;
+    final double computedHeaderTopPadding = hasSelectedModule
+        ? 12.0
+        : topPadding;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -79,16 +83,13 @@ class _AdminViewState extends State<AdminView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (hasSelectedModule)
-              _buildBackButton(topPadding),
+            if (hasSelectedModule) _buildBackButton(topPadding),
             _buildHeader(
               computedHeaderTopPadding,
               title: moduleTitle,
               subtitle: moduleSubtitle,
             ),
-            Expanded(
-              child: _buildBody(),
-            ),
+            Expanded(child: _buildBody()),
           ],
         ),
       ),
@@ -113,7 +114,9 @@ class _AdminViewState extends State<AdminView> {
                   children: [
                     if (showRoleBadge) ...[
                       ConecteaRoleBadge.expanded(role: _currentUser!.role),
-                      const SizedBox(height: 10), // Respiro sutil abaixo do badge
+                      const SizedBox(
+                        height: 10,
+                      ), // Respiro sutil abaixo do badge
                     ],
                     Text(
                       title ?? 'Gestão',
@@ -269,8 +272,12 @@ class _AdminViewState extends State<AdminView> {
               maxHeight: MediaQuery.of(context).size.height * 0.85,
             ),
             decoration: BoxDecoration(
-              color: const Color(0xFB0B132B), // Fundo premium Night Blue profundo
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+              color: const Color(
+                0xFB0B132B,
+              ), // Fundo premium Night Blue profundo
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(32),
+              ),
               border: Border(
                 top: BorderSide(
                   color: token.accent.withValues(alpha: 0.2),
@@ -306,10 +313,7 @@ class _AdminViewState extends State<AdminView> {
                         decoration: BoxDecoration(
                           color: token.softBackground,
                           shape: BoxShape.circle,
-                          border: Border.all(
-                            color: token.border,
-                            width: 1,
-                          ),
+                          border: Border.all(color: token.border, width: 1),
                         ),
                         child: Icon(
                           PhosphorIconsRegular.wrench,
@@ -335,12 +339,17 @@ class _AdminViewState extends State<AdminView> {
                                 ),
                                 const SizedBox(width: 8),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: token.accent.withValues(alpha: 0.15),
                                     borderRadius: BorderRadius.circular(6),
                                     border: Border.all(
-                                      color: token.accent.withValues(alpha: 0.3),
+                                      color: token.accent.withValues(
+                                        alpha: 0.3,
+                                      ),
                                       width: 1,
                                     ),
                                   ),
@@ -375,7 +384,10 @@ class _AdminViewState extends State<AdminView> {
 
                   // Aviso discreto de área técnica
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.amber.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(10),
@@ -412,7 +424,8 @@ class _AdminViewState extends State<AdminView> {
                   _buildMaintenanceCard(
                     icon: PhosphorIconsRegular.sliders,
                     title: 'Controle de Recursos',
-                    description: 'Ativar ou desativar temporariamente módulos e ações com problema.',
+                    description:
+                        'Ativar ou desativar temporariamente módulos e ações com problema.',
                     statusLabel: 'Planejado',
                     isFuture: false,
                   ),
@@ -421,7 +434,8 @@ class _AdminViewState extends State<AdminView> {
                   _buildMaintenanceCard(
                     icon: PhosphorIconsRegular.pulse,
                     title: 'Diagnóstico do Sistema',
-                    description: 'Verificar integrações, serviços e rotinas técnicas do app.',
+                    description:
+                        'Verificar integrações, serviços e rotinas técnicas do app.',
                     statusLabel: 'Planejado',
                     isFuture: false,
                   ),
@@ -430,7 +444,8 @@ class _AdminViewState extends State<AdminView> {
                   _buildMaintenanceCard(
                     icon: PhosphorIconsRegular.arrowsClockwise,
                     title: 'Rotinas Automáticas',
-                    description: 'Acompanhar limpezas e validações executadas pelo sistema.',
+                    description:
+                        'Acompanhar limpezas e validações executadas pelo sistema.',
                     statusLabel: 'Planejado',
                     isFuture: false,
                   ),
@@ -439,7 +454,8 @@ class _AdminViewState extends State<AdminView> {
                   _buildMaintenanceCard(
                     icon: PhosphorIconsRegular.fileText,
                     title: 'Auditoria Técnica',
-                    description: 'Consultar registros de ações administrativas sensíveis.',
+                    description:
+                        'Consultar registros de ações administrativas sensíveis.',
                     statusLabel: 'Futuro',
                     isFuture: true,
                   ),
@@ -528,7 +544,10 @@ class _AdminViewState extends State<AdminView> {
                     ),
                     const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: statusColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(6),

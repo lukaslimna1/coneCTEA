@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:conectea/core/constants/colors.dart';
 import 'package:conectea/models/app_user.dart';
-import 'package:conectea/features/admin/widgets/admin_module_card.dart';
+import 'package:conectea/features/admin/hub/admin_module_card.dart';
 import 'package:conectea/core/theme/conectea_visual_tokens.dart';
 
 class AdminManagementHub extends StatelessWidget {
@@ -23,8 +23,12 @@ class AdminManagementHub extends StatelessWidget {
     final role = currentUser?.role ?? UserRole.user;
 
     // Definição de permissões de entrada nos módulos reais
-    final bool canAccessCards = role == UserRole.admin || role == UserRole.adminMaster || role == UserRole.adminDev;
-    final bool canAccessUsers = role == UserRole.adminMaster || role == UserRole.adminDev;
+    final bool canAccessCards =
+        role == UserRole.admin ||
+        role == UserRole.adminMaster ||
+        role == UserRole.adminDev;
+    final bool canAccessUsers =
+        role == UserRole.adminMaster || role == UserRole.adminDev;
     final bool canAccessMaintenance = role == UserRole.adminDev;
 
     return Center(
@@ -74,15 +78,20 @@ class AdminManagementHub extends StatelessWidget {
               title: 'Usuários',
               description: 'Contas, cargos e acessos administrativos.',
               icon: PhosphorIconsRegular.usersThree,
-              status: canAccessUsers ? AdminModuleStatus.active : AdminModuleStatus.restricted,
-              token: canAccessUsers 
-                  ? ConecteaVisualTokens.usuariosPermissoes 
+              status: canAccessUsers
+                  ? AdminModuleStatus.active
+                  : AdminModuleStatus.restricted,
+              token: canAccessUsers
+                  ? ConecteaVisualTokens.usuariosPermissoes
                   : ConecteaVisualTokens.restricao,
               onTap: () {
                 if (canAccessUsers) {
                   onSelectModule('users');
                 } else {
-                  _showToast(context, 'Acesso restrito ao administrador master.');
+                  _showToast(
+                    context,
+                    'Acesso restrito ao administrador master.',
+                  );
                 }
               },
             ),
@@ -92,15 +101,20 @@ class AdminManagementHub extends StatelessWidget {
               title: 'Manutenção',
               description: 'Ferramentas internas e rotinas restritas.',
               icon: PhosphorIconsRegular.wrench,
-              status: canAccessMaintenance ? AdminModuleStatus.devOnly : AdminModuleStatus.restricted,
-              token: canAccessMaintenance 
-                  ? ConecteaVisualTokens.manutencaoTecnica 
+              status: canAccessMaintenance
+                  ? AdminModuleStatus.devOnly
+                  : AdminModuleStatus.restricted,
+              token: canAccessMaintenance
+                  ? ConecteaVisualTokens.manutencaoTecnica
                   : ConecteaVisualTokens.restricao,
               onTap: () {
                 if (canAccessMaintenance) {
                   onShowMaintenance();
                 } else {
-                  _showToast(context, 'Acesso restrito ao administrador de desenvolvimento.');
+                  _showToast(
+                    context,
+                    'Acesso restrito ao administrador de desenvolvimento.',
+                  );
                 }
               },
             ),
