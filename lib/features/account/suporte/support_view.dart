@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
-import 'package:conectea/features/account/profile/widgets/my_data_logged_header.dart';
+import 'package:conectea/features/account/perfil/widgets/my_data_logged_header.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 /// Tela visual/mockada de Ajuda e Suporte.
@@ -34,12 +34,16 @@ class SupportView extends StatelessWidget {
                     const SizedBox(height: 24),
                     Text(
                       'Ajuda e suporte',
-                      style: DsTipografia.pageTitle.copyWith(color: DsCores.textPrimary),
+                      style: DsTipografia.pageTitle.copyWith(
+                        color: DsCores.textPrimary,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'Encontre os canais oficiais da Família TEA Bauru e orientações de apoio.',
-                      style: DsTipografia.pageSubtitle.copyWith(color: DsCores.textSecondary),
+                      style: DsTipografia.pageSubtitle.copyWith(
+                        color: DsCores.textSecondary,
+                      ),
                     ),
                     const SizedBox(height: 32),
 
@@ -63,11 +67,15 @@ class SupportView extends StatelessWidget {
                       context,
                       icon: PhosphorIconsRegular.phone,
                       title: 'WhatsApp oficial',
-                      description: 'Canal oficial de contato com Renata Ferreguti, representante/presidente da Família TEA Bauru.',
+                      description:
+                          'Canal oficial de contato com Renata Ferreguti, representante/presidente da Família TEA Bauru.',
                       dataValue: '+55 14 99101-2961',
                       actionLabel: 'Falar pelo WhatsApp',
                       actionIcon: PhosphorIconsRegular.chatCircleText,
-                      onPressed: () => _showMockSnackBar(context, 'Canal visual em construção.'),
+                      onPressed: () => _showMockSnackBar(
+                        context,
+                        'Canal visual em construção.',
+                      ),
                     ),
                     const SizedBox(height: 16),
 
@@ -76,11 +84,15 @@ class SupportView extends StatelessWidget {
                       context,
                       icon: PhosphorIconsRegular.usersThree,
                       title: 'Grupo comunitário',
-                      description: 'Grupo comunitário oficial para comunicação e apoio da comunidade.',
+                      description:
+                          'Grupo comunitário oficial para comunicação e apoio da comunidade.',
                       dataValue: 'Grupo oficial da Família TEA Bauru',
                       actionLabel: 'Acessar grupo',
                       actionIcon: PhosphorIconsRegular.arrowSquareOut,
-                      onPressed: () => _showMockSnackBar(context, 'Canal visual em construção.'),
+                      onPressed: () => _showMockSnackBar(
+                        context,
+                        'Canal visual em construção.',
+                      ),
                     ),
                     const SizedBox(height: 16),
 
@@ -89,11 +101,15 @@ class SupportView extends StatelessWidget {
                       context,
                       icon: PhosphorIconsRegular.instagramLogo,
                       title: 'Instagram',
-                      description: 'Acompanhe comunicados, ações e informações públicas da comunidade.',
+                      description:
+                          'Acompanhe comunicados, ações e informações públicas da comunidade.',
                       dataValue: '@familiateabauru',
                       actionLabel: 'Abrir Instagram',
                       actionIcon: PhosphorIconsRegular.camera,
-                      onPressed: () => _showMockSnackBar(context, 'Canal visual em construção.'),
+                      onPressed: () => _showMockSnackBar(
+                        context,
+                        'Canal visual em construção.',
+                      ),
                     ),
                     const SizedBox(height: 16),
 
@@ -106,7 +122,10 @@ class SupportView extends StatelessWidget {
                       dataValue: 'familiateabauru@gmail.com',
                       actionLabel: 'Enviar e-mail',
                       actionIcon: PhosphorIconsRegular.paperPlaneTilt,
-                      onPressed: () => _showMockSnackBar(context, 'Canal visual em construção.'),
+                      onPressed: () => _showMockSnackBar(
+                        context,
+                        'Canal visual em construção.',
+                      ),
                     ),
                     const SizedBox(height: 16),
 
@@ -115,11 +134,15 @@ class SupportView extends StatelessWidget {
                       context,
                       icon: PhosphorIconsRegular.envelopeSimple,
                       title: 'E-mail ConeCTEA',
-                      description: 'Canal secundário relacionado ao projeto ConeCTEA.',
+                      description:
+                          'Canal secundário relacionado ao projeto ConeCTEA.',
                       dataValue: 'conecteabauru@gmail.com',
                       actionLabel: 'Enviar e-mail',
                       actionIcon: PhosphorIconsRegular.paperPlaneTilt,
-                      onPressed: () => _showMockSnackBar(context, 'Canal visual em construção.'),
+                      onPressed: () => _showMockSnackBar(
+                        context,
+                        'Canal visual em construção.',
+                      ),
                     ),
                     const SizedBox(height: 16),
 
@@ -133,26 +156,32 @@ class SupportView extends StatelessWidget {
                       actionLabel: 'Ver site',
                       actionIcon: PhosphorIconsRegular.browser,
                       isDisabled: true,
-                      onPressed: () => _showMockSnackBar(context, 'Site oficial em breve.'),
+                      onPressed: () =>
+                          _showMockSnackBar(context, 'Site oficial em breve.'),
                     ),
                     const SizedBox(height: 32),
 
                     // SEÇÃO FAQ
                     Text(
                       'Perguntas frequentes',
-                      style: DsTipografia.sectionTitle.copyWith(color: DsCores.textPrimary),
+                      style: DsTipografia.sectionTitle.copyWith(
+                        color: DsCores.textPrimary,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'Respostas rápidas sobre o ConeCTEA e a carteirinha comunitária.',
-                      style: DsTipografia.bodySmall.copyWith(color: DsCores.textSecondary),
+                      style: DsTipografia.bodySmall.copyWith(
+                        color: DsCores.textSecondary,
+                      ),
                     ),
                     const SizedBox(height: 20),
 
                     // FAQ 1
                     _FaqItem(
                       question: 'O ConeCTEA é um app oficial do governo?',
-                      answer: 'Não. O ConeCTEA é uma iniciativa comunitária da Família TEA Bauru.',
+                      answer:
+                          'Não. O ConeCTEA é uma iniciativa comunitária da Família TEA Bauru.',
                       token: DsCores.suporte,
                       icon: PhosphorIconsRegular.question,
                     ),
@@ -160,8 +189,10 @@ class SupportView extends StatelessWidget {
 
                     // FAQ 2
                     _FaqItem(
-                      question: 'A carteirinha substitui CIPTEA, RG, CPF ou laudo?',
-                      answer: 'Não. A carteirinha do ConeCTEA é comunitária e interna. Ela não substitui documentos oficiais, laudos ou serviços públicos.',
+                      question:
+                          'A carteirinha substitui CIPTEA, RG, CPF ou laudo?',
+                      answer:
+                          'Não. A carteirinha do ConeCTEA é comunitária e interna. Ela não substitui documentos oficiais, laudos ou serviços públicos.',
                       token: DsCores.alerta,
                       icon: PhosphorIconsRegular.identificationCard,
                     ),
@@ -170,7 +201,8 @@ class SupportView extends StatelessWidget {
                     // FAQ 3
                     _FaqItem(
                       question: 'O app faz diagnóstico?',
-                      answer: 'Não. O ConeCTEA não realiza diagnóstico e não substitui atendimento profissional.',
+                      answer:
+                          'Não. O ConeCTEA não realiza diagnóstico e não substitui atendimento profissional.',
                       token: DsCores.alerta,
                       icon: PhosphorIconsRegular.warningCircle,
                     ),
@@ -179,7 +211,8 @@ class SupportView extends StatelessWidget {
                     // FAQ 4
                     _FaqItem(
                       question: 'Como acompanho minha solicitação?',
-                      answer: 'As solicitações aparecem dentro do app, nas áreas de carteirinha e acompanhamento.',
+                      answer:
+                          'As solicitações aparecem dentro do app, nas áreas de carteirinha e acompanhamento.',
                       token: DsCores.suporte,
                       icon: PhosphorIconsRegular.clock,
                     ),
@@ -188,7 +221,8 @@ class SupportView extends StatelessWidget {
                     // FAQ 5
                     _FaqItem(
                       question: 'Como falo com a equipe?',
-                      answer: 'Use os canais oficiais exibidos nesta tela para falar com a Família TEA Bauru.',
+                      answer:
+                          'Use os canais oficiais exibidos nesta tela para falar com a Família TEA Bauru.',
                       token: DsCores.suporte,
                       icon: PhosphorIconsRegular.chatCircleText,
                     ),
@@ -197,7 +231,8 @@ class SupportView extends StatelessWidget {
                     // FAQ 6
                     _FaqItem(
                       question: 'O site oficial já está disponível?',
-                      answer: 'Ainda não. O site oficial será informado quando estiver disponível.',
+                      answer:
+                          'Ainda não. O site oficial será informado quando estiver disponível.',
                       token: DsCores.suporte,
                       icon: PhosphorIconsRegular.globe,
                     ),
@@ -225,9 +260,7 @@ class SupportView extends StatelessWidget {
         ),
         backgroundColor: DsCores.surfaceElevated,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
@@ -249,7 +282,9 @@ class SupportView extends StatelessWidget {
               Expanded(
                 child: Text(
                   'Família TEA Bauru',
-                  style: DsTipografia.cardTitle.copyWith(color: DsCores.textPrimary),
+                  style: DsTipografia.cardTitle.copyWith(
+                    color: DsCores.textPrimary,
+                  ),
                 ),
               ),
             ],
@@ -300,15 +335,14 @@ class SupportView extends StatelessWidget {
         children: [
           Row(
             children: [
-              DsMolduraIcone(
-                icon: icon,
-                accentColor: DsCores.suporte.accent,
-              ),
+              DsMolduraIcone(icon: icon, accentColor: DsCores.suporte.accent),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   title,
-                  style: DsTipografia.cardTitle.copyWith(color: DsCores.textPrimary),
+                  style: DsTipografia.cardTitle.copyWith(
+                    color: DsCores.textPrimary,
+                  ),
                 ),
               ),
             ],
@@ -316,7 +350,9 @@ class SupportView extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             description,
-            style: DsTipografia.bodySmall.copyWith(color: DsCores.textSecondary),
+            style: DsTipografia.bodySmall.copyWith(
+              color: DsCores.textSecondary,
+            ),
           ),
           const SizedBox(height: 16),
 
@@ -374,7 +410,9 @@ class SupportView extends StatelessWidget {
               Expanded(
                 child: Text(
                   'Importante',
-                  style: DsTipografia.cardTitle.copyWith(color: DsCores.textPrimary),
+                  style: DsTipografia.cardTitle.copyWith(
+                    color: DsCores.textPrimary,
+                  ),
                 ),
               ),
             ],
@@ -420,7 +458,9 @@ class _FaqItemState extends State<_FaqItem> {
   Widget build(BuildContext context) {
     return DsCard(
       padding: const EdgeInsets.all(16),
-      borderColor: _isExpanded ? widget.token.accent.withValues(alpha: 0.3) : null,
+      borderColor: _isExpanded
+          ? widget.token.accent.withValues(alpha: 0.3)
+          : null,
       onTap: () {
         setState(() {
           _isExpanded = !_isExpanded;
@@ -481,4 +521,3 @@ class _FaqItemState extends State<_FaqItem> {
     );
   }
 }
-

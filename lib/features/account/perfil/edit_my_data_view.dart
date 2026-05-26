@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 import 'package:conectea/core/campos_cadastrais/campos_cadastrais.dart';
-import 'package:conectea/features/account/profile/widgets/my_data_logged_header.dart';
+import 'package:conectea/features/account/perfil/widgets/my_data_logged_header.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class EditMyDataView extends StatefulWidget {
@@ -69,22 +69,27 @@ class _EditMyDataViewState extends State<EditMyDataView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    DsBotaoVoltar(
-                      onPressed: () => Navigator.pop(context),
-                    ),
+                    DsBotaoVoltar(onPressed: () => Navigator.pop(context)),
                     const SizedBox(height: 24),
                     Text(
                       'Editar meus dados',
-                      style: DsTipografia.pageTitle.copyWith(color: DsCores.textPrimary),
+                      style: DsTipografia.pageTitle.copyWith(
+                        color: DsCores.textPrimary,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'Atualize as informações permitidas do seu cadastro.',
-                      style: DsTipografia.body.copyWith(color: DsCores.textSecondary),
+                      style: DsTipografia.body.copyWith(
+                        color: DsCores.textSecondary,
+                      ),
                     ),
                     const SizedBox(height: 32),
 
-                    _buildSectionTitle('Dados pessoais', PhosphorIconsRegular.identificationCard),
+                    _buildSectionTitle(
+                      'Dados pessoais',
+                      PhosphorIconsRegular.identificationCard,
+                    ),
                     const SizedBox(height: 16),
                     CampoNomeCompleto(controller: _nomeCompletoController),
                     const SizedBox(height: 12),
@@ -96,7 +101,10 @@ class _EditMyDataViewState extends State<EditMyDataView> {
 
                     const SizedBox(height: 32),
 
-                    _buildSectionTitle('Localização', PhosphorIconsRegular.mapPin),
+                    _buildSectionTitle(
+                      'Localização',
+                      PhosphorIconsRegular.mapPin,
+                    ),
                     const SizedBox(height: 16),
                     // CampoEstado carrega estados via IBGE internamente.
                     CampoEstado(
@@ -122,7 +130,10 @@ class _EditMyDataViewState extends State<EditMyDataView> {
 
                     const SizedBox(height: 32),
 
-                    _buildSectionTitle('Dados complementares', PhosphorIconsRegular.listPlus),
+                    _buildSectionTitle(
+                      'Dados complementares',
+                      PhosphorIconsRegular.listPlus,
+                    ),
                     const SizedBox(height: 16),
                     CampoGenero(
                       value: _genero,
@@ -163,7 +174,11 @@ class _EditMyDataViewState extends State<EditMyDataView> {
                       label: 'Salvar alterações',
                       onPressed: () {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Tela visual em construção. Nenhum dado foi salvo.')),
+                          const SnackBar(
+                            content: Text(
+                              'Tela visual em construção. Nenhum dado foi salvo.',
+                            ),
+                          ),
                         );
                       },
                       variante: DsBotaoVariante.acao,
@@ -185,7 +200,11 @@ class _EditMyDataViewState extends State<EditMyDataView> {
     );
   }
 
-  Widget _buildSectionTitle(String title, IconData icon, {DsCorVisual color = DsCores.conta}) {
+  Widget _buildSectionTitle(
+    String title,
+    IconData icon, {
+    DsCorVisual color = DsCores.conta,
+  }) {
     return Row(
       children: [
         DsMolduraIcone(

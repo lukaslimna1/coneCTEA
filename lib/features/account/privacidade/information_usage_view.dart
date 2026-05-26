@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
-import 'package:conectea/features/account/profile/widgets/my_data_logged_header.dart';
+import 'package:conectea/features/account/perfil/widgets/my_data_logged_header.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 /// Tela visual/mockada de Uso das Informações dentro de Privacidade e Dados.
@@ -34,12 +34,16 @@ class InformationUsageView extends StatelessWidget {
                     const SizedBox(height: 24),
                     Text(
                       'Uso das informações',
-                      style: DsTipografia.pageTitle.copyWith(color: DsCores.textPrimary),
+                      style: DsTipografia.pageTitle.copyWith(
+                        color: DsCores.textPrimary,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'Entenda, de forma simples, para que as informações podem ser usadas no ConeCTEA.',
-                      style: DsTipografia.pageSubtitle.copyWith(color: DsCores.textSecondary),
+                      style: DsTipografia.pageSubtitle.copyWith(
+                        color: DsCores.textSecondary,
+                      ),
                     ),
                     const SizedBox(height: 32),
 
@@ -63,7 +67,8 @@ class InformationUsageView extends StatelessWidget {
                       context,
                       icon: PhosphorIconsRegular.userCircle,
                       title: 'Funcionamento da conta',
-                      description: 'Usamos algumas informações para criar, proteger e manter sua conta no app.',
+                      description:
+                          'Usamos algumas informações para criar, proteger e manter sua conta no app.',
                       items: [
                         'Cadastro no ConeCTEA',
                         'Acesso à conta',
@@ -79,7 +84,8 @@ class InformationUsageView extends StatelessWidget {
                       context,
                       icon: PhosphorIconsRegular.shieldCheck,
                       title: 'Segurança e proteção',
-                      description: 'Alguns dados ajudam a proteger sua conta, evitar uso indevido e manter o app mais seguro.',
+                      description:
+                          'Alguns dados ajudam a proteger sua conta, evitar uso indevido e manter o app mais seguro.',
                       items: [
                         'Proteção de acesso',
                         'Prevenção de fraude',
@@ -95,7 +101,8 @@ class InformationUsageView extends StatelessWidget {
                       context,
                       icon: PhosphorIconsRegular.identificationCard,
                       title: 'Carteirinha comunitária',
-                      description: 'As informações podem ser usadas para solicitar, analisar, emitir, validar e acompanhar a carteirinha comunitária.',
+                      description:
+                          'As informações podem ser usadas para solicitar, analisar, emitir, validar e acompanhar a carteirinha comunitária.',
                       items: [
                         'Solicitação da carteirinha',
                         'Análise administrativa',
@@ -112,7 +119,8 @@ class InformationUsageView extends StatelessWidget {
                       context,
                       icon: PhosphorIconsRegular.users,
                       title: 'Dependentes e responsáveis',
-                      description: 'Dados de dependentes podem ser usados para organizar vínculos, solicitações e comunicações com o responsável pela conta.',
+                      description:
+                          'Dados de dependentes podem ser usados para organizar vínculos, solicitações e comunicações com o responsável pela conta.',
                       items: [
                         'Vínculo com responsável',
                         'Dados cadastrais do dependente',
@@ -128,7 +136,8 @@ class InformationUsageView extends StatelessWidget {
                       context,
                       icon: PhosphorIconsRegular.fileText,
                       title: 'Documentos e análise administrativa',
-                      description: 'Documentos podem ser usados somente quando necessários para conferência administrativa da solicitação.',
+                      description:
+                          'Documentos podem ser usados somente quando necessários para conferência administrativa da solicitação.',
                       items: [
                         'Conferência de dados informados',
                         'Análise da solicitação',
@@ -144,7 +153,8 @@ class InformationUsageView extends StatelessWidget {
                       context,
                       icon: PhosphorIconsRegular.calendarHeart,
                       title: 'Programas comunitários',
-                      description: 'As informações podem apoiar inscrições, seleção, comunicação e primeiro encaminhamento em programas da Família TEA Bauru.',
+                      description:
+                          'As informações podem apoiar inscrições, seleção, comunicação e primeiro encaminhamento em programas da Família TEA Bauru.',
                       items: [
                         'Inscrição em chamamentos',
                         'Lista de interesse',
@@ -160,7 +170,8 @@ class InformationUsageView extends StatelessWidget {
                       context,
                       icon: PhosphorIconsRegular.chatCircleText,
                       title: 'Comunicação e suporte',
-                      description: 'Algumas informações ajudam a enviar avisos importantes e oferecer suporte ao usuário.',
+                      description:
+                          'Algumas informações ajudam a enviar avisos importantes e oferecer suporte ao usuário.',
                       items: [
                         'Notificações do app',
                         'Avisos de pendência',
@@ -176,7 +187,8 @@ class InformationUsageView extends StatelessWidget {
                       context,
                       icon: PhosphorIconsRegular.handshake,
                       title: 'Compartilhamento mínimo com parceiros',
-                      description: 'Quando necessário para um programa comunitário, dados mínimos podem ser compartilhados com profissionais, clínicas ou parceiros participantes.',
+                      description:
+                          'Quando necessário para um programa comunitário, dados mínimos podem ser compartilhados com profissionais, clínicas ou parceiros participantes.',
                       items: [
                         'Nome do participante',
                         'Nome do responsável, quando aplicável',
@@ -207,7 +219,8 @@ class InformationUsageView extends StatelessWidget {
                       context,
                       icon: PhosphorIconsRegular.chartBar,
                       title: 'Relatórios comunitários',
-                      description: 'Algumas informações podem ser usadas de forma agrupada para melhorar ações e buscar apoio para a comunidade.',
+                      description:
+                          'Algumas informações podem ser usadas de forma agrupada para melhorar ações e buscar apoio para a comunidade.',
                       items: [
                         'Quantidade geral de usuários',
                         'Quantidade de carteirinhas solicitadas ou ativas',
@@ -240,7 +253,10 @@ class InformationUsageView extends StatelessWidget {
                     // Ação visual no final
                     DsBotao(
                       label: 'Entendi',
-                      onPressed: () => _showMockSnackBar(context, 'Informação visual em construção.'),
+                      onPressed: () => _showMockSnackBar(
+                        context,
+                        'Informação visual em construção.',
+                      ),
                       variante: DsBotaoVariante.acao,
                       token: DsCores.privacidade,
                       icon: PhosphorIconsRegular.check,
@@ -265,9 +281,7 @@ class InformationUsageView extends StatelessWidget {
         ),
         backgroundColor: DsCores.surfaceElevated,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
@@ -289,7 +303,9 @@ class InformationUsageView extends StatelessWidget {
               Expanded(
                 child: Text(
                   'Sobre esta área',
-                  style: DsTipografia.cardTitle.copyWith(color: DsCores.textPrimary),
+                  style: DsTipografia.cardTitle.copyWith(
+                    color: DsCores.textPrimary,
+                  ),
                 ),
               ),
             ],
@@ -328,7 +344,9 @@ class InformationUsageView extends StatelessWidget {
               Expanded(
                 child: Text(
                   title,
-                  style: DsTipografia.cardTitle.copyWith(color: DsCores.textPrimary),
+                  style: DsTipografia.cardTitle.copyWith(
+                    color: DsCores.textPrimary,
+                  ),
                 ),
               ),
             ],
@@ -336,7 +354,9 @@ class InformationUsageView extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             description,
-            style: DsTipografia.bodySmall.copyWith(color: DsCores.textSecondary),
+            style: DsTipografia.bodySmall.copyWith(
+              color: DsCores.textSecondary,
+            ),
           ),
           const SizedBox(height: 16),
           // Divisor sutil
@@ -404,7 +424,9 @@ class InformationUsageView extends StatelessWidget {
               Expanded(
                 child: Text(
                   'Importante',
-                  style: DsTipografia.cardTitle.copyWith(color: DsCores.textPrimary),
+                  style: DsTipografia.cardTitle.copyWith(
+                    color: DsCores.textPrimary,
+                  ),
                 ),
               ),
             ],

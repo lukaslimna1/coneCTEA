@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:conectea/core/constants/colors.dart';
-import 'package:conectea/features/account/profile/legado/widgets/profile_locked_field.dart';
+import 'package:conectea/features/account/perfil/legado/widgets/profile_locked_field.dart';
 
 class ProfileInputField extends StatelessWidget {
   final TextEditingController controller;

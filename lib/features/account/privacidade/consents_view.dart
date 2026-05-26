@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
-import 'package:conectea/features/account/profile/widgets/my_data_logged_header.dart';
+import 'package:conectea/features/account/perfil/widgets/my_data_logged_header.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 /// Tela visual/mockada de Consentimentos com Switches operacionais.
@@ -46,12 +46,16 @@ class _ConsentsViewState extends State<ConsentsView> {
                     const SizedBox(height: 24),
                     Text(
                       'Consentimentos e autorizações',
-                      style: DsTipografia.pageTitle.copyWith(color: DsCores.textPrimary),
+                      style: DsTipografia.pageTitle.copyWith(
+                        color: DsCores.textPrimary,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'Gerencie autorizações importantes relacionadas ao uso dos seus dados no ConeCTEA.',
-                      style: DsTipografia.pageSubtitle.copyWith(color: DsCores.textSecondary),
+                      style: DsTipografia.pageSubtitle.copyWith(
+                        color: DsCores.textSecondary,
+                      ),
                     ),
                     const SizedBox(height: 32),
 
@@ -71,7 +75,9 @@ class _ConsentsViewState extends State<ConsentsView> {
                     const SizedBox(height: 6),
                     Text(
                       'Esses usos são necessários para manter sua conta, proteger seus dados e permitir funcionalidades básicas do ConeCTEA. Por isso, ficam sempre ativos enquanto você utilizar o app.',
-                      style: DsTipografia.bodySmall.copyWith(color: DsCores.textSecondary),
+                      style: DsTipografia.bodySmall.copyWith(
+                        color: DsCores.textSecondary,
+                      ),
                     ),
                     const SizedBox(height: 16),
 
@@ -80,7 +86,8 @@ class _ConsentsViewState extends State<ConsentsView> {
                       context,
                       icon: PhosphorIconsRegular.userCircle,
                       title: 'Conta e acesso',
-                      description: 'Necessário para criar conta, acessar o app, manter seu cadastro e proteger sua sessão.',
+                      description:
+                          'Necessário para criar conta, acessar o app, manter seu cadastro e proteger sua sessão.',
                       value: true,
                       isEssential: true,
                       statusLabel: 'Sempre ativo',
@@ -101,7 +108,8 @@ class _ConsentsViewState extends State<ConsentsView> {
                       context,
                       icon: PhosphorIconsRegular.shieldCheck,
                       title: 'Segurança e proteção de dados',
-                      description: 'Necessário para proteger sua conta, evitar uso indevido e manter registros mínimos de segurança.',
+                      description:
+                          'Necessário para proteger sua conta, evitar uso indevido e manter registros mínimos de segurança.',
                       value: true,
                       isEssential: true,
                       statusLabel: 'Sempre ativo',
@@ -122,7 +130,8 @@ class _ConsentsViewState extends State<ConsentsView> {
                       context,
                       icon: PhosphorIconsRegular.identificationCard,
                       title: 'Carteirinha comunitária',
-                      description: 'Necessário quando você solicita, acompanha ou utiliza a carteirinha comunitária ConeCTEA.',
+                      description:
+                          'Necessário quando você solicita, acompanha ou utiliza a carteirinha comunitária ConeCTEA.',
                       value: true,
                       isEssential: true,
                       statusLabel: 'Obrigatório para carteirinha',
@@ -143,7 +152,8 @@ class _ConsentsViewState extends State<ConsentsView> {
                       context,
                       icon: PhosphorIconsRegular.users,
                       title: 'Dependentes e pessoas vinculadas',
-                      description: 'Necessário quando houver dependentes, crianças, adolescentes ou pessoas vinculadas à sua conta.',
+                      description:
+                          'Necessário quando houver dependentes, crianças, adolescentes ou pessoas vinculadas à sua conta.',
                       value: true,
                       isEssential: true,
                       statusLabel: 'Essencial quando aplicável',
@@ -164,7 +174,8 @@ class _ConsentsViewState extends State<ConsentsView> {
                       context,
                       icon: PhosphorIconsRegular.fileText,
                       title: 'Documentos e laudos',
-                      description: 'Necessário quando documentos forem enviados para conferência administrativa da solicitação.',
+                      description:
+                          'Necessário quando documentos forem enviados para conferência administrativa da solicitação.',
                       value: true,
                       isEssential: true,
                       statusLabel: 'Necessário quando enviado',
@@ -206,7 +217,9 @@ class _ConsentsViewState extends State<ConsentsView> {
                     const SizedBox(height: 6),
                     Text(
                       'Essas autorizações podem ser alteradas. Ao desativar alguma opção, certas comunicações, programas, ações com parceiros ou benefícios comunitários podem ficar limitados ou indisponíveis.',
-                      style: DsTipografia.bodySmall.copyWith(color: DsCores.textSecondary),
+                      style: DsTipografia.bodySmall.copyWith(
+                        color: DsCores.textSecondary,
+                      ),
                     ),
                     const SizedBox(height: 16),
 
@@ -215,11 +228,16 @@ class _ConsentsViewState extends State<ConsentsView> {
                       context,
                       icon: PhosphorIconsRegular.calendarHeart,
                       title: 'Programas comunitários',
-                      description: 'Permite usar seus dados para inscrição, seleção, comunicação e organização de programas da Família TEA Bauru.',
+                      description:
+                          'Permite usar seus dados para inscrição, seleção, comunicação e organização de programas da Família TEA Bauru.',
                       value: _programasComunitarios,
                       isEssential: false,
-                      statusLabel: _programasComunitarios ? 'Ativo' : 'Desativado',
-                      statusColor: _programasComunitarios ? DsCores.sucesso : DsCores.alerta,
+                      statusLabel: _programasComunitarios
+                          ? 'Ativo'
+                          : 'Desativado',
+                      statusColor: _programasComunitarios
+                          ? DsCores.sucesso
+                          : DsCores.alerta,
                       items: [
                         'Chamamentos',
                         'Listas de interesse',
@@ -245,7 +263,10 @@ class _ConsentsViewState extends State<ConsentsView> {
                         setState(() {
                           _programasComunitarios = newValue;
                         });
-                        _showMockSnackBar(context, 'Configuração visual em construção.');
+                        _showMockSnackBar(
+                          context,
+                          'Configuração visual em construção.',
+                        );
                       },
                     ),
                     const SizedBox(height: 16),
@@ -255,11 +276,14 @@ class _ConsentsViewState extends State<ConsentsView> {
                       context,
                       icon: PhosphorIconsRegular.chatCircleText,
                       title: 'Comunicação e avisos',
-                      description: 'Permite receber avisos, orientações e comunicados comunitários pelos canais disponíveis.',
+                      description:
+                          'Permite receber avisos, orientações e comunicados comunitários pelos canais disponíveis.',
                       value: _comunicacaoAvisos,
                       isEssential: false,
                       statusLabel: _comunicacaoAvisos ? 'Ativo' : 'Desativado',
-                      statusColor: _comunicacaoAvisos ? DsCores.sucesso : DsCores.alerta,
+                      statusColor: _comunicacaoAvisos
+                          ? DsCores.sucesso
+                          : DsCores.alerta,
                       items: [
                         'Avisos sobre programas',
                         'Comunicados da Família TEA Bauru',
@@ -285,7 +309,10 @@ class _ConsentsViewState extends State<ConsentsView> {
                         setState(() {
                           _comunicacaoAvisos = newValue;
                         });
-                        _showMockSnackBar(context, 'Configuração visual em construção.');
+                        _showMockSnackBar(
+                          context,
+                          'Configuração visual em construção.',
+                        );
                       },
                     ),
                     const SizedBox(height: 16),
@@ -295,11 +322,14 @@ class _ConsentsViewState extends State<ConsentsView> {
                       context,
                       icon: PhosphorIconsRegular.handshake,
                       title: 'Parceiros e ações externas',
-                      description: 'Permite o compartilhamento mínimo de dados com parceiros quando você participar de ações ou programas comunitários específicos.',
+                      description:
+                          'Permite o compartilhamento mínimo de dados com parceiros quando você participar de ações ou programas comunitários específicos.',
                       value: _parceirosAcoes,
                       isEssential: false,
                       statusLabel: _parceirosAcoes ? 'Ativo' : 'Desativado',
-                      statusColor: _parceirosAcoes ? DsCores.sucesso : DsCores.alerta,
+                      statusColor: _parceirosAcoes
+                          ? DsCores.sucesso
+                          : DsCores.alerta,
                       items: [
                         'Profissionais parceiros',
                         'Clínicas ou consultórios participantes',
@@ -325,7 +355,10 @@ class _ConsentsViewState extends State<ConsentsView> {
                         setState(() {
                           _parceirosAcoes = newValue;
                         });
-                        _showMockSnackBar(context, 'Configuração visual em construção.');
+                        _showMockSnackBar(
+                          context,
+                          'Configuração visual em construção.',
+                        );
                       },
                     ),
                     const SizedBox(height: 16),
@@ -335,11 +368,16 @@ class _ConsentsViewState extends State<ConsentsView> {
                       context,
                       icon: PhosphorIconsRegular.chartBar,
                       title: 'Relatórios comunitários',
-                      description: 'Permite o uso de informações de forma agrupada para relatórios, planejamento e busca de apoio para a comunidade.',
+                      description:
+                          'Permite o uso de informações de forma agrupada para relatórios, planejamento e busca de apoio para a comunidade.',
                       value: _relatoriosComunitarios,
                       isEssential: false,
-                      statusLabel: _relatoriosComunitarios ? 'Ativo' : 'Desativado',
-                      statusColor: _relatoriosComunitarios ? DsCores.sucesso : DsCores.alerta,
+                      statusLabel: _relatoriosComunitarios
+                          ? 'Ativo'
+                          : 'Desativado',
+                      statusColor: _relatoriosComunitarios
+                          ? DsCores.sucesso
+                          : DsCores.alerta,
                       items: [
                         'Quantidade geral de usuários',
                         'Carteirinhas solicitadas ou ativas',
@@ -365,7 +403,10 @@ class _ConsentsViewState extends State<ConsentsView> {
                         setState(() {
                           _relatoriosComunitarios = newValue;
                         });
-                        _showMockSnackBar(context, 'Configuração visual em construção.');
+                        _showMockSnackBar(
+                          context,
+                          'Configuração visual em construção.',
+                        );
                       },
                     ),
                     const SizedBox(height: 16),
@@ -375,11 +416,16 @@ class _ConsentsViewState extends State<ConsentsView> {
                       context,
                       icon: PhosphorIconsRegular.bell,
                       title: 'Notificações no dispositivo',
-                      description: 'Permite receber notificações no dispositivo sobre atualizações importantes do app.',
+                      description:
+                          'Permite receber notificações no dispositivo sobre atualizações importantes do app.',
                       value: _notificacoesDispositivo,
                       isEssential: false,
-                      statusLabel: _notificacoesDispositivo ? 'Ativo' : 'Desativado',
-                      statusColor: _notificacoesDispositivo ? DsCores.sucesso : DsCores.alerta,
+                      statusLabel: _notificacoesDispositivo
+                          ? 'Ativo'
+                          : 'Desativado',
+                      statusColor: _notificacoesDispositivo
+                          ? DsCores.sucesso
+                          : DsCores.alerta,
                       items: [
                         'Atualizações de solicitação',
                         'Pendências',
@@ -405,7 +451,10 @@ class _ConsentsViewState extends State<ConsentsView> {
                         setState(() {
                           _notificacoesDispositivo = newValue;
                         });
-                        _showMockSnackBar(context, 'Configuração visual em construção.');
+                        _showMockSnackBar(
+                          context,
+                          'Configuração visual em construção.',
+                        );
                       },
                     ),
                     const SizedBox(height: 32),
@@ -421,7 +470,10 @@ class _ConsentsViewState extends State<ConsentsView> {
                     // Botão de ação do final da tela
                     DsBotao(
                       label: 'Entendi',
-                      onPressed: () => _showMockSnackBar(context, 'Informação visual em construção.'),
+                      onPressed: () => _showMockSnackBar(
+                        context,
+                        'Informação visual em construção.',
+                      ),
                       variante: DsBotaoVariante.acao,
                       token: DsCores.privacidade,
                       icon: PhosphorIconsRegular.check,
@@ -446,9 +498,7 @@ class _ConsentsViewState extends State<ConsentsView> {
         ),
         backgroundColor: DsCores.surfaceElevated,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
@@ -470,7 +520,9 @@ class _ConsentsViewState extends State<ConsentsView> {
               Expanded(
                 child: Text(
                   'Sobre esta área',
-                  style: DsTipografia.cardTitle.copyWith(color: DsCores.textPrimary),
+                  style: DsTipografia.cardTitle.copyWith(
+                    color: DsCores.textPrimary,
+                  ),
                 ),
               ),
             ],
@@ -518,13 +570,18 @@ class _ConsentsViewState extends State<ConsentsView> {
                   children: [
                     Text(
                       title,
-                      style: DsTipografia.cardTitle.copyWith(color: DsCores.textPrimary),
+                      style: DsTipografia.cardTitle.copyWith(
+                        color: DsCores.textPrimary,
+                      ),
                     ),
                     if (statusLabel != null && statusColor != null) ...[
                       const SizedBox(height: 6),
                       // Selo/Badge de status visual discreto
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
                         decoration: BoxDecoration(
                           color: statusColor.softBackground,
                           borderRadius: BorderRadius.circular(DsRaios.sm),
@@ -557,7 +614,9 @@ class _ConsentsViewState extends State<ConsentsView> {
           const SizedBox(height: 12),
           Text(
             description,
-            style: DsTipografia.bodySmall.copyWith(color: DsCores.textSecondary),
+            style: DsTipografia.bodySmall.copyWith(
+              color: DsCores.textSecondary,
+            ),
           ),
           const SizedBox(height: 16),
           // Divisor sutil
@@ -620,7 +679,9 @@ class _ConsentsViewState extends State<ConsentsView> {
               Expanded(
                 child: Text(
                   'O que acontece ao desativar uma autorização?',
-                  style: DsTipografia.cardTitle.copyWith(color: DsCores.textPrimary),
+                  style: DsTipografia.cardTitle.copyWith(
+                    color: DsCores.textPrimary,
+                  ),
                 ),
               ),
             ],
@@ -660,7 +721,9 @@ class _ConsentsViewState extends State<ConsentsView> {
               Expanded(
                 child: Text(
                   'Importante',
-                  style: DsTipografia.cardTitle.copyWith(color: DsCores.textPrimary),
+                  style: DsTipografia.cardTitle.copyWith(
+                    color: DsCores.textPrimary,
+                  ),
                 ),
               ),
             ],

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
-import 'package:conectea/features/account/profile/widgets/my_data_logged_header.dart';
+import 'package:conectea/features/account/perfil/widgets/my_data_logged_header.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 /// Tela visual/mockada de Dados Armazenados dentro de Privacidade e Dados.
@@ -35,12 +35,16 @@ class StoredDataView extends StatelessWidget {
                     const SizedBox(height: 24),
                     Text(
                       'Dados armazenados',
-                      style: DsTipografia.pageTitle.copyWith(color: DsCores.textPrimary),
+                      style: DsTipografia.pageTitle.copyWith(
+                        color: DsCores.textPrimary,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'Veja quais tipos de informações podem estar vinculadas à sua conta no ConeCTEA.',
-                      style: DsTipografia.pageSubtitle.copyWith(color: DsCores.textSecondary),
+                      style: DsTipografia.pageSubtitle.copyWith(
+                        color: DsCores.textSecondary,
+                      ),
                     ),
                     const SizedBox(height: 32),
 
@@ -64,7 +68,8 @@ class StoredDataView extends StatelessWidget {
                       context,
                       icon: PhosphorIconsRegular.user,
                       title: 'Dados da conta',
-                      description: 'Informações usadas para identificar sua conta e permitir o acesso ao app.',
+                      description:
+                          'Informações usadas para identificar sua conta e permitir o acesso ao app.',
                       items: [
                         'Nome completo',
                         'E-mail de acesso',
@@ -82,7 +87,8 @@ class StoredDataView extends StatelessWidget {
                       context,
                       icon: PhosphorIconsRegular.pencilSimple,
                       title: 'Dados opcionais do cadastro',
-                      description: 'Informações complementares que podem ajudar na identificação, organização comunitária e compreensão do público atendido.',
+                      description:
+                          'Informações complementares que podem ajudar na identificação, organização comunitária e compreensão do público atendido.',
                       items: [
                         'Nome social, quando informado',
                         'Gênero, quando informado',
@@ -97,7 +103,8 @@ class StoredDataView extends StatelessWidget {
                       context,
                       icon: PhosphorIconsRegular.users,
                       title: 'Dependentes e pessoas vinculadas',
-                      description: 'Informações relacionadas a dependentes, crianças, adolescentes, familiares ou pessoas vinculadas à sua conta.',
+                      description:
+                          'Informações relacionadas a dependentes, crianças, adolescentes, familiares ou pessoas vinculadas à sua conta.',
                       items: [
                         'Dados cadastrais do dependente',
                         'Informações de vínculo com o responsável',
@@ -113,7 +120,8 @@ class StoredDataView extends StatelessWidget {
                       context,
                       icon: PhosphorIconsRegular.identificationCard,
                       title: 'Carteirinhas comunitárias',
-                      description: 'Informações usadas para solicitar, analisar, emitir, validar e acompanhar a carteirinha comunitária ConeCTEA.',
+                      description:
+                          'Informações usadas para solicitar, analisar, emitir, validar e acompanhar a carteirinha comunitária ConeCTEA.',
                       items: [
                         'Solicitações realizadas',
                         'Status da análise',
@@ -131,7 +139,8 @@ class StoredDataView extends StatelessWidget {
                       context,
                       icon: PhosphorIconsRegular.fileText,
                       title: 'Documentos e laudos',
-                      description: 'Documentos usados somente quando necessários para conferência administrativa da solicitação.',
+                      description:
+                          'Documentos usados somente quando necessários para conferência administrativa da solicitação.',
                       items: [
                         'Documento com foto',
                         'Laudo médico ou documento equivalente',
@@ -147,7 +156,8 @@ class StoredDataView extends StatelessWidget {
                       context,
                       icon: PhosphorIconsRegular.calendarHeart,
                       title: 'Programas comunitários',
-                      description: 'Informações usadas para inscrição, organização, seleção e encaminhamento inicial em ações da Família TEA Bauru.',
+                      description:
+                          'Informações usadas para inscrição, organização, seleção e encaminhamento inicial em ações da Família TEA Bauru.',
                       items: [
                         'Inscrições em chamamentos',
                         'Listas de interesse',
@@ -164,7 +174,8 @@ class StoredDataView extends StatelessWidget {
                       context,
                       icon: PhosphorIconsRegular.handshake,
                       title: 'Dados compartilhados com parceiros',
-                      description: 'Quando necessário, alguns dados mínimos podem ser compartilhados com profissionais, clínicas ou parceiros participantes de programas comunitários.',
+                      description:
+                          'Quando necessário, alguns dados mínimos podem ser compartilhados com profissionais, clínicas ou parceiros participantes de programas comunitários.',
                       items: [
                         'Nome do participante',
                         'Nome do responsável, quando aplicável',
@@ -195,7 +206,8 @@ class StoredDataView extends StatelessWidget {
                       context,
                       icon: PhosphorIconsRegular.bell,
                       title: 'Notificações e comunicações',
-                      description: 'Informações usadas para enviar avisos importantes sobre conta, solicitações, carteirinha e programas.',
+                      description:
+                          'Informações usadas para enviar avisos importantes sobre conta, solicitações, carteirinha e programas.',
                       items: [
                         'Notificações enviadas ao dispositivo',
                         'Avisos de pendência',
@@ -211,7 +223,8 @@ class StoredDataView extends StatelessWidget {
                       context,
                       icon: PhosphorIconsRegular.shieldCheck,
                       title: 'Registros técnicos e segurança',
-                      description: 'Registros mínimos podem existir para segurança, funcionamento, prevenção de falhas e suporte técnico.',
+                      description:
+                          'Registros mínimos podem existir para segurança, funcionamento, prevenção de falhas e suporte técnico.',
                       items: [
                         'Identificadores internos de usuário',
                         'Registros de sessão',
@@ -228,7 +241,8 @@ class StoredDataView extends StatelessWidget {
                       context,
                       icon: PhosphorIconsRegular.chartBar,
                       title: 'Dados estatísticos',
-                      description: 'Alguns dados podem ser usados de forma agrupada para relatórios comunitários, sem identificar pessoas individualmente.',
+                      description:
+                          'Alguns dados podem ser usados de forma agrupada para relatórios comunitários, sem identificar pessoas individualmente.',
                       items: [
                         'Quantidade geral de usuários cadastrados',
                         'Quantidade de carteirinhas solicitadas ou ativas',
@@ -247,7 +261,10 @@ class StoredDataView extends StatelessWidget {
                     // Botão de ação do final da tela
                     DsBotao(
                       label: 'Solicitar informações',
-                      onPressed: () => _showMockSnackBar(context, 'Solicitação visual em construção.'),
+                      onPressed: () => _showMockSnackBar(
+                        context,
+                        'Solicitação visual em construção.',
+                      ),
                       variante: DsBotaoVariante.acao,
                       token: DsCores.privacidade,
                       icon: PhosphorIconsRegular.envelope,
@@ -272,9 +289,7 @@ class StoredDataView extends StatelessWidget {
         ),
         backgroundColor: DsCores.surfaceElevated,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
@@ -296,7 +311,9 @@ class StoredDataView extends StatelessWidget {
               Expanded(
                 child: Text(
                   'Sobre esta área',
-                  style: DsTipografia.cardTitle.copyWith(color: DsCores.textPrimary),
+                  style: DsTipografia.cardTitle.copyWith(
+                    color: DsCores.textPrimary,
+                  ),
                 ),
               ),
             ],
@@ -335,7 +352,9 @@ class StoredDataView extends StatelessWidget {
               Expanded(
                 child: Text(
                   title,
-                  style: DsTipografia.cardTitle.copyWith(color: DsCores.textPrimary),
+                  style: DsTipografia.cardTitle.copyWith(
+                    color: DsCores.textPrimary,
+                  ),
                 ),
               ),
             ],
@@ -343,7 +362,9 @@ class StoredDataView extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             description,
-            style: DsTipografia.bodySmall.copyWith(color: DsCores.textSecondary),
+            style: DsTipografia.bodySmall.copyWith(
+              color: DsCores.textSecondary,
+            ),
           ),
           const SizedBox(height: 16),
           // Divisor sutil
@@ -411,7 +432,9 @@ class StoredDataView extends StatelessWidget {
               Expanded(
                 child: Text(
                   'Importante',
-                  style: DsTipografia.cardTitle.copyWith(color: DsCores.textPrimary),
+                  style: DsTipografia.cardTitle.copyWith(
+                    color: DsCores.textPrimary,
+                  ),
                 ),
               ),
             ],

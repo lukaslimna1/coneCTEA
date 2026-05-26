@@ -11,7 +11,10 @@ class ProfileSupportDialog {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: Row(
           children: [
-            const Icon(Icons.support_agent_rounded, color: AppColors.alertOrange),
+            const Icon(
+              Icons.support_agent_rounded,
+              color: AppColors.alertOrange,
+            ),
             const SizedBox(width: 8),
             Text(
               'Alterar $field',
@@ -57,7 +60,10 @@ class ProfileSupportDialog {
             onPressed: () async {
               const url = 'https://wa.me/5514997728448';
               if (await canLaunchUrlString(url)) {
-                await launchUrlString(url, mode: LaunchMode.externalApplication);
+                await launchUrlString(
+                  url,
+                  mode: LaunchMode.externalApplication,
+                );
               }
               if (ctx.mounted) Navigator.pop(ctx);
             },

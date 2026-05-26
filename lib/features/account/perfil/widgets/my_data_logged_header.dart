@@ -41,9 +41,9 @@ class MyDataLoggedHeader extends StatelessWidget {
   Widget _buildNotificationButton(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Área em construção.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Área em construção.')));
       },
       child: Container(
         width: 38,
@@ -70,9 +70,9 @@ class MyDataLoggedHeader extends StatelessWidget {
   Widget _buildAvatar(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Área em construção.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Área em construção.')));
       },
       child: const DsAvatar(
         initials: 'US', // Placeholder visual seguro

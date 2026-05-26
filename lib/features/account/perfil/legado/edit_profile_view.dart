@@ -4,16 +4,16 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:conectea/features/account/profile/legado/widgets/profile_support_dialog.dart';
+import 'package:conectea/features/account/perfil/legado/widgets/profile_support_dialog.dart';
 import 'package:conectea/core/constants/colors.dart';
 import 'package:conectea/models/app_user.dart';
 import 'package:conectea/services/database_service.dart';
-import 'package:conectea/features/account/profile/legado/widgets/profile_section_header.dart';
-import 'package:conectea/features/account/profile/legado/widgets/profile_locked_field.dart';
-import 'package:conectea/features/account/profile/legado/widgets/profile_input_field.dart';
-import 'package:conectea/features/account/profile/legado/widgets/profile_dropdown_field.dart';
-import 'package:conectea/features/account/profile/legado/widgets/profile_searchable_dropdown.dart';
-import 'package:conectea/features/account/profile/legado/utils/profile_string_utils.dart';
+import 'package:conectea/features/account/perfil/legado/widgets/profile_section_header.dart';
+import 'package:conectea/features/account/perfil/legado/widgets/profile_locked_field.dart';
+import 'package:conectea/features/account/perfil/legado/widgets/profile_input_field.dart';
+import 'package:conectea/features/account/perfil/legado/widgets/profile_dropdown_field.dart';
+import 'package:conectea/features/account/perfil/legado/widgets/profile_searchable_dropdown.dart';
+import 'package:conectea/features/account/perfil/legado/utils/profile_string_utils.dart';
 
 class EditProfileView extends StatefulWidget {
   const EditProfileView({super.key});

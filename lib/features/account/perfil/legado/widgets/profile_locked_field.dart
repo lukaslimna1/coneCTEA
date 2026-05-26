@@ -70,7 +70,11 @@ class ProfileLockedField extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 4),
-                  const Icon(Icons.lock_rounded, size: 14, color: AppColors.alertOrange),
+                  const Icon(
+                    Icons.lock_rounded,
+                    size: 14,
+                    color: AppColors.alertOrange,
+                  ),
                 ],
               ),
           ],

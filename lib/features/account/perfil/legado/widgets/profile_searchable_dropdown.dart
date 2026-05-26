@@ -43,7 +43,10 @@ class ProfileSearchableDropdown extends StatelessWidget {
                   prefixIcon: Icon(icon, color: AppColors.primary, size: 20),
                   filled: true,
                   fillColor: AppColors.cardBackground,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 16,
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
                     borderSide: const BorderSide(color: AppColors.borderLight),
@@ -54,7 +57,10 @@ class ProfileSearchableDropdown extends StatelessWidget {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
-                    borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                    borderSide: const BorderSide(
+                      color: AppColors.primary,
+                      width: 2,
+                    ),
                   ),
                   errorText: state.errorText,
                 ),
@@ -62,17 +68,23 @@ class ProfileSearchableDropdown extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        value ?? (isLoading ? 'Carregando...' : hint ?? 'Selecione'),
+                        value ??
+                            (isLoading ? 'Carregando...' : hint ?? 'Selecione'),
                         style: GoogleFonts.inter(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: value == null ? AppColors.textSecondary : AppColors.textPrimary,
+                          color: value == null
+                              ? AppColors.textSecondary
+                              : AppColors.textPrimary,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const Icon(Icons.arrow_drop_down, color: AppColors.textSecondary),
+                    const Icon(
+                      Icons.arrow_drop_down,
+                      color: AppColors.textSecondary,
+                    ),
                   ],
                 ),
               ),
@@ -83,23 +95,27 @@ class ProfileSearchableDropdown extends StatelessWidget {
           viewHintText: 'Digite para buscar...',
           suggestionsBuilder: (context, controller) {
             final keyword = controller.text.toLowerCase();
-            final filtered = items.where((item) => item.toLowerCase().contains(keyword)).toList();
+            final filtered = items
+                .where((item) => item.toLowerCase().contains(keyword))
+                .toList();
 
-            return filtered.map((item) => ListTile(
-              title: Text(
-                item,
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.textPrimary,
+            return filtered.map(
+              (item) => ListTile(
+                title: Text(
+                  item,
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
+                onTap: () {
+                  controller.closeView(item);
+                  onChanged(item);
+                  state.didChange(item);
+                },
               ),
-              onTap: () {
-                controller.closeView(item);
-                onChanged(item);
-                state.didChange(item);
-              },
-            ));
+            );
           },
         );
       },

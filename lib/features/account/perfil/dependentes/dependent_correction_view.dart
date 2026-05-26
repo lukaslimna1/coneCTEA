@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
-import 'package:conectea/features/account/profile/widgets/my_data_logged_header.dart';
+import 'package:conectea/features/account/perfil/widgets/my_data_logged_header.dart';
 import 'package:conectea/core/campos_cadastrais/campos_cadastrais.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -136,22 +136,22 @@ class _DependentCorrectionViewState extends State<DependentCorrectionView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    DsBotaoVoltar(
-                      onPressed: () => Navigator.pop(context),
-                    ),
+                    DsBotaoVoltar(onPressed: () => Navigator.pop(context)),
                     const SizedBox(height: 24),
 
                     // Título e subtítulo
                     Text(
                       'Solicitar correção',
-                      style: DsTipografia.pageTitle
-                          .copyWith(color: DsCores.textPrimary),
+                      style: DsTipografia.pageTitle.copyWith(
+                        color: DsCores.textPrimary,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'Informe quais dados do dependente precisam ser revisados.',
-                      style: DsTipografia.body
-                          .copyWith(color: DsCores.textSecondary),
+                      style: DsTipografia.body.copyWith(
+                        color: DsCores.textSecondary,
+                      ),
                     ),
                     const SizedBox(height: 24),
 
@@ -167,8 +167,9 @@ class _DependentCorrectionViewState extends State<DependentCorrectionView> {
                     const SizedBox(height: 4),
                     Text(
                       'Selecione um dado para informar o novo valor solicitado.',
-                      style: DsTipografia.bodySmall
-                          .copyWith(color: DsCores.textSecondary),
+                      style: DsTipografia.bodySmall.copyWith(
+                        color: DsCores.textSecondary,
+                      ),
                     ),
                     const SizedBox(height: 16),
 
@@ -185,8 +186,9 @@ class _DependentCorrectionViewState extends State<DependentCorrectionView> {
                     const SizedBox(height: 4),
                     Text(
                       'Opcional. Adicione uma observação se quiser explicar melhor a correção.',
-                      style: DsTipografia.bodySmall
-                          .copyWith(color: DsCores.textSecondary),
+                      style: DsTipografia.bodySmall.copyWith(
+                        color: DsCores.textSecondary,
+                      ),
                     ),
                     const SizedBox(height: 16),
                     _buildCampoObservacoes(),
@@ -242,8 +244,9 @@ class _DependentCorrectionViewState extends State<DependentCorrectionView> {
             child: Text(
               'Esta solicitação será analisada pela equipe administrativa. '
               'A correção só será aplicada após aprovação.',
-              style:
-                  DsTipografia.infoBody.copyWith(color: DsCores.correcao.accent),
+              style: DsTipografia.infoBody.copyWith(
+                color: DsCores.correcao.accent,
+              ),
             ),
           ),
         ],
@@ -271,8 +274,10 @@ class _DependentCorrectionViewState extends State<DependentCorrectionView> {
               onTap: () => setState(() => _selecionados[campo] = !isSelected),
               borderRadius: BorderRadius.circular(DsRaios.md),
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
                 decoration: BoxDecoration(
                   color: isSelected
                       ? DsCores.correcao.softBackground
@@ -330,8 +335,9 @@ class _DependentCorrectionViewState extends State<DependentCorrectionView> {
                       Icon(
                         PhosphorIconsRegular.shieldWarning,
                         size: 16,
-                        color:
-                            DsCores.dadosProtegidos.accent.withValues(alpha: 0.8),
+                        color: DsCores.dadosProtegidos.accent.withValues(
+                          alpha: 0.8,
+                        ),
                       ),
                     ],
                     const SizedBox(width: 4),
@@ -369,8 +375,7 @@ class _DependentCorrectionViewState extends State<DependentCorrectionView> {
   // -------------------------------------------------------------------
   // Painel expandido: valor atual (mockado) + campo específico
   // -------------------------------------------------------------------
-  Widget _buildPainelCampo(
-      String campo, String valorAtual, bool temAviso) {
+  Widget _buildPainelCampo(String campo, String valorAtual, bool temAviso) {
     return Container(
       margin: const EdgeInsets.only(top: 8),
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
@@ -385,8 +390,9 @@ class _DependentCorrectionViewState extends State<DependentCorrectionView> {
           // Valor atual
           Text(
             'Valor atual',
-            style: DsTipografia.bodySmall
-                .copyWith(color: DsCores.textSecondary),
+            style: DsTipografia.bodySmall.copyWith(
+              color: DsCores.textSecondary,
+            ),
           ),
           const SizedBox(height: 4),
           Text(
@@ -408,8 +414,9 @@ class _DependentCorrectionViewState extends State<DependentCorrectionView> {
           // Label do novo valor
           Text(
             'Novo valor solicitado',
-            style: DsTipografia.bodySmall
-                .copyWith(color: DsCores.textSecondary),
+            style: DsTipografia.bodySmall.copyWith(
+              color: DsCores.textSecondary,
+            ),
           ),
           const SizedBox(height: 12),
 
@@ -447,8 +454,9 @@ class _DependentCorrectionViewState extends State<DependentCorrectionView> {
           Expanded(
             child: Text(
               texto,
-              style: DsTipografia.bodySmall
-                  .copyWith(color: DsCores.dadosProtegidos.accent),
+              style: DsTipografia.bodySmall.copyWith(
+                color: DsCores.dadosProtegidos.accent,
+              ),
             ),
           ),
         ],
@@ -600,13 +608,16 @@ class _DependentCorrectionViewState extends State<DependentCorrectionView> {
               contentPadding: const EdgeInsets.all(14),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(DsRaios.md),
-                borderSide:
-                    BorderSide(color: Colors.white.withValues(alpha: 0.12)),
+                borderSide: BorderSide(
+                  color: Colors.white.withValues(alpha: 0.12),
+                ),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(DsRaios.md),
-                borderSide:
-                    BorderSide(color: DsCores.correcao.accent, width: 1.5),
+                borderSide: BorderSide(
+                  color: DsCores.correcao.accent,
+                  width: 1.5,
+                ),
               ),
             ),
           ),
@@ -635,8 +646,9 @@ class _DependentCorrectionViewState extends State<DependentCorrectionView> {
         Expanded(
           child: Text(
             title,
-            style: DsTipografia.sectionTitle
-                .copyWith(color: DsCores.textPrimary),
+            style: DsTipografia.sectionTitle.copyWith(
+              color: DsCores.textPrimary,
+            ),
           ),
         ),
       ],
