@@ -436,8 +436,9 @@ class _RegisterPageState extends State<RegisterPage> {
                                 textInputAction: TextInputAction.next,
                                 semanticsLabel: 'CPF',
                                 validator: (v) {
-                                  if (v == null || v.isEmpty)
+                                  if (v == null || v.isEmpty) {
                                     return 'Campo obrigatório';
+                                  }
                                   if (!isValidAuthCpf(v)) return 'CPF inválido';
                                   return null;
                                 },
@@ -547,8 +548,9 @@ class _RegisterPageState extends State<RegisterPage> {
                                     'Será usado para login no aplicativo.',
                                 validator: (v) {
                                   if (v!.isEmpty) return 'Campo obrigatório';
-                                  if (!v.contains('@'))
+                                  if (!v.contains('@')) {
                                     return 'E-mail inválido';
+                                  }
                                   return null;
                                 },
                               ),

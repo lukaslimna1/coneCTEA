@@ -556,19 +556,23 @@ class _AddMemberPageState extends State<AddMemberPage> {
 
     final parsedEmerg = _parseContact(m.emergencyContact);
     if (_contatoEmergenciaNomeController.text.trim() !=
-        (parsedEmerg['name'] ?? '').trim())
+        (parsedEmerg['name'] ?? '').trim()) {
       return true;
+    }
     if (_contatoEmergenciaTelefoneController.text.trim() !=
-        (parsedEmerg['phone'] ?? '').trim())
+        (parsedEmerg['phone'] ?? '').trim()) {
       return true;
+    }
 
     final parsedResp = _parseContact(m.responsibleName);
     if (_responsavelNomeController.text.trim() !=
-        (parsedResp['name'] ?? '').trim())
+        (parsedResp['name'] ?? '').trim()) {
       return true;
+    }
     if (_responsavelTelefoneController.text.trim() !=
-        (parsedResp['phone'] ?? '').trim())
+        (parsedResp['phone'] ?? '').trim()) {
       return true;
+    }
 
     if (_nascimentoController.text.trim() != m.dateOfBirth.trim()) return true;
     if (_cidController.text.trim() != m.cid.trim()) return true;

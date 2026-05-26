@@ -30,8 +30,9 @@ class AppRoutes {
       final isForgotEmail = location.startsWith('/forgot-email');
 
       if (!isAuthenticated) {
-        if (isLoggingIn || isRegistering || isForgotPassword || isForgotEmail)
+        if (isLoggingIn || isRegistering || isForgotPassword || isForgotEmail) {
           return null;
+        }
         return '/login';
       }
 
