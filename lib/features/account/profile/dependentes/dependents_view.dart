@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 import 'package:conectea/features/account/profile/widgets/my_data_logged_header.dart';
-import 'package:conectea/features/account/profile/dependents/dependent_details_view.dart';
+import 'package:conectea/features/account/profile/dependentes/dependent_details_view.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 /// Tela visual de Dependentes dentro de Meus Dados.
@@ -28,18 +28,20 @@ class DependentsView extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    DsBotaoVoltar(
-                      onPressed: () => Navigator.pop(context),
-                    ),
+                    DsBotaoVoltar(onPressed: () => Navigator.pop(context)),
                     const SizedBox(height: 24),
                     Text(
                       'Dependentes',
-                      style: DsTipografia.pageTitle.copyWith(color: DsCores.textPrimary),
+                      style: DsTipografia.pageTitle.copyWith(
+                        color: DsCores.textPrimary,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'Visualize e organize os dependentes vinculados à sua conta.',
-                      style: DsTipografia.body.copyWith(color: DsCores.textSecondary),
+                      style: DsTipografia.body.copyWith(
+                        color: DsCores.textSecondary,
+                      ),
                     ),
                     const SizedBox(height: 24),
 
@@ -91,12 +93,16 @@ class DependentsView extends StatelessWidget {
               children: [
                 Text(
                   'O que são dependentes?',
-                  style: DsTipografia.cardTitle.copyWith(color: DsCores.textPrimary),
+                  style: DsTipografia.cardTitle.copyWith(
+                    color: DsCores.textPrimary,
+                  ),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   'Dependentes são pessoas vinculadas ao usuário. Eles aparecem aqui para facilitar a edição dos seus dados cadastrais.',
-                  style: DsTipografia.bodySmall.copyWith(color: DsCores.textSecondary),
+                  style: DsTipografia.bodySmall.copyWith(
+                    color: DsCores.textSecondary,
+                  ),
                 ),
               ],
             ),
@@ -105,7 +111,6 @@ class DependentsView extends StatelessWidget {
       ),
     );
   }
-
 
   /// Card visual mockado de dependente.
   ///
@@ -138,14 +143,18 @@ class DependentsView extends StatelessWidget {
                   children: [
                     Text(
                       nome,
-                      style: DsTipografia.cardTitle.copyWith(color: DsCores.textPrimary),
+                      style: DsTipografia.cardTitle.copyWith(
+                        color: DsCores.textPrimary,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
                     Text(
                       vinculo,
-                      style: DsTipografia.bodySmall.copyWith(color: DsCores.textSecondary),
+                      style: DsTipografia.bodySmall.copyWith(
+                        color: DsCores.textSecondary,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -213,7 +222,9 @@ class DependentsView extends StatelessWidget {
                             surfaceTintColor: Colors.transparent,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(28),
-                              side: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
+                              side: BorderSide(
+                                color: Colors.white.withValues(alpha: 0.05),
+                              ),
                             ),
                             title: Column(
                               children: [
@@ -226,7 +237,9 @@ class DependentsView extends StatelessWidget {
                                 const SizedBox(height: 16),
                                 Text(
                                   'Remover dependente',
-                                  style: DsTipografia.sectionTitle.copyWith(color: DsCores.textPrimary),
+                                  style: DsTipografia.sectionTitle.copyWith(
+                                    color: DsCores.textPrimary,
+                                  ),
                                   textAlign: TextAlign.center,
                                 ),
                               ],
@@ -238,14 +251,17 @@ class DependentsView extends StatelessWidget {
                                 children: [
                                   Text(
                                     'Ao remover este dependente, os dados vinculados a ele serão apagados do banco de dados operacional do ConeCTEA, incluindo informações cadastrais, solicitações e carteirinha comunitária vinculada, quando existirem. Essa ação pode ser irreversível.',
-                                    style: DsTipografia.bodySmall.copyWith(color: DsCores.textSecondary),
+                                    style: DsTipografia.bodySmall.copyWith(
+                                      color: DsCores.textSecondary,
+                                    ),
                                     textAlign: TextAlign.center,
                                   ),
                                   const SizedBox(height: 20),
                                   DsInput(
                                     label: 'Digite REMOVER para confirmar.',
                                     hint: 'REMOVER',
-                                    textCapitalization: TextCapitalization.characters,
+                                    textCapitalization:
+                                        TextCapitalization.characters,
                                     onChanged: (val) {
                                       setState(() {
                                         texto = val;
@@ -255,7 +271,12 @@ class DependentsView extends StatelessWidget {
                                 ],
                               ),
                             ),
-                            actionsPadding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+                            actionsPadding: const EdgeInsets.fromLTRB(
+                              24,
+                              8,
+                              24,
+                              24,
+                            ),
                             actions: [
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -292,7 +313,9 @@ class DependentsView extends StatelessWidget {
                         SnackBar(
                           content: Text(
                             'Fluxo visual em construção.',
-                            style: DsTipografia.body.copyWith(color: DsCores.textPrimary),
+                            style: DsTipografia.body.copyWith(
+                              color: DsCores.textPrimary,
+                            ),
                           ),
                           backgroundColor: DsCores.surfaceElevated,
                           behavior: SnackBarBehavior.floating,

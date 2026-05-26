@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 import 'package:conectea/features/account/profile/widgets/my_data_logged_header.dart';
-import 'package:conectea/features/account/profile/dependents/dependent_correction_view.dart';
+import 'package:conectea/features/account/profile/dependentes/dependent_correction_view.dart';
 import 'package:conectea/core/campos_cadastrais/campos_cadastrais.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -31,18 +31,20 @@ class DependentDetailsView extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    DsBotaoVoltar(
-                      onPressed: () => Navigator.pop(context),
-                    ),
+                    DsBotaoVoltar(onPressed: () => Navigator.pop(context)),
                     const SizedBox(height: 24),
                     Text(
                       'Dados do dependente',
-                      style: DsTipografia.pageTitle.copyWith(color: DsCores.textPrimary),
+                      style: DsTipografia.pageTitle.copyWith(
+                        color: DsCores.textPrimary,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'Confira os dados cadastrais vinculados a este dependente.',
-                      style: DsTipografia.body.copyWith(color: DsCores.textSecondary),
+                      style: DsTipografia.body.copyWith(
+                        color: DsCores.textSecondary,
+                      ),
                     ),
                     const SizedBox(height: 32),
 
@@ -56,7 +58,10 @@ class DependentDetailsView extends StatelessWidget {
                       _buildDataRow('Nome completo', 'Exemplo de dependente'),
                       const CampoCpfProtegido(),
                       const SizedBox(height: 12),
-                      Divider(color: Colors.white.withValues(alpha: 0.1), height: 1),
+                      Divider(
+                        color: Colors.white.withValues(alpha: 0.1),
+                        height: 1,
+                      ),
                       _buildDataRow('Data de nascimento', 'Não informado'),
                       _buildDataRow('Telefone', 'Não informado', isLast: true),
                     ]),
@@ -84,7 +89,11 @@ class DependentDetailsView extends StatelessWidget {
                     const SizedBox(height: 16),
                     _buildReadOnlyCard([
                       _buildDataRow('Nome do responsável', 'Não informado'),
-                      _buildDataRow('Telefone do responsável', 'Não informado', isLast: true),
+                      _buildDataRow(
+                        'Telefone do responsável',
+                        'Não informado',
+                        isLast: true,
+                      ),
                     ]),
 
                     const SizedBox(height: 32),
@@ -97,7 +106,11 @@ class DependentDetailsView extends StatelessWidget {
                     const SizedBox(height: 16),
                     _buildReadOnlyCard([
                       _buildDataRow('Nome do contato', 'Não informado'),
-                      _buildDataRow('Telefone do contato', 'Não informado', isLast: true),
+                      _buildDataRow(
+                        'Telefone do contato',
+                        'Não informado',
+                        isLast: true,
+                      ),
                     ]),
 
                     const SizedBox(height: 32),
@@ -125,7 +138,8 @@ class DependentDetailsView extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const DependentCorrectionView(),
+                            builder: (context) =>
+                                const DependentCorrectionView(),
                           ),
                         );
                       },
@@ -175,19 +189,13 @@ class DependentDetailsView extends StatelessWidget {
       padding: EdgeInsets.zero,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        child: Column(
-          children: children,
-        ),
+        child: Column(children: children),
       ),
     );
   }
 
   /// Linha de dado rotulado.
-  Widget _buildDataRow(
-    String label,
-    String value, {
-    bool isLast = false,
-  }) {
+  Widget _buildDataRow(String label, String value, {bool isLast = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Column(
@@ -197,7 +205,9 @@ class DependentDetailsView extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: DsTipografia.bodySmall.copyWith(color: DsCores.textSecondary),
+                style: DsTipografia.bodySmall.copyWith(
+                  color: DsCores.textSecondary,
+                ),
               ),
             ],
           ),
