@@ -34,11 +34,38 @@ class HomeMembersSection extends StatelessWidget {
         memberRequest: memberRequest,
       );
 
+      final status = HomeStatusHelper.getEffectiveStatus(
+        memberStatus: member.status,
+        memberRequest: memberRequest,
+      );
+      final token = DsTokenStatus.fromStatus(status);
+
+      String displayLabel;
+      switch (token.statusKey) {
+        case 'waiting_docs':
+          displayLabel = 'Documentos';
+          break;
+        case 'active':
+          displayLabel = 'Ativa';
+          break;
+        case 'reviewing_data':
+          displayLabel = 'Revisar';
+          break;
+        case 'waiting_approval':
+          displayLabel = 'Análise';
+          break;
+        case 'renewing':
+          displayLabel = 'Renovação';
+          break;
+        default:
+          displayLabel = statusInfo.shortLabel;
+      }
+
       return DsMembroCarrosselItem(
         id: member.id,
         name: member.name.split(' ').first,
         initials: member.initials,
-        statusLabel: statusInfo.shortLabel.toUpperCase(),
+        statusLabel: displayLabel.toUpperCase(),
         statusColor: statusInfo.color,
         paletteSeed: paletteSeed,
       );

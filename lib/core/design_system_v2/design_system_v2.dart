@@ -31,3 +31,4 @@ export 'padroes/ds_selo_status.dart';
 export 'padroes/ds_selo_cargo.dart';
 export 'padroes/ds_card_notificacao.dart';
 export 'padroes/ds_membros_carrossel.dart';
+export 'padroes/ds_mini_carteira_preview.dart';
