@@ -5,7 +5,7 @@ import 'package:conectea/core/constants/colors.dart';
 import 'package:conectea/core/widgets/loading_shimmer.dart';
 import 'package:conectea/services/database_service.dart';
 import 'package:conectea/models/app_user.dart';
-import 'package:conectea/features/admin/widgets/admin_user_card.dart';
+import 'package:conectea/features/admin/usuarios/admin_user_card.dart';
 
 class AdminUsersTab extends StatefulWidget {
   final DatabaseService databaseService;
@@ -64,10 +64,13 @@ class AdminUsersTabState extends State<AdminUsersTab> {
   List<AppUser> get _filteredUsers {
     if (_userSearchQuery.isEmpty) return _allUsers;
     final query = _userSearchQuery.toLowerCase();
-    return _allUsers.where((u) => 
-      u.name.toLowerCase().contains(query) || 
-      u.email.toLowerCase().contains(query)
-    ).toList();
+    return _allUsers
+        .where(
+          (u) =>
+              u.name.toLowerCase().contains(query) ||
+              u.email.toLowerCase().contains(query),
+        )
+        .toList();
   }
 
   @override
@@ -77,7 +80,10 @@ class AdminUsersTabState extends State<AdminUsersTab> {
     }
 
     if (_allUsers.isEmpty) {
-      return _buildEmptyState('Nenhum usuário encontrado', Icons.people_rounded);
+      return _buildEmptyState(
+        'Nenhum usuário encontrado',
+        Icons.people_rounded,
+      );
     }
 
     return RefreshIndicator(
@@ -86,24 +92,19 @@ class AdminUsersTabState extends State<AdminUsersTab> {
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
-          SliverToBoxAdapter(
-            child: _buildSearchField(),
-          ),
+          SliverToBoxAdapter(child: _buildSearchField()),
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
             sliver: SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final user = _filteredUsers[index];
-                  return AdminUserCard(
-                    user: user,
-                    currentUserRole: widget.currentUserRole,
-                    onToggleRole: (newRole) => widget.onToggleRole(user, newRole),
-                    onEditProfile: () => widget.onEditProfile(user),
-                  );
-                },
-                childCount: _filteredUsers.length,
-              ),
+              delegate: SliverChildBuilderDelegate((context, index) {
+                final user = _filteredUsers[index];
+                return AdminUserCard(
+                  user: user,
+                  currentUserRole: widget.currentUserRole,
+                  onToggleRole: (newRole) => widget.onToggleRole(user, newRole),
+                  onEditProfile: () => widget.onEditProfile(user),
+                );
+              }, childCount: _filteredUsers.length),
             ),
           ),
         ],
@@ -119,11 +120,20 @@ class AdminUsersTabState extends State<AdminUsersTab> {
         style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600),
         decoration: InputDecoration(
           hintText: 'Buscar por nome ou e-mail...',
-          hintStyle: GoogleFonts.inter(color: AppColors.textSecondary.withValues(alpha: 0.5), fontWeight: FontWeight.w500),
-          prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF7C3AED)),
+          hintStyle: GoogleFonts.inter(
+            color: AppColors.textSecondary.withValues(alpha: 0.5),
+            fontWeight: FontWeight.w500,
+          ),
+          prefixIcon: const Icon(
+            Icons.search_rounded,
+            color: Color(0xFF7C3AED),
+          ),
           filled: true,
           fillColor: const Color(0xA60F172A),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 16,
+          ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(20),
             borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
@@ -155,9 +165,15 @@ class AdminUsersTabState extends State<AdminUsersTab> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  LoadingShimmer(width: MediaQuery.of(context).size.width * 0.5, height: 16),
+                  LoadingShimmer(
+                    width: MediaQuery.of(context).size.width * 0.5,
+                    height: 16,
+                  ),
                   const SizedBox(height: 8),
-                  LoadingShimmer(width: MediaQuery.of(context).size.width * 0.3, height: 12),
+                  LoadingShimmer(
+                    width: MediaQuery.of(context).size.width * 0.3,
+                    height: 12,
+                  ),
                 ],
               ),
             ),
@@ -193,12 +209,14 @@ class AdminUsersTabState extends State<AdminUsersTab> {
                 height: 100,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.05),
+                  ),
                 ),
               ),
               Icon(
-                PhosphorIconsRegular.tray, 
-                size: 48, 
+                PhosphorIconsRegular.tray,
+                size: 48,
                 color: AppColors.primary.withValues(alpha: 0.8),
               ),
             ],
@@ -221,7 +239,11 @@ class AdminUsersTabState extends State<AdminUsersTab> {
             ),
           ),
           const SizedBox(height: 24),
-          const Icon(PhosphorIconsRegular.caretDoubleDown, color: Color(0xFF1B3D71), size: 24),
+          const Icon(
+            PhosphorIconsRegular.caretDoubleDown,
+            color: Color(0xFF1B3D71),
+            size: 24,
+          ),
         ],
       ),
     );
