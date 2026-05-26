@@ -7,7 +7,11 @@ import 'package:conectea/features/home/widgets/banners/home_campaign_banner.dart
 class WhatsAppBanner extends StatelessWidget {
   const WhatsAppBanner({super.key});
 
-  Future<void> _launchUrl(BuildContext context, String url, String errorMessage) async {
+  Future<void> _launchUrl(
+    BuildContext context,
+    String url,
+    String errorMessage,
+  ) async {
     final Uri uri = Uri.parse(url);
     try {
       if (await canLaunchUrl(uri)) {
@@ -24,10 +28,7 @@ class WhatsAppBanner extends StatelessWidget {
 
   void _showError(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: DsCores.alerta.accent,
-      ),
+      SnackBar(content: Text(message), backgroundColor: DsCores.alerta.accent),
     );
   }
 
@@ -37,7 +38,8 @@ class WhatsAppBanner extends StatelessWidget {
       eyebrow: 'Comunidade',
       eyebrowIcon: PhosphorIcons.whatsappLogo(PhosphorIconsStyle.fill),
       title: 'Fique por dentro\nde tudo',
-      subtitle: 'Entre no grupo oficial para receber avisos, trocas e novidades.',
+      subtitle:
+          'Entre no grupo oficial para receber avisos, trocas e novidades.',
       ctaLabel: 'Entrar no grupo',
       semanticToken: DsCores.comunicacao,
       theme: BannerTheme(

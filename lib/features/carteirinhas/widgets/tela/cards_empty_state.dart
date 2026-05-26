@@ -7,10 +7,7 @@ import 'package:conectea/core/widgets/premium/premium_button.dart';
 class CardsEmptyState extends StatelessWidget {
   final VoidCallback onAddMember;
 
-  const CardsEmptyState({
-    super.key,
-    required this.onAddMember,
-  });
+  const CardsEmptyState({super.key, required this.onAddMember});
 
   @override
   Widget build(BuildContext context) {

@@ -62,7 +62,10 @@ class HomeStatusHelper {
 
   /// 1. Status do Carrossel de Membros
   /// Usa o status efetivo unificado.
-  static HomeStatusInfo memberStatus(String rawStatus, {CardRequest? memberRequest}) {
+  static HomeStatusInfo memberStatus(
+    String rawStatus, {
+    CardRequest? memberRequest,
+  }) {
     final status = getEffectiveStatus(
       memberStatus: rawStatus,
       memberRequest: memberRequest,

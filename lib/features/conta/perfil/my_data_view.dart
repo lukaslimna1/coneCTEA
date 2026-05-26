@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
-import 'package:conectea/features/account/perfil/edit_my_data_view.dart';
-import 'package:conectea/features/account/perfil/dependentes/dependents_view.dart';
-import 'package:conectea/features/account/perfil/widgets/my_data_logged_header.dart';
+import 'package:conectea/features/conta/perfil/edit_my_data_view.dart';
+import 'package:conectea/features/conta/perfil/dependentes/dependents_view.dart';
+import 'package:conectea/features/conta/perfil/widgets/my_data_logged_header.dart';
 import 'package:conectea/core/campos_cadastrais/campos_cadastrais.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 

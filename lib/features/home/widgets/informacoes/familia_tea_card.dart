@@ -8,11 +8,7 @@ class FamiliaTeaCard extends StatelessWidget {
   final double width;
   final VoidCallback onTap;
 
-  const FamiliaTeaCard({
-    super.key,
-    required this.width,
-    required this.onTap,
-  });
+  const FamiliaTeaCard({super.key, required this.width, required this.onTap});
 
   @override
   Widget build(BuildContext context) {

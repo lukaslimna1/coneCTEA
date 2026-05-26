@@ -96,9 +96,7 @@ class HomeCampaignBanner extends StatelessWidget {
                   height: 250,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: theme.primaryGlowColors,
-                    ),
+                    gradient: RadialGradient(colors: theme.primaryGlowColors),
                   ),
                 ),
               ),
@@ -111,9 +109,7 @@ class HomeCampaignBanner extends StatelessWidget {
                   height: 180,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: theme.secondaryGlowColors,
-                    ),
+                    gradient: RadialGradient(colors: theme.secondaryGlowColors),
                   ),
                 ),
               ),
@@ -122,8 +118,11 @@ class HomeCampaignBanner extends StatelessWidget {
                 Positioned(
                   right: theme.illustrationRightOffset,
                   top: 8,
-                  bottom: -16, // Permite que a arte sangre na base e não force a altura
-                  width: MediaQuery.of(context).size.width * theme.illustrationWidthFactor,
+                  bottom:
+                      -16, // Permite que a arte sangre na base e não force a altura
+                  width:
+                      MediaQuery.of(context).size.width *
+                      theme.illustrationWidthFactor,
                   child: Opacity(
                     opacity: theme.illustrationOpacity,
                     child: Image.asset(
@@ -153,7 +152,12 @@ class HomeCampaignBanner extends StatelessWidget {
               ),
               // Conteúdo textual
               Padding(
-                padding: const EdgeInsets.only(left: 24, right: 24, top: 24, bottom: 20),
+                padding: const EdgeInsets.only(
+                  left: 24,
+                  right: 24,
+                  top: 24,
+                  bottom: 20,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
@@ -165,7 +169,9 @@ class HomeCampaignBanner extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     SizedBox(
-                      width: MediaQuery.of(context).size.width * 0.70, // Texto mais livre, avança sobre a imagem
+                      width:
+                          MediaQuery.of(context).size.width *
+                          0.70, // Texto mais livre, avança sobre a imagem
                       child: Text(
                         title,
                         style: GoogleFonts.inter(
@@ -196,7 +202,10 @@ class HomeCampaignBanner extends StatelessWidget {
                     ),
                     const Spacer(), // Empurra o CTA para a base (o bottom padding fixa o espaçamento inferior)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 14),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 26,
+                        vertical: 14,
+                      ),
                       decoration: BoxDecoration(
                         color: theme.ctaColor,
                         borderRadius: BorderRadius.circular(24),

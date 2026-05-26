@@ -33,10 +33,7 @@ class InfoActionCard extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
             gradient: const LinearGradient(
-              colors: [
-                Color(0xFF0F172A),
-                Color(0xFF020617),
-              ],
+              colors: [Color(0xFF0F172A), Color(0xFF020617)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -65,11 +62,7 @@ class InfoActionCard extends StatelessWidget {
                     width: 1,
                   ),
                 ),
-                child: Icon(
-                  icon,
-                  color: accentColor,
-                  size: 20,
-                ),
+                child: Icon(icon, color: accentColor, size: 20),
               ),
               const SizedBox(width: 12),
               Expanded(

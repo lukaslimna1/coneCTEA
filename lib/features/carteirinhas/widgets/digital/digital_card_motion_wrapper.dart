@@ -17,10 +17,12 @@ class DigitalCardMotionWrapper extends StatefulWidget {
   });
 
   @override
-  State<DigitalCardMotionWrapper> createState() => _DigitalCardMotionWrapperState();
+  State<DigitalCardMotionWrapper> createState() =>
+      _DigitalCardMotionWrapperState();
 }
 
-class _DigitalCardMotionWrapperState extends State<DigitalCardMotionWrapper> with SingleTickerProviderStateMixin {
+class _DigitalCardMotionWrapperState extends State<DigitalCardMotionWrapper>
+    with SingleTickerProviderStateMixin {
   double _pitch = 0.0;
   double _yaw = 0.0;
   StreamSubscription? _accelerometerSubscription;
@@ -31,18 +33,23 @@ class _DigitalCardMotionWrapperState extends State<DigitalCardMotionWrapper> wit
   @override
   void initState() {
     super.initState();
-    
+
     // Animação de Entrada
     _entryController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1000),
     );
-    _scaleAnimation = Tween<double>(begin: widget.enableEntryAnimation ? 0.95 : 1.0, end: 1.0).animate(
-      CurvedAnimation(parent: _entryController, curve: Curves.easeOutCubic),
-    );
-    _opacityAnimation = Tween<double>(begin: widget.enableEntryAnimation ? 0.0 : 1.0, end: 1.0).animate(
-      CurvedAnimation(parent: _entryController, curve: Curves.easeIn),
-    );
+    _scaleAnimation =
+        Tween<double>(
+          begin: widget.enableEntryAnimation ? 0.95 : 1.0,
+          end: 1.0,
+        ).animate(
+          CurvedAnimation(parent: _entryController, curve: Curves.easeOutCubic),
+        );
+    _opacityAnimation = Tween<double>(
+      begin: widget.enableEntryAnimation ? 0.0 : 1.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _entryController, curve: Curves.easeIn));
     _entryController.forward();
 
     // Sensor Parallax - usando giroscópio ou acelerômetro
@@ -75,11 +82,11 @@ class _DigitalCardMotionWrapperState extends State<DigitalCardMotionWrapper> wit
         if (renderBox != null && renderBox.hasSize) {
           final size = renderBox.size;
           final localPosition = event.localPosition;
-          
+
           // Calcula a posição relativa (-1.0 a 1.0)
           final relX = (localPosition.dx / size.width) * 2 - 1;
           final relY = (localPosition.dy / size.height) * 2 - 1;
-          
+
           setState(() {
             _yaw = (relX * 0.1).clamp(-0.15, 0.15);
             _pitch = (-relY * 0.1).clamp(-0.15, 0.15);
@@ -100,7 +107,10 @@ class _DigitalCardMotionWrapperState extends State<DigitalCardMotionWrapper> wit
             child: Transform.scale(
               scale: _scaleAnimation.value,
               child: TweenAnimationBuilder(
-                tween: Tween<Offset>(begin: Offset.zero, end: Offset(_yaw, _pitch)),
+                tween: Tween<Offset>(
+                  begin: Offset.zero,
+                  end: Offset(_yaw, _pitch),
+                ),
                 duration: const Duration(milliseconds: 300),
                 curve: Curves.easeOut,
                 builder: (context, Offset offset, child) {
@@ -108,7 +118,7 @@ class _DigitalCardMotionWrapperState extends State<DigitalCardMotionWrapper> wit
                     ..setEntry(3, 2, 0.001) // perspectiva
                     ..rotateX(offset.dy)
                     ..rotateY(offset.dx);
-                  
+
                   return Transform(
                     transform: matrix,
                     alignment: FractionalOffset.center,

@@ -37,7 +37,9 @@ class CardsDetailsSection extends StatelessWidget {
                 child: _buildInfoBlock(
                   icon: PhosphorIconsRegular.calendarCheck,
                   label: 'Válida até',
-                  value: ConecteaDateTimeHelper.formatProjectDateShort(validUntil),
+                  value: ConecteaDateTimeHelper.formatProjectDateShort(
+                    validUntil,
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -136,7 +138,9 @@ class CardsDetailsSection extends StatelessWidget {
                   style: GoogleFonts.inter(
                     fontSize: 13,
                     fontWeight: FontWeight.w800,
-                    color: isStatus ? AppColors.statusGreen : AppColors.cardTitle,
+                    color: isStatus
+                        ? AppColors.statusGreen
+                        : AppColors.cardTitle,
                   ),
                 ),
               ],

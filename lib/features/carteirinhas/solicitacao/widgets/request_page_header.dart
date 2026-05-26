@@ -8,11 +8,7 @@ class RequestPageHeader extends StatelessWidget {
   final bool isEditing;
   final VoidCallback? onBackTap;
 
-  const RequestPageHeader({
-    super.key,
-    required this.isEditing,
-    this.onBackTap,
-  });
+  const RequestPageHeader({super.key, required this.isEditing, this.onBackTap});
 
   @override
   Widget build(BuildContext context) {
@@ -24,13 +20,15 @@ class RequestPageHeader extends StatelessWidget {
           child: Row(
             children: [
               IconButton(
-                onPressed: onBackTap ?? () {
-                  if (context.canPop()) {
-                    context.pop();
-                  } else {
-                    context.go('/home');
-                  }
-                },
+                onPressed:
+                    onBackTap ??
+                    () {
+                      if (context.canPop()) {
+                        context.pop();
+                      } else {
+                        context.go('/home');
+                      }
+                    },
                 icon: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(

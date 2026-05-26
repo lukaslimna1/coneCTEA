@@ -16,7 +16,8 @@ class DigitalCardBackground extends StatefulWidget {
   State<DigitalCardBackground> createState() => _DigitalCardBackgroundState();
 }
 
-class _DigitalCardBackgroundState extends State<DigitalCardBackground> with SingleTickerProviderStateMixin {
+class _DigitalCardBackgroundState extends State<DigitalCardBackground>
+    with SingleTickerProviderStateMixin {
   late AnimationController _waveController;
 
   @override
@@ -51,14 +52,22 @@ class _DigitalCardBackgroundState extends State<DigitalCardBackground> with Sing
                   end: Alignment.bottomRight,
                   colors: widget.isFront
                       ? const [
-                          Color(0xFF020B1E), // Sapphire Luxe - Azul Noite Escuro Sofisticado (Substitui o quase preto)
-                          Color(0xFF0A2254), // Sapphire Luxe - Azul Safira Profundo Luminoso
-                          Color(0xFF143B80), // Sapphire Luxe - Azul Safira Real Vibrante (Nuance mais clara e viva)
+                          Color(
+                            0xFF020B1E,
+                          ), // Sapphire Luxe - Azul Noite Escuro Sofisticado (Substitui o quase preto)
+                          Color(
+                            0xFF0A2254,
+                          ), // Sapphire Luxe - Azul Safira Profundo Luminoso
+                          Color(
+                            0xFF143B80,
+                          ), // Sapphire Luxe - Azul Safira Real Vibrante (Nuance mais clara e viva)
                         ]
                       : const [
                           Color(0xFF020B1E),
                           Color(0xFF0A2254),
-                          Color(0xFF163C7F), // Nuance ligeiramente mais clara no canto do verso
+                          Color(
+                            0xFF163C7F,
+                          ), // Nuance ligeiramente mais clara no canto do verso
                         ],
                 ),
               ),
@@ -87,7 +96,9 @@ class _DigitalCardBackgroundState extends State<DigitalCardBackground> with Sing
                 child: AnimatedBuilder(
                   animation: _waveController,
                   builder: (context, child) {
-                    final progress = Curves.easeOutQuart.transform(_waveController.value);
+                    final progress = Curves.easeOutQuart.transform(
+                      _waveController.value,
+                    );
                     return CustomPaint(
                       painter: _GeometricFluidPainter(
                         isFront: widget.isFront,
@@ -136,17 +147,23 @@ class _GeometricFluidPainter extends CustomPainter {
 
     // Véu 1 (Neblina Ciano no Canto Inferior Direito - Suporte e profundidade)
     final paintVeil1 = Paint()
-      ..shader = RadialGradient(
-        colors: [
-          const Color(0x1414D9D0), // Ciano ultra-suave (8%)
-          const Color(0x042563EB), // Azul Royal (2%)
-          const Color(0x00000000), // Totalmente transparente
-        ],
-        stops: const [0.0, 0.6, 1.0],
-      ).createShader(Rect.fromCircle(
-        center: Offset(size.width * 0.85 + shift, size.height * 0.85 + shift),
-        radius: size.width * 0.5,
-      ))
+      ..shader =
+          RadialGradient(
+            colors: [
+              const Color(0x1414D9D0), // Ciano ultra-suave (8%)
+              const Color(0x042563EB), // Azul Royal (2%)
+              const Color(0x00000000), // Totalmente transparente
+            ],
+            stops: const [0.0, 0.6, 1.0],
+          ).createShader(
+            Rect.fromCircle(
+              center: Offset(
+                size.width * 0.85 + shift,
+                size.height * 0.85 + shift,
+              ),
+              radius: size.width * 0.5,
+            ),
+          )
       ..style = PaintingStyle.fill
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 38.0);
 
@@ -158,17 +175,23 @@ class _GeometricFluidPainter extends CustomPainter {
 
     // Véu 2 (Aurora Azul Safira no Canto Superior Esquerdo - Equilíbrio de cores)
     final paintVeil2 = Paint()
-      ..shader = RadialGradient(
-        colors: [
-          const Color(0x102563EB), // Azul Safira sutil (6%)
-          const Color(0x0314D9D0), // Ciano (1%)
-          const Color(0x00000000), // Transparente
-        ],
-        stops: const [0.0, 0.55, 1.0],
-      ).createShader(Rect.fromCircle(
-        center: Offset(size.width * 0.20 - shift, size.height * 0.20 - shift),
-        radius: size.width * 0.45,
-      ))
+      ..shader =
+          RadialGradient(
+            colors: [
+              const Color(0x102563EB), // Azul Safira sutil (6%)
+              const Color(0x0314D9D0), // Ciano (1%)
+              const Color(0x00000000), // Transparente
+            ],
+            stops: const [0.0, 0.55, 1.0],
+          ).createShader(
+            Rect.fromCircle(
+              center: Offset(
+                size.width * 0.20 - shift,
+                size.height * 0.20 - shift,
+              ),
+              radius: size.width * 0.45,
+            ),
+          )
       ..style = PaintingStyle.fill
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 32.0);
 
@@ -180,16 +203,19 @@ class _GeometricFluidPainter extends CustomPainter {
 
     // Véu 3 (Aurora Central de Luz Ciano - Textura de profundidade no centro dos dados)
     final paintVeil3 = Paint()
-      ..shader = RadialGradient(
-        colors: [
-          const Color(0x0B14D9D0), // Ciano sutilíssimo (4%)
-          const Color(0x00000000), // Transparente
-        ],
-        stops: const [0.0, 1.0],
-      ).createShader(Rect.fromCircle(
-        center: Offset(size.width * 0.60, size.height * 0.45),
-        radius: size.width * 0.35,
-      ))
+      ..shader =
+          RadialGradient(
+            colors: [
+              const Color(0x0B14D9D0), // Ciano sutilíssimo (4%)
+              const Color(0x00000000), // Transparente
+            ],
+            stops: const [0.0, 1.0],
+          ).createShader(
+            Rect.fromCircle(
+              center: Offset(size.width * 0.60, size.height * 0.45),
+              radius: size.width * 0.35,
+            ),
+          )
       ..style = PaintingStyle.fill
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 28.0);
 
@@ -207,9 +233,12 @@ class _GeometricFluidPainter extends CustomPainter {
     final path1 = Path()
       ..moveTo(-50, size.height * 0.85)
       ..cubicTo(
-        size.width * 0.35 - shift * 0.5, size.height * 0.96, // Ponto de controle 1
-        size.width * 0.68 - shift * 0.3, size.height * 0.55, // Ponto de controle 2
-        size.width + 50, size.height * 0.38, // Ponto final
+        size.width * 0.35 - shift * 0.5,
+        size.height * 0.96, // Ponto de controle 1
+        size.width * 0.68 - shift * 0.3,
+        size.height * 0.55, // Ponto de controle 2
+        size.width + 50,
+        size.height * 0.38, // Ponto final
       );
 
     // Pintura do Glow Amplo e Etéreo para a Linha 1 (Evita linhas duras na tela)
@@ -253,9 +282,12 @@ class _GeometricFluidPainter extends CustomPainter {
     final path2 = Path()
       ..moveTo(size.width * 0.52, size.height + 50)
       ..cubicTo(
-        size.width * 0.72 + shift * 0.3, size.height * 0.88, // Ponto de controle 1
-        size.width * 0.86 + shift * 0.5, size.height * 0.42, // Ponto de controle 2
-        size.width * 0.98, size.height * 0.08, // Ponto final
+        size.width * 0.72 + shift * 0.3,
+        size.height * 0.88, // Ponto de controle 1
+        size.width * 0.86 + shift * 0.5,
+        size.height * 0.42, // Ponto de controle 2
+        size.width * 0.98,
+        size.height * 0.08, // Ponto final
       );
 
     // Pintura do Glow Amplo e Etéreo para a Linha 2
@@ -298,14 +330,33 @@ class _GeometricFluidPainter extends CustomPainter {
     // Micro-partículas estelares de poeira (sutis e dispersas para profundidade extra-fina)
     if (animationProgress > 0.15) {
       final dp = (animationProgress - 0.15) / 0.85;
-      final particlePaint1 = Paint()..color = const Color(0xFF14D9D0).withValues(alpha: 0.08 * dp);
-      final particlePaint2 = Paint()..color = const Color(0xFFFFFFFF).withValues(alpha: 0.12 * dp);
-      final particlePaint3 = Paint()..color = const Color(0xFF2563EB).withValues(alpha: 0.06 * dp);
+      final particlePaint1 = Paint()
+        ..color = const Color(0xFF14D9D0).withValues(alpha: 0.08 * dp);
+      final particlePaint2 = Paint()
+        ..color = const Color(0xFFFFFFFF).withValues(alpha: 0.12 * dp);
+      final particlePaint3 = Paint()
+        ..color = const Color(0xFF2563EB).withValues(alpha: 0.06 * dp);
 
-      canvas.drawCircle(Offset(size.width * 0.82, size.height * 0.38), 1.2, particlePaint1);
-      canvas.drawCircle(Offset(size.width * 0.90, size.height * 0.28), 0.8, particlePaint2);
-      canvas.drawCircle(Offset(size.width * 0.42, size.height * 0.82), 1.5, particlePaint3);
-      canvas.drawCircle(Offset(size.width * 0.76, size.height * 0.62), 0.7, particlePaint2);
+      canvas.drawCircle(
+        Offset(size.width * 0.82, size.height * 0.38),
+        1.2,
+        particlePaint1,
+      );
+      canvas.drawCircle(
+        Offset(size.width * 0.90, size.height * 0.28),
+        0.8,
+        particlePaint2,
+      );
+      canvas.drawCircle(
+        Offset(size.width * 0.42, size.height * 0.82),
+        1.5,
+        particlePaint3,
+      );
+      canvas.drawCircle(
+        Offset(size.width * 0.76, size.height * 0.62),
+        0.7,
+        particlePaint2,
+      );
     }
   }
 
@@ -337,7 +388,9 @@ class _GeometricFluidPainter extends CustomPainter {
       ..shader = const LinearGradient(
         colors: [
           Color(0x44FFFFFF), // Reflexo sutil
-          Color(0xFFFFFFFF), // Destaque de luz intensa branca (topo esquerdo/centro)
+          Color(
+            0xFFFFFFFF,
+          ), // Destaque de luz intensa branca (topo esquerdo/centro)
           Color(0x442563EB), // Safira
           Color(0xFF14D9D0), // Destaque Ciano intenso (canto inferior direito)
           Color(0x22FFFFFF), // Base
@@ -360,7 +413,9 @@ class _GeometricFluidPainter extends CustomPainter {
     final paintBackNeon = Paint()
       ..shader = const LinearGradient(
         colors: [
-          Color(0x00020B1E), // Invisível harmonizado com o novo fundo azul noite
+          Color(
+            0x00020B1E,
+          ), // Invisível harmonizado com o novo fundo azul noite
           Color(0x1C2563EB), // Safira suave (11%)
           Color(0x2B14D9D0), // Ciano suave (17%)
           Color(0x00020B1E),
@@ -393,9 +448,12 @@ class _GeometricFluidPainter extends CustomPainter {
     final path = Path()
       ..moveTo(size.width * 0.48, 0)
       ..cubicTo(
-        size.width * 0.65, size.height * 0.04 + shift * 0.4,
-        size.width * 0.84, size.height * 0.16 + shift * 0.8,
-        size.width, size.height * 0.28 + shift,
+        size.width * 0.65,
+        size.height * 0.04 + shift * 0.4,
+        size.width * 0.84,
+        size.height * 0.16 + shift * 0.8,
+        size.width,
+        size.height * 0.28 + shift,
       )
       ..lineTo(size.width, 0)
       ..close();
@@ -404,15 +462,19 @@ class _GeometricFluidPainter extends CustomPainter {
     final pathStroke = Path()
       ..moveTo(size.width * 0.48, 0)
       ..cubicTo(
-        size.width * 0.65, size.height * 0.04 + shift * 0.4,
-        size.width * 0.84, size.height * 0.16 + shift * 0.8,
-        size.width, size.height * 0.28 + shift,
+        size.width * 0.65,
+        size.height * 0.04 + shift * 0.4,
+        size.width * 0.84,
+        size.height * 0.16 + shift * 0.8,
+        size.width,
+        size.height * 0.28 + shift,
       );
     canvas.drawPath(pathStroke, paintBackStroke);
   }
 
   @override
   bool shouldRepaint(covariant _GeometricFluidPainter oldDelegate) {
-    return oldDelegate.animationProgress != animationProgress || oldDelegate.isFront != isFront;
+    return oldDelegate.animationProgress != animationProgress ||
+        oldDelegate.isFront != isFront;
   }
 }

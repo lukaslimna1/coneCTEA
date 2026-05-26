@@ -4,10 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 class RequestLaterButton extends StatelessWidget {
   final VoidCallback onPressed;
 
-  const RequestLaterButton({
-    super.key,
-    required this.onPressed,
-  });
+  const RequestLaterButton({super.key, required this.onPressed});
 
   @override
   Widget build(BuildContext context) {

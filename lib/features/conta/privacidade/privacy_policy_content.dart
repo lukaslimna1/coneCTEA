@@ -20,7 +20,8 @@ class PrivacyPolicyContent {
   static const String responsibleCommunity = 'Família TEA Bauru';
   static const String mainCity = 'Bauru/SP';
 
-  static const String importantNotice = r'''Esta Política de Privacidade explica como o ConeCTEA poderá coletar, utilizar, armazenar, proteger, compartilhar, corrigir e excluir dados pessoais relacionados aos usuários, participantes cadastrados, dependentes, responsáveis, familiares e demais pessoas vinculadas ao uso do aplicativo.
+  static const String importantNotice =
+      r'''Esta Política de Privacidade explica como o ConeCTEA poderá coletar, utilizar, armazenar, proteger, compartilhar, corrigir e excluir dados pessoais relacionados aos usuários, participantes cadastrados, dependentes, responsáveis, familiares e demais pessoas vinculadas ao uso do aplicativo.
 
 O ConeCTEA é um aplicativo social, comunitário, organizacional e informativo vinculado à Família TEA Bauru, comunidade e rede de apoio formada por familiares, mães, responsáveis, voluntários, profissionais, parceiros e pessoas comprometidas com inclusão real, respeito e acolhimento.
 
@@ -42,7 +43,8 @@ Ao criar conta, acessar ou utilizar o ConeCTEA, o usuário declara estar ciente 
     PrivacyPolicySection(
       number: 1,
       title: 'Identificação e finalidade desta Política de Privacidade',
-      content: r'''Esta Política de Privacidade explica como o ConeCTEA poderá coletar, utilizar, armazenar, proteger, compartilhar, corrigir e excluir dados pessoais relacionados aos usuários do aplicativo, participantes cadastrados, dependentes, familiares, responsáveis, pessoas vinculadas à conta, voluntários, parceiros e demais pessoas que interajam com as funcionalidades disponíveis.
+      content:
+          r'''Esta Política de Privacidade explica como o ConeCTEA poderá coletar, utilizar, armazenar, proteger, compartilhar, corrigir e excluir dados pessoais relacionados aos usuários do aplicativo, participantes cadastrados, dependentes, familiares, responsáveis, pessoas vinculadas à conta, voluntários, parceiros e demais pessoas que interajam com as funcionalidades disponíveis.
 
 O objetivo desta Política é informar, de forma clara e transparente, quais dados podem ser tratados pelo ConeCTEA, para quais finalidades esses dados podem ser utilizados, quem poderá acessá-los, em quais situações eles poderão ser compartilhados e quais canais podem ser utilizados para dúvidas, correções, solicitações ou exclusão de dados.
 
@@ -57,7 +59,8 @@ Caso o usuário não concorde com esta Política de Privacidade, deverá interro
     PrivacyPolicySection(
       number: 2,
       title: 'Quem é a Família TEA Bauru e qual é o papel do ConeCTEA',
-      content: r'''A Família TEA Bauru é uma comunidade e rede de apoio formada por familiares, mães, responsáveis, voluntários, profissionais, parceiros e pessoas comprometidas com inclusão real, respeito e acolhimento de famílias relacionadas ao Transtorno do Espectro Autista (TEA) e outras necessidades da comunidade.
+      content:
+          r'''A Família TEA Bauru é uma comunidade e rede de apoio formada por familiares, mães, responsáveis, voluntários, profissionais, parceiros e pessoas comprometidas com inclusão real, respeito e acolhimento de famílias relacionadas ao Transtorno do Espectro Autista (TEA) e outras necessidades da comunidade.
 
 A Família TEA Bauru atua como uma iniciativa comunitária, social, colaborativa e de apoio, com foco em aproximar pessoas, organizar ações, facilitar comunicação, apoiar famílias e fortalecer redes de acolhimento.
 
@@ -76,7 +79,8 @@ Quando o ConeCTEA apoiar programas comunitários, chamamentos, listas de interes
     PrivacyPolicySection(
       number: 3,
       title: 'Quais dados podem ser coletados pelo ConeCTEA',
-      content: r'''Para permitir o funcionamento do aplicativo, o ConeCTEA poderá coletar e tratar diferentes tipos de dados pessoais, conforme a funcionalidade utilizada pelo usuário, o tipo de cadastro realizado, a solicitação enviada, a participação em programas comunitários e as informações necessárias para organização da Família TEA Bauru.
+      content:
+          r'''Para permitir o funcionamento do aplicativo, o ConeCTEA poderá coletar e tratar diferentes tipos de dados pessoais, conforme a funcionalidade utilizada pelo usuário, o tipo de cadastro realizado, a solicitação enviada, a participação em programas comunitários e as informações necessárias para organização da Família TEA Bauru.
 
 Nem todos os dados listados nesta Política serão coletados em todos os casos. A coleta dependerá das funcionalidades disponíveis no aplicativo, das informações necessárias para cada finalidade e dos dados efetivamente informados pelo usuário.
 
@@ -148,8 +152,10 @@ O ConeCTEA não deve solicitar dados além do necessário para suas finalidades 
     ),
     PrivacyPolicySection(
       number: 4,
-      title: 'Dados de crianças, adolescentes, dependentes e pessoas vinculadas à conta',
-      content: r'''O ConeCTEA poderá tratar dados pessoais de crianças, adolescentes, dependentes, familiares ou pessoas vinculadas à conta do usuário quando essas informações forem necessárias para cadastro, solicitação da carteirinha digital comunitária, participação em programas comunitários, comunicação, suporte, análise administrativa ou organização das ações da Família TEA Bauru.
+      title:
+          'Dados de crianças, adolescentes, dependentes e pessoas vinculadas à conta',
+      content:
+          r'''O ConeCTEA poderá tratar dados pessoais de crianças, adolescentes, dependentes, familiares ou pessoas vinculadas à conta do usuário quando essas informações forem necessárias para cadastro, solicitação da carteirinha digital comunitária, participação em programas comunitários, comunicação, suporte, análise administrativa ou organização das ações da Família TEA Bauru.
 
 O cadastro ou envio de dados de criança, adolescente, dependente ou outra pessoa vinculada deverá ser realizado por usuário que possua autorização, legitimidade, vínculo familiar, vínculo de cuidado, representação, tutela, curatela, responsabilidade legal ou outra condição adequada para fornecer essas informações dentro do aplicativo.
 
@@ -180,7 +186,8 @@ A exclusão da conta do usuário responsável também poderá impactar dados de 
     PrivacyPolicySection(
       number: 5,
       title: 'Dados sensíveis, documentos e laudos',
-      content: r'''O ConeCTEA poderá tratar dados pessoais sensíveis ou informações que exigem cuidado especial quando forem necessários para cadastro, solicitação da carteirinha digital comunitária, análise administrativa, participação em programas comunitários, suporte, segurança ou organização das ações da Família TEA Bauru.
+      content:
+          r'''O ConeCTEA poderá tratar dados pessoais sensíveis ou informações que exigem cuidado especial quando forem necessários para cadastro, solicitação da carteirinha digital comunitária, análise administrativa, participação em programas comunitários, suporte, segurança ou organização das ações da Família TEA Bauru.
 
 Podem ser considerados dados sensíveis ou de cuidado especial, entre outros, laudos médicos, CID, tipo sanguíneo, documentos com foto, raça/cor quando informado, informações relacionadas à condição da pessoa, dados de crianças e adolescentes, dados de dependentes, informações de responsáveis, dados de contato de emergência, motivos de pendência, reprovação ou suspensão e informações relacionadas à participação em programas comunitários.
 
@@ -211,7 +218,8 @@ O prazo de retenção, descarte e exclusão de documentos sensíveis será trata
     PrivacyPolicySection(
       number: 6,
       title: 'Para que os dados são utilizados',
-      content: r'''Os dados tratados pelo ConeCTEA são utilizados para permitir o funcionamento do aplicativo, a organização comunitária da Família TEA Bauru, a análise de solicitações, a comunicação com usuários e a execução das funcionalidades disponíveis.
+      content:
+          r'''Os dados tratados pelo ConeCTEA são utilizados para permitir o funcionamento do aplicativo, a organização comunitária da Família TEA Bauru, a análise de solicitações, a comunicação com usuários e a execução das funcionalidades disponíveis.
 
 Os dados de cadastro, como nome, CPF, telefone, data de nascimento, e-mail, estado, cidade e senha, poderão ser utilizados para criação de conta, autenticação, identificação do usuário, prevenção de cadastros duplicados, segurança de acesso, suporte e comunicação relacionada ao uso do aplicativo.
 
@@ -272,7 +280,8 @@ A Família TEA Bauru deverá buscar utilizar apenas os dados necessários para c
     PrivacyPolicySection(
       number: 7,
       title: 'Carteirinha digital comunitária ConeCTEA',
-      content: r'''A carteirinha digital comunitária ConeCTEA é uma funcionalidade do aplicativo criada para apoiar a organização interna, comunitária e administrativa das ações da Família TEA Bauru.
+      content:
+          r'''A carteirinha digital comunitária ConeCTEA é uma funcionalidade do aplicativo criada para apoiar a organização interna, comunitária e administrativa das ações da Família TEA Bauru.
 
 A carteirinha poderá reunir dados necessários para identificação comunitária do beneficiário dentro do ConeCTEA, como nome, TEA ID, status da carteirinha, data de validade e outras informações permitidas conforme as funcionalidades disponíveis no aplicativo.
 
@@ -311,7 +320,8 @@ Funcionalidades futuras relacionadas à carteirinha, como validação sem conex�
     PrivacyPolicySection(
       number: 8,
       title: 'Programas comunitários, Fada do Dente, Vidas e parceiros',
-      content: r'''A Família TEA Bauru poderá organizar, apoiar, divulgar ou intermediar programas comunitários, ações sociais, chamamentos, listas de interesse, inscrições, comunicação de selecionados e encaminhamentos iniciais por meio do ConeCTEA.
+      content:
+          r'''A Família TEA Bauru poderá organizar, apoiar, divulgar ou intermediar programas comunitários, ações sociais, chamamentos, listas de interesse, inscrições, comunicação de selecionados e encaminhamentos iniciais por meio do ConeCTEA.
 
 Esses programas poderão incluir, entre outros, iniciativas como Fada do Dente, Vidas ou outros projetos futuros voltados ao apoio comunitário de famílias, pessoas autistas, pessoas neurodivergentes, crianças, adolescentes, dependentes e participantes cadastrados.
 
@@ -348,7 +358,8 @@ O usuário reconhece que programas comunitários podem possuir regras próprias,
     PrivacyPolicySection(
       number: 9,
       title: 'Compartilhamento de dados com parceiros',
-      content: r'''O ConeCTEA poderá compartilhar determinados dados pessoais com profissionais, clínicas, consultórios, parceiros, voluntários, apoiadores operacionais ou pessoas autorizadas quando esse compartilhamento for necessário para execução de programas comunitários, ações sociais, chamamentos, encaminhamentos iniciais, agendamentos, suporte, comunicação ou organização das atividades da Família TEA Bauru.
+      content:
+          r'''O ConeCTEA poderá compartilhar determinados dados pessoais com profissionais, clínicas, consultórios, parceiros, voluntários, apoiadores operacionais ou pessoas autorizadas quando esse compartilhamento for necessário para execução de programas comunitários, ações sociais, chamamentos, encaminhamentos iniciais, agendamentos, suporte, comunicação ou organização das atividades da Família TEA Bauru.
 
 O compartilhamento de dados deverá ocorrer apenas quando houver finalidade compatível com o ConeCTEA, necessidade real para a ação, vínculo com funcionalidade utilizada pelo usuário ou participação em programa comunitário.
 
@@ -377,7 +388,8 @@ Em caso de dúvida sobre compartilhamento de dados, o usuário poderá entrar em
     PrivacyPolicySection(
       number: 10,
       title: 'Serviços técnicos utilizados pelo aplicativo',
-      content: r'''Para funcionar corretamente, o ConeCTEA poderá utilizar serviços técnicos, plataformas, ferramentas, integrações e infraestrutura de terceiros, necessários para cadastro, autenticação, banco de dados, armazenamento temporário, notificações, comunicação, suporte, segurança, análise administrativa e operação das funcionalidades do aplicativo.
+      content:
+          r'''Para funcionar corretamente, o ConeCTEA poderá utilizar serviços técnicos, plataformas, ferramentas, integrações e infraestrutura de terceiros, necessários para cadastro, autenticação, banco de dados, armazenamento temporário, notificações, comunicação, suporte, segurança, análise administrativa e operação das funcionalidades do aplicativo.
 
 Esses serviços técnicos são utilizados para viabilizar o funcionamento do ConeCTEA e não devem ser interpretados como venda de dados pessoais ou uso dos dados para finalidade incompatível com o aplicativo.
 
@@ -414,7 +426,8 @@ O usuário reconhece que o funcionamento do ConeCTEA depende de infraestrutura d
     PrivacyPolicySection(
       number: 11,
       title: 'Notificações e comunicações',
-      content: r'''O ConeCTEA poderá enviar notificações, avisos, alertas, mensagens internas ou comunicações relacionadas ao uso do aplicativo, solicitações, carteirinha digital comunitária, programas comunitários, suporte, segurança, privacidade e ações da Família TEA Bauru.
+      content:
+          r'''O ConeCTEA poderá enviar notificações, avisos, alertas, mensagens internas ou comunicações relacionadas ao uso do aplicativo, solicitações, carteirinha digital comunitária, programas comunitários, suporte, segurança, privacidade e ações da Família TEA Bauru.
 
 As notificações poderão ser utilizadas para informar o usuário sobre atualizações de solicitação, pendências, aprovação, reprovação, suspensão, vencimento, renovação, necessidade de correção de dados, participação em programas comunitários, chamamentos, seleção, agendamento inicial, alterações de horário, avisos importantes ou outras comunicações relacionadas ao funcionamento do aplicativo.
 
@@ -439,7 +452,8 @@ A Família TEA Bauru também poderá utilizar canais oficiais externos, como e-m
     PrivacyPolicySection(
       number: 12,
       title: 'Armazenamento e segurança dos dados',
-      content: r'''Os dados tratados pelo ConeCTEA poderão ser armazenados em sistemas, bancos de dados, serviços de autenticação, ferramentas de notificação, serviços de apoio documental e demais infraestruturas técnicas necessárias ao funcionamento do aplicativo.
+      content:
+          r'''Os dados tratados pelo ConeCTEA poderão ser armazenados em sistemas, bancos de dados, serviços de autenticação, ferramentas de notificação, serviços de apoio documental e demais infraestruturas técnicas necessárias ao funcionamento do aplicativo.
 
 O ConeCTEA poderá utilizar serviços como Supabase, Google Apps Script, Google Drive, OneSignal ou tecnologias equivalentes para cadastro, autenticação, armazenamento, organização de solicitações, apoio documental, envio de notificações, suporte, segurança e operação das funcionalidades disponíveis.
 
@@ -466,7 +480,8 @@ Em caso de suspeita de acesso indevido, falha de segurança, uso não autorizado
     PrivacyPolicySection(
       number: 13,
       title: 'Prazos de análise, retenção e descarte de documentos sensíveis',
-      content: r'''O ConeCTEA trata documentos com foto, laudos médicos e informações complementares como dados sensíveis ou de cuidado especial, mantendo esses dados apenas pelo tempo necessário para análise da solicitação, conferência documental, correção de pendências, revisão, segurança, prevenção de uso indevido e organização comunitária da Família TEA Bauru.
+      content:
+          r'''O ConeCTEA trata documentos com foto, laudos médicos e informações complementares como dados sensíveis ou de cuidado especial, mantendo esses dados apenas pelo tempo necessário para análise da solicitação, conferência documental, correção de pendências, revisão, segurança, prevenção de uso indevido e organização comunitária da Família TEA Bauru.
 
 Quando uma solicitação de carteirinha digital comunitária for enviada sem pendências aparentes, o prazo estimado de análise será de até 5 dias úteis, conforme a capacidade operacional da equipe responsável, a disponibilidade de conferência das informações e o funcionamento técnico do aplicativo.
 
@@ -509,7 +524,8 @@ A exclusão de documentos e dados do banco de dados operacional ou do armazename
     PrivacyPolicySection(
       number: 14,
       title: 'Exclusão de conta e remoção de dependentes',
-      content: r'''O ConeCTEA disponibiliza funcionalidade para que o usuário realize a exclusão de sua conta diretamente pelo aplicativo, conforme o fluxo técnico disponível.
+      content:
+          r'''O ConeCTEA disponibiliza funcionalidade para que o usuário realize a exclusão de sua conta diretamente pelo aplicativo, conforme o fluxo técnico disponível.
 
 Por se tratar de uma ação sensível e potencialmente irreversível, a exclusão de conta exige confirmação expressa do usuário, podendo incluir leitura de aviso, digitação de frase de confirmação, ativação de botão específico ou outra etapa de segurança definida pelo aplicativo.
 
@@ -540,7 +556,8 @@ Em caso de dúvida sobre exclusão de conta, remoção de dependente ou dados vi
     PrivacyPolicySection(
       number: 15,
       title: 'Correção e atualização de dados',
-      content: r'''O usuário poderá realizar a correção e atualização de seus dados cadastrais e, quando aplicável, dos dados de dependentes vinculados à sua conta diretamente pelo ConeCTEA, conforme as funcionalidades disponíveis no aplicativo, o tipo de dado envolvido e as regras de segurança aplicáveis.
+      content:
+          r'''O usuário poderá realizar a correção e atualização de seus dados cadastrais e, quando aplicável, dos dados de dependentes vinculados à sua conta diretamente pelo ConeCTEA, conforme as funcionalidades disponíveis no aplicativo, o tipo de dado envolvido e as regras de segurança aplicáveis.
 
 O aplicativo poderá permitir a atualização de dados de conta, perfil, contato, informações cadastrais e dados de dependentes, sempre que essa alteração estiver disponível no fluxo correspondente e não representar risco à segurança da conta, à integridade da carteirinha digital comunitária, à análise de solicitações ou à proteção de dados de terceiros.
 
@@ -577,7 +594,8 @@ Em caso de dúvida sobre correção ou atualização de dados, o usuário poder�
     PrivacyPolicySection(
       number: 16,
       title: 'Direitos do usuário sobre seus dados',
-      content: r'''O usuário poderá solicitar informações, orientações, correções, atualizações, exclusão ou esclarecimentos relacionados aos seus dados pessoais tratados pelo ConeCTEA, conforme as funcionalidades disponíveis no aplicativo, os canais oficiais da Família TEA Bauru e a legislação aplicável.
+      content:
+          r'''O usuário poderá solicitar informações, orientações, correções, atualizações, exclusão ou esclarecimentos relacionados aos seus dados pessoais tratados pelo ConeCTEA, conforme as funcionalidades disponíveis no aplicativo, os canais oficiais da Família TEA Bauru e a legislação aplicável.
 
 O usuário poderá consultar, quando disponível no aplicativo, dados relacionados à sua conta, perfil, dependentes, solicitações, carteirinha digital comunitária, programas comunitários, notificações e demais informações vinculadas ao seu cadastro.
 
@@ -608,7 +626,8 @@ Em caso de dúvida sobre seus dados pessoais, o usuário poderá entrar em conta
     PrivacyPolicySection(
       number: 17,
       title: 'Alterações desta Política de Privacidade',
-      content: r'''A Família TEA Bauru poderá atualizar, revisar, complementar ou alterar esta Política de Privacidade sempre que necessário para refletir mudanças no ConeCTEA, novas funcionalidades, ajustes de segurança, alterações em fluxos de dados, programas comunitários, serviços técnicos utilizados, exigências legais, exigências de plataformas de publicação ou necessidades operacionais da comunidade.
+      content:
+          r'''A Família TEA Bauru poderá atualizar, revisar, complementar ou alterar esta Política de Privacidade sempre que necessário para refletir mudanças no ConeCTEA, novas funcionalidades, ajustes de segurança, alterações em fluxos de dados, programas comunitários, serviços técnicos utilizados, exigências legais, exigências de plataformas de publicação ou necessidades operacionais da comunidade.
 
 As alterações poderão ocorrer, entre outros motivos, quando houver mudança em funcionalidades como cadastro, acesso à conta, carteirinha digital comunitária, código QR (QR Code), TEA ID, solicitações, programas comunitários, notificações, suporte, exclusão de conta, remoção de dependentes, correção de dados, armazenamento, retenção ou descarte de documentos sensíveis.
 
@@ -627,7 +646,8 @@ A data de última atualização e a versão desta Política deverão ser indicad
     PrivacyPolicySection(
       number: 18,
       title: 'Contato sobre privacidade e proteção de dados',
-      content: r'''Em caso de dúvidas, solicitações, orientações, correções, exclusão de conta, remoção de dependentes, informações sobre dados pessoais, documentos, laudos, programas comunitários, compartilhamento de dados ou qualquer assunto relacionado à privacidade no ConeCTEA, o usuário poderá entrar em contato pelos canais oficiais da Família TEA Bauru.
+      content:
+          r'''Em caso de dúvidas, solicitações, orientações, correções, exclusão de conta, remoção de dependentes, informações sobre dados pessoais, documentos, laudos, programas comunitários, compartilhamento de dados ou qualquer assunto relacionado à privacidade no ConeCTEA, o usuário poderá entrar em contato pelos canais oficiais da Família TEA Bauru.
 
 Os canais oficiais disponíveis são:
 

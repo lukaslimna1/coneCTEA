@@ -32,18 +32,9 @@ class HomeInformationSection extends StatelessWidget {
       height: 80,
       titleSpacing: 10,
       items: [
-        SobreAppCard(
-          width: cardWidth,
-          onTap: onAboutTap,
-        ),
-        FamiliaTeaCard(
-          width: cardWidth,
-          onTap: onFamilyTeaTap,
-        ),
-        ProjetosAcoesCard(
-          width: cardWidth,
-          onTap: onProjectsActionsTap,
-        ),
+        SobreAppCard(width: cardWidth, onTap: onAboutTap),
+        FamiliaTeaCard(width: cardWidth, onTap: onFamilyTeaTap),
+        ProjetosAcoesCard(width: cardWidth, onTap: onProjectsActionsTap),
       ],
     );
   }

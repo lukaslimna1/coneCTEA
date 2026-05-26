@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
-import 'package:conectea/features/account/perfil/widgets/my_data_logged_header.dart';
-import 'package:conectea/features/account/privacidade/terms_of_use_content.dart';
+import 'package:conectea/features/conta/perfil/widgets/my_data_logged_header.dart';
+import 'package:conectea/features/conta/privacidade/terms_of_use_content.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 /// Tela visual de leitura dos Termos de Uso do ConeCTEA.

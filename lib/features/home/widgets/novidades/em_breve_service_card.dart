@@ -32,10 +32,7 @@ class EmBreveServiceCard extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            border: Border.all(
-              color: const Color(0x2494A3B4),
-              width: 1,
-            ),
+            border: Border.all(color: const Color(0x2494A3B4), width: 1),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.35),
@@ -110,7 +107,7 @@ class EmBreveServiceCard extends StatelessWidget {
                 ];
                 final sizes = [3.0, 2.0, 4.0, 2.5, 3.5, 2.0];
                 final opacities = [0.15, 0.10, 0.20, 0.12, 0.18, 0.10];
-                
+
                 return Positioned(
                   left: width * positions[index].dx,
                   top: 170 * positions[index].dy,
@@ -193,7 +190,9 @@ class EmBreveServiceCard extends StatelessWidget {
                           width: 46,
                           height: 46,
                           decoration: BoxDecoration(
-                            color: const Color(0xFF020617).withValues(alpha: 0.90),
+                            color: const Color(
+                              0xFF020617,
+                            ).withValues(alpha: 0.90),
                             borderRadius: BorderRadius.circular(14),
                             border: Border.all(
                               color: accentColor.withValues(alpha: 0.25),
@@ -216,7 +215,9 @@ class EmBreveServiceCard extends StatelessWidget {
                                   Text(
                                     'Em breve',
                                     style: TextStyle(
-                                      color: Colors.white.withValues(alpha: 0.95),
+                                      color: Colors.white.withValues(
+                                        alpha: 0.95,
+                                      ),
                                       fontSize: 20,
                                       fontWeight: FontWeight.w800,
                                       letterSpacing: -0.5,
@@ -229,10 +230,14 @@ class EmBreveServiceCard extends StatelessWidget {
                                       vertical: 2,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: accentColor.withValues(alpha: 0.15),
+                                      color: accentColor.withValues(
+                                        alpha: 0.15,
+                                      ),
                                       borderRadius: BorderRadius.circular(6),
                                       border: Border.all(
-                                        color: accentColor.withValues(alpha: 0.3),
+                                        color: accentColor.withValues(
+                                          alpha: 0.3,
+                                        ),
                                         width: 0.5,
                                       ),
                                     ),

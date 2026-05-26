@@ -20,7 +20,8 @@ class TermsOfUseContent {
   static const String responsibleCommunity = 'Família TEA Bauru';
   static const String mainCity = 'Bauru/SP';
 
-  static const String importantNotice = r'''Estes Termos de Uso regulam o acesso e a utilização do aplicativo ConeCTEA, desenvolvido para apoiar ações sociais, comunitárias, organizacionais e informativas da Família TEA Bauru.
+  static const String importantNotice =
+      r'''Estes Termos de Uso regulam o acesso e a utilização do aplicativo ConeCTEA, desenvolvido para apoiar ações sociais, comunitárias, organizacionais e informativas da Família TEA Bauru.
 
 A Família TEA Bauru é uma comunidade e rede de apoio formada por familiares, mães, responsáveis, voluntários, profissionais, parceiros e pessoas comprometidas com inclusão real, respeito e acolhimento de famílias relacionadas ao Transtorno do Espectro Autista e outras necessidades da comunidade.
 
@@ -40,7 +41,8 @@ Ao criar conta, acessar ou utilizar o ConeCTEA, o usuário declara que leu, comp
     TermsOfUseSection(
       number: 1,
       title: 'Identificação do ConeCTEA e da comunidade responsável',
-      content: r'''O ConeCTEA é um aplicativo social, comunitário, organizacional e informativo vinculado à Família TEA Bauru, comunidade e rede de apoio formada por familiares, mães, responsáveis, voluntários, profissionais, parceiros e pessoas comprometidas com inclusão real, respeito e acolhimento.
+      content:
+          r'''O ConeCTEA é um aplicativo social, comunitário, organizacional e informativo vinculado à Família TEA Bauru, comunidade e rede de apoio formada por familiares, mães, responsáveis, voluntários, profissionais, parceiros e pessoas comprometidas com inclusão real, respeito e acolhimento.
 
 A Família TEA Bauru atua como uma rede comunitária de apoio voltada, principalmente, a famílias relacionadas ao Transtorno do Espectro Autista (TEA), pessoas neurodivergentes, familiares, responsáveis, participantes cadastrados, voluntários, parceiros e equipe de organização.
 
@@ -70,7 +72,8 @@ A utilização do ConeCTEA não gera, por si só, direito automático a benefíc
     TermsOfUseSection(
       number: 2,
       title: 'Aceitação dos Termos de Uso',
-      content: r'''Ao criar uma conta, acessar, navegar ou utilizar qualquer funcionalidade do ConeCTEA, o usuário declara que leu, compreendeu e concorda com estes Termos de Uso, bem como com a Política de Privacidade aplicável ao aplicativo.
+      content:
+          r'''Ao criar uma conta, acessar, navegar ou utilizar qualquer funcionalidade do ConeCTEA, o usuário declara que leu, compreendeu e concorda com estes Termos de Uso, bem como com a Política de Privacidade aplicável ao aplicativo.
 
 A aceitação destes Termos é condição necessária para o uso do ConeCTEA. Caso o usuário não concorde com qualquer disposição aqui prevista, deverá interromper o uso do aplicativo e, se necessário, entrar em contato pelos canais oficiais da Família TEA Bauru para esclarecimentos.
 
@@ -87,7 +90,8 @@ A continuidade de uso do ConeCTEA após a disponibilização destes Termos ou de
     TermsOfUseSection(
       number: 3,
       title: 'Finalidade do aplicativo',
-      content: r'''O ConeCTEA tem como finalidade apoiar a organização, comunicação e gestão comunitária das ações desenvolvidas pela Família TEA Bauru, funcionando como uma ferramenta digital de apoio à comunidade, aos participantes cadastrados, familiares, responsáveis, voluntários, parceiros e equipe de organização.
+      content:
+          r'''O ConeCTEA tem como finalidade apoiar a organização, comunicação e gestão comunitária das ações desenvolvidas pela Família TEA Bauru, funcionando como uma ferramenta digital de apoio à comunidade, aos participantes cadastrados, familiares, responsáveis, voluntários, parceiros e equipe de organização.
 
 O aplicativo poderá ser utilizado para funcionalidades como cadastro de usuários, acesso à conta, solicitação e acompanhamento da carteirinha digital comunitária ConeCTEA, comunicação de avisos, notificações, suporte, consulta de informações, participação em programas comunitários, acompanhamento de solicitações e outras funcionalidades relacionadas às ações da Família TEA Bauru.
 
@@ -104,7 +108,8 @@ A utilização do aplicativo deve ocorrer sempre dentro de sua finalidade comuni
     TermsOfUseSection(
       number: 4,
       title: 'Natureza comunitária da carteirinha digital ConeCTEA',
-      content: r'''- **A carteirinha digital comunitária ConeCTEA é uma funcionalidade interna do aplicativo, criada para apoiar a identificação, organização e participação de pessoas cadastradas nas ações comunitárias da Família TEA Bauru.**
+      content:
+          r'''- **A carteirinha digital comunitária ConeCTEA é uma funcionalidade interna do aplicativo, criada para apoiar a identificação, organização e participação de pessoas cadastradas nas ações comunitárias da Família TEA Bauru.**
 
 A carteirinha possui finalidade comunitária, organizacional, informativa e interna, sendo vinculada às regras, critérios, validações e procedimentos definidos pela Família TEA Bauru para suas próprias ações, programas, comunicações e iniciativas.
 
@@ -123,7 +128,8 @@ Qualquer uso da carteirinha fora de sua finalidade comunitária, incluindo tenta
     TermsOfUseSection(
       number: 5,
       title: 'Ausência de caráter médico, odontológico, terapêutico ou clínico',
-      content: r'''O ConeCTEA não é aplicativo médico, odontológico, terapêutico, psicológico, clínico, hospitalar, assistencial de saúde ou equivalente.
+      content:
+          r'''O ConeCTEA não é aplicativo médico, odontológico, terapêutico, psicológico, clínico, hospitalar, assistencial de saúde ou equivalente.
 
 O aplicativo não realiza diagnóstico, não emite laudo, não confirma condição clínica, não valida deficiência, não prescreve tratamento, não indica conduta profissional, não substitui consulta, avaliação, acompanhamento ou atendimento realizado por profissional habilitado.
 
@@ -144,7 +150,8 @@ Qualquer decisão sobre diagnóstico, tratamento, acompanhamento, retorno, encam
     TermsOfUseSection(
       number: 6,
       title: 'Cadastro, conta e responsabilidade do usuário',
-      content: r'''Para utilizar determinadas funcionalidades do ConeCTEA, o usuário poderá precisar criar uma conta, informar dados pessoais, cadastrar informações necessárias e manter acesso por meio de credenciais de acesso, senha ou outro método de autenticação disponibilizado pelo aplicativo.
+      content:
+          r'''Para utilizar determinadas funcionalidades do ConeCTEA, o usuário poderá precisar criar uma conta, informar dados pessoais, cadastrar informações necessárias e manter acesso por meio de credenciais de acesso, senha ou outro método de autenticação disponibilizado pelo aplicativo.
 
 O usuário declara que todas as informações fornecidas no ConeCTEA devem ser verdadeiras, completas, atualizadas e compatíveis com a finalidade comunitária, organizacional e administrativa do aplicativo.
 
@@ -165,7 +172,8 @@ A Família TEA Bauru poderá solicitar informações complementares, correção 
     TermsOfUseSection(
       number: 7,
       title: 'Dependentes, responsáveis e pessoas vinculadas à conta',
-      content: r'''O ConeCTEA poderá permitir o cadastro ou vinculação de informações relacionadas a dependentes, crianças, adolescentes, familiares, pessoas sob cuidado, representação ou acompanhamento do usuário, conforme as funcionalidades disponibilizadas no aplicativo.
+      content:
+          r'''O ConeCTEA poderá permitir o cadastro ou vinculação de informações relacionadas a dependentes, crianças, adolescentes, familiares, pessoas sob cuidado, representação ou acompanhamento do usuário, conforme as funcionalidades disponibilizadas no aplicativo.
 
 Ao cadastrar, informar ou vincular dados de outra pessoa no ConeCTEA, o usuário declara possuir autorização, legitimidade, vínculo familiar, vínculo de cuidado, representação, tutela, curatela, responsabilidade legal ou outra condição adequada para fornecer tais informações e realizar solicitações em nome da pessoa vinculada.
 
@@ -188,7 +196,8 @@ A Família TEA Bauru poderá limitar, recusar, suspender ou solicitar revisão d
     TermsOfUseSection(
       number: 8,
       title: 'Solicitação, análise, aprovação, recusa e suspensão',
-      content: r'''O ConeCTEA poderá permitir que usuários realizem solicitações relacionadas à carteirinha digital comunitária, programas comunitários, ações da Família TEA Bauru, chamamentos, listas de interesse ou outras funcionalidades disponibilizadas no aplicativo.
+      content:
+          r'''O ConeCTEA poderá permitir que usuários realizem solicitações relacionadas à carteirinha digital comunitária, programas comunitários, ações da Família TEA Bauru, chamamentos, listas de interesse ou outras funcionalidades disponibilizadas no aplicativo.
 
 Toda solicitação realizada no ConeCTEA poderá passar por análise comunitária, administrativa ou organizacional da Família TEA Bauru, conforme a natureza da solicitação, os dados informados, os documentos apresentados quando aplicável, os critérios internos e a disponibilidade da equipe responsável.
 
@@ -207,7 +216,8 @@ O usuário reconhece que a aprovação de uma solicitação no ConeCTEA possui e
     TermsOfUseSection(
       number: 9,
       title: 'Documentos, laudos e informações complementares',
-      content: r'''O ConeCTEA poderá solicitar ou permitir o envio de documentos, comprovantes, laudos, informações complementares ou dados adicionais quando forem necessários para análise de solicitações, carteirinha digital comunitária, programas comunitários, chamamentos ou ações específicas da Família TEA Bauru.
+      content:
+          r'''O ConeCTEA poderá solicitar ou permitir o envio de documentos, comprovantes, laudos, informações complementares ou dados adicionais quando forem necessários para análise de solicitações, carteirinha digital comunitária, programas comunitários, chamamentos ou ações específicas da Família TEA Bauru.
 
 Documentos, laudos e informações complementares, quando solicitados, serão utilizados apenas para as finalidades relacionadas à análise comunitária, administrativa, organizacional, conferência documental, prevenção de uso indevido ou encaminhamento inicial vinculado à funcionalidade ou programa correspondente.
 
@@ -232,7 +242,8 @@ O usuário reconhece que a aprovação, reprovação, suspensão, devolução pa
     TermsOfUseSection(
       number: 10,
       title: 'Programas comunitários, parceiros e primeiro agendamento',
-      content: r'''A Família TEA Bauru poderá organizar, apoiar, divulgar ou intermediar programas comunitários, ações sociais, chamamentos, listas de interesse, inscrições, comunicação de selecionados e encaminhamentos iniciais por meio do ConeCTEA.
+      content:
+          r'''A Família TEA Bauru poderá organizar, apoiar, divulgar ou intermediar programas comunitários, ações sociais, chamamentos, listas de interesse, inscrições, comunicação de selecionados e encaminhamentos iniciais por meio do ConeCTEA.
 
 Esses programas poderão incluir, entre outros, iniciativas como Fada do Dente, Vidas ou outras ações futuras voltadas ao apoio comunitário de famílias, pessoas autistas, pessoas neurodivergentes, dependentes e participantes cadastrados.
 
@@ -257,7 +268,8 @@ O usuário reconhece que programas comunitários podem possuir regras próprias,
     TermsOfUseSection(
       number: 11,
       title: 'Uso permitido do aplicativo',
-      content: r'''O usuário poderá utilizar o ConeCTEA para finalidades lícitas, legítimas e compatíveis com a natureza social, comunitária, organizacional e informativa do aplicativo.
+      content:
+          r'''O usuário poderá utilizar o ConeCTEA para finalidades lícitas, legítimas e compatíveis com a natureza social, comunitária, organizacional e informativa do aplicativo.
 
 O uso permitido inclui, conforme as funcionalidades disponíveis, criar conta, acessar informações próprias, cadastrar dados necessários, solicitar carteirinha digital comunitária, acompanhar status de solicitações, receber comunicações, consultar avisos, participar de programas comunitários, entrar em listas de interesse, solicitar suporte e utilizar recursos disponibilizados pela Família TEA Bauru.
 
@@ -272,7 +284,8 @@ A Família TEA Bauru poderá orientar, limitar ou ajustar funcionalidades para p
     TermsOfUseSection(
       number: 12,
       title: 'Uso proibido do aplicativo',
-      content: r'''É proibido utilizar o ConeCTEA para qualquer finalidade ilegal, fraudulenta, abusiva, ofensiva, discriminatória, invasiva, contrária à boa-fé ou incompatível com estes Termos de Uso.
+      content:
+          r'''É proibido utilizar o ConeCTEA para qualquer finalidade ilegal, fraudulenta, abusiva, ofensiva, discriminatória, invasiva, contrária à boa-fé ou incompatível com estes Termos de Uso.
 
 É proibido fornecer dados falsos, adulterados, incompletos de forma intencional, enganosos ou pertencentes a terceiros sem autorização.
 
@@ -295,7 +308,8 @@ A violação deste item poderá resultar em recusa de solicitação, suspensão 
     TermsOfUseSection(
       number: 13,
       title: 'Código QR, validação e exibição da carteirinha',
-      content: r'''A carteirinha digital comunitária ConeCTEA poderá conter recurso visual, código QR (QR Code), TEA ID ou outro mecanismo técnico de apoio à consulta, identificação comunitária ou validação interna, conforme as funcionalidades disponíveis no aplicativo.
+      content:
+          r'''A carteirinha digital comunitária ConeCTEA poderá conter recurso visual, código QR (QR Code), TEA ID ou outro mecanismo técnico de apoio à consulta, identificação comunitária ou validação interna, conforme as funcionalidades disponíveis no aplicativo.
 
 O código QR, quando existente, possui finalidade limitada à organização comunitária, consulta interna, validação informativa e confirmação de dados permitidos dentro do contexto da Família TEA Bauru.
 
@@ -322,7 +336,8 @@ Funcionalidades futuras relacionadas ao código QR, como validação sem conexã
     TermsOfUseSection(
       number: 14,
       title: 'Notificações e comunicações',
-      content: r'''O ConeCTEA poderá enviar notificações, avisos, mensagens internas, alertas, comunicados ou atualizações relacionadas à conta, solicitações, carteirinha digital comunitária, programas, chamamentos, suporte, segurança, privacidade, atualizações do aplicativo e ações da Família TEA Bauru.
+      content:
+          r'''O ConeCTEA poderá enviar notificações, avisos, mensagens internas, alertas, comunicados ou atualizações relacionadas à conta, solicitações, carteirinha digital comunitária, programas, chamamentos, suporte, segurança, privacidade, atualizações do aplicativo e ações da Família TEA Bauru.
 
 As notificações têm finalidade informativa, organizacional e comunitária, podendo auxiliar o usuário a acompanhar solicitações, pendências, aprovações, recusas, agendamentos iniciais, orientações e comunicações importantes.
 
@@ -339,7 +354,8 @@ A ausência de recebimento de notificação, por falha de internet, configuraç�
     TermsOfUseSection(
       number: 15,
       title: 'Suporte e canais oficiais',
-      content: r'''A Família TEA Bauru disponibiliza canais oficiais para contato, suporte, dúvidas, solicitações, comunicação comunitária e assuntos relacionados ao ConeCTEA.
+      content:
+          r'''A Família TEA Bauru disponibiliza canais oficiais para contato, suporte, dúvidas, solicitações, comunicação comunitária e assuntos relacionados ao ConeCTEA.
 
 Os canais oficiais indicados nestes Termos são:
 
@@ -363,7 +379,8 @@ A Família TEA Bauru poderá atualizar seus canais oficiais a qualquer momento, 
     TermsOfUseSection(
       number: 16,
       title: 'Correção e atualização de dados',
-      content: r'''O usuário poderá realizar ou solicitar a correção e atualização de dados diretamente pelo ConeCTEA, conforme as funcionalidades disponíveis no aplicativo, o tipo de dado envolvido e as regras de segurança aplicáveis.
+      content:
+          r'''O usuário poderá realizar ou solicitar a correção e atualização de dados diretamente pelo ConeCTEA, conforme as funcionalidades disponíveis no aplicativo, o tipo de dado envolvido e as regras de segurança aplicáveis.
 
 O aplicativo poderá permitir a atualização de dados de conta, perfil, contato, informações cadastrais e dados de dependentes, sempre que essa alteração estiver disponível no fluxo correspondente e não representar risco à segurança da conta, à integridade da carteirinha digital comunitária, à análise de solicitações ou à proteção de dados de terceiros.
 
@@ -400,7 +417,8 @@ Em caso de dúvida sobre correção ou atualização de dados, o usuário poder�
     TermsOfUseSection(
       number: 17,
       title: 'Exclusão de conta, remoção de dependentes e encerramento de uso',
-      content: r'''O ConeCTEA disponibiliza funcionalidade para que o usuário realize a exclusão de sua conta diretamente pelo aplicativo, conforme o fluxo técnico disponível.
+      content:
+          r'''O ConeCTEA disponibiliza funcionalidade para que o usuário realize a exclusão de sua conta diretamente pelo aplicativo, conforme o fluxo técnico disponível.
 
 Por se tratar de uma ação sensível e potencialmente irreversível, a exclusão de conta exige confirmação expressa do usuário, podendo incluir leitura de aviso, preenchimento de frase de confirmação, ativação de botão específico ou outra etapa de segurança definida pelo aplicativo.
 
@@ -433,7 +451,8 @@ Em caso de dúvida sobre exclusão de conta, remoção de dependente ou dados vi
     TermsOfUseSection(
       number: 18,
       title: 'Suspensão, bloqueio ou encerramento de acesso',
-      content: r'''A Família TEA Bauru poderá suspender, bloquear, limitar ou encerrar o acesso de usuário, conta, solicitação, carteirinha digital comunitária ou participação em programa quando houver descumprimento destes Termos de Uso, violação da Política de Privacidade, uso indevido, suspeita de fraude, inconsistência grave, risco à segurança, proteção de dados, conflito de informações ou necessidade de proteção da comunidade.
+      content:
+          r'''A Família TEA Bauru poderá suspender, bloquear, limitar ou encerrar o acesso de usuário, conta, solicitação, carteirinha digital comunitária ou participação em programa quando houver descumprimento destes Termos de Uso, violação da Política de Privacidade, uso indevido, suspeita de fraude, inconsistência grave, risco à segurança, proteção de dados, conflito de informações ou necessidade de proteção da comunidade.
 
 A suspensão ou bloqueio poderá ocorrer, entre outras hipóteses, quando houver fornecimento de dados falsos, uso de documentos adulterados, tentativa de acessar dados de terceiros, uso indevido de código QR (QR Code), compartilhamento indevido de carteirinha, fraude em programas comunitários, conduta abusiva, violação de direitos de terceiros ou tentativa de prejudicar o funcionamento do aplicativo.
 
@@ -448,7 +467,8 @@ A Família TEA Bauru poderá reativar, manter suspenso, cancelar ou encerrar o a
     TermsOfUseSection(
       number: 19,
       title: 'Limitações de responsabilidade',
-      content: r'''O ConeCTEA é disponibilizado como ferramenta digital de apoio comunitário, organizacional, informativo e administrativo da Família TEA Bauru.
+      content:
+          r'''O ConeCTEA é disponibilizado como ferramenta digital de apoio comunitário, organizacional, informativo e administrativo da Família TEA Bauru.
 
 A Família TEA Bauru não se responsabiliza por uso indevido do aplicativo, fornecimento de dados falsos pelo usuário, compartilhamento de senha, acesso não autorizado causado por descuido do usuário, divulgação indevida de carteirinha, código QR (QR Code), prints, documentos ou informações pessoais realizada pelo próprio usuário ou por terceiros sem autorização.
 
@@ -469,7 +489,8 @@ Nenhuma disposição destes Termos limita direitos que não possam ser limitados
     TermsOfUseSection(
       number: 20,
       title: 'Disponibilidade, manutenção e atualizações',
-      content: r'''O ConeCTEA poderá passar por atualizações, melhorias, correções, manutenção, alterações de funcionalidades, ajustes de segurança, mudanças visuais, reorganização de fluxos ou indisponibilidades temporárias.
+      content:
+          r'''O ConeCTEA poderá passar por atualizações, melhorias, correções, manutenção, alterações de funcionalidades, ajustes de segurança, mudanças visuais, reorganização de fluxos ou indisponibilidades temporárias.
 
 A Família TEA Bauru poderá alterar, suspender, remover, substituir ou atualizar funcionalidades do aplicativo sempre que entender necessário para melhorar a experiência, corrigir problemas, preservar a segurança, adequar o aplicativo à legislação, atender exigências de plataformas, proteger dados ou reorganizar ações comunitárias.
 
@@ -484,7 +505,8 @@ O usuário reconhece que funcionalidades ainda poderão evoluir, ser reorganizad
     TermsOfUseSection(
       number: 21,
       title: 'Propriedade intelectual, marca e conteúdo',
-      content: r'''O nome ConeCTEA, sua identidade visual, telas, textos, organização visual, elementos gráficos, componentes, marca, logotipos, materiais, fluxos, conteúdos comunitários, conteúdos informativos, comunicações oficiais e demais elementos do aplicativo pertencem ou são utilizados pela Família TEA Bauru e por seus responsáveis, criadores, parceiros ou colaboradores autorizados, conforme o caso.
+      content:
+          r'''O nome ConeCTEA, sua identidade visual, telas, textos, organização visual, elementos gráficos, componentes, marca, logotipos, materiais, fluxos, conteúdos comunitários, conteúdos informativos, comunicações oficiais e demais elementos do aplicativo pertencem ou são utilizados pela Família TEA Bauru e por seus responsáveis, criadores, parceiros ou colaboradores autorizados, conforme o caso.
 
 O usuário não recebe qualquer direito de propriedade, licença comercial, autorização de exploração, cópia, revenda, reprodução, distribuição, modificação, engenharia reversa ou uso indevido da marca, identidade visual, conteúdo, sistema ou elementos do ConeCTEA.
 
@@ -499,7 +521,8 @@ Eventuais marcas, nomes, logotipos, imagens, materiais, conteúdos ou informaç�
     TermsOfUseSection(
       number: 22,
       title: 'Serviços de terceiros e integrações técnicas',
-      content: r'''O funcionamento do ConeCTEA poderá depender de serviços, ferramentas, plataformas, sistemas ou integrações técnicas de terceiros, utilizados para viabilizar funcionalidades como autenticação, banco de dados, armazenamento, notificações, comunicação, suporte, apoio documental, segurança, infraestrutura e operação do aplicativo.
+      content:
+          r'''O funcionamento do ConeCTEA poderá depender de serviços, ferramentas, plataformas, sistemas ou integrações técnicas de terceiros, utilizados para viabilizar funcionalidades como autenticação, banco de dados, armazenamento, notificações, comunicação, suporte, apoio documental, segurança, infraestrutura e operação do aplicativo.
 
 Esses serviços poderão incluir, conforme a arquitetura técnica adotada, plataformas de banco de dados, autenticação, envio de notificações, armazenamento externo, serviços de nuvem, ferramentas de apoio documental, sistemas de comunicação e outras integrações necessárias ao funcionamento do ConeCTEA.
 
@@ -516,7 +539,8 @@ O usuário reconhece que o uso do ConeCTEA pode envolver tratamento de dados por
     TermsOfUseSection(
       number: 23,
       title: 'Privacidade e proteção de dados',
-      content: r'''O uso do ConeCTEA poderá envolver tratamento de dados pessoais e, em alguns casos, dados pessoais sensíveis, especialmente quando houver cadastro, acesso à conta, solicitações, dependentes, crianças, adolescentes, documentos, laudos, participação em programas comunitários, notificações, suporte ou encaminhamento inicial a parceiros.
+      content:
+          r'''O uso do ConeCTEA poderá envolver tratamento de dados pessoais e, em alguns casos, dados pessoais sensíveis, especialmente quando houver cadastro, acesso à conta, solicitações, dependentes, crianças, adolescentes, documentos, laudos, participação em programas comunitários, notificações, suporte ou encaminhamento inicial a parceiros.
 
 A forma como os dados são coletados, utilizados, armazenados, compartilhados, protegidos, corrigidos ou excluídos será detalhada na Política de Privacidade do ConeCTEA, que complementa estes Termos de Uso.
 
@@ -535,7 +559,8 @@ Em caso de dúvida sobre privacidade ou proteção de dados, o usuário poderá 
     TermsOfUseSection(
       number: 24,
       title: 'Alterações destes Termos de Uso',
-      content: r'''A Família TEA Bauru poderá atualizar, revisar, complementar ou alterar estes Termos de Uso a qualquer momento, especialmente para refletir mudanças no ConeCTEA, novas funcionalidades, programas comunitários, exigências legais, exigências de plataformas, melhorias de segurança, ajustes de privacidade, reorganização operacional ou necessidades da comunidade.
+      content:
+          r'''A Família TEA Bauru poderá atualizar, revisar, complementar ou alterar estes Termos de Uso a qualquer momento, especialmente para refletir mudanças no ConeCTEA, novas funcionalidades, programas comunitários, exigências legais, exigências de plataformas, melhorias de segurança, ajustes de privacidade, reorganização operacional ou necessidades da comunidade.
 
 A versão atualizada dos Termos poderá ser disponibilizada dentro do aplicativo, em documento oficial, canal digital, site, link informado ou outro meio adequado.
 
@@ -550,7 +575,8 @@ A data de última atualização e a versão dos Termos deverão ser indicadas no
     TermsOfUseSection(
       number: 25,
       title: 'Lei aplicável, solução de dúvidas e contato oficial',
-      content: r'''Estes Termos de Uso são regidos pela legislação brasileira aplicável, incluindo normas relacionadas a direitos civis, proteção de dados pessoais, uso de aplicações digitais, defesa de direitos dos usuários e demais regras pertinentes ao funcionamento do ConeCTEA.
+      content:
+          r'''Estes Termos de Uso são regidos pela legislação brasileira aplicável, incluindo normas relacionadas a direitos civis, proteção de dados pessoais, uso de aplicações digitais, defesa de direitos dos usuários e demais regras pertinentes ao funcionamento do ConeCTEA.
 
 Eventuais dúvidas, solicitações, reclamações, pedidos de esclarecimento, correção de dados, suporte, privacidade, exclusão de conta ou assuntos relacionados ao uso do aplicativo deverão ser encaminhados preferencialmente pelos canais oficiais da Família TEA Bauru.
 

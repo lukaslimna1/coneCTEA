@@ -7,7 +7,11 @@ import 'package:conectea/features/home/widgets/banners/home_campaign_banner.dart
 class InstagramBanner extends StatelessWidget {
   const InstagramBanner({super.key});
 
-  Future<void> _launchUrl(BuildContext context, String url, String errorMessage) async {
+  Future<void> _launchUrl(
+    BuildContext context,
+    String url,
+    String errorMessage,
+  ) async {
     final Uri uri = Uri.parse(url);
     try {
       if (await canLaunchUrl(uri)) {
@@ -24,10 +28,7 @@ class InstagramBanner extends StatelessWidget {
 
   void _showError(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: DsCores.alerta.accent,
-      ),
+      SnackBar(content: Text(message), backgroundColor: DsCores.alerta.accent),
     );
   }
 
@@ -57,7 +58,8 @@ class InstagramBanner extends StatelessWidget {
         ctaTextColor: const Color(0xFFFFC0B3),
         illustrationAssetPath: 'assets/images/instagram_banner_art.webp',
         illustrationWidthFactor: 0.75, // Bem maior para avançar nas bordas
-        illustrationRightOffset: -60, // Empurrado bem para a direita para respirar e cortar o lado direito
+        illustrationRightOffset:
+            -60, // Empurrado bem para a direita para respirar e cortar o lado direito
         illustrationOpacity: 0.35, // Ainda mais discreto
         illustrationFit: BoxFit.cover, // Garante que preencha bem o espaço
         illustrationAlignment: Alignment.centerRight,

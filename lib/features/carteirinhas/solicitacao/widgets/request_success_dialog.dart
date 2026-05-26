@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:conectea/core/constants/colors.dart';
 
-
 class RequestSuccessDialog extends StatelessWidget {
   final String protocol;
 
@@ -71,7 +70,9 @@ class RequestSuccessDialog extends StatelessWidget {
             child: ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop(); // Fecha o modal
-                Navigator.of(context).pop(); // Fecha a página AddMemberPage e volta para a Home
+                Navigator.of(
+                  context,
+                ).pop(); // Fecha a página AddMemberPage e volta para a Home
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,

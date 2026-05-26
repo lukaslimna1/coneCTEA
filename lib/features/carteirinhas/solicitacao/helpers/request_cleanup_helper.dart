@@ -37,7 +37,9 @@ class RequestCleanupHelper {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF00D4FF)),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      Color(0xFF00D4FF),
+                    ),
                   ),
                   const SizedBox(height: 20),
                   Text(
@@ -79,7 +81,7 @@ class RequestCleanupHelper {
     if (context.mounted) {
       Navigator.of(context).pop(); // Fecha o diálogo de loading
     }
-    
+
     // Fecha a tela AddMemberPage
     if (context.mounted) {
       Navigator.of(context).pop(); // Fecha a tela AddMemberPage

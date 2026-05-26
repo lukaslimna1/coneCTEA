@@ -10,7 +10,7 @@ import '../../models/app_user.dart';
 import 'home_view.dart';
 import '../carteirinhas/cards_view.dart';
 import '../notificacoes/notifications_view.dart';
-import '../account/account_view.dart';
+import '../conta/account_view.dart';
 import '../admin/admin_view.dart';
 import '../clube/partners_supporters_view.dart';
 import '../participar/projects_actions_view.dart';

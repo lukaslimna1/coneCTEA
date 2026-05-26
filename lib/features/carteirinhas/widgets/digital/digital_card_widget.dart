@@ -38,7 +38,7 @@ class _DigitalCardWidgetState extends State<DigitalCardWidget> {
   bool _internalShowCpf = false;
 
   bool get _effectiveShowCpf => widget.showCpf ?? _internalShowCpf;
-  
+
   void _handleToggleCpf() {
     if (widget.onToggleCpf != null) {
       widget.onToggleCpf?.call();
@@ -72,7 +72,7 @@ class _DigitalCardWidgetState extends State<DigitalCardWidget> {
               height: 450 / 1.58,
               child: widget.showBack
                   ? DigitalCardBack(
-                      member: widget.member, 
+                      member: widget.member,
                       card: widget.card,
                       showCpf: _effectiveShowCpf,
                       onToggleCpf: _handleToggleCpf,
@@ -115,7 +115,7 @@ class _DigitalCardWidgetState extends State<DigitalCardWidget> {
                   height: 450 / 1.58,
                   child: widget.showBack
                       ? DigitalCardBack(
-                          member: widget.member, 
+                          member: widget.member,
                           card: widget.card,
                           showCpf: _effectiveShowCpf,
                           onToggleCpf: _handleToggleCpf,

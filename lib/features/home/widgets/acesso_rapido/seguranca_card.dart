@@ -8,11 +8,7 @@ class SegurancaCard extends StatelessWidget {
   final double width;
   final VoidCallback onTap;
 
-  const SegurancaCard({
-    super.key,
-    required this.width,
-    required this.onTap,
-  });
+  const SegurancaCard({super.key, required this.width, required this.onTap});
 
   @override
   Widget build(BuildContext context) {

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
-import 'package:conectea/features/account/perfil/widgets/my_data_logged_header.dart';
+import 'package:conectea/features/conta/perfil/widgets/my_data_logged_header.dart';
 import 'package:conectea/core/services/device_auth_service.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 

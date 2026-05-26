@@ -3,8 +3,8 @@ import 'package:conectea/features/home/widgets/comum/home_horizontal_section.dar
 import 'package:conectea/features/home/widgets/acesso_rapido/solicitar_carteirinha_card.dart';
 import 'package:conectea/features/home/widgets/acesso_rapido/suporte_card.dart';
 import 'package:conectea/features/home/widgets/acesso_rapido/seguranca_card.dart';
-import 'package:conectea/features/account/seguranca/security_view.dart';
-import 'package:conectea/features/account/suporte/support_view.dart';
+import 'package:conectea/features/conta/seguranca/security_view.dart';
+import 'package:conectea/features/conta/suporte/support_view.dart';
 
 /// Seção de "Acesso Rápido" do dashboard.
 /// Modulariza o antigo '_buildBlock1' da HomeView.

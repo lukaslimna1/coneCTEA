@@ -7,10 +7,7 @@ import 'package:conectea/core/widgets/premium/premium_button.dart';
 class CardsErrorState extends StatelessWidget {
   final VoidCallback onRetry;
 
-  const CardsErrorState({
-    super.key,
-    required this.onRetry,
-  });
+  const CardsErrorState({super.key, required this.onRetry});
 
   @override
   Widget build(BuildContext context) {
@@ -37,9 +34,9 @@ class CardsErrorState extends StatelessWidget {
                 size: 64,
               ),
             ),
-            
+
             const SizedBox(height: 32),
-            
+
             // Título
             Text(
               'Não foi possível carregar suas carteirinhas',
@@ -51,9 +48,9 @@ class CardsErrorState extends StatelessWidget {
                 height: 1.2,
               ),
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Descrição
             Text(
               'Verifique sua conexão e tente novamente em instantes.',
@@ -64,9 +61,9 @@ class CardsErrorState extends StatelessWidget {
                 height: 1.5,
               ),
             ),
-            
+
             const SizedBox(height: 40),
-            
+
             // Botão de ação
             SizedBox(
               width: 200,

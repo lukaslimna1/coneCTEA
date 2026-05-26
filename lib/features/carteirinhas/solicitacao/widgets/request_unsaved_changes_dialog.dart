@@ -39,10 +39,7 @@ class RequestUnsavedChangesDialog extends StatelessWidget {
           ),
           child: Text(
             'Continuar Editando',
-            style: GoogleFonts.inter(
-              fontWeight: FontWeight.w600,
-              fontSize: 14,
-            ),
+            style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 14),
           ),
         ),
         ElevatedButton(
@@ -58,10 +55,7 @@ class RequestUnsavedChangesDialog extends StatelessWidget {
           ),
           child: Text(
             'Sair sem Salvar',
-            style: GoogleFonts.inter(
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
-            ),
+            style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 14),
           ),
         ),
       ],

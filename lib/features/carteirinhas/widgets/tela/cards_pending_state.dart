@@ -23,7 +23,8 @@ class CardsPendingState extends StatelessWidget {
     final double topSafeArea = MediaQuery.paddingOf(context).top;
     const double headerVisualHeight = 64.0;
     const double headerClearance = 4.0;
-    final double topPadding = topSafeArea + headerVisualHeight + headerClearance;
+    final double topPadding =
+        topSafeArea + headerVisualHeight + headerClearance;
 
     return ListView(
       padding: EdgeInsets.fromLTRB(24, topPadding, 24, 24),
@@ -40,10 +41,7 @@ class CardsPendingState extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           'Gerencie as carteirinhas vinculadas à sua conta.',
-          style: GoogleFonts.inter(
-            fontSize: 14,
-            color: AppColors.cardSubtitle,
-          ),
+          style: GoogleFonts.inter(fontSize: 14, color: AppColors.cardSubtitle),
         ),
         const SizedBox(height: 48),
         Center(

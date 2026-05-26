@@ -8,11 +8,7 @@ class SobreAppCard extends StatelessWidget {
   final double width;
   final VoidCallback onTap;
 
-  const SobreAppCard({
-    super.key,
-    required this.width,
-    required this.onTap,
-  });
+  const SobreAppCard({super.key, required this.width, required this.onTap});
 
   @override
   Widget build(BuildContext context) {

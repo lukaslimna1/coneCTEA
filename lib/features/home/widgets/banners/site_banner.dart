@@ -12,7 +12,8 @@ class SiteBanner extends StatelessWidget {
       eyebrow: 'Portal',
       eyebrowIcon: PhosphorIcons.globeHemisphereWest(PhosphorIconsStyle.fill),
       title: 'Novo portal a caminho',
-      subtitle: 'Estamos preparando um espaço oficial com mais informação, conteúdo e conexão.',
+      subtitle:
+          'Estamos preparando um espaço oficial com mais informação, conteúdo e conexão.',
       ctaLabel: 'Em breve',
       semanticToken: DsCores.institucional,
       theme: BannerTheme(

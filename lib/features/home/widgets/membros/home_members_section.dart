@@ -65,7 +65,8 @@ class HomeMembersSection extends StatelessWidget {
                   ),
                   width: 175, // Largura fixa para estabilidade
                   constraints: const BoxConstraints(
-                    minHeight: 64, // Altura mínima para consistência e segurança sob zoom
+                    minHeight:
+                        64, // Altura mínima para consistência e segurança sob zoom
                   ),
                   decoration: BoxDecoration(
                     color: isSelected
@@ -125,7 +126,9 @@ class HomeMembersSection extends StatelessWidget {
                                     shape: BoxShape.circle,
                                     boxShadow: [
                                       BoxShadow(
-                                        color: statusInfo.color.withValues(alpha: 0.4),
+                                        color: statusInfo.color.withValues(
+                                          alpha: 0.4,
+                                        ),
                                         blurRadius: 3,
                                       ),
                                     ],
@@ -138,7 +141,9 @@ class HomeMembersSection extends StatelessWidget {
                                     style: GoogleFonts.inter(
                                       fontSize: 9,
                                       fontWeight: FontWeight.w900,
-                                      color: statusInfo.color.withValues(alpha: 0.9),
+                                      color: statusInfo.color.withValues(
+                                        alpha: 0.9,
+                                      ),
                                       letterSpacing: 0.3,
                                     ),
                                     maxLines: 1,

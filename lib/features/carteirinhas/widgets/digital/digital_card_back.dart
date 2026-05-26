@@ -14,10 +14,10 @@ class DigitalCardBack extends StatelessWidget {
   final DigitalCard? card;
   final bool showCpf;
   final VoidCallback onToggleCpf;
-  
+
   const DigitalCardBack({
     super.key,
-    required this.member, 
+    required this.member,
     this.card,
     required this.showCpf,
     required this.onToggleCpf,
@@ -59,19 +59,21 @@ class DigitalCardBack extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  
+
                   InkWell(
                     onTap: onToggleCpf,
                     borderRadius: BorderRadius.circular(8),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4.0),
                       child: _buildBackItem(
-                        'CPF', 
+                        'CPF',
                         showCpf ? _fmtCpf(member.cpf) : '***.***.***-**',
                         trailing: Padding(
                           padding: const EdgeInsets.only(left: 8.0),
                           child: Icon(
-                            showCpf ? PhosphorIconsRegular.eyeSlash : PhosphorIconsRegular.eye,
+                            showCpf
+                                ? PhosphorIconsRegular.eyeSlash
+                                : PhosphorIconsRegular.eye,
                             size: 18,
                             color: const Color(0xFF00D8D0),
                           ),
@@ -79,15 +81,24 @@ class DigitalCardBack extends StatelessWidget {
                       ),
                     ),
                   ),
-                  
+
                   if (member.cid.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 8.0),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF0F172A).withValues(alpha: 0.45),
-                          border: Border.all(color: const Color(0xFF00D8D0).withValues(alpha: 0.3)),
+                          color: const Color(
+                            0xFF0F172A,
+                          ).withValues(alpha: 0.45),
+                          border: Border.all(
+                            color: const Color(
+                              0xFF00D8D0,
+                            ).withValues(alpha: 0.3),
+                          ),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Row(
@@ -105,7 +116,9 @@ class DigitalCardBack extends StatelessWidget {
                             Text(
                               member.cid,
                               style: GoogleFonts.inter(
-                                color: const Color(0xFF67E8F9), // Ciano suave Sapphire
+                                color: const Color(
+                                  0xFF67E8F9,
+                                ), // Ciano suave Sapphire
                                 fontSize: 10,
                                 fontWeight: FontWeight.w900,
                               ),
@@ -114,11 +127,14 @@ class DigitalCardBack extends StatelessWidget {
                         ),
                       ),
                     ),
-                    
-                  _buildBackItem('CIDADE / UF', '${member.city} / ${member.state}'),
-                  
+
+                  _buildBackItem(
+                    'CIDADE / UF',
+                    '${member.city} / ${member.state}',
+                  ),
+
                   const Spacer(),
-                  
+
                   // Texto legal
                   Padding(
                     padding: const EdgeInsets.only(bottom: 4.0),
@@ -156,7 +172,9 @@ class DigitalCardBack extends StatelessWidget {
                           offset: const Offset(0, 5),
                         ),
                       ],
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.2),
+                      ),
                     ),
                     child: QrImageView(
                       data: qrData,
@@ -192,8 +210,14 @@ class DigitalCardBack extends StatelessWidget {
                         fontWeight: FontWeight.w900,
                       ),
                       children: const [
-                        TextSpan(text: 'Cone', style: TextStyle(color: Color(0xFFA143FF))),
-                        TextSpan(text: 'CTEA', style: TextStyle(color: Color(0xFF00D8D0))),
+                        TextSpan(
+                          text: 'Cone',
+                          style: TextStyle(color: Color(0xFFA143FF)),
+                        ),
+                        TextSpan(
+                          text: 'CTEA',
+                          style: TextStyle(color: Color(0xFF00D8D0)),
+                        ),
                       ],
                     ),
                   ),

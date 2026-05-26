@@ -28,28 +28,43 @@ class DigitalCardFront extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final birthStr = _parseDate(member.dateOfBirth);
-    final validStr = card != null ? ConecteaDateTimeHelper.formatProjectDateShort(card!.validUntil) : '--/--/----';
+    final validStr = card != null
+        ? ConecteaDateTimeHelper.formatProjectDateShort(card!.validUntil)
+        : '--/--/----';
     final validationToken = card != null ? card!.cardNumber : '----';
 
     final status = statusOverride ?? (card?.status ?? 'pending');
 
     bool isExpired = statusOverride == 'expired';
     if (card != null && !isExpired) {
-      final projectToday = ConecteaDateTimeHelper.toProjectTime(ConecteaDateTimeHelper.nowProjectTime);
-      final todayDateOnly = DateTime(projectToday.year, projectToday.month, projectToday.day);
+      final projectToday = ConecteaDateTimeHelper.toProjectTime(
+        ConecteaDateTimeHelper.nowProjectTime,
+      );
+      final todayDateOnly = DateTime(
+        projectToday.year,
+        projectToday.month,
+        projectToday.day,
+      );
 
-      final validUntilProject = ConecteaDateTimeHelper.toProjectTime(card!.validUntil);
-      final validUntilDateOnly = DateTime(validUntilProject.year, validUntilProject.month, validUntilProject.day);
+      final validUntilProject = ConecteaDateTimeHelper.toProjectTime(
+        card!.validUntil,
+      );
+      final validUntilDateOnly = DateTime(
+        validUntilProject.year,
+        validUntilProject.month,
+        validUntilProject.day,
+      );
 
       isExpired = todayDateOnly.isAfter(validUntilDateOnly);
     }
-    
+
     // Resolve tokens de status (se estiver expirado ou forçado, usa o status correto)
     final effectiveStatus = isExpired ? 'expired' : status;
     final tokens = StatusVisualTokens.fromStatus(effectiveStatus);
 
-    final bool hasValidBloodType = member.bloodType.isNotEmpty && 
-        !member.bloodType.toLowerCase().contains('não sei') && 
+    final bool hasValidBloodType =
+        member.bloodType.isNotEmpty &&
+        !member.bloodType.toLowerCase().contains('não sei') &&
         !member.bloodType.toLowerCase().contains('prefiro');
 
     return DigitalCardBackground(
@@ -66,7 +81,8 @@ class DigitalCardFront extends StatelessWidget {
               children: [
                 ConstrainedBox(
                   constraints: const BoxConstraints(
-                    maxWidth: 215, // Logo horizontal ~45% a 60% da largura da carteirinha
+                    maxWidth:
+                        215, // Logo horizontal ~45% a 60% da largura da carteirinha
                     maxHeight: 36, // Logo horizontal pequena/média
                   ),
                   child: Image.asset(
@@ -83,18 +99,23 @@ class DigitalCardFront extends StatelessWidget {
                     ),
                   ),
                 ),
-                
+
                 // Pílulas lado a lado
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     // Pílula de Validade — Estilo Glassmorphism Refinado
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 5,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFF0C2445).withValues(alpha: 0.9),
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.3),
+                        ),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withValues(alpha: 0.4),
@@ -106,15 +127,23 @@ class DigitalCardFront extends StatelessWidget {
                       child: Row(
                         children: [
                           Icon(
-                            PhosphorIconsBold.calendar, 
-                            color: isExpired ? StatusVisualTokens.fromStatus('expired').primary : const Color(0xFFA78BFA),
+                            PhosphorIconsBold.calendar,
+                            color: isExpired
+                                ? StatusVisualTokens.fromStatus(
+                                    'expired',
+                                  ).primary
+                                : const Color(0xFFA78BFA),
                             size: 14,
                           ),
                           const SizedBox(width: 6),
                           Text(
                             validStr,
                             style: GoogleFonts.inter(
-                              color: isExpired ? StatusVisualTokens.fromStatus('expired').primary : Colors.white,
+                              color: isExpired
+                                  ? StatusVisualTokens.fromStatus(
+                                      'expired',
+                                    ).primary
+                                  : Colors.white,
                               fontSize: 12,
                               fontWeight: FontWeight.w900,
                               letterSpacing: 0.5,
@@ -126,14 +155,14 @@ class DigitalCardFront extends StatelessWidget {
                     const SizedBox(width: 8),
                     // Pílula de Status — Dinâmico e Vibrante (Referência: Badge NOVO)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 5,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFF020617).withValues(alpha: 0.75),
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: tokens.pillBorder,
-                          width: 1,
-                        ),
+                        border: Border.all(color: tokens.pillBorder, width: 1),
                       ),
                       child: Stack(
                         children: [
@@ -174,7 +203,7 @@ class DigitalCardFront extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-            
+
             // Título
             Text(
               'CARTEIRINHA DE IDENTIFICAÇÃO',
@@ -195,7 +224,7 @@ class DigitalCardFront extends StatelessWidget {
                 letterSpacing: 0.5,
               ),
             ),
-            
+
             const Spacer(),
 
             // Linha de Dados do Membro
@@ -248,7 +277,9 @@ class DigitalCardFront extends StatelessWidget {
                               TextSpan(
                                 text: member.bloodType,
                                 style: const TextStyle(
-                                  color: Color(0xFFFF9A8A), // Coral claro premium de alta legibilidade no fundo escuro
+                                  color: Color(
+                                    0xFFFF9A8A,
+                                  ), // Coral claro premium de alta legibilidade no fundo escuro
                                   fontWeight: FontWeight.w900,
                                 ),
                               ),
@@ -271,15 +302,24 @@ class DigitalCardFront extends StatelessWidget {
               children: [
                 // Pílula do Token
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 7,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFF0F172A).withValues(alpha: 0.45),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: const Color(0xFF00D8D0).withValues(alpha: 0.3)),
+                    border: Border.all(
+                      color: const Color(0xFF00D8D0).withValues(alpha: 0.3),
+                    ),
                   ),
                   child: Row(
                     children: [
-                      const Icon(PhosphorIconsRegular.hash, color: Color(0xFF00D8D0), size: 14),
+                      const Icon(
+                        PhosphorIconsRegular.hash,
+                        color: Color(0xFF00D8D0),
+                        size: 14,
+                      ),
                       const SizedBox(width: 6),
                       Text(
                         'TOKEN: ',
@@ -292,7 +332,9 @@ class DigitalCardFront extends StatelessWidget {
                       Text(
                         validationToken,
                         style: GoogleFonts.inter(
-                          color: const Color(0xFF67E8F9), // Ice cyan de alta leitura
+                          color: const Color(
+                            0xFF67E8F9,
+                          ), // Ice cyan de alta leitura
                           fontSize: 14,
                           fontWeight: FontWeight.w900,
                           letterSpacing: 0.5,

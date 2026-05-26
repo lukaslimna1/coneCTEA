@@ -7,7 +7,11 @@ import 'package:conectea/features/home/widgets/banners/home_campaign_banner.dart
 class VoluntariadoBanner extends StatelessWidget {
   const VoluntariadoBanner({super.key});
 
-  Future<void> _launchUrl(BuildContext context, String url, String errorMessage) async {
+  Future<void> _launchUrl(
+    BuildContext context,
+    String url,
+    String errorMessage,
+  ) async {
     final Uri uri = Uri.parse(url);
     try {
       if (await canLaunchUrl(uri)) {
@@ -24,10 +28,7 @@ class VoluntariadoBanner extends StatelessWidget {
 
   void _showError(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: DsCores.alerta.accent,
-      ),
+      SnackBar(content: Text(message), backgroundColor: DsCores.alerta.accent),
     );
   }
 
@@ -37,7 +38,8 @@ class VoluntariadoBanner extends StatelessWidget {
       eyebrow: 'Voluntariado',
       eyebrowIcon: PhosphorIcons.handHeart(PhosphorIconsStyle.fill),
       title: 'Faça parte dessa rede de apoio',
-      subtitle: 'Doe tempo, acolhimento e presença para fortalecer ações da comunidade.',
+      subtitle:
+          'Doe tempo, acolhimento e presença para fortalecer ações da comunidade.',
       ctaLabel: 'Quero ajudar',
       semanticToken: DsCores.institucional,
       theme: BannerTheme(
