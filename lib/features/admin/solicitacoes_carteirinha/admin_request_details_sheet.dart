@@ -7,8 +7,8 @@ import 'package:conectea/models/card_request.dart';
 import 'package:conectea/models/app_user.dart';
 import 'package:conectea/models/member.dart';
 import 'package:conectea/core/constants/colors.dart';
-import 'package:conectea/features/admin/utils/admin_status_helper.dart';
-import 'package:conectea/features/admin/widgets/admin_common_widgets.dart';
+import 'package:conectea/features/admin/solicitacoes_carteirinha/utils/admin_status_helper.dart';
+import 'package:conectea/features/admin/solicitacoes_carteirinha/widgets/admin_common_widgets.dart';
 import 'package:conectea/core/theme/status_visual_tokens.dart';
 
 class AdminRequestDetailsSheet extends StatefulWidget {
