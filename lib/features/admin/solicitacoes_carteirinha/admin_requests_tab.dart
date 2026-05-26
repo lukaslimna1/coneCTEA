@@ -6,17 +6,14 @@ import 'package:conectea/core/widgets/premium/premium_card.dart';
 import 'package:conectea/core/widgets/loading_shimmer.dart';
 import 'package:conectea/services/database_service.dart';
 import 'package:conectea/models/card_request.dart';
-import 'package:conectea/features/admin/widgets/admin_request_card.dart';
+import 'package:conectea/features/admin/solicitacoes_carteirinha/admin_request_card.dart';
 import 'package:conectea/features/admin/widgets/admin_request_details_sheet.dart';
 import 'package:conectea/core/theme/conectea_visual_tokens.dart';
 
 class AdminRequestsTab extends StatefulWidget {
   final DatabaseService databaseService;
 
-  const AdminRequestsTab({
-    super.key,
-    required this.databaseService,
-  });
+  const AdminRequestsTab({super.key, required this.databaseService});
 
   @override
   State<AdminRequestsTab> createState() => _AdminRequestsTabState();
@@ -71,7 +68,8 @@ class _AdminRequestsTabState extends State<AdminRequestsTab> {
           _lastRequests = snapshot.data!.whereType<CardRequest>().toList();
         }
 
-        if (snapshot.connectionState == ConnectionState.waiting && !hasCachedRequests) {
+        if (snapshot.connectionState == ConnectionState.waiting &&
+            !hasCachedRequests) {
           return _buildShimmerList();
         }
 
@@ -84,18 +82,36 @@ class _AdminRequestsTabState extends State<AdminRequestsTab> {
           ..sort((a, b) {
             final aStatus = a.status;
             final bStatus = b.status;
-            if (aStatus == 'waiting_approval' && bStatus != 'waiting_approval') return -1;
-            if (aStatus != 'waiting_approval' && bStatus == 'waiting_approval') return 1;
+            if (aStatus == 'waiting_approval' &&
+                bStatus != 'waiting_approval') {
+              return -1;
+            }
+            if (aStatus != 'waiting_approval' &&
+                bStatus == 'waiting_approval') {
+              return 1;
+            }
             return b.createdAt.compareTo(a.createdAt);
           });
 
         // Contagens precisas dos 6 grupos semânticos
-        final newRequestsCount = requests.where((r) => r.status == 'waiting_approval').length;
-        final correctionsCount = requests.where((r) => ['reviewing_data', 'waiting_docs'].contains(r.status)).length;
-        final activeCount = requests.where((r) => ['active', 'approved'].contains(r.status)).length;
-        final restrictedCount = requests.where((r) => ['rejected', 'suspended'].contains(r.status)).length;
-        final expiredCount = requests.where((r) => r.status == 'expired').length;
-        final renewalCount = requests.where((r) => r.status == 'renewing').length;
+        final newRequestsCount = requests
+            .where((r) => r.status == 'waiting_approval')
+            .length;
+        final correctionsCount = requests
+            .where((r) => ['reviewing_data', 'waiting_docs'].contains(r.status))
+            .length;
+        final activeCount = requests
+            .where((r) => ['active', 'approved'].contains(r.status))
+            .length;
+        final restrictedCount = requests
+            .where((r) => ['rejected', 'suspended'].contains(r.status))
+            .length;
+        final expiredCount = requests
+            .where((r) => r.status == 'expired')
+            .length;
+        final renewalCount = requests
+            .where((r) => r.status == 'renewing')
+            .length;
 
         // 1. Filtrar a lista com base no _activeFilter selecionado nos contadores superiores
         final filteredRequests = sortedRequests.where((r) {
@@ -122,21 +138,25 @@ class _AdminRequestsTabState extends State<AdminRequestsTab> {
           final query = _searchQuery.trim().toLowerCase();
 
           final protocol = r.protocol.toLowerCase();
-          final idFallback = r.id.length >= 6 ? r.id.substring(0, 6).toLowerCase() : r.id.toLowerCase();
+          final idFallback = r.id.length >= 6
+              ? r.id.substring(0, 6).toLowerCase()
+              : r.id.toLowerCase();
           final memberName = r.memberName.toLowerCase();
 
-          return protocol.contains(query) || idFallback.contains(query) || memberName.contains(query);
+          return protocol.contains(query) ||
+              idFallback.contains(query) ||
+              memberName.contains(query);
         }).toList();
 
         // 3. Determinar a lista final a ser exibida
-        final List<CardRequest> displayRequests = isSearching ? globalSearchResults : filteredRequests;
+        final List<CardRequest> displayRequests = isSearching
+            ? globalSearchResults
+            : filteredRequests;
 
         return CustomScrollView(
           slivers: [
             // Bloco 3: Campo de busca global (Sempre Visível)
-            SliverToBoxAdapter(
-              child: _buildSearchBar(),
-            ),
+            SliverToBoxAdapter(child: _buildSearchBar()),
             // Bloco 4: Carrossel de filtros
             SliverToBoxAdapter(
               child: _AdminRequestFilterCarousel(
@@ -161,12 +181,17 @@ class _AdminRequestsTabState extends State<AdminRequestsTab> {
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(24, 32, 24, 120),
                   child: _buildEmptyState(
-                    _activeFilter == _AdminRequestQueueFilter.newRequests ? 'Nenhuma solicitação nova' :
-                    _activeFilter == _AdminRequestQueueFilter.corrections ? 'Nenhuma solicitação em correção' :
-                    _activeFilter == _AdminRequestQueueFilter.active ? 'Nenhuma solicitação ativa' :
-                    _activeFilter == _AdminRequestQueueFilter.restricted ? 'Nenhuma solicitação restrita' :
-                    _activeFilter == _AdminRequestQueueFilter.expired ? 'Nenhuma solicitação vencida' :
-                    'Nenhuma solicitação de renovação',
+                    _activeFilter == _AdminRequestQueueFilter.newRequests
+                        ? 'Nenhuma solicitação nova'
+                        : _activeFilter == _AdminRequestQueueFilter.corrections
+                        ? 'Nenhuma solicitação em correção'
+                        : _activeFilter == _AdminRequestQueueFilter.active
+                        ? 'Nenhuma solicitação ativa'
+                        : _activeFilter == _AdminRequestQueueFilter.restricted
+                        ? 'Nenhuma solicitação restrita'
+                        : _activeFilter == _AdminRequestQueueFilter.expired
+                        ? 'Nenhuma solicitação vencida'
+                        : 'Nenhuma solicitação de renovação',
                     Icons.inbox_rounded,
                   ),
                 ),
@@ -182,19 +207,16 @@ class _AdminRequestsTabState extends State<AdminRequestsTab> {
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
                 sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final request = displayRequests[index];
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: AdminRequestCard(
-                          request: request,
-                          onTap: () => _showRequestDetails(request),
-                        ),
-                      );
-                    },
-                    childCount: displayRequests.length,
-                  ),
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    final request = displayRequests[index];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: AdminRequestCard(
+                        request: request,
+                        onTap: () => _showRequestDetails(request),
+                      ),
+                    );
+                  }, childCount: displayRequests.length),
                 ),
               ),
           ],
@@ -217,9 +239,15 @@ class _AdminRequestsTabState extends State<AdminRequestsTab> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  LoadingShimmer(width: MediaQuery.of(context).size.width * 0.5, height: 16),
+                  LoadingShimmer(
+                    width: MediaQuery.of(context).size.width * 0.5,
+                    height: 16,
+                  ),
                   const SizedBox(height: 8),
-                  LoadingShimmer(width: MediaQuery.of(context).size.width * 0.3, height: 12),
+                  LoadingShimmer(
+                    width: MediaQuery.of(context).size.width * 0.3,
+                    height: 12,
+                  ),
                 ],
               ),
             ),
@@ -321,7 +349,9 @@ class _AdminRequestsTabState extends State<AdminRequestsTab> {
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: isFocused
-                    ? ConecteaVisualTokens.visualizacao.accent.withValues(alpha: 0.35)
+                    ? ConecteaVisualTokens.visualizacao.accent.withValues(
+                        alpha: 0.35,
+                      )
                     : Colors.white.withValues(alpha: 0.08),
                 width: 1.2,
               ),
@@ -333,7 +363,9 @@ class _AdminRequestsTabState extends State<AdminRequestsTab> {
                 ),
                 if (isFocused)
                   BoxShadow(
-                    color: ConecteaVisualTokens.visualizacao.accent.withValues(alpha: 0.08),
+                    color: ConecteaVisualTokens.visualizacao.accent.withValues(
+                      alpha: 0.08,
+                    ),
                     blurRadius: 14,
                     spreadRadius: 1,
                   ),
@@ -346,7 +378,9 @@ class _AdminRequestsTabState extends State<AdminRequestsTab> {
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
-                    color: ConecteaVisualTokens.visualizacao.accent.withValues(alpha: 0.12),
+                    color: ConecteaVisualTokens.visualizacao.accent.withValues(
+                      alpha: 0.12,
+                    ),
                     shape: BoxShape.circle,
                   ),
                   child: Center(
@@ -372,8 +406,10 @@ class _AdminRequestsTabState extends State<AdminRequestsTab> {
                     child: TextSelectionTheme(
                       data: TextSelectionThemeData(
                         cursorColor: ConecteaVisualTokens.visualizacao.accent,
-                        selectionColor: ConecteaVisualTokens.visualizacao.accent.withValues(alpha: 0.22),
-                        selectionHandleColor: ConecteaVisualTokens.visualizacao.accent,
+                        selectionColor: ConecteaVisualTokens.visualizacao.accent
+                            .withValues(alpha: 0.22),
+                        selectionHandleColor:
+                            ConecteaVisualTokens.visualizacao.accent,
                       ),
                       child: TextField(
                         controller: _searchController,
@@ -524,10 +560,12 @@ class _AdminRequestFilterCarousel extends StatefulWidget {
   });
 
   @override
-  State<_AdminRequestFilterCarousel> createState() => _AdminRequestFilterCarouselState();
+  State<_AdminRequestFilterCarousel> createState() =>
+      _AdminRequestFilterCarouselState();
 }
 
-class _AdminRequestFilterCarouselState extends State<_AdminRequestFilterCarousel> {
+class _AdminRequestFilterCarouselState
+    extends State<_AdminRequestFilterCarousel> {
   late final ScrollController _scrollController;
 
   @override
@@ -553,7 +591,12 @@ class _AdminRequestFilterCarouselState extends State<_AdminRequestFilterCarousel
             SingleChildScrollView(
               controller: _scrollController,
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.only(left: 24, right: 24, top: 16, bottom: 8),
+              padding: const EdgeInsets.only(
+                left: 24,
+                right: 24,
+                top: 16,
+                bottom: 8,
+              ),
               child: Row(
                 children: [
                   _buildStatCard(
@@ -707,9 +750,7 @@ class _AdminRequestFilterCarouselState extends State<_AdminRequestFilterCarousel
                       color: color.withValues(alpha: isSelected ? 0.18 : 0.08),
                       shape: BoxShape.circle,
                     ),
-                    child: Center(
-                      child: Icon(icon, color: color, size: 18),
-                    ),
+                    child: Center(child: Icon(icon, color: color, size: 18)),
                   ),
                   const SizedBox(width: 8),
                   Text(
@@ -730,7 +771,9 @@ class _AdminRequestFilterCarouselState extends State<_AdminRequestFilterCarousel
                 style: GoogleFonts.inter(
                   fontSize: 12,
                   fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                  color: isSelected ? Colors.white : AppColors.textSecondary.withValues(alpha: 0.7),
+                  color: isSelected
+                      ? Colors.white
+                      : AppColors.textSecondary.withValues(alpha: 0.7),
                 ),
               ),
               const Spacer(),
@@ -739,10 +782,7 @@ class _AdminRequestFilterCarouselState extends State<_AdminRequestFilterCarousel
                 width: double.infinity,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [
-                      color,
-                      color.withValues(alpha: 0.5),
-                    ],
+                    colors: [color, color.withValues(alpha: 0.5)],
                   ),
                   borderRadius: BorderRadius.circular(1.5),
                 ),

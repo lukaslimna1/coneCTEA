@@ -9,7 +9,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:conectea/core/constants/colors.dart';
 import 'package:conectea/services/database_service.dart';
 import 'package:conectea/models/app_user.dart';
-import 'package:conectea/features/admin/widgets/admin_requests_tab.dart';
+import 'package:conectea/features/admin/solicitacoes_carteirinha/admin_requests_tab.dart';
 import 'package:conectea/features/admin/widgets/admin_user_dialogs.dart';
 import 'package:conectea/features/admin/widgets/admin_users_tab.dart';
 import 'package:conectea/features/admin/hub/admin_management_hub.dart';
