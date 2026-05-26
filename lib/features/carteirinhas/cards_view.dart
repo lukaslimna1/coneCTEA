@@ -19,6 +19,8 @@ import 'package:conectea/features/carteirinhas/widgets/tela/cards_empty_state.da
 import 'package:conectea/features/carteirinhas/widgets/tela/cards_details_section.dart';
 import 'package:conectea/features/carteirinhas/widgets/tela/cards_error_state.dart';
 import 'package:conectea/features/carteirinhas/solicitacao/add_member_page.dart';
+import 'package:conectea/features/carteirinhas/solicitacao/requests_view.dart';
+import 'package:conectea/features/home/utils/home_status_helper.dart';
 
 class CardsView extends StatefulWidget {
   const CardsView({super.key});
@@ -228,6 +230,25 @@ class _CardsViewState extends State<CardsView> {
                     final selectedMember = activeMembers[selIdx];
                     final selectedCard = activeCardsMap[selectedMember.id]!;
 
+                    // Encontrar solicitações que precisam de atenção
+                    final List<Widget> attentionWidgets = [];
+                    for (final member in members) {
+                      final memberRequests = requests
+                          .where((r) => r.memberId == member.id)
+                          .toList()
+                        ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+                      final req = memberRequests.isNotEmpty ? memberRequests.first : null;
+
+                      final info = HomeStatusHelper.digitalCardStatus(
+                        member.status,
+                        memberRequest: req,
+                      );
+
+                      if (!info.isActive) {
+                        attentionWidgets.add(_buildAttentionCard(member, req, info));
+                      }
+                    }
+
                     return ListView(
                       padding: EdgeInsets.fromLTRB(0, topPadding, 0, 32),
                       children: [
@@ -287,6 +308,34 @@ class _CardsViewState extends State<CardsView> {
                         ),
 
                         const SizedBox(height: 24),
+
+                        if (attentionWidgets.isNotEmpty) ...[
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  PhosphorIconsRegular.warningCircle,
+                                  color: AppColors.warning,
+                                  size: 18,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'PRECISA DE ATENÇÃO',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.warning,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          ...attentionWidgets,
+                          const SizedBox(height: 24),
+                        ],
 
                         // Título da Seção Carteirinha
                         Padding(
@@ -353,6 +402,32 @@ class _CardsViewState extends State<CardsView> {
                           onAddDependent: _handleRequestNewCard,
                         ),
 
+                        const SizedBox(height: 24),
+
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const RequestsView(),
+                                ),
+                              );
+                            },
+                            icon: const Icon(PhosphorIconsRegular.listDashes, size: 18),
+                            label: const Text('Ver todas as solicitações'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.textSecondary,
+                              side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
+                        ),
+
                         const SizedBox(height: 40),
                       ],
                     );
@@ -379,6 +454,102 @@ class _CardsViewState extends State<CardsView> {
           initialMemberIndex: activeMembers.indexOf(member),
         ),
         fullscreenDialog: true,
+      ),
+    );
+  }
+
+  Widget _buildAttentionCard(Member member, CardRequest? req, HomeStatusInfo info) {
+    final bool isActionable = req != null &&
+        (req.status == 'reviewing_data' || req.status == 'waiting_docs');
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 6),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.cardBackground,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: info.pillBackground,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: info.pillBorder),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(info.icon, size: 12, color: info.color),
+                    const SizedBox(width: 6),
+                    Text(
+                      info.shortLabel.toUpperCase(),
+                      style: GoogleFonts.inter(
+                        color: info.color,
+                        fontSize: 9,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            member.name,
+            style: GoogleFonts.inter(
+              color: AppColors.textPrimary,
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          if (info.deadlineMessage != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              info.deadlineMessage!,
+              style: GoogleFonts.inter(
+                color: AppColors.textSecondary,
+                fontSize: 13,
+              ),
+            ),
+          ],
+          if (info.secondaryActionLabel != null) ...[
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  if (isActionable) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            AddMemberPage(member: member, request: req),
+                      ),
+                    ).then((_) => _loadProfile());
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isActionable ? info.color : Colors.white.withValues(alpha: 0.05),
+                  foregroundColor: isActionable ? Colors.white : AppColors.textPrimary,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(info.secondaryActionLabel!),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
