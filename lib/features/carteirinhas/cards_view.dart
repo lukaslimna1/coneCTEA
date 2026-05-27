@@ -21,6 +21,7 @@ import 'package:conectea/features/carteirinhas/widgets/tela/cards_error_state.da
 import 'package:conectea/features/carteirinhas/solicitacao/add_member_page.dart';
 import 'package:conectea/features/carteirinhas/solicitacao/requests_view.dart';
 import 'package:conectea/features/home/utils/home_status_helper.dart';
+import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 
 class CardsView extends StatefulWidget {
   const CardsView({super.key});
@@ -233,11 +234,16 @@ class _CardsViewState extends State<CardsView> {
                     // Encontrar solicitações que precisam de atenção
                     final List<Widget> attentionWidgets = [];
                     for (final member in members) {
-                      final memberRequests = requests
-                          .where((r) => r.memberId == member.id)
-                          .toList()
-                        ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
-                      final req = memberRequests.isNotEmpty ? memberRequests.first : null;
+                      final memberRequests =
+                          requests
+                              .where((r) => r.memberId == member.id)
+                              .toList()
+                            ..sort(
+                              (a, b) => b.createdAt.compareTo(a.createdAt),
+                            );
+                      final req = memberRequests.isNotEmpty
+                          ? memberRequests.first
+                          : null;
 
                       final info = HomeStatusHelper.digitalCardStatus(
                         member.status,
@@ -245,7 +251,9 @@ class _CardsViewState extends State<CardsView> {
                       );
 
                       if (!info.isActive) {
-                        attentionWidgets.add(_buildAttentionCard(member, req, info));
+                        attentionWidgets.add(
+                          _buildAttentionCard(member, req, info),
+                        );
                       }
                     }
 
@@ -366,13 +374,13 @@ class _CardsViewState extends State<CardsView> {
                         // Visualização da Carteirinha
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 24),
-                          child: GestureDetector(
-                            onTap: () => _openFullScreen(
-                              selectedMember,
-                              activeMembers,
-                              activeCardsMap,
-                            ),
-                            child: Hero(
+                          child: DsMiniCarteiraPreview(
+                            status: selectedCard.status,
+                            isPending: selectedCard.status != 'active',
+                            showStatusSeal: selectedCard.status != 'active',
+                            dimWhenPending: selectedCard.status != 'active',
+                            onTap: null,
+                            cardWidget: Hero(
                               tag: 'card_${selectedMember.id}',
                               child: Material(
                                 type: MaterialType.transparency,
@@ -415,11 +423,16 @@ class _CardsViewState extends State<CardsView> {
                                 ),
                               );
                             },
-                            icon: const Icon(PhosphorIconsRegular.listDashes, size: 18),
+                            icon: const Icon(
+                              PhosphorIconsRegular.listDashes,
+                              size: 18,
+                            ),
                             label: const Text('Ver todas as solicitações'),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: AppColors.textSecondary,
-                              side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                              side: BorderSide(
+                                color: Colors.white.withValues(alpha: 0.1),
+                              ),
                               padding: const EdgeInsets.symmetric(vertical: 14),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -458,8 +471,13 @@ class _CardsViewState extends State<CardsView> {
     );
   }
 
-  Widget _buildAttentionCard(Member member, CardRequest? req, HomeStatusInfo info) {
-    final bool isActionable = req != null &&
+  Widget _buildAttentionCard(
+    Member member,
+    CardRequest? req,
+    HomeStatusInfo info,
+  ) {
+    final bool isActionable =
+        req != null &&
         (req.status == 'reviewing_data' || req.status == 'waiting_docs');
 
     return Container(
