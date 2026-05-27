@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:conectea/core/constants/colors.dart';
@@ -14,7 +15,6 @@ import 'package:conectea/features/carteirinhas/full_screen_card_page.dart';
 import 'package:conectea/models/app_user.dart';
 import 'package:conectea/features/conta/perfil/legado/edit_profile_view.dart';
 import 'package:conectea/features/carteirinhas/widgets/tela/cards_member_selector.dart';
-import 'package:conectea/features/carteirinhas/widgets/tela/cards_pending_state.dart';
 import 'package:conectea/features/carteirinhas/widgets/tela/cards_empty_state.dart';
 import 'package:conectea/features/carteirinhas/widgets/tela/cards_details_section.dart';
 import 'package:conectea/features/carteirinhas/widgets/tela/cards_error_state.dart';
@@ -22,6 +22,9 @@ import 'package:conectea/features/carteirinhas/solicitacao/add_member_page.dart'
 import 'package:conectea/features/carteirinhas/solicitacao/requests_view.dart';
 import 'package:conectea/features/home/utils/home_status_helper.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
+import 'package:conectea/core/widgets/premium/premium_card.dart';
+import 'package:conectea/features/conta/suporte/support_view.dart';
+import 'package:conectea/core/utils/conectea_date_time_helper.dart';
 
 class CardsView extends StatefulWidget {
   const CardsView({super.key});
@@ -178,7 +181,9 @@ class _CardsViewState extends State<CardsView> {
                     }
 
                     if (memberSnap.connectionState == ConnectionState.waiting ||
-                        cardSnap.connectionState == ConnectionState.waiting) {
+                        cardSnap.connectionState == ConnectionState.waiting ||
+                        requestSnap.connectionState ==
+                            ConnectionState.waiting) {
                       return const Center(
                         child: CircularProgressIndicator(
                           color: AppColors.primary,
@@ -198,21 +203,10 @@ class _CardsViewState extends State<CardsView> {
                       }
                     }
 
-                    // Membros com carteirinha ATIVA
+                    // Membros com carteirinha ATIVA (necessário para a FullScreenCardPage e navegação em carrossel)
                     final activeMembers = members
                         .where((m) => activeCardsMap.containsKey(m.id))
                         .toList();
-
-                    // Membros SEM carteirinha ativa (pendentes)
-                    final pendingMembers = members
-                        .where((m) => !activeCardsMap.containsKey(m.id))
-                        .toList();
-
-                    // Corrigir índice selecionado se necessário
-                    final selIdx = _selectedMemberIndex.clamp(
-                      0,
-                      activeMembers.isEmpty ? 0 : activeMembers.length - 1,
-                    );
 
                     if (members.isEmpty) {
                       return CardsEmptyState(
@@ -220,42 +214,50 @@ class _CardsViewState extends State<CardsView> {
                       );
                     }
 
-                    if (activeMembers.isEmpty) {
-                      return CardsPendingState(
-                        pendingMembers: pendingMembers,
-                        requests: requests,
-                        statusLabelBuilder: _getStatusLabel,
+                    // Corrigir índice selecionado com base no tamanho global de members
+                    final selIdx = _selectedMemberIndex.clamp(
+                      0,
+                      members.isEmpty ? 0 : members.length - 1,
+                    );
+
+                    final selectedMember = members[selIdx];
+
+                    // Obter primeiro cartão (ativo ou não) associado ao membro selecionado para o preview
+                    DigitalCard? selectedCard;
+                    try {
+                      selectedCard = allCards.firstWhere(
+                        (c) => c.memberId == selectedMember.id,
                       );
+                    } catch (_) {
+                      selectedCard = null;
                     }
 
-                    final selectedMember = activeMembers[selIdx];
-                    final selectedCard = activeCardsMap[selectedMember.id]!;
+                    // Obter request mais relevante (mais recente) para o membro selecionado
+                    final memberRequests =
+                        requests
+                            .where((r) => r.memberId == selectedMember.id)
+                            .toList()
+                          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+                    final selectedRequest = memberRequests.isNotEmpty
+                        ? memberRequests.first
+                        : null;
 
-                    // Encontrar solicitações que precisam de atenção
-                    final List<Widget> attentionWidgets = [];
-                    for (final member in members) {
-                      final memberRequests =
-                          requests
-                              .where((r) => r.memberId == member.id)
-                              .toList()
-                            ..sort(
-                              (a, b) => b.createdAt.compareTo(a.createdAt),
-                            );
-                      final req = memberRequests.isNotEmpty
-                          ? memberRequests.first
-                          : null;
-
-                      final info = HomeStatusHelper.digitalCardStatus(
-                        member.status,
-                        memberRequest: req,
-                      );
-
-                      if (!info.isActive) {
-                        attentionWidgets.add(
-                          _buildAttentionCard(member, req, info),
+                    // Obter informações estritas de status usando o HomeStatusHelper
+                    final selectedStatusInfo =
+                        HomeStatusHelper.digitalCardStatus(
+                          selectedMember.status,
+                          memberRequest: selectedRequest,
                         );
-                      }
-                    }
+
+                    // Obter o status efetivo do preview do cartão (normalizado via DsTokenStatus)
+                    final rawEffectiveStatus =
+                        HomeStatusHelper.getEffectiveStatus(
+                          memberStatus: selectedMember.status,
+                          memberRequest: selectedRequest,
+                        );
+                    final effectiveStatus = DsTokenStatus.fromStatus(
+                      rawEffectiveStatus,
+                    ).statusKey;
 
                     return ListView(
                       padding: EdgeInsets.fromLTRB(0, topPadding, 0, 32),
@@ -300,6 +302,43 @@ class _CardsViewState extends State<CardsView> {
 
                         const SizedBox(height: 16),
 
+                        // CTAs Superiores lado a lado
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: DsBotao(
+                                  label: 'Solicitar',
+                                  variante: DsBotaoVariante.acao,
+                                  token: DsCores.solicitacao,
+                                  icon: PhosphorIconsRegular.userPlus,
+                                  onPressed: _handleRequestNewCard,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: DsBotao(
+                                  label: 'Histórico',
+                                  variante: DsBotaoVariante.secundario,
+                                  icon: PhosphorIconsRegular.listDashes,
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const RequestsView(),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 24),
+
                         // Novo Seletor Horizontal de Membros (padrão Home)
                         CardsMemberSelector(
                           members: members,
@@ -316,34 +355,6 @@ class _CardsViewState extends State<CardsView> {
                         ),
 
                         const SizedBox(height: 24),
-
-                        if (attentionWidgets.isNotEmpty) ...[
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 24),
-                            child: Row(
-                              children: [
-                                const Icon(
-                                  PhosphorIconsRegular.warningCircle,
-                                  color: AppColors.warning,
-                                  size: 18,
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'PRECISA DE ATENÇÃO',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w800,
-                                    color: AppColors.warning,
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          ...attentionWidgets,
-                          const SizedBox(height: 24),
-                        ],
 
                         // Título da Seção Carteirinha
                         Padding(
@@ -375,10 +386,14 @@ class _CardsViewState extends State<CardsView> {
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 24),
                           child: DsMiniCarteiraPreview(
-                            status: selectedCard.status,
-                            isPending: selectedCard.status != 'active',
-                            showStatusSeal: selectedCard.status != 'active',
-                            dimWhenPending: selectedCard.status != 'active',
+                            status: effectiveStatus,
+                            isPending: !selectedStatusInfo.isActive,
+                            showStatusSeal: !selectedStatusInfo.isActive,
+                            dimWhenPending: !selectedStatusInfo.isActive,
+                            statusSealLabelOverride:
+                                effectiveStatus == 'waiting_docs'
+                                ? 'Aguardando documentos'
+                                : null,
                             onTap: null,
                             cardWidget: Hero(
                               tag: 'card_${selectedMember.id}',
@@ -388,6 +403,7 @@ class _CardsViewState extends State<CardsView> {
                                   card: selectedCard,
                                   member: selectedMember,
                                   showBack: _showBack,
+                                  statusOverride: effectiveStatus,
                                 ),
                               ),
                             ),
@@ -396,50 +412,419 @@ class _CardsViewState extends State<CardsView> {
 
                         const SizedBox(height: 20),
 
-                        // Detalhes e Ações da Carteirinha
-                        CardsDetailsSection(
-                          validUntil: selectedCard.validUntil,
-                          showBack: _showBack,
-                          onToggleBack: () =>
-                              setState(() => _showBack = !_showBack),
-                          onOpenFullScreen: () => _openFullScreen(
-                            selectedMember,
-                            activeMembers,
-                            activeCardsMap,
-                          ),
-                          onAddDependent: _handleRequestNewCard,
-                        ),
-
-                        const SizedBox(height: 24),
-
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
-                          child: OutlinedButton.icon(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const RequestsView(),
-                                ),
-                              );
-                            },
-                            icon: const Icon(
-                              PhosphorIconsRegular.listDashes,
-                              size: 18,
-                            ),
-                            label: const Text('Ver todas as solicitações'),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: AppColors.textSecondary,
-                              side: BorderSide(
-                                color: Colors.white.withValues(alpha: 0.1),
-                              ),
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
+                        // Detalhes e Ações da Carteirinha para Membro Ativo
+                        if (selectedStatusInfo.isActive && selectedCard != null)
+                          CardsDetailsSection(
+                            validUntil: selectedCard.validUntil,
+                            showBack: _showBack,
+                            onToggleBack: () =>
+                                setState(() => _showBack = !_showBack),
+                            onOpenFullScreen: () => _openFullScreen(
+                              selectedMember,
+                              activeMembers,
+                              activeCardsMap,
                             ),
                           ),
-                        ),
+
+                        // Detalhes e Ações para Membro Pendente/Não-Ativo (Layout Refinado Premium)
+                        if (!selectedStatusInfo.isActive) ...[
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: Builder(
+                              builder: (context) {
+                                final status = effectiveStatus;
+                                final adminNotes =
+                                    selectedRequest?.adminNotes ?? '';
+                                final protocol =
+                                    selectedRequest?.protocol ?? '----';
+                                final dateStr =
+                                    selectedRequest?.expiresAt != null
+                                    ? ConecteaDateTimeHelper.formatProjectDateShort(
+                                        selectedRequest!.expiresAt!,
+                                      )
+                                    : 'Sob análise';
+
+                                final statusColor = DsTokenStatus.fromStatus(
+                                  status,
+                                ).primary;
+
+                                String block1Label = 'Requerimento';
+                                String block1Value = protocol;
+                                IconData block1Icon = PhosphorIconsRegular.copy;
+
+                                String block2Label = 'Prazo estimado';
+                                String block2Value = '5 dias úteis';
+                                IconData block2Icon =
+                                    PhosphorIconsRegular.clock;
+
+                                Widget? primaryButton;
+                                Widget? secondaryButton;
+
+                                switch (status) {
+                                  case 'waiting_docs':
+                                    block2Label = 'Data limite';
+                                    block2Value = dateStr;
+                                    block2Icon = PhosphorIconsRegular.calendar;
+
+                                    secondaryButton =
+                                        _buildStatusSecondaryButton(
+                                          context: context,
+                                          label: 'Ver documentos solicitados',
+                                          icon: Icons.help_outline_rounded,
+                                          statusColor: selectedStatusInfo.color,
+                                          onTap: () => DsStatusDialog.show(
+                                            context,
+                                            statusInfo: selectedStatusInfo,
+                                            notes: adminNotes,
+                                          ),
+                                        );
+
+                                    primaryButton = _buildStatusPrimaryButton(
+                                      context: context,
+                                      label: 'Enviar Documentos',
+                                      icon: Icons.edit_document,
+                                      statusColor: selectedStatusInfo.color,
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => AddMemberPage(
+                                              member: selectedMember,
+                                              request: selectedRequest,
+                                            ),
+                                          ),
+                                        ).then((_) => _loadProfile());
+                                      },
+                                    );
+                                    break;
+
+                                  case 'reviewing_data':
+                                    block2Label = 'Data limite';
+                                    block2Value = dateStr;
+                                    block2Icon = PhosphorIconsRegular.calendar;
+
+                                    secondaryButton =
+                                        _buildStatusSecondaryButton(
+                                          context: context,
+                                          label: 'Ver dados para revisão',
+                                          icon: Icons.help_outline_rounded,
+                                          statusColor: selectedStatusInfo.color,
+                                          onTap: () => DsStatusDialog.show(
+                                            context,
+                                            statusInfo: selectedStatusInfo,
+                                            notes: adminNotes,
+                                          ),
+                                        );
+
+                                    primaryButton = _buildStatusPrimaryButton(
+                                      context: context,
+                                      label: 'Revisar Dados',
+                                      icon: Icons.edit_document,
+                                      statusColor: selectedStatusInfo.color,
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => AddMemberPage(
+                                              member: selectedMember,
+                                              request: selectedRequest,
+                                            ),
+                                          ),
+                                        ).then((_) => _loadProfile());
+                                      },
+                                    );
+                                    break;
+
+                                  case 'waiting_approval':
+                                  case 'under_review':
+                                  case 'pending':
+                                  case 'renewing':
+                                    if (status == 'renewing') {
+                                      block2Label = 'Prazo de renovação';
+                                      block2Value = '5 a 10 dias úteis';
+
+                                      secondaryButton =
+                                          _buildStatusSecondaryButton(
+                                            context: context,
+                                            label: 'Ver prazo de renovação',
+                                            icon: Icons.help_outline_rounded,
+                                            statusColor:
+                                                selectedStatusInfo.color,
+                                            onTap: () => DsStatusDialog.show(
+                                              context,
+                                              statusInfo: selectedStatusInfo,
+                                              notes: adminNotes,
+                                            ),
+                                          );
+                                    } else {
+                                      secondaryButton =
+                                          _buildStatusSecondaryButton(
+                                            context: context,
+                                            label: 'Ver prazo de aprovação',
+                                            icon: Icons.help_outline_rounded,
+                                            statusColor:
+                                                selectedStatusInfo.color,
+                                            onTap: () => DsStatusDialog.show(
+                                              context,
+                                              statusInfo: selectedStatusInfo,
+                                              notes: adminNotes,
+                                            ),
+                                          );
+                                    }
+                                    break;
+
+                                  case 'expired':
+                                    block2Label = 'Situação';
+                                    block2Value = 'EXPIRADA';
+                                    block2Icon =
+                                        PhosphorIconsRegular.shieldWarning;
+
+                                    if (selectedRequest != null) {
+                                      primaryButton = _buildStatusPrimaryButton(
+                                        context: context,
+                                        label: 'Solicitar Renovação',
+                                        icon: Icons.autorenew_rounded,
+                                        statusColor: selectedStatusInfo.color,
+                                        onTap: () => _handleRenewalRequest(
+                                          selectedRequest.id,
+                                        ),
+                                      );
+                                    }
+                                    break;
+
+                                  case 'rejected':
+                                  case 'suspended':
+                                    block2Label = 'Situação';
+                                    block2Value = status == 'suspended'
+                                        ? 'SUSPENSA'
+                                        : 'REPROVADA';
+                                    block2Icon =
+                                        PhosphorIconsRegular.shieldWarning;
+
+                                    secondaryButton =
+                                        _buildStatusSecondaryButton(
+                                          context: context,
+                                          label: status == 'suspended'
+                                              ? 'Ver motivo da suspensão'
+                                              : 'Ver justificativa',
+                                          icon: Icons.help_outline_rounded,
+                                          statusColor: selectedStatusInfo.color,
+                                          onTap: () => DsStatusDialog.show(
+                                            context,
+                                            statusInfo: selectedStatusInfo,
+                                            notes: adminNotes,
+                                          ),
+                                        );
+
+                                    primaryButton = _buildStatusPrimaryButton(
+                                      context: context,
+                                      label: status == 'suspended'
+                                          ? 'PEDIR REVISÃO'
+                                          : 'FALAR COM SUPORTE',
+                                      icon: Icons.support_agent_rounded,
+                                      statusColor: status == 'suspended'
+                                          ? selectedStatusInfo.color
+                                          : AppColors.errorRed,
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                const SupportView(),
+                                          ),
+                                        );
+                                      },
+                                    );
+                                    break;
+                                }
+
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // Blocos em linha (Grade horizontal estruturada)
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: GestureDetector(
+                                            onTap: () {
+                                              final cleanProtocol = protocol
+                                                  .trim();
+                                              final hasProtocol =
+                                                  cleanProtocol.isNotEmpty &&
+                                                  cleanProtocol != '----' &&
+                                                  cleanProtocol !=
+                                                      'Não informado' &&
+                                                  cleanProtocol != '—';
+                                              if (hasProtocol) {
+                                                Clipboard.setData(
+                                                  ClipboardData(
+                                                    text: cleanProtocol,
+                                                  ),
+                                                );
+                                                ScaffoldMessenger.of(
+                                                  context,
+                                                ).showSnackBar(
+                                                  const SnackBar(
+                                                    content: Text(
+                                                      'Requerimento copiado',
+                                                    ),
+                                                    backgroundColor:
+                                                        AppColors.primary,
+                                                    duration: Duration(
+                                                      seconds: 2,
+                                                    ),
+                                                  ),
+                                                );
+                                              }
+                                            },
+                                            behavior: HitTestBehavior.opaque,
+                                            child: PremiumCard(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 10,
+                                                    vertical: 12,
+                                                  ),
+                                              child: Row(
+                                                children: [
+                                                  Icon(
+                                                    block1Icon,
+                                                    color: statusColor,
+                                                    size: 20,
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  Expanded(
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      children: [
+                                                        Text(
+                                                          block1Label,
+                                                          maxLines: 1,
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                          style:
+                                                              GoogleFonts.inter(
+                                                                fontSize: 10.5,
+                                                                color: AppColors
+                                                                    .cardSubtitle,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w500,
+                                                              ),
+                                                        ),
+                                                        Text(
+                                                          block1Value,
+                                                          maxLines: 1,
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                          style:
+                                                              GoogleFonts.inter(
+                                                                fontSize: 13,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w800,
+                                                                color: AppColors
+                                                                    .cardTitle,
+                                                              ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: PremiumCard(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 10,
+                                              vertical: 12,
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                Icon(
+                                                  block2Icon,
+                                                  color: statusColor,
+                                                  size: 20,
+                                                ),
+                                                const SizedBox(width: 8),
+                                                Expanded(
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    children: [
+                                                      Text(
+                                                        block2Label,
+                                                        maxLines: 1,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                        style:
+                                                            GoogleFonts.inter(
+                                                              fontSize: 10.5,
+                                                              color: AppColors
+                                                                  .cardSubtitle,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w500,
+                                                            ),
+                                                      ),
+                                                      Text(
+                                                        block2Value,
+                                                        maxLines: 1,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                        style: GoogleFonts.inter(
+                                                          fontSize: 13,
+                                                          fontWeight:
+                                                              FontWeight.w800,
+                                                          color:
+                                                              block2Label ==
+                                                                  'Situação'
+                                                              ? statusColor
+                                                              : AppColors
+                                                                    .cardTitle,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+
+                                    const SizedBox(height: 20),
+
+                                    // Botões de Ação
+                                    if (secondaryButton != null) ...[
+                                      SizedBox(
+                                        width: double.infinity,
+                                        child: secondaryButton,
+                                      ),
+                                      const SizedBox(height: 12),
+                                    ],
+                                    if (primaryButton != null) ...[
+                                      SizedBox(
+                                        width: double.infinity,
+                                        child: primaryButton,
+                                      ),
+                                    ],
+                                  ],
+                                );
+                              },
+                            ),
+                          ),
+                        ],
 
                         const SizedBox(height: 40),
                       ],
@@ -471,124 +856,108 @@ class _CardsViewState extends State<CardsView> {
     );
   }
 
-  Widget _buildAttentionCard(
-    Member member,
-    CardRequest? req,
-    HomeStatusInfo info,
-  ) {
-    final bool isActionable =
-        req != null &&
-        (req.status == 'reviewing_data' || req.status == 'waiting_docs');
+  Future<void> _handleRenewalRequest(String requestId) async {
+    try {
+      await _databaseService.updateCardRequestStatus(
+        requestId,
+        'renewing',
+        adminNotes: 'Pedido de renovação iniciado pelo usuário.',
+      );
+      await _loadProfile();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Pedido de renovação enviado com sucesso!'),
+            backgroundColor: AppColors.primary,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text(
+              'Não foi possível solicitar a renovação agora. Tente novamente em instantes.',
+            ),
+            backgroundColor: AppColors.errorRed,
+          ),
+        );
+      }
+    }
+  }
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 6),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: info.pillBackground,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: info.pillBorder),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(info.icon, size: 12, color: info.color),
-                    const SizedBox(width: 6),
-                    Text(
-                      info.shortLabel.toUpperCase(),
-                      style: GoogleFonts.inter(
-                        color: info.color,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+  Widget _buildStatusSecondaryButton({
+    required BuildContext context,
+    required String label,
+    required IconData icon,
+    required Color statusColor,
+    required VoidCallback onTap,
+  }) {
+    return SizedBox(
+      height: 52,
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: onTap,
+        icon: Icon(icon, size: 18, color: statusColor),
+        label: Text(
+          label,
+          style: GoogleFonts.inter(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            color: statusColor,
           ),
-          const SizedBox(height: 12),
-          Text(
-            member.name,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.inter(
-              color: AppColors.textPrimary,
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
-            ),
+        ),
+        style: OutlinedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          backgroundColor: statusColor.withValues(alpha: 0.1),
+          side: BorderSide(
+            color: statusColor.withValues(alpha: 0.2),
+            width: 1.5,
           ),
-          if (info.deadlineMessage != null) ...[
-            const SizedBox(height: 4),
-            Text(
-              info.deadlineMessage!,
-              style: GoogleFonts.inter(
-                color: AppColors.textSecondary,
-                fontSize: 13,
-              ),
-            ),
-          ],
-          if (isActionable) ...[
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          AddMemberPage(member: member, request: req),
-                    ),
-                  ).then((_) => _loadProfile());
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: info.color,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: Text(info.secondaryActionLabel ?? 'Corrigir'),
-              ),
-            ),
-          ],
-        ],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(17.33),
+          ),
+        ),
       ),
     );
   }
 
-  String _getStatusLabel(String status) {
-    switch (status) {
-      case 'active':
-        return 'Carteirinha ativa';
-      case 'under_review':
-      case 'waiting_approval':
-        return 'Em análise pela equipe';
-      case 'waiting_docs':
-        return 'Aguardando documentação';
-      case 'reviewing_data':
-        return 'Revisão de dados';
-      case 'rejected':
-        return 'Solicitação reprovada';
-      case 'suspended':
-        return 'Carteirinha suspensa';
-      default:
-        return 'Em análise';
-    }
+  Widget _buildStatusPrimaryButton({
+    required BuildContext context,
+    required String label,
+    required IconData icon,
+    required Color statusColor,
+    Color? customContentColor,
+    required VoidCallback onTap,
+  }) {
+    final contentColor = customContentColor ?? statusColor;
+    return SizedBox(
+      height: 52,
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: onTap,
+        icon: Icon(icon, size: 18, color: contentColor),
+        label: Text(
+          label.toUpperCase(),
+          style: GoogleFonts.inter(
+            fontSize: 13,
+            fontWeight: FontWeight.w900,
+            color: contentColor,
+            letterSpacing: 1.1,
+          ),
+        ),
+        style: OutlinedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          backgroundColor: const Color(0xFF020617).withValues(alpha: 0.85),
+          side: BorderSide(
+            color: statusColor.withValues(alpha: 0.35),
+            width: 1.5,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(17.33),
+          ),
+        ),
+      ),
+    );
   }
 }

@@ -10,6 +10,7 @@ import 'package:conectea/models/digital_card.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 import 'package:conectea/features/carteirinhas/widgets/digital/digital_card_widget.dart';
 import 'package:conectea/features/home/utils/home_status_helper.dart';
+import 'package:conectea/features/conta/suporte/support_view.dart';
 
 class HomeDigitalCardSection extends StatelessWidget {
   final List<Member> members;
@@ -271,7 +272,14 @@ class HomeDigitalCardSection extends StatelessWidget {
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
-                      onPressed: onSupportTap,
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const SupportView(),
+                          ),
+                        );
+                      },
                       icon: Icon(
                         Icons.support_agent_rounded,
                         color: statusInfo.isSuspended

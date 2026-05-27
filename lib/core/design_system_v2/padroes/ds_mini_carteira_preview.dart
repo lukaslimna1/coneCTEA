@@ -171,22 +171,66 @@ class DsMiniCarteiraPreview extends StatelessWidget {
                               child: cardWidget,
                             ),
                             if (showStatusSeal && status != null)
-                              statusSealLabelOverride != null
-                                  ? DsSelo(
-                                      label: statusSealLabelOverride!,
-                                      labelColor: statusColor,
-                                      backgroundColor:
-                                          statusToken.pillBackground,
-                                      borderColor: statusToken.pillBorder,
-                                      icon: statusToken.icon,
-                                      iconColor: statusToken.iconColor,
-                                      uppercase: true,
-                                    )
-                                  : DsSeloStatus(
-                                      status: status!,
-                                      shortLabel: statusSealShortLabel,
-                                      uppercase: true,
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 6.0,
+                                  horizontal: 12.0,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withValues(alpha: 0.72),
+                                  borderRadius: BorderRadius.circular(999),
+                                  border: Border.all(
+                                    color: statusColor.withValues(alpha: 0.55),
+                                    width: 1.2,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: statusColor.withValues(
+                                        alpha: 0.15,
+                                      ),
+                                      blurRadius: 10,
+                                      offset: Offset.zero,
                                     ),
+                                    BoxShadow(
+                                      color: Colors.black.withValues(
+                                        alpha: 0.3,
+                                      ),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      statusToken.icon,
+                                      size: 14.0,
+                                      color: statusToken.iconColor,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Flexible(
+                                      child: Text(
+                                        (statusSealLabelOverride ??
+                                                (statusSealShortLabel
+                                                    ? statusToken.shortLabel
+                                                    : statusToken.label))
+                                            .toUpperCase(),
+                                        style: TextStyle(
+                                          color: statusColor,
+                                          fontWeight: FontWeight.w800,
+                                          fontSize: 11.5,
+                                          height: 1.1,
+                                          letterSpacing: 0.5,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 1,
+                                        softWrap: false,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                           ],
                         ),
                       ),

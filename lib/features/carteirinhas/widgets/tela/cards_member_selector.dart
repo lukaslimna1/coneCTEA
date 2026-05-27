@@ -38,37 +38,34 @@ class CardsMemberSelector extends StatelessWidget {
       final tokens = DsTokenStatus.fromStatus(status);
       final Color statusColor = tokens.primary;
 
-      String shortLabel = 'PENDENTE';
-      switch (status) {
+      String shortLabel = 'Pendente';
+      switch (tokens.statusKey) {
         case 'active':
-        case 'approved':
-          shortLabel = 'ATIVA';
+          shortLabel = 'Ativa';
           break;
         case 'waiting_docs':
-          shortLabel = 'DOCS';
+          shortLabel = 'Documentos';
           break;
         case 'reviewing_data':
-          shortLabel = 'REVISAR';
+          shortLabel = 'Revisar';
           break;
         case 'waiting_approval':
-        case 'under_review':
-        case 'pending':
-          shortLabel = 'ANÁLISE';
+          shortLabel = 'Análise';
           break;
         case 'renewing':
-          shortLabel = 'RENOVAR';
+          shortLabel = 'Renovação';
           break;
         case 'expired':
-          shortLabel = 'VENCIDA';
+          shortLabel = 'Vencida';
           break;
         case 'rejected':
-          shortLabel = 'RECUSADA';
+          shortLabel = 'Reprovada';
           break;
         case 'suspended':
-          shortLabel = 'SUSPENSA';
+          shortLabel = 'Suspensa';
           break;
         default:
-          shortLabel = tokens.shortLabel.toUpperCase();
+          shortLabel = tokens.label;
       }
 
       return DsMembroCarrosselItem(

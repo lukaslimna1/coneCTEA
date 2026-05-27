@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:conectea/core/constants/colors.dart';
-import 'package:conectea/core/widgets/premium/premium_button.dart';
 import 'package:conectea/core/widgets/premium/premium_card.dart';
+import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 
 import 'package:conectea/core/utils/conectea_date_time_helper.dart';
 
@@ -12,7 +12,6 @@ class CardsDetailsSection extends StatelessWidget {
   final bool showBack;
   final VoidCallback onToggleBack;
   final VoidCallback onOpenFullScreen;
-  final VoidCallback onAddDependent;
 
   const CardsDetailsSection({
     super.key,
@@ -20,7 +19,6 @@ class CardsDetailsSection extends StatelessWidget {
     required this.showBack,
     required this.onToggleBack,
     required this.onOpenFullScreen,
-    required this.onAddDependent,
   });
 
   @override
@@ -63,37 +61,38 @@ class CardsDetailsSection extends StatelessWidget {
           child: Row(
             children: [
               Expanded(
-                child: PremiumButton(
-                  text: 'VER',
-                  variant: PremiumButtonVariant.primary,
+                child: DsBotao(
+                  label: 'VER',
+                  variante: DsBotaoVariante.acao,
+                  token: DsCorVisual(
+                    key: 'active',
+                    semanticName: 'Ativa',
+                    description: 'Carteirinha ativa',
+                    accent: DsTokenStatus.active.primary,
+                    softBackground: DsTokenStatus.active.primary.withValues(
+                      alpha: 0.14,
+                    ),
+                    border: DsTokenStatus.active.primary.withValues(
+                      alpha: 0.26,
+                    ),
+                    iconBackground: DsTokenStatus.active.primary.withValues(
+                      alpha: 0.12,
+                    ),
+                  ),
                   icon: PhosphorIconsRegular.identificationCard,
                   onPressed: onOpenFullScreen,
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: PremiumButton(
-                  text: showBack ? 'Ver frente' : 'Ver verso',
-                  variant: PremiumButtonVariant.outline,
-                  textColor: Colors.white,
+                child: DsBotao(
+                  label: showBack ? 'Ver frente' : 'Ver verso',
+                  variante: DsBotaoVariante.secundario,
                   icon: PhosphorIconsRegular.arrowsClockwise,
                   onPressed: onToggleBack,
                 ),
               ),
             ],
-          ),
-        ),
-
-        const SizedBox(height: 12),
-
-        // Botão Secundário: Cadastrar novo dependente
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: PremiumButton(
-            text: 'Cadastrar novo dependente',
-            variant: PremiumButtonVariant.glass,
-            icon: PhosphorIconsRegular.userPlus,
-            onPressed: onAddDependent,
           ),
         ),
       ],
@@ -112,7 +111,9 @@ class CardsDetailsSection extends StatelessWidget {
         children: [
           Icon(
             icon,
-            color: isStatus ? AppColors.statusGreen : AppColors.primary,
+            color: isStatus
+                ? DsTokenStatus.active.primary
+                : DsTokenStatus.active.primary,
             size: 20,
           ),
           const SizedBox(width: 8),
@@ -139,7 +140,7 @@ class CardsDetailsSection extends StatelessWidget {
                     fontSize: 13,
                     fontWeight: FontWeight.w800,
                     color: isStatus
-                        ? AppColors.statusGreen
+                        ? DsTokenStatus.active.primary
                         : AppColors.cardTitle,
                   ),
                 ),
