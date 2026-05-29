@@ -658,8 +658,23 @@ class _AddMemberPageState extends State<AddMemberPage> {
                                   RequestAdminNotesBanner(
                                     adminNotes: widget.request!.adminNotes,
                                   ),
-
                                 const SizedBox(height: 12),
+
+                                // ==========================================
+                                // 1. DADOS OBRIGATÓRIOS DO BENEFICIÁRIO
+                                // ==========================================
+                                Text(
+                                  'DADOS OBRIGATÓRIOS DO BENEFICIÁRIO',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textSecondary.withValues(
+                                      alpha: 0.7,
+                                    ),
+                                    letterSpacing: 0.8,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
 
                                 RequestInputField(
                                   label: 'Nome completo do Beneficiário*',
@@ -744,65 +759,30 @@ class _AddMemberPageState extends State<AddMemberPage> {
                                       : 'Selecione',
                                   enabled: _isFieldEnabled('Cidade'),
                                 ),
-                                const SizedBox(height: 20),
 
-                                RequestInputField(
-                                  label: 'Telefone',
-                                  controller: _telefoneController,
-                                  hint: '(00) 00000-0000',
-                                  icon: PhosphorIconsRegular.phone,
-                                  inputFormatters: [phoneMask],
-                                  keyboardType: TextInputType.phone,
-                                  enabled: _isFieldEnabled('Telefone'),
+                                Divider(
+                                  color: AppColors.textSecondary.withValues(
+                                    alpha: 0.1,
+                                  ),
+                                  height: 40,
+                                  thickness: 1,
                                 ),
-                                const SizedBox(height: 20),
 
-                                RequestInputField(
-                                  label:
-                                      'Nome do Contato de Emergência (Opcional)',
-                                  controller: _contatoEmergenciaNomeController,
-                                  hint: 'Digite o nome do contato',
-                                  icon: PhosphorIconsRegular.firstAid,
-                                  enabled: _isFieldEnabled(
-                                    'Contato de Emergência',
+                                // ==========================================
+                                // 2. DOCUMENTOS PARA ANÁLISE
+                                // ==========================================
+                                Text(
+                                  'DOCUMENTOS PARA ANÁLISE',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textSecondary.withValues(
+                                      alpha: 0.7,
+                                    ),
+                                    letterSpacing: 0.8,
                                   ),
                                 ),
-                                const SizedBox(height: 20),
-
-                                RequestInputField(
-                                  label:
-                                      'Número do Contato de Emergência (Opcional)',
-                                  controller:
-                                      _contatoEmergenciaTelefoneController,
-                                  hint: '(00) 00000-0000',
-                                  icon: PhosphorIconsRegular.phone,
-                                  inputFormatters: [emergencyPhoneMask],
-                                  keyboardType: TextInputType.phone,
-                                  enabled: _isFieldEnabled(
-                                    'Contato de Emergência',
-                                  ),
-                                ),
-                                const SizedBox(height: 20),
-
-                                RequestInputField(
-                                  label: 'Nome do Responsável (Opcional)',
-                                  controller: _responsavelNomeController,
-                                  hint: 'Digite o nome do responsável',
-                                  icon: PhosphorIconsRegular.users,
-                                  enabled: _isFieldEnabled('Responsável'),
-                                ),
-                                const SizedBox(height: 20),
-
-                                RequestInputField(
-                                  label: 'Número do Responsável (Opcional)',
-                                  controller: _responsavelTelefoneController,
-                                  hint: '(00) 00000-0000',
-                                  icon: PhosphorIconsRegular.phone,
-                                  inputFormatters: [responsiblePhoneMask],
-                                  keyboardType: TextInputType.phone,
-                                  enabled: _isFieldEnabled('Responsável'),
-                                ),
-                                const SizedBox(height: 20),
+                                const SizedBox(height: 16),
 
                                 RequestUploadField(
                                   label: 'Documento com Foto (RG/CNH)',
@@ -927,7 +907,64 @@ class _AddMemberPageState extends State<AddMemberPage> {
                                     ),
                                   );
                                 })(),
-                                const SizedBox(height: 20),
+
+                                Divider(
+                                  color: AppColors.textSecondary.withValues(
+                                    alpha: 0.1,
+                                  ),
+                                  height: 40,
+                                  thickness: 1,
+                                ),
+
+                                // ==========================================
+                                // 3. CONTATO DO BENEFICIÁRIO
+                                // ==========================================
+                                Text(
+                                  'CONTATO DO BENEFICIÁRIO',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textSecondary.withValues(
+                                      alpha: 0.7,
+                                    ),
+                                    letterSpacing: 0.8,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+
+                                RequestInputField(
+                                  label: 'Telefone',
+                                  controller: _telefoneController,
+                                  hint: '(00) 00000-0000',
+                                  icon: PhosphorIconsRegular.phone,
+                                  inputFormatters: [phoneMask],
+                                  keyboardType: TextInputType.phone,
+                                  enabled: _isFieldEnabled('Telefone'),
+                                ),
+
+                                Divider(
+                                  color: AppColors.textSecondary.withValues(
+                                    alpha: 0.1,
+                                  ),
+                                  height: 40,
+                                  thickness: 1,
+                                ),
+
+                                // ==========================================
+                                // 4. DADOS OPCIONAIS COMPLEMENTARES
+                                // ==========================================
+                                Text(
+                                  'DADOS OPCIONAIS COMPLEMENTARES',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textSecondary.withValues(
+                                      alpha: 0.7,
+                                    ),
+                                    letterSpacing: 0.8,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
 
                                 RequestDropdownField<String>(
                                   label: 'Tipo Sanguíneo (Opcional)',
@@ -971,6 +1008,99 @@ class _AddMemberPageState extends State<AddMemberPage> {
                                   hint: 'Ex: F84.0',
                                   icon: PhosphorIconsRegular.clipboardText,
                                   enabled: _isFieldEnabled('Laudo Médico'),
+                                ),
+
+                                Divider(
+                                  color: AppColors.textSecondary.withValues(
+                                    alpha: 0.1,
+                                  ),
+                                  height: 40,
+                                  thickness: 1,
+                                ),
+
+                                // ==========================================
+                                // 5. RESPONSÁVEL
+                                // ==========================================
+                                Text(
+                                  'RESPONSÁVEL',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textSecondary.withValues(
+                                      alpha: 0.7,
+                                    ),
+                                    letterSpacing: 0.8,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+
+                                RequestInputField(
+                                  label: 'Nome do Responsável (Opcional)',
+                                  controller: _responsavelNomeController,
+                                  hint: 'Digite o nome do responsável',
+                                  icon: PhosphorIconsRegular.users,
+                                  enabled: _isFieldEnabled('Responsável'),
+                                ),
+                                const SizedBox(height: 20),
+
+                                RequestInputField(
+                                  label: 'Número do Responsável (Opcional)',
+                                  controller: _responsavelTelefoneController,
+                                  hint: '(00) 00000-0000',
+                                  icon: PhosphorIconsRegular.phone,
+                                  inputFormatters: [responsiblePhoneMask],
+                                  keyboardType: TextInputType.phone,
+                                  enabled: _isFieldEnabled('Responsável'),
+                                ),
+
+                                Divider(
+                                  color: AppColors.textSecondary.withValues(
+                                    alpha: 0.1,
+                                  ),
+                                  height: 40,
+                                  thickness: 1,
+                                ),
+
+                                // ==========================================
+                                // 6. CONTATO DE EMERGÊNCIA
+                                // ==========================================
+                                Text(
+                                  'CONTATO DE EMERGÊNCIA',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textSecondary.withValues(
+                                      alpha: 0.7,
+                                    ),
+                                    letterSpacing: 0.8,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+
+                                RequestInputField(
+                                  label:
+                                      'Nome do Contato de Emergência (Opcional)',
+                                  controller: _contatoEmergenciaNomeController,
+                                  hint: 'Digite o nome do contato',
+                                  icon: PhosphorIconsRegular.firstAid,
+                                  enabled: _isFieldEnabled(
+                                    'Contato de Emergência',
+                                  ),
+                                ),
+                                const SizedBox(height: 20),
+
+                                RequestInputField(
+                                  label:
+                                      'Número do Contato de Emergência (Opcional)',
+                                  controller:
+                                      _contatoEmergenciaTelefoneController,
+                                  hint: '(00) 00000-0000',
+                                  icon: PhosphorIconsRegular.phone,
+                                  inputFormatters: [emergencyPhoneMask],
+                                  keyboardType: TextInputType.phone,
+                                  enabled: _isFieldEnabled(
+                                    'Contato de Emergência',
+                                  ),
                                 ),
 
                                 const SizedBox(height: 40),
