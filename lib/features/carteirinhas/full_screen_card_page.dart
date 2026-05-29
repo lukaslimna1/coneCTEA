@@ -156,38 +156,28 @@ class _FullScreenCardPageState extends State<FullScreenCardPage>
       children: [
         // A carteirinha digital centralizada, ocupando o máximo de espaço seguro
         Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 8.0,
-                    horizontal: 80.0,
-                  ),
-                  child: _buildCardDisplay(member, card),
-                ),
-              ),
-              if (widget.members.length > 1) ...[
-                const SizedBox(height: 8),
-                _buildMemberSelector(
-                  padding: const EdgeInsets.symmetric(horizontal: 80),
-                ),
-                const SizedBox(height: 8),
-              ],
-            ],
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              vertical: 16.0,
+              horizontal: 80.0,
+            ),
+            child: _buildCardDisplay(member, card),
           ),
         ),
 
         // Botão de fechar/voltar no canto superior esquerdo (com margem segura)
         Positioned(top: 16, left: 16, child: _buildLandscapeCloseButton()),
 
+        // Botão compacto de alternar membro flutuante à direita (se houver mais de 1)
+        if (widget.members.length > 1)
+          Positioned(
+            bottom: 80,
+            right: 16,
+            child: _buildLandscapeSwitchMemberButton(),
+          ),
+
         // Botão de virar frente/verso (compacto, apenas com ícone) flutuante à direita
-        Positioned(
-          bottom: widget.members.length > 1 ? 80 : 16,
-          right: 16,
-          child: _buildLandscapeFlipButton(),
-        ),
+        Positioned(bottom: 16, right: 16, child: _buildLandscapeFlipButton()),
       ],
     );
   }
@@ -203,7 +193,7 @@ class _FullScreenCardPageState extends State<FullScreenCardPage>
             color: DsCores.glass.withValues(alpha: 0.75),
             shape: BoxShape.circle,
             border: Border.all(
-              color: DsCores.border.withValues(alpha: 0.6),
+              color: DsCores.perigo.accent.withValues(alpha: 0.4),
               width: 1.5,
             ),
             boxShadow: [
@@ -211,6 +201,11 @@ class _FullScreenCardPageState extends State<FullScreenCardPage>
                 color: Colors.black.withValues(alpha: 0.3),
                 blurRadius: 8,
                 offset: const Offset(0, 3),
+              ),
+              BoxShadow(
+                color: DsCores.perigo.accent.withValues(alpha: 0.15),
+                blurRadius: 12,
+                spreadRadius: 1,
               ),
             ],
           ),
@@ -243,7 +238,7 @@ class _FullScreenCardPageState extends State<FullScreenCardPage>
             color: DsCores.glass.withValues(alpha: 0.75),
             shape: BoxShape.circle,
             border: Border.all(
-              color: DsCores.carteirinha.accent.withValues(alpha: 0.6),
+              color: DsCores.carteirinha.accent.withValues(alpha: 0.4),
               width: 1.5,
             ),
             boxShadow: [
@@ -251,6 +246,11 @@ class _FullScreenCardPageState extends State<FullScreenCardPage>
                 color: Colors.black.withValues(alpha: 0.3),
                 blurRadius: 8,
                 offset: const Offset(0, 3),
+              ),
+              BoxShadow(
+                color: DsCores.carteirinha.accent.withValues(alpha: 0.15),
+                blurRadius: 12,
+                spreadRadius: 1,
               ),
             ],
           ),
@@ -260,10 +260,63 @@ class _FullScreenCardPageState extends State<FullScreenCardPage>
             child: IconButton(
               icon: const Icon(
                 PhosphorIconsRegular.arrowsLeftRight,
-                color: Color(0xFF14D9D0),
+                color: Colors.white,
                 size: 22,
               ),
               onPressed: _flipCard,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLandscapeSwitchMemberButton() {
+    if (widget.members.length <= 1) return const SizedBox.shrink();
+
+    return Semantics(
+      label: 'Ver próxima carteirinha',
+      button: true,
+      child: Tooltip(
+        message: 'Ver próxima carteirinha',
+        child: Container(
+          decoration: BoxDecoration(
+            color: DsCores.glass.withValues(alpha: 0.75),
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: DsCores.dependente.accent.withValues(alpha: 0.4),
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.3),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+              BoxShadow(
+                color: DsCores.dependente.accent.withValues(alpha: 0.15),
+                blurRadius: 12,
+                spreadRadius: 1,
+              ),
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            shape: const CircleBorder(),
+            child: IconButton(
+              icon: const Icon(
+                PhosphorIconsRegular.userSwitch,
+                color: Colors.white,
+                size: 22,
+              ),
+              onPressed: () {
+                setState(() {
+                  _selectedMemberIndex =
+                      (_selectedMemberIndex + 1) % widget.members.length;
+                  _showCpf = false;
+                  if (_isBackVisible) _flipCard();
+                });
+              },
             ),
           ),
         ),
@@ -366,63 +419,43 @@ class _FullScreenCardPageState extends State<FullScreenCardPage>
   Widget _buildMemberSelector({EdgeInsetsGeometry? padding}) {
     if (widget.members.length <= 1) return const SizedBox.shrink();
 
-    return SizedBox(
-      height: 45,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: padding ?? const EdgeInsets.symmetric(horizontal: 24),
-        itemCount: widget.members.length,
-        itemBuilder: (context, index) {
-          final member = widget.members[index];
-          final isSelected = index == _selectedMemberIndex;
+    final items = widget.members.map((member) {
+      final Color statusColor = DsTokenStatus.active.primary;
+      const String statusLabel = 'Ativa';
 
-          return GestureDetector(
-            onTap: () {
-              if (!isSelected) {
-                setState(() {
-                  _selectedMemberIndex = index;
-                  if (_isBackVisible) _flipCard();
-                });
-              }
-            },
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              margin: const EdgeInsets.only(right: 12),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? AppColors.primary
-                    : Colors.white.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(25),
-                border: Border.all(
-                  color: isSelected
-                      ? Colors.white
-                      : Colors.white.withValues(alpha: 0.2),
-                  width: 1.5,
-                ),
-                boxShadow: isSelected
-                    ? [
-                        BoxShadow(
-                          color: AppColors.primary.withValues(alpha: 0.4),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ]
-                    : null,
-              ),
-              child: Text(
-                member.name.split(' ')[0],
-                style: GoogleFonts.inter(
-                  color: Colors.white,
-                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                  fontSize: 14,
-                ),
-              ),
-            ),
-          );
-        },
-      ),
+      return DsMembroCarrosselItem(
+        id: member.id,
+        name: member.name.split(' ').first,
+        initials: member.initials,
+        statusLabel: statusLabel,
+        statusColor: statusColor,
+        paletteSeed: member.userId,
+      );
+    }).toList();
+
+    final String selectedId = widget.members[_selectedMemberIndex].id;
+
+    final Widget carrossel = DsMembrosCarrossel(
+      items: items,
+      selectedId: selectedId,
+      onItemSelected: (id) {
+        final index = widget.members.indexWhere((m) => m.id == id);
+        if (index != -1 && index != _selectedMemberIndex) {
+          setState(() {
+            _selectedMemberIndex = index;
+            _showCpf = false;
+            if (_isBackVisible) _flipCard();
+          });
+        }
+      },
+      sectionTitle: '${widget.members.length} membros',
     );
+
+    if (padding != null) {
+      return Padding(padding: padding, child: carrossel);
+    }
+
+    return carrossel;
   }
 
   Widget _buildControls({bool compact = false}) {
