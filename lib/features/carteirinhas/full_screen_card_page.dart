@@ -4,6 +4,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'dart:math';
 
 import '../../core/constants/colors.dart';
+import '../../core/design_system_v2/design_system_v2.dart';
 import '../../models/digital_card.dart';
 import '../../models/member.dart';
 import 'widgets/digital/digital_card_widget.dart';
@@ -119,6 +120,26 @@ class _FullScreenCardPageState extends State<FullScreenCardPage>
                 _buildMemberSelector(),
                 const SizedBox(height: 24),
                 _buildCardDisplay(member, card),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      PhosphorIconsRegular.deviceMobile,
+                      color: Colors.white.withValues(alpha: 0.4),
+                      size: 14,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Vire o celular para visualizar melhor',
+                      style: GoogleFonts.inter(
+                        color: Colors.white.withValues(alpha: 0.4),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 24),
                 _buildControls(),
                 const SizedBox(height: 32),
@@ -131,51 +152,122 @@ class _FullScreenCardPageState extends State<FullScreenCardPage>
   }
 
   Widget _buildLandscapeLayout(Member member, DigitalCard card) {
-    return Column(
+    return Stack(
       children: [
-        _buildHeader(),
-        Expanded(
-          child: Row(
+        // A carteirinha digital centralizada, ocupando o máximo de espaço seguro
+        Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Lado esquerdo: O Cartão (Com restrição de altura)
               Expanded(
-                flex: 3,
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    return ConstrainedBox(
-                      constraints: BoxConstraints(
-                        maxHeight: constraints.maxHeight,
-                      ),
-                      child: _buildCardDisplay(member, card),
-                    );
-                  },
-                ),
-              ),
-              // Lado direito: Controles e Seletor (Com scroll)
-              Expanded(
-                flex: 2,
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 24, bottom: 16),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        if (widget.members.length > 1) ...[
-                          _buildMemberSelector(padding: EdgeInsets.zero),
-                          const SizedBox(height: 20),
-                        ],
-                        _buildControls(compact: true),
-                      ],
-                    ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 8.0,
+                    horizontal: 80.0,
                   ),
+                  child: _buildCardDisplay(member, card),
                 ),
               ),
+              if (widget.members.length > 1) ...[
+                const SizedBox(height: 8),
+                _buildMemberSelector(
+                  padding: const EdgeInsets.symmetric(horizontal: 80),
+                ),
+                const SizedBox(height: 8),
+              ],
             ],
           ),
         ),
-        const SizedBox(height: 8),
+
+        // Botão de fechar/voltar no canto superior esquerdo (com margem segura)
+        Positioned(top: 16, left: 16, child: _buildLandscapeCloseButton()),
+
+        // Botão de virar frente/verso (compacto, apenas com ícone) flutuante à direita
+        Positioned(
+          bottom: widget.members.length > 1 ? 80 : 16,
+          right: 16,
+          child: _buildLandscapeFlipButton(),
+        ),
       ],
+    );
+  }
+
+  Widget _buildLandscapeCloseButton() {
+    return Semantics(
+      label: 'Fechar visualização da carteirinha',
+      button: true,
+      child: Tooltip(
+        message: 'Fechar',
+        child: Container(
+          decoration: BoxDecoration(
+            color: DsCores.glass.withValues(alpha: 0.75),
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: DsCores.border.withValues(alpha: 0.6),
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.3),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            shape: const CircleBorder(),
+            child: IconButton(
+              icon: const Icon(
+                PhosphorIconsRegular.x,
+                color: Colors.white,
+                size: 22,
+              ),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLandscapeFlipButton() {
+    final label = _isBackVisible ? 'Ver frente' : 'Ver verso';
+    return Semantics(
+      label: label,
+      button: true,
+      child: Tooltip(
+        message: label,
+        child: Container(
+          decoration: BoxDecoration(
+            color: DsCores.glass.withValues(alpha: 0.75),
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: DsCores.carteirinha.accent.withValues(alpha: 0.6),
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.3),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            shape: const CircleBorder(),
+            child: IconButton(
+              icon: const Icon(
+                PhosphorIconsRegular.arrowsLeftRight,
+                color: Color(0xFF14D9D0),
+                size: 22,
+              ),
+              onPressed: _flipCard,
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -336,35 +428,13 @@ class _FullScreenCardPageState extends State<FullScreenCardPage>
   Widget _buildControls({bool compact = false}) {
     return Column(
       children: [
-        ElevatedButton.icon(
+        DsBotao(
+          label: _isBackVisible ? 'VER FRENTE' : 'VER VERSO',
           onPressed: _flipCard,
-          icon: Icon(
-            _isBackVisible
-                ? PhosphorIconsRegular.arrowsLeftRight
-                : PhosphorIconsRegular.arrowsLeftRight,
-            color: AppColors.primary,
-          ),
-          label: Text(
-            _isBackVisible ? 'VER FRENTE' : 'VER VERSO',
-            style: GoogleFonts.inter(
-              color: AppColors.primary,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 1,
-            ),
-          ),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.white,
-            foregroundColor: AppColors.primary,
-            padding: EdgeInsets.symmetric(
-              horizontal: compact ? 30 : 40,
-              vertical: compact ? 16 : 20,
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(35),
-            ),
-            elevation: 8,
-            shadowColor: Colors.black.withValues(alpha: 0.3),
-          ),
+          variante: DsBotaoVariante.acao,
+          token: DsCores.carteirinha,
+          icon: PhosphorIconsRegular.arrowsLeftRight,
+          fullWidth: false,
         ),
         SizedBox(height: compact ? 12 : 20),
         Padding(
