@@ -31,7 +31,13 @@ import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 class AddMemberPage extends StatefulWidget {
   final Member? member;
   final CardRequest? request;
-  const AddMemberPage({super.key, this.member, this.request});
+  final bool prefillForTitular;
+  const AddMemberPage({
+    super.key,
+    this.member,
+    this.request,
+    this.prefillForTitular = false,
+  });
 
   @override
   State<AddMemberPage> createState() => _AddMemberPageState();
@@ -185,8 +191,51 @@ class _AddMemberPageState extends State<AddMemberPage> {
       if (_selectedState != null) {
         _fetchCities(_selectedState!, resetCity: false);
       }
+    } else if (widget.prefillForTitular) {
+      _loadTitularData();
     }
     _fetchStates();
+  }
+
+  Future<void> _loadTitularData() async {
+    try {
+      final userId = _authService.currentUser?.id;
+      if (userId == null) return;
+
+      final user = await _databaseService.getUserProfile(userId);
+      if (!mounted) return;
+      if (user == null) return;
+
+      setState(() {
+        final nameToUse =
+            (user.socialName != null && user.socialName!.isNotEmpty)
+            ? user.socialName!
+            : user.name;
+        _nomeController.text = nameToUse;
+        _cpfController.text = user.cpf;
+        _telefoneController.text = user.phone;
+        _nascimentoController.text = user.dateOfBirth ?? '';
+
+        if (user.state != null && user.state!.isNotEmpty) {
+          _selectedState = user.state;
+        }
+        if (user.city != null && user.city!.isNotEmpty) {
+          _selectedCity = user.city;
+        }
+        if (user.gender != null && user.gender!.isNotEmpty) {
+          _selectedGender = user.gender;
+        }
+        if (user.race != null && user.race!.isNotEmpty) {
+          _selectedRacaCor = user.race;
+        }
+      });
+
+      if (_selectedState != null) {
+        _fetchCities(_selectedState!, resetCity: false);
+      }
+    } catch (e) {
+      debugPrint('Erro ao preencher dados do titular: $e');
+    }
   }
 
   Future<void> _fetchStates() async {

@@ -20,6 +20,7 @@ import 'package:conectea/features/carteirinhas/widgets/tela/cards_details_sectio
 import 'package:conectea/features/carteirinhas/widgets/tela/cards_error_state.dart';
 import 'package:conectea/features/carteirinhas/solicitacao/add_member_page.dart';
 import 'package:conectea/features/carteirinhas/solicitacao/requests_view.dart';
+import 'package:conectea/features/carteirinhas/solicitacao/widgets/request_beneficiary_choice_sheet.dart';
 import 'package:conectea/features/home/utils/home_status_helper.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 import 'package:conectea/core/widgets/premium/premium_card.dart';
@@ -80,7 +81,7 @@ class _CardsViewState extends State<CardsView> {
         (_user!.state?.isNotEmpty ?? false);
   }
 
-  void _handleRequestNewCard() {
+  void _handleRequestNewCard() async {
     if (!_isProfileComplete) {
       showDialog(
         context: context,
@@ -138,9 +139,15 @@ class _CardsViewState extends State<CardsView> {
       return;
     }
 
+    final isForTitular = await RequestBeneficiaryChoiceSheet.show(context);
+    if (isForTitular == null) return;
+
+    if (!mounted) return;
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const AddMemberPage()),
+      MaterialPageRoute(
+        builder: (context) => AddMemberPage(prefillForTitular: isForTitular),
+      ),
     ).then((_) {
       // Recarregar perfil se necessário, embora os membros sejam via stream
       _loadProfile();

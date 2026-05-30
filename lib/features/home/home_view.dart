@@ -24,6 +24,7 @@ import 'package:conectea/features/home/widgets/informacoes/home_information_sect
 
 import 'package:conectea/features/home/widgets/header/home_greeting_header.dart';
 import 'package:conectea/features/carteirinhas/solicitacao/add_member_page.dart';
+import 'package:conectea/features/carteirinhas/solicitacao/widgets/request_beneficiary_choice_sheet.dart';
 import 'package:conectea/features/home/widgets/dinamico/home_dynamic_content.dart';
 import 'package:conectea/features/home/widgets/acesso_rapido/home_quick_access_section.dart';
 
@@ -139,7 +140,7 @@ class _HomeViewState extends State<HomeView> {
         (_user!.state?.isNotEmpty ?? false);
   }
 
-  void _handleRequestCard() {
+  void _handleRequestCard() async {
     if (!_isProfileComplete) {
       showDialog(
         context: context,
@@ -196,10 +197,16 @@ class _HomeViewState extends State<HomeView> {
       );
       return;
     }
-    // Navegação direta para AddMemberPage em vez de MemberSelectionPage
+
+    final isForTitular = await RequestBeneficiaryChoiceSheet.show(context);
+    if (isForTitular == null) return;
+
+    if (!mounted) return;
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const AddMemberPage()),
+      MaterialPageRoute(
+        builder: (context) => AddMemberPage(prefillForTitular: isForTitular),
+      ),
     ).then((_) => _loadData());
   }
 
