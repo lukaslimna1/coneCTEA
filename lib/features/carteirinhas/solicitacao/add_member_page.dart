@@ -73,6 +73,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
   bool _isUploadingReport = false;
 
   bool _isLoading = false;
+  String? _cpfDuplicateError;
   final List<String> _uploadedUrlsThisSession = [];
 
   bool _isFieldEnabled(String fieldName) {
@@ -423,6 +424,43 @@ class _AddMemberPageState extends State<AddMemberPage> {
 
     if (_isLoading) return;
 
+    // Verifica CPF duplicado ANTES do modal de confirmação
+    final isEditing = widget.member != null;
+    final cleanCpf = _cpfController.text.replaceAll(RegExp(r'[^0-9]'), '');
+
+    if (!isEditing ||
+        (isEditing &&
+            widget.member!.cpf.replaceAll(RegExp(r'[^0-9]'), '') != cleanCpf)) {
+      setState(() => _isLoading = true);
+      try {
+        final cpfExists = await _databaseService.isMemberCpfRegistered(
+          cleanCpf,
+          memberId: widget.member?.id,
+        );
+        if (cpfExists) {
+          if (mounted) {
+            setState(() {
+              _cpfDuplicateError =
+                  'Este CPF já possui uma carteirinha cadastrada ou solicitação ativa no sistema.';
+              _isLoading = false;
+            });
+            _formKey.currentState!.validate();
+            _showErrorSnackBar(
+              'Revise os dados ou entre em contato com o suporte.',
+            );
+          }
+          return;
+        }
+      } catch (_) {
+        // Falha na checagem não deve bloquear o fluxo
+      } finally {
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
+      }
+    }
+
+    if (!mounted) return;
     final shouldSubmit = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
@@ -436,35 +474,6 @@ class _AddMemberPageState extends State<AddMemberPage> {
     try {
       final userId = _authService.currentUser?.id;
       if (userId == null) throw Exception('Usuário não autenticado');
-
-      final isEditing = widget.member != null;
-      final cleanCpf = _cpfController.text.replaceAll(RegExp(r'[^0-9]'), '');
-
-      // Verifica CPF duplicado apenas ao criar novo ou alterar o CPF atual
-      if (!isEditing ||
-          (isEditing &&
-              widget.member!.cpf.replaceAll(RegExp(r'[^0-9]'), '') !=
-                  cleanCpf)) {
-        final cpfExists = await _databaseService.isMemberCpfRegistered(
-          cleanCpf,
-        );
-        if (cpfExists) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                  'Este CPF já possui uma carteirinha cadastrada ou solicitação em andamento.',
-                ),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
-          if (mounted) {
-            setState(() => _isLoading = false);
-          }
-          return;
-        }
-      }
 
       final member = Member(
         id: isEditing ? widget.member!.id : const Uuid().v4(),
@@ -741,6 +750,11 @@ class _AddMemberPageState extends State<AddMemberPage> {
                                   icon: PhosphorIconsRegular.identificationCard,
                                   inputFormatters: [cpfMask],
                                   keyboardType: TextInputType.number,
+                                  onChanged: (_) {
+                                    if (_cpfDuplicateError != null) {
+                                      setState(() => _cpfDuplicateError = null);
+                                    }
+                                  },
                                   validator: (v) {
                                     final isEnabled = _isFieldEnabled('CPF');
                                     if (!isEnabled) return null;
@@ -750,6 +764,9 @@ class _AddMemberPageState extends State<AddMemberPage> {
                                     }
                                     if (!isValidCpf(v)) {
                                       return 'CPF inválido';
+                                    }
+                                    if (_cpfDuplicateError != null) {
+                                      return _cpfDuplicateError;
                                     }
                                     return null;
                                   },

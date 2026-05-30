@@ -11,6 +11,7 @@ class RequestInputField extends StatelessWidget {
   final List<TextInputFormatter>? inputFormatters;
   final TextInputType? keyboardType;
   final bool enabled;
+  final ValueChanged<String>? onChanged;
 
   const RequestInputField({
     super.key,
@@ -22,6 +23,7 @@ class RequestInputField extends StatelessWidget {
     this.inputFormatters,
     this.keyboardType,
     this.enabled = true,
+    this.onChanged,
   });
 
   @override
@@ -35,6 +37,7 @@ class RequestInputField extends StatelessWidget {
       inputFormatters: inputFormatters,
       keyboardType: keyboardType,
       enabled: enabled,
+      onChanged: onChanged,
     );
   }
 }
