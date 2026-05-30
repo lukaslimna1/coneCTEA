@@ -8,7 +8,8 @@ class Member {
   final String phone;
   final String emergencyContact;
   final String responsibleName;
-  final String dateOfBirth; // Alterado de birthDate para dateOfBirth (String para alinhar com o AdminView)
+  final String
+  dateOfBirth; // Alterado de birthDate para dateOfBirth (String para alinhar com o AdminView)
   final String bloodType;
   final String cid;
   final String documentUrl;
@@ -16,6 +17,8 @@ class Member {
   final String status;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final String? gender;
+  final String? racaCor;
 
   Member({
     required this.id,
@@ -35,6 +38,8 @@ class Member {
     required this.status,
     required this.createdAt,
     required this.updatedAt,
+    this.gender,
+    this.racaCor,
   });
 
   factory Member.empty() {
@@ -56,6 +61,8 @@ class Member {
       status: 'pending',
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
+      gender: null,
+      racaCor: null,
     );
   }
 
@@ -65,27 +72,37 @@ class Member {
       userId: json['userId'] ?? json['user_id'] ?? '',
       name: (json['name']?.toString().isNotEmpty == true)
           ? json['name']
-          : (json['full_name']?.toString().isNotEmpty == true 
-              ? json['full_name'] 
-              : ''),
+          : (json['full_name']?.toString().isNotEmpty == true
+                ? json['full_name']
+                : ''),
       cpf: json['cpf'] ?? '',
       city: json['city'] ?? '',
       state: json['state'] ?? '',
       phone: json['phone'] ?? '',
-      emergencyContact: json['emergencyContact'] ?? json['emergency_contact'] ?? '',
-      responsibleName: json['responsibleName'] ?? json['responsible_name'] ?? '',
-      dateOfBirth: json['dateOfBirth'] ?? json['birth_date'] ?? json['birthDate'] ?? '',
+      emergencyContact:
+          json['emergencyContact'] ?? json['emergency_contact'] ?? '',
+      responsibleName:
+          json['responsibleName'] ?? json['responsible_name'] ?? '',
+      dateOfBirth:
+          json['dateOfBirth'] ?? json['birth_date'] ?? json['birthDate'] ?? '',
       bloodType: json['bloodType'] ?? json['blood_type'] ?? '',
       cid: json['cid'] ?? '',
       documentUrl: json['documentUrl'] ?? json['document_url'] ?? '',
-      medicalReportUrl: json['medicalReportUrl'] ?? json['medical_report_url'] ?? '',
+      medicalReportUrl:
+          json['medicalReportUrl'] ?? json['medical_report_url'] ?? '',
       status: json['status'] ?? 'waiting_approval',
-      createdAt: json['createdAt'] != null 
-          ? DateTime.parse(json['createdAt']) 
-          : (json['created_at'] != null ? DateTime.parse(json['created_at']) : DateTime.now()),
-      updatedAt: json['updatedAt'] != null 
-          ? DateTime.parse(json['updatedAt']) 
-          : (json['updated_at'] != null ? DateTime.parse(json['updated_at']) : DateTime.now()),
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'])
+          : (json['created_at'] != null
+                ? DateTime.parse(json['created_at'])
+                : DateTime.now()),
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.parse(json['updatedAt'])
+          : (json['updated_at'] != null
+                ? DateTime.parse(json['updated_at'])
+                : DateTime.now()),
+      gender: json['gender']?.toString(),
+      racaCor: json['raca_cor']?.toString() ?? json['racaCor']?.toString(),
     );
   }
 
@@ -108,6 +125,8 @@ class Member {
       'status': status,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
+      'gender': gender,
+      'raca_cor': racaCor,
     };
   }
 
@@ -129,6 +148,8 @@ class Member {
     String? status,
     DateTime? createdAt,
     DateTime? updatedAt,
+    String? gender,
+    String? racaCor,
   }) {
     return Member(
       id: id ?? this.id,
@@ -148,6 +169,8 @@ class Member {
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      gender: gender ?? this.gender,
+      racaCor: racaCor ?? this.racaCor,
     );
   }
 
@@ -161,4 +184,3 @@ class Member {
     return parts.first[0].toUpperCase();
   }
 }
-
