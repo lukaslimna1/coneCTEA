@@ -14,7 +14,6 @@ import 'package:conectea/models/member.dart';
 import 'package:conectea/models/card_request.dart';
 import 'package:intl/intl.dart';
 import 'package:conectea/core/widgets/premium_auth_background.dart';
-import 'package:conectea/core/widgets/premium/premium_button.dart';
 import 'package:conectea/features/carteirinhas/solicitacao/widgets/request_input_field.dart';
 import 'package:conectea/features/carteirinhas/solicitacao/widgets/request_dropdown_field.dart';
 import 'package:conectea/features/carteirinhas/solicitacao/widgets/request_searchable_dropdown.dart';
@@ -22,11 +21,12 @@ import 'package:conectea/features/carteirinhas/solicitacao/widgets/request_uploa
 import 'package:conectea/features/carteirinhas/solicitacao/widgets/request_admin_notes_banner.dart';
 import 'package:conectea/features/carteirinhas/solicitacao/widgets/request_success_dialog.dart';
 import 'package:conectea/features/carteirinhas/solicitacao/widgets/request_page_header.dart';
-import 'package:conectea/features/carteirinhas/solicitacao/widgets/request_form_section.dart';
 import 'package:conectea/features/carteirinhas/solicitacao/utils/request_cpf_validator.dart';
-import 'package:conectea/features/carteirinhas/solicitacao/widgets/request_later_button.dart';
 import 'package:conectea/features/carteirinhas/solicitacao/widgets/request_unsaved_changes_dialog.dart';
 import 'package:conectea/features/carteirinhas/solicitacao/helpers/request_cleanup_helper.dart';
+import 'package:conectea/core/campos_cadastrais/campos/campo_genero.dart';
+import 'package:conectea/core/campos_cadastrais/campos/campo_raca_cor.dart';
+import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 
 class AddMemberPage extends StatefulWidget {
   final Member? member;
@@ -57,6 +57,8 @@ class _AddMemberPageState extends State<AddMemberPage> {
   String? _selectedBloodType;
   String? _selectedState;
   String? _selectedCity;
+  String? _selectedGender;
+  String? _selectedRacaCor;
 
   List<Map<String, dynamic>> _states = [];
   List<String> _cities = [];
@@ -159,6 +161,12 @@ class _AddMemberPageState extends State<AddMemberPage> {
       _selectedBloodType = m.bloodType.isNotEmpty ? m.bloodType : null;
       _selectedState = m.state.isNotEmpty ? m.state : null;
       _selectedCity = m.city.isNotEmpty ? m.city : null;
+      _selectedGender = (m.gender != null && m.gender!.isNotEmpty)
+          ? m.gender
+          : null;
+      _selectedRacaCor = (m.racaCor != null && m.racaCor!.isNotEmpty)
+          ? m.racaCor
+          : null;
       // Inicializar URLs originais do membro considerando o status de reenvio
       final documentEnabled = _isFieldEnabled('Documento com Foto (RG/CNH)');
       final medicalReportEnabled = _isFieldEnabled('Laudo Médico');
@@ -450,6 +458,8 @@ class _AddMemberPageState extends State<AddMemberPage> {
         status: isEditing ? widget.member!.status : 'waiting_approval',
         createdAt: isEditing ? widget.member!.createdAt : DateTime.now(),
         updatedAt: DateTime.now(),
+        gender: _selectedGender,
+        racaCor: _selectedRacaCor,
       );
 
       String generatedProtocol = '';
@@ -544,6 +554,8 @@ class _AddMemberPageState extends State<AddMemberPage> {
           _nascimentoController.text.isNotEmpty ||
           _cidController.text.isNotEmpty ||
           _selectedBloodType != null ||
+          _selectedGender != null ||
+          _selectedRacaCor != null ||
           _selectedState != null ||
           _selectedCity != null ||
           _uploadedUrlsThisSession.isNotEmpty;
@@ -586,6 +598,16 @@ class _AddMemberPageState extends State<AddMemberPage> {
     final origCity = m.city.isNotEmpty ? m.city : null;
     if (_selectedCity != origCity) return true;
 
+    final origGender = (m.gender != null && m.gender!.isNotEmpty)
+        ? m.gender
+        : null;
+    if (_selectedGender != origGender) return true;
+
+    final origRacaCor = (m.racaCor != null && m.racaCor!.isNotEmpty)
+        ? m.racaCor
+        : null;
+    if (_selectedRacaCor != origRacaCor) return true;
+
     if (_uploadedUrlsThisSession.isNotEmpty) return true;
 
     return false;
@@ -626,7 +648,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
         await _handleBackAction();
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFF051124),
+        backgroundColor: DsCores.background,
         body: PremiumAuthBackground(
           child: SafeArea(
             child: CustomScrollView(
@@ -644,7 +666,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                     child: Column(
                       children: [
                         const SizedBox(height: 32),
-                        RequestFormSection(
+                        DsCard(
                           child: Form(
                             key: _formKey,
                             child: Column(
@@ -665,14 +687,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                                 // ==========================================
                                 Text(
                                   'DADOS OBRIGATÓRIOS DO BENEFICIÁRIO',
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.textSecondary.withValues(
-                                      alpha: 0.7,
-                                    ),
-                                    letterSpacing: 0.8,
-                                  ),
+                                  style: DsTipografia.sectionLabel,
                                 ),
                                 const SizedBox(height: 16),
 
@@ -761,9 +776,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                                 ),
 
                                 Divider(
-                                  color: AppColors.textSecondary.withValues(
-                                    alpha: 0.1,
-                                  ),
+                                  color: DsCores.border.withValues(alpha: 0.3),
                                   height: 40,
                                   thickness: 1,
                                 ),
@@ -773,14 +786,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                                 // ==========================================
                                 Text(
                                   'DOCUMENTOS PARA ANÁLISE',
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.textSecondary.withValues(
-                                      alpha: 0.7,
-                                    ),
-                                    letterSpacing: 0.8,
-                                  ),
+                                  style: DsTipografia.sectionLabel,
                                 ),
                                 const SizedBox(height: 16),
 
@@ -909,9 +915,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                                 })(),
 
                                 Divider(
-                                  color: AppColors.textSecondary.withValues(
-                                    alpha: 0.1,
-                                  ),
+                                  color: DsCores.border.withValues(alpha: 0.3),
                                   height: 40,
                                   thickness: 1,
                                 ),
@@ -921,14 +925,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                                 // ==========================================
                                 Text(
                                   'CONTATO DO BENEFICIÁRIO',
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.textSecondary.withValues(
-                                      alpha: 0.7,
-                                    ),
-                                    letterSpacing: 0.8,
-                                  ),
+                                  style: DsTipografia.sectionLabel,
                                 ),
                                 const SizedBox(height: 16),
 
@@ -943,9 +940,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                                 ),
 
                                 Divider(
-                                  color: AppColors.textSecondary.withValues(
-                                    alpha: 0.1,
-                                  ),
+                                  color: DsCores.border.withValues(alpha: 0.3),
                                   height: 40,
                                   thickness: 1,
                                 ),
@@ -955,14 +950,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                                 // ==========================================
                                 Text(
                                   'DADOS OPCIONAIS COMPLEMENTARES',
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.textSecondary.withValues(
-                                      alpha: 0.7,
-                                    ),
-                                    letterSpacing: 0.8,
-                                  ),
+                                  style: DsTipografia.sectionLabel,
                                 ),
                                 const SizedBox(height: 16),
 
@@ -1009,11 +997,29 @@ class _AddMemberPageState extends State<AddMemberPage> {
                                   icon: PhosphorIconsRegular.clipboardText,
                                   enabled: _isFieldEnabled('Laudo Médico'),
                                 ),
+                                const SizedBox(height: 20),
+
+                                CampoRacaCor(
+                                  value: _selectedRacaCor,
+                                  onChanged: (val) =>
+                                      setState(() => _selectedRacaCor = val),
+                                  enabled:
+                                      _isFieldEnabled('Raça/Cor') ||
+                                      _isFieldEnabled('Raça / Cor'),
+                                ),
+                                const SizedBox(height: 20),
+
+                                CampoGenero(
+                                  value: _selectedGender,
+                                  onChanged: (val) =>
+                                      setState(() => _selectedGender = val),
+                                  enabled:
+                                      _isFieldEnabled('Gênero') ||
+                                      _isFieldEnabled('Genero'),
+                                ),
 
                                 Divider(
-                                  color: AppColors.textSecondary.withValues(
-                                    alpha: 0.1,
-                                  ),
+                                  color: DsCores.border.withValues(alpha: 0.3),
                                   height: 40,
                                   thickness: 1,
                                 ),
@@ -1023,14 +1029,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                                 // ==========================================
                                 Text(
                                   'RESPONSÁVEL',
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.textSecondary.withValues(
-                                      alpha: 0.7,
-                                    ),
-                                    letterSpacing: 0.8,
-                                  ),
+                                  style: DsTipografia.sectionLabel,
                                 ),
                                 const SizedBox(height: 16),
 
@@ -1054,9 +1053,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                                 ),
 
                                 Divider(
-                                  color: AppColors.textSecondary.withValues(
-                                    alpha: 0.1,
-                                  ),
+                                  color: DsCores.border.withValues(alpha: 0.3),
                                   height: 40,
                                   thickness: 1,
                                 ),
@@ -1066,14 +1063,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                                 // ==========================================
                                 Text(
                                   'CONTATO DE EMERGÊNCIA',
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.textSecondary.withValues(
-                                      alpha: 0.7,
-                                    ),
-                                    letterSpacing: 0.8,
-                                  ),
+                                  style: DsTipografia.sectionLabel,
                                 ),
                                 const SizedBox(height: 16),
 
@@ -1105,10 +1095,11 @@ class _AddMemberPageState extends State<AddMemberPage> {
 
                                 const SizedBox(height: 40),
 
-                                PremiumButton(
-                                  text: 'Salvar e Continuar',
+                                DsBotao(
+                                  label: 'Salvar e Continuar',
                                   onPressed: _handleSave,
                                   isLoading: _isLoading,
+                                  variante: DsBotaoVariante.primario,
                                 ),
                                 if (widget.request == null ||
                                     widget.request!.status ==
@@ -1116,8 +1107,10 @@ class _AddMemberPageState extends State<AddMemberPage> {
                                     widget.request!.status ==
                                         'waiting_docs') ...[
                                   const SizedBox(height: 12),
-                                  RequestLaterButton(
+                                  DsBotao(
+                                    label: 'Fazer mais tarde',
                                     onPressed: _handleBackAction,
+                                    variante: DsBotaoVariante.secundario,
                                   ),
                                 ],
                                 const SizedBox(height: 20),
