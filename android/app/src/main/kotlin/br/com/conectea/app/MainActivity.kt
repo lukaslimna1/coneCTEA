@@ -1,4 +1,4 @@
-package br.com.conectea.conectea
+package br.com.conectea.app
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 
