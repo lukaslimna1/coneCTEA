@@ -6,12 +6,22 @@ import 'package:http/http.dart' as http;
 
 class GoogleDriveService {
   static const String _gasUrl =
-      'https://script.google.com/macros/s/AKfycbz6TiI2-5v8hMh7uTQuSonRzcTEjdWbLqKIZVLbypt7Fktol-EGiv5YxvZzPKePQjvSng/exec';
+      'https://script.google.com/macros/s/AKfycbxnwNjkRDEY7lzgfRz3PMovcbHhM_IAvE7LzTgAUKKb0JbCuIVm4XbP6NmkePUyt_pj/exec';
 
   static const int _maxFileSize = 5 * 1024 * 1024; // 5MB
   static const List<String> _allowedExtensions = [
-    'pdf', 'jpg', 'jpeg', 'png', 'webp', 'heic', 'heif',
-    'txt', 'doc', 'docx', 'odt', 'rtf'
+    'pdf',
+    'jpg',
+    'jpeg',
+    'png',
+    'webp',
+    'heic',
+    'heif',
+    'txt',
+    'doc',
+    'docx',
+    'odt',
+    'rtf',
   ];
 
   /// Centraliza a chamada ao Google Apps Script para lidar com redirects (302)
@@ -31,9 +41,12 @@ class GoogleDriveService {
     // O GAS costuma responder com 302 redirecionando para script.googleusercontent.com
     // Às vezes o status code vem como 200 mas o corpo contém o HTML de "Moved Temporarily"
     for (int i = 0; i < 3; i++) {
-      final isRedirectStatus = response.statusCode >= 300 && response.statusCode < 400;
-      final hasRedirectBody = response.body.contains('Moved Temporarily') &&
-                             (response.headers.containsKey('location') || response.body.contains('HREF="'));
+      final isRedirectStatus =
+          response.statusCode >= 300 && response.statusCode < 400;
+      final hasRedirectBody =
+          response.body.contains('Moved Temporarily') &&
+          (response.headers.containsKey('location') ||
+              response.body.contains('HREF="'));
 
       if (isRedirectStatus || hasRedirectBody) {
         String? location = response.headers['location'];
@@ -50,7 +63,9 @@ class GoogleDriveService {
 
         if (location != null) {
           final redirectUri = Uri.parse(location);
-          debugPrint('[$platform] Seguindo redirect GAS (${response.statusCode}) para: ${redirectUri.host}');
+          debugPrint(
+            '[$platform] Seguindo redirect GAS (${response.statusCode}) para: ${redirectUri.host}',
+          );
           // Após o POST inicial, o GAS redireciona para um GET no echo service para retornar o JSON
           response = await http.get(redirectUri);
         } else {
@@ -79,7 +94,9 @@ class GoogleDriveService {
 
       // Validação de tamanho
       if (file.size > _maxFileSize) {
-        debugPrint('[$platform] Erro: Arquivo excede o limite de 5MB (${file.size} bytes).');
+        debugPrint(
+          '[$platform] Erro: Arquivo excede o limite de 5MB (${file.size} bytes).',
+        );
         return null;
       }
 
@@ -89,7 +106,9 @@ class GoogleDriveService {
         if (!kIsWeb && file.path != null && file.path!.isNotEmpty) {
           bytes = await io.File(file.path!).readAsBytes();
         } else {
-          debugPrint('[$platform] Erro: file.bytes está nulo e não há fallback possível.');
+          debugPrint(
+            '[$platform] Erro: file.bytes está nulo e não há fallback possível.',
+          );
           return null;
         }
       }
@@ -102,14 +121,17 @@ class GoogleDriveService {
         'content': base64Content,
       };
 
-      debugPrint('[$platform] Iniciando upload: $fileName (${bytes.length} bytes)');
+      debugPrint(
+        '[$platform] Iniciando upload: $fileName (${bytes.length} bytes)',
+      );
 
       // Faz a chamada ao GAS tratando redirects
       final response = await _callGas(payload);
 
       if (response.statusCode == 200) {
         // Proteção contra resposta HTML em caso de falha no redirect
-        if (response.body.trim().startsWith('<!DOCTYPE html>') || response.body.trim().startsWith('<html')) {
+        if (response.body.trim().startsWith('<!DOCTYPE html>') ||
+            response.body.trim().startsWith('<html')) {
           debugPrint('[$platform] Erro: Resposta GAS é HTML em vez de JSON.');
           return null;
         }
@@ -121,10 +143,14 @@ class GoogleDriveService {
             final maskedId = result.length > 8
                 ? '${result.substring(0, 4)}...${result.substring(result.length - 4)}'
                 : result;
-            debugPrint('[$platform] Sucesso: Arquivo do Drive enviado (ID: $maskedId).');
+            debugPrint(
+              '[$platform] Sucesso: Arquivo do Drive enviado (ID: $maskedId).',
+            );
             return data['url'] as String?;
           } else {
-            debugPrint('[$platform] GAS erro: ${data['message'] ?? 'Erro desconhecido'}');
+            debugPrint(
+              '[$platform] GAS erro: ${data['message'] ?? 'Erro desconhecido'}',
+            );
             return null;
           }
         } catch (e) {
@@ -162,19 +188,18 @@ class GoogleDriveService {
       }
 
       if (fileId == null || fileId.isEmpty) {
-        debugPrint('[$platform] Erro: Não foi possível extrair o ID do arquivo para deleção.');
+        debugPrint(
+          '[$platform] Erro: Não foi possível extrair o ID do arquivo para deleção.',
+        );
         return false;
       }
 
-      
-      final response = await _callGas({
-        'action': 'delete',
-        'fileId': fileId,
-      });
+      final response = await _callGas({'action': 'delete', 'fileId': fileId});
 
       if (response.statusCode == 200) {
         // Proteção contra resposta HTML
-        if (response.body.trim().startsWith('<!DOCTYPE html>') || response.body.trim().startsWith('<html')) {
+        if (response.body.trim().startsWith('<!DOCTYPE html>') ||
+            response.body.trim().startsWith('<html')) {
           debugPrint('[$platform] Erro ao deletar: Resposta GAS é HTML.');
           return false;
         }
@@ -185,14 +210,20 @@ class GoogleDriveService {
           final maskedId = fileId.length > 8
               ? '${fileId.substring(0, 4)}...${fileId.substring(fileId.length - 4)}'
               : fileId;
-          debugPrint('[$platform] Sucesso: Arquivo do Drive deletado com segurança (ID: $maskedId).');
+          debugPrint(
+            '[$platform] Sucesso: Arquivo do Drive deletado com segurança (ID: $maskedId).',
+          );
         } else {
-          debugPrint('[$platform] Erro no GAS ao deletar: ${data['message'] ?? data}');
+          debugPrint(
+            '[$platform] Erro no GAS ao deletar: ${data['message'] ?? data}',
+          );
         }
         return success;
       }
-      
-      debugPrint('[$platform] Erro de rede ao deletar: statusCode=${response.statusCode}');
+
+      debugPrint(
+        '[$platform] Erro de rede ao deletar: statusCode=${response.statusCode}',
+      );
       return false;
     } catch (e) {
       final platform = kIsWeb ? 'Web' : 'Mobile';

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'package:conectea/core/constants/colors.dart';
+import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 
 class RequestUploadField extends StatelessWidget {
   final String label;
@@ -25,103 +24,107 @@ class RequestUploadField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final String labelLower = label.toLowerCase();
+    final DsCorVisual tokenVisual;
+    if (labelLower.contains('laudo') ||
+        labelLower.contains('médico') ||
+        labelLower.contains('medico')) {
+      tokenVisual = DsCores.privacidade;
+    } else {
+      tokenVisual = DsCores.dadosProtegidos;
+    }
+
+    final effectiveTextColor = isUploaded
+        ? DsCores.textPrimary
+        : (enabled
+              ? DsCores.textPrimary.withValues(alpha: 0.8)
+              : DsCores.textMuted);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: GoogleFonts.inter(
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-            fontSize: 13,
+          style: DsTipografia.inputLabel.copyWith(
+            color: enabled ? DsCores.textPrimary : DsCores.textMuted,
           ),
         ),
-        const SizedBox(height: 8),
-        GestureDetector(
+        const SizedBox(height: DsEspacamentos.sm),
+        DsCard(
+          accentColor: tokenVisual.accent,
+          showGlow: isUploaded,
+          borderWidth: isUploaded ? 1.5 : 1.0,
+          borderColor: isUploaded
+              ? tokenVisual.accent
+              : (enabled
+                    ? Colors.white.withValues(alpha: 0.08)
+                    : Colors.white.withValues(alpha: 0.02)),
+          padding: const EdgeInsets.symmetric(
+            vertical: DsEspacamentos.md,
+            horizontal: DsEspacamentos.md,
+          ),
           onTap: (isUploading || !enabled) ? null : onTap,
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
-            decoration: BoxDecoration(
-              color: isUploaded
-                  ? AppColors.primary.withValues(alpha: 0.15)
-                  : (enabled
-                        ? const Color(0xFF071B3A).withValues(alpha: 0.5)
-                        : Colors.black.withValues(alpha: 0.2)),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: isUploaded
-                    ? AppColors.primary
-                    : (enabled
-                          ? Colors.white.withValues(alpha: 0.05)
-                          : Colors.white.withValues(alpha: 0.02)),
-                width: isUploaded ? 2 : 1,
-              ),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  isUploaded ? PhosphorIconsRegular.checkCircle : icon,
-                  color: isUploaded
-                      ? AppColors.statusGreen
-                      : (enabled
-                            ? AppColors.primary
-                            : AppColors.textSecondary.withValues(alpha: 0.5)),
-                  size: 22,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: isUploading
-                      ? Row(
-                          children: [
-                            const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Text(
-                              'Enviando...',
-                              style: GoogleFonts.inter(
-                                fontSize: 14,
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                          ],
-                        )
-                      : Text(
-                          isUploaded
-                              ? fileName ?? 'Arquivo enviado'
-                              : (enabled
-                                    ? 'Toque para enviar arquivo'
-                                    : 'Campo bloqueado'),
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            color: isUploaded
-                                ? Colors.white
-                                : (enabled
-                                      ? Colors.white.withValues(alpha: 0.7)
-                                      : AppColors.textSecondary),
-                            fontWeight: isUploaded
-                                ? FontWeight.w600
-                                : FontWeight.w400,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                ),
-                if (!isUploading && enabled)
-                  Icon(
-                    isUploaded
-                        ? PhosphorIconsRegular.arrowsClockwise
-                        : PhosphorIconsRegular.uploadSimple,
-                    color: AppColors.primary,
-                    size: 20,
+          child: Row(
+            children: [
+              SizedBox(
+                width: DsTamanhos.iconFrameSm,
+                height: DsTamanhos.iconFrameSm,
+                child: Center(
+                  child: Icon(
+                    isUploaded ? PhosphorIconsRegular.checkCircle : icon,
+                    color: isUploaded
+                        ? DsCores.sucesso.accent
+                        : (enabled ? Colors.white : DsCores.iconMuted),
+                    size: DsTamanhos.iconSm,
                   ),
-              ],
-            ),
+                ),
+              ),
+              const SizedBox(width: DsEspacamentos.md),
+              Expanded(
+                child: isUploading
+                    ? Row(
+                        children: [
+                          const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            'Enviando...',
+                            style: DsTipografia.bodySmall.copyWith(
+                              color: DsCores.textSecondary,
+                            ),
+                          ),
+                        ],
+                      )
+                    : Text(
+                        isUploaded
+                            ? fileName ?? 'Arquivo enviado'
+                            : (enabled
+                                  ? 'Toque para enviar arquivo'
+                                  : 'Campo bloqueado'),
+                        style: DsTipografia.bodySmall.copyWith(
+                          color: effectiveTextColor,
+                          fontWeight: isUploaded
+                              ? FontWeight.w600
+                              : FontWeight.w400,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+              ),
+              if (!isUploading && enabled)
+                Icon(
+                  isUploaded
+                      ? PhosphorIconsRegular.arrowsClockwise
+                      : PhosphorIconsRegular.uploadSimple,
+                  color: tokenVisual.accent,
+                  size: 20,
+                ),
+            ],
           ),
         ),
       ],

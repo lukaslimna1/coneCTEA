@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 
 class RequestUnsavedChangesDialog extends StatelessWidget {
   const RequestUnsavedChangesDialog({super.key});
@@ -7,56 +7,40 @@ class RequestUnsavedChangesDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: const Color(0xFF0F1B2F),
+      backgroundColor: DsCores.glassStrong,
+      surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: Color(0xFF1E2E4A)),
+        borderRadius: BorderRadius.circular(DsRaios.modal),
+        side: BorderSide(
+          color: DsCores.border.withValues(alpha: 0.5),
+          width: 1.0,
+        ),
       ),
       title: Text(
         'Descartar alterações?',
-        style: GoogleFonts.outfit(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-          fontSize: 22,
-        ),
+        style: DsTipografia.pageTitle.copyWith(fontSize: 22, letterSpacing: 0),
       ),
       content: Text(
         'Você possui alterações não salvas. Se sair agora, todos os dados modificados e novos documentos enviados nesta sessão serão perdidos definitivamente.',
-        style: GoogleFonts.inter(
-          color: Colors.white.withValues(alpha: 0.7),
-          fontSize: 15,
-          height: 1.4,
-        ),
+        style: DsTipografia.infoBody,
       ),
-      actionsAlignment: MainAxisAlignment.spaceBetween,
-      actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(false),
-          style: TextButton.styleFrom(
-            foregroundColor: Colors.white.withValues(alpha: 0.6),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          ),
-          child: Text(
-            'Continuar Editando',
-            style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 14),
-          ),
-        ),
-        ElevatedButton(
-          onPressed: () => Navigator.of(context).pop(true),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFFF4D4D),
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            DsBotao(
+              label: 'Sair sem Salvar',
+              variante: DsBotaoVariante.perigo,
+              onPressed: () => Navigator.of(context).pop(true),
             ),
-            elevation: 0,
-          ),
-          child: Text(
-            'Sair sem Salvar',
-            style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 14),
-          ),
+            const SizedBox(height: 12),
+            DsBotao(
+              label: 'Continuar Editando',
+              variante: DsBotaoVariante.secundario,
+              onPressed: () => Navigator.of(context).pop(false),
+            ),
+          ],
         ),
       ],
     );

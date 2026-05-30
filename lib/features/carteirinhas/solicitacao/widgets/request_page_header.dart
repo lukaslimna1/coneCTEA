@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:conectea/core/constants/colors.dart';
+import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 
 class RequestPageHeader extends StatelessWidget {
   final bool isEditing;
@@ -19,7 +19,7 @@ class RequestPageHeader extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
           child: Row(
             children: [
-              IconButton(
+              DsBotaoVoltar(
                 onPressed:
                     onBackTap ??
                     () {
@@ -29,30 +29,6 @@ class RequestPageHeader extends StatelessWidget {
                         context.go('/home');
                       }
                     },
-                icon: Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.05),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.1),
-                    ),
-                  ),
-                  child: const Icon(
-                    PhosphorIconsRegular.caretLeft,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                'Voltar',
-                style: GoogleFonts.inter(
-                  color: Colors.white.withValues(alpha: 0.6),
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
               ),
             ],
           ),

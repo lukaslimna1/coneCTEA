@@ -261,6 +261,42 @@ class _AddMemberPageState extends State<AddMemberPage> {
     super.dispose();
   }
 
+  void _showErrorSnackBar(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: DsCores.surfaceElevated,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(
+            color: DsCores.perigo.accent.withValues(alpha: 0.4),
+            width: 1.0,
+          ),
+        ),
+        margin: const EdgeInsets.only(left: 20, right: 20, bottom: 24),
+        content: Row(
+          children: [
+            Icon(
+              PhosphorIconsRegular.warningCircle,
+              color: DsCores.perigo.accent,
+              size: 20,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                message,
+                style: DsTipografia.bodySmall.copyWith(
+                  color: DsCores.textPrimary,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> _pickAndUploadFile({required bool isDocument}) async {
     final result = await FilePicker.platform.pickFiles(
       withData: true,
@@ -314,26 +350,12 @@ class _AddMemberPageState extends State<AddMemberPage> {
           });
         }
       } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Falha no upload. Tente novamente.'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
+        _showErrorSnackBar('Falha no upload. Tente novamente.');
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text(
-              'Não foi possível enviar o arquivo agora. Verifique sua conexão e tente novamente.',
-            ),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      _showErrorSnackBar(
+        'Não foi possível enviar o arquivo agora. Verifique sua conexão e tente novamente.',
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -398,6 +420,16 @@ class _AddMemberPageState extends State<AddMemberPage> {
         return;
       }
     }
+
+    if (_isLoading) return;
+
+    final shouldSubmit = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const RequestSubmitConfirmationDialog(),
+    );
+
+    if (shouldSubmit != true) return;
 
     setState(() => _isLoading = true);
 
@@ -758,6 +790,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                                     _fetchCities(val);
                                   },
                                   icon: PhosphorIconsRegular.mapPin,
+                                  hint: 'Selecione o estado',
                                   enabled: _isFieldEnabled('Estado'),
                                 ),
                                 const SizedBox(height: 20),
@@ -771,7 +804,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                                   icon: PhosphorIconsRegular.navigationArrow,
                                   hint: _isLoadingCities
                                       ? 'Carregando...'
-                                      : 'Selecione',
+                                      : 'Selecione a cidade',
                                   enabled: _isFieldEnabled('Cidade'),
                                 ),
 
@@ -930,7 +963,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                                 const SizedBox(height: 16),
 
                                 RequestInputField(
-                                  label: 'Telefone',
+                                  label: 'Telefone (Opcional)',
                                   controller: _telefoneController,
                                   hint: '(00) 00000-0000',
                                   icon: PhosphorIconsRegular.phone,
@@ -952,7 +985,17 @@ class _AddMemberPageState extends State<AddMemberPage> {
                                   'DADOS OPCIONAIS COMPLEMENTARES',
                                   style: DsTipografia.sectionLabel,
                                 ),
-                                const SizedBox(height: 16),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Dados opcionais ajudam a complementar o cadastro e podem apoiar identificação, contato familiar e situações de emergência. Eles não são obrigatórios e não interferem na aprovação.',
+                                  style: DsTipografia.bodySmall.copyWith(
+                                    color: DsCores.textSecondary.withValues(
+                                      alpha: 0.7,
+                                    ),
+                                    height: 1.4,
+                                  ),
+                                ),
+                                const SizedBox(height: 20),
 
                                 RequestDropdownField<String>(
                                   label: 'Tipo Sanguíneo (Opcional)',
@@ -1000,6 +1043,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                                 const SizedBox(height: 20),
 
                                 CampoRacaCor(
+                                  label: 'Raça / Cor (Opcional)',
                                   value: _selectedRacaCor,
                                   onChanged: (val) =>
                                       setState(() => _selectedRacaCor = val),
@@ -1010,6 +1054,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                                 const SizedBox(height: 20),
 
                                 CampoGenero(
+                                  label: 'Gênero (Opcional)',
                                   value: _selectedGender,
                                   onChanged: (val) =>
                                       setState(() => _selectedGender = val),
@@ -1043,7 +1088,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
                                 const SizedBox(height: 20),
 
                                 RequestInputField(
-                                  label: 'Número do Responsável (Opcional)',
+                                  label: 'Telefone do Responsável (Opcional)',
                                   controller: _responsavelTelefoneController,
                                   hint: '(00) 00000-0000',
                                   icon: PhosphorIconsRegular.phone,
@@ -1081,7 +1126,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
 
                                 RequestInputField(
                                   label:
-                                      'Número do Contato de Emergência (Opcional)',
+                                      'Telefone do Contato de Emergência (Opcional)',
                                   controller:
                                       _contatoEmergenciaTelefoneController,
                                   hint: '(00) 00000-0000',
@@ -1099,7 +1144,8 @@ class _AddMemberPageState extends State<AddMemberPage> {
                                   label: 'Salvar e Continuar',
                                   onPressed: _handleSave,
                                   isLoading: _isLoading,
-                                  variante: DsBotaoVariante.primario,
+                                  variante: DsBotaoVariante.acao,
+                                  token: DsCores.solicitacao,
                                 ),
                                 if (widget.request == null ||
                                     widget.request!.status ==
@@ -1130,6 +1176,63 @@ class _AddMemberPageState extends State<AddMemberPage> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class RequestSubmitConfirmationDialog extends StatelessWidget {
+  const RequestSubmitConfirmationDialog({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: DsCores.glassStrong,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(DsRaios.modal),
+        side: BorderSide(
+          color: DsCores.border.withValues(alpha: 0.5),
+          width: 1.0,
+        ),
+      ),
+      title: Text(
+        'Antes de enviar',
+        style: DsTipografia.pageTitle.copyWith(fontSize: 22, letterSpacing: 0),
+      ),
+      content: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Text(
+          'Você vai enviar dados e documentos sensíveis para análise da carteirinha comunitária ConeCTEA.\n\nO documento com foto ajuda na conferência de identificação. O laudo médico ajuda na análise da solicitação. Esses arquivos serão tratados com cuidado e descartados conforme as regras do projeto após a conclusão/aprovação do fluxo.\n\nA carteirinha ConeCTEA é comunitária e não substitui CIPTEA, RG, CPF, CNH, laudo, diagnóstico ou atendimento público.',
+          style: DsTipografia.infoBody.copyWith(
+            color: DsCores.textSecondary.withValues(alpha: 0.9),
+            height: 1.45,
+          ),
+        ),
+      ),
+      actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      actions: [
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            DsBotao(
+              label: 'Aceito e quero enviar',
+              variante: DsBotaoVariante.acao,
+              token: DsCores.sucesso,
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+            ),
+            const SizedBox(height: 12),
+            DsBotao(
+              label: 'Voltar e revisar',
+              variante: DsBotaoVariante.secundario,
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
