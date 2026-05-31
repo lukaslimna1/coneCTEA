@@ -258,10 +258,13 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
     if (status == 'reviewing_data') {
       options = [
         'Nome Completo',
+        'Nome Social',
         'CPF',
         'Data de Nascimento',
         'Telefone',
         'Contato de Emergência',
+        'Gênero',
+        'Raça/Cor',
         'Tipo Sanguíneo',
         'Estado',
         'Cidade',
@@ -930,6 +933,13 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
                         if (_member != null) ...[
                           AdminDetailRow(label: 'Nome', value: _member!.name),
                           AdminDetailRow(
+                            label: 'Nome Social',
+                            value: (_member!.socialName != null &&
+                                    _member!.socialName!.trim().isNotEmpty)
+                                ? _member!.socialName!.trim()
+                                : 'Não informado',
+                          ),
+                          AdminDetailRow(
                             label: 'CPF',
                             value: _member!.cpf,
                             isSensitive: true,
@@ -941,6 +951,20 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
                           AdminDetailRow(
                             label: 'Localização',
                             value: '${_member!.city} - ${_member!.state}',
+                          ),
+                          AdminDetailRow(
+                            label: 'Gênero',
+                            value: (_member!.gender != null &&
+                                    _member!.gender!.trim().isNotEmpty)
+                                ? _member!.gender!.trim()
+                                : 'Não informado',
+                          ),
+                          AdminDetailRow(
+                            label: 'Raça/Cor',
+                            value: (_member!.racaCor != null &&
+                                    _member!.racaCor!.trim().isNotEmpty)
+                                ? _member!.racaCor!.trim()
+                                : 'Não informado',
                           ),
                           AdminDetailRow(label: 'CID', value: _member!.cid),
                           AdminDetailRow(
