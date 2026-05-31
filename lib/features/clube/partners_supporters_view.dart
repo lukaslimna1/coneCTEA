@@ -126,10 +126,20 @@ class PartnersSupportersView extends StatelessWidget {
 
   /// Conteúdo adaptado para exibição como aba.
   Widget _buildTabContent(BuildContext context) {
+    final double topSafeArea = MediaQuery.paddingOf(context).top;
+    const double headerVisualHeight = 64.0;
+    const double headerClearance = 4.0;
+    final double topPadding =
+        topSafeArea + headerVisualHeight + headerClearance;
+
+    final double bottomPadding =
+        MediaQuery.paddingOf(context).bottom +
+        120; // Folga adequada para o BottomNavBar do shell
+
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       // Espaçamento confortável de topo para a header do app e base para a navbar flutuante
-      padding: const EdgeInsets.fromLTRB(24, 110, 24, 120),
+      padding: EdgeInsets.fromLTRB(24, topPadding, 24, bottomPadding),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

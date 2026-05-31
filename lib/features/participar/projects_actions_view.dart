@@ -9,112 +9,98 @@ class ProjectsActionsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final double topSafeArea = MediaQuery.paddingOf(context).top;
+    const double headerVisualHeight = 64.0;
+    const double headerClearance = 4.0;
+    final double topPadding =
+        topSafeArea + headerVisualHeight + headerClearance;
+
+    final double bottomPadding =
+        MediaQuery.paddingOf(context).bottom +
+        120; // Folga adequada para o BottomNavBar do shell
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
       body: AppBackground(
-        child: SafeArea(
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: EdgeInsets.fromLTRB(24, topPadding, 24, bottomPadding),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 20,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      DsBotaoVoltar(
-                        onPressed: () => Navigator.pop(context),
-                        token: DsCores.institucional,
-                      ),
-                      const SizedBox(height: 24),
-                      Text(
-                        'Projetos e ações',
-                        style: DsTipografia.pageTitle.copyWith(
-                          color: DsCores.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Conheça projetos, chamamentos, eventos e iniciativas comunitárias da Família TEA Bauru.',
-                        style: DsTipografia.pageSubtitle.copyWith(
-                          color: DsCores.textSecondary,
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-
-                      // Card 1 — Fada do Dente
-                      _buildProjectCard(
-                        context,
-                        icon: PhosphorIconsRegular.star,
-                        title: 'Fada do Dente',
-                        text:
-                            'Ação comunitária voltada ao encaminhamento inicial para atendimento odontológico com profissional parceiro, conforme disponibilidade e regras da ação.',
-                        seloLabel: 'Ação comunitária',
-                        actionLabel: 'Ver detalhes',
-                        onPressed: () => _showSnackBar(
-                          context,
-                          'Detalhes do projeto serão disponibilizados nesta área.',
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Card 2 — Vidas
-                      _buildProjectCard(
-                        context,
-                        icon: PhosphorIconsRegular.heartbeat,
-                        title: 'Vidas',
-                        text:
-                            'Ação comunitária voltada ao apoio inicial para consultas com profissionais parceiros, conforme disponibilidade, critérios e organização da Família TEA Bauru.',
-                        seloLabel: 'Ação comunitária',
-                        actionLabel: 'Ver detalhes',
-                        onPressed: () => _showSnackBar(
-                          context,
-                          'Detalhes do projeto serão disponibilizados nesta área.',
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Card 3 — Eventos
-                      _buildProjectCard(
-                        context,
-                        icon: PhosphorIconsRegular.calendar,
-                        title: 'Eventos',
-                        text:
-                            'Eventos, encontros, palestras e ações comunitárias divulgadas pela Família TEA Bauru, incluindo ações maiores como a EXPO Viva Inclusão.',
-                        seloLabel: 'Eventos e encontros',
-                        actionLabel: 'Ver eventos',
-                        onPressed: () => _showSnackBar(
-                          context,
-                          'A área de eventos será disponibilizada em breve.',
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Bloco final — Importante
-                      _buildWarningCard(context),
-                      const SizedBox(height: 32),
-                    ],
-                  ),
+              if (Navigator.canPop(context)) ...[
+                DsBotaoVoltar(
+                  onPressed: () => Navigator.pop(context),
+                  token: DsCores.institucional,
+                ),
+                const SizedBox(height: 24),
+              ],
+              Text(
+                'Projetos e ações',
+                style: DsTipografia.pageTitle.copyWith(
+                  color: DsCores.textPrimary,
                 ),
               ),
-              // Botão final
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: DsBotao(
-                    label: 'Entendi',
-                    onPressed: () => Navigator.pop(context),
-                    variante: DsBotaoVariante.acao,
-                    token: DsCores.institucional,
-                    icon: PhosphorIconsRegular.check,
-                  ),
+              const SizedBox(height: 8),
+              Text(
+                'Conheça projetos, chamamentos, eventos e iniciativas comunitárias da Família TEA Bauru.',
+                style: DsTipografia.pageSubtitle.copyWith(
+                  color: DsCores.textSecondary,
                 ),
               ),
+              const SizedBox(height: 32),
+
+              // Card 1 — Fada do Dente
+              _buildProjectCard(
+                context,
+                icon: PhosphorIconsRegular.star,
+                title: 'Fada do Dente',
+                text:
+                    'Ação comunitária voltada ao encaminhamento inicial para atendimento odontológico com profissional parceiro, conforme disponibilidade e regras da ação.',
+                seloLabel: 'Ação comunitária',
+                actionLabel: 'Ver detalhes',
+                onPressed: () => _showSnackBar(
+                  context,
+                  'Detalhes do projeto serão disponibilizados nesta área.',
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Card 2 — Vidas
+              _buildProjectCard(
+                context,
+                icon: PhosphorIconsRegular.heartbeat,
+                title: 'Vidas',
+                text:
+                    'Ação comunitária voltada ao apoio inicial para consultas com profissionais parceiros, conforme disponibilidade, critérios e organization da Família TEA Bauru.',
+                seloLabel: 'Ação comunitária',
+                actionLabel: 'Ver detalhes',
+                onPressed: () => _showSnackBar(
+                  context,
+                  'Detalhes do projeto serão disponibilizados nesta área.',
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Card 3 — Eventos
+              _buildProjectCard(
+                context,
+                icon: PhosphorIconsRegular.calendar,
+                title: 'Eventos',
+                text:
+                    'Eventos, encontros, palestras e ações comunitárias divulgadas pela Família TEA Bauru, incluindo ações maiores como a EXPO Viva Inclusão.',
+                seloLabel: 'Eventos e encontros',
+                actionLabel: 'Ver eventos',
+                onPressed: () => _showSnackBar(
+                  context,
+                  'A área de eventos será disponibilizada em breve.',
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Bloco final — Importante
+              _buildWarningCard(context),
             ],
           ),
         ),
