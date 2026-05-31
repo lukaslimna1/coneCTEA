@@ -70,7 +70,7 @@ class CardsMemberSelector extends StatelessWidget {
 
       return DsMembroCarrosselItem(
         id: member.id,
-        name: member.name.split(' ').first,
+        name: member.displayName.split(' ').first,
         initials: member.initials,
         statusLabel: shortLabel,
         statusColor: statusColor,
