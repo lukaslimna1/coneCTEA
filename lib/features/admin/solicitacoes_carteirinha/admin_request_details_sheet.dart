@@ -91,7 +91,7 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
       // 1. Tentar deletar do Drive se clearDocument for verdadeiro e URL válida
       if (clearDocument &&
           widget.request.documentUrl.isNotEmpty &&
-          widget.request.documentUrl.contains('drive.google.com')) {
+          _isValidDriveUrl(widget.request.documentUrl)) {
         try {
           final success = await _driveService.deleteFile(
             widget.request.documentUrl,
@@ -102,14 +102,14 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
           }
         } catch (e) {
           driveCleanupSuccess = false;
-          debugPrint('Erro ao deletar documento com foto no Drive: $e');
+          debugPrint('Erro ao deletar documento com foto antigo no Drive.');
         }
       }
 
       // 2. Tentar deletar do Drive se clearMedicalReport for verdadeiro e URL válida
       if (clearMedicalReport &&
           widget.request.medicalReportUrl.isNotEmpty &&
-          widget.request.medicalReportUrl.contains('drive.google.com')) {
+          _isValidDriveUrl(widget.request.medicalReportUrl)) {
         try {
           final success = await _driveService.deleteFile(
             widget.request.medicalReportUrl,
@@ -120,7 +120,7 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
           }
         } catch (e) {
           driveCleanupSuccess = false;
-          debugPrint('Erro ao deletar laudo medico no Drive: $e');
+          debugPrint('Erro ao deletar laudo medico antigo no Drive.');
         }
       }
 
@@ -230,6 +230,14 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
         );
       }
     }
+  }
+
+  bool _isValidDriveUrl(String url) {
+    if (url.trim().isEmpty) return false;
+    if (!url.contains('google.com')) return false;
+    final hasD = url.contains('/d/');
+    final hasId = url.contains('id=');
+    return hasD || hasId;
   }
 
   void _confirmStatusUpdate(String status, String label) async {
@@ -1121,49 +1129,50 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
 
   Future<bool> _cleanupDocumentsAfterApproval() async {
     bool allSuccess = true;
+    bool deletedDoc = false;
+    bool deletedReport = false;
+
     try {
       // 1. Limpar Documento com Foto
       if (widget.request.documentUrl.isNotEmpty &&
-          widget.request.documentUrl.contains('drive.google.com')) {
+          _isValidDriveUrl(widget.request.documentUrl)) {
         final success = await _driveService.deleteFile(
           widget.request.documentUrl,
         );
         if (success) {
-          await widget.databaseService.updateRequestFileUrl(
-            widget.request.id,
-            'document_url',
-            '',
-          );
+          deletedDoc = true;
         } else {
           allSuccess = false;
-          debugPrint(
-            'Falha ao deletar documento com foto no Drive: ${widget.request.documentUrl}',
-          );
+          debugPrint('Falha ao deletar documento com foto no Drive.');
         }
       }
 
       // 2. Limpar Laudo Médico
       if (widget.request.medicalReportUrl.isNotEmpty &&
-          widget.request.medicalReportUrl.contains('drive.google.com')) {
+          _isValidDriveUrl(widget.request.medicalReportUrl)) {
         final success = await _driveService.deleteFile(
           widget.request.medicalReportUrl,
         );
         if (success) {
-          await widget.databaseService.updateRequestFileUrl(
-            widget.request.id,
-            'medical_report_url',
-            '',
-          );
+          deletedReport = true;
         } else {
           allSuccess = false;
-          debugPrint(
-            'Falha ao deletar laudo médico no Drive: ${widget.request.medicalReportUrl}',
-          );
+          debugPrint('Falha ao deletar laudo médico no Drive.');
         }
+      }
+
+      // 3. Atualizar o banco em cascata de forma limpa e centralizada para as duas tabelas
+      if (deletedDoc || deletedReport) {
+        await widget.databaseService.clearRequestDocumentUrls(
+          requestId: widget.request.id,
+          memberId: widget.request.memberId,
+          clearDocument: deletedDoc,
+          clearMedicalReport: deletedReport,
+        );
       }
     } catch (e) {
       allSuccess = false;
-      debugPrint('Erro durante limpeza automática de documentos: $e');
+      debugPrint('Erro durante limpeza automática de documentos.');
     }
     return allSuccess;
   }
