@@ -41,6 +41,7 @@ class _CardsViewState extends State<CardsView> {
   int _selectedMemberIndex = 0;
   bool _showBack = false;
   AppUser? _user;
+  bool _showHistory = false;
 
   Stream<List<Member>>? _membersStream;
   Stream<List<DigitalCard>>? _digitalCardsStream;
@@ -165,6 +166,10 @@ class _CardsViewState extends State<CardsView> {
     final userId = _authService.currentUser?.id;
     if (userId == null) {
       return const Center(child: Text('Por favor, faça login'));
+    }
+
+    if (_showHistory) {
+      return RequestsView(onBack: () => setState(() => _showHistory = false));
     }
 
     return Scaffold(
@@ -330,13 +335,7 @@ class _CardsViewState extends State<CardsView> {
                                   variante: DsBotaoVariante.secundario,
                                   icon: PhosphorIconsRegular.listDashes,
                                   onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            const RequestsView(),
-                                      ),
-                                    );
+                                    setState(() => _showHistory = true);
                                   },
                                 ),
                               ),

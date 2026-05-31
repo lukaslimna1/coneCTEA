@@ -13,7 +13,9 @@ import 'package:intl/intl.dart';
 import 'package:conectea/features/carteirinhas/solicitacao/add_member_page.dart';
 
 class RequestsView extends StatefulWidget {
-  const RequestsView({super.key});
+  final VoidCallback? onBack;
+
+  const RequestsView({super.key, this.onBack});
 
   @override
   State<RequestsView> createState() => _RequestsViewState();
@@ -92,8 +94,41 @@ class _RequestsViewState extends State<RequestsView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        if (widget.onBack != null ||
+                            Navigator.canPop(context)) ...[
+                          GestureDetector(
+                            onTap:
+                                widget.onBack ??
+                                () => Navigator.maybePop(context),
+                            behavior: HitTestBehavior.opaque,
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 12.0),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    PhosphorIconsRegular.arrowLeft,
+                                    color: const Color(
+                                      0xFF00D8D0,
+                                    ), // Azul ciano DS V2
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Voltar',
+                                    style: GoogleFonts.inter(
+                                      color: const Color(0xFF00D8D0),
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                         Text(
-                          'Solicitações',
+                          'Acompanhamentos',
                           style: GoogleFonts.inter(
                             fontSize: 28,
                             fontWeight: FontWeight.w800,
@@ -103,7 +138,7 @@ class _RequestsViewState extends State<RequestsView> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Acompanhe o status e histórico de seus pedidos de carteirinha.',
+                          'Veja o andamento dos seus pedidos, correções e solicitações.',
                           style: GoogleFonts.inter(
                             fontSize: 14,
                             color: AppColors.cardSubtitle,
@@ -251,7 +286,7 @@ class _RequestsViewState extends State<RequestsView> {
           ),
           const SizedBox(height: 24),
           Text(
-            'Nenhuma solicitação',
+            'Nenhum acompanhamento por enquanto.',
             style: GoogleFonts.inter(
               fontSize: 18,
               fontWeight: FontWeight.w800,
@@ -260,7 +295,7 @@ class _RequestsViewState extends State<RequestsView> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Seus pedidos aparecerão aqui assim que\nvocê solicitar uma nova carteirinha.',
+            'Quando você fizer uma solicitação, ela aparecerá aqui.',
             textAlign: TextAlign.center,
             style: GoogleFonts.inter(
               fontSize: 14,
@@ -429,6 +464,55 @@ class _RequestsViewState extends State<RequestsView> {
                         ],
                       );
                     },
+                  ),
+                ],
+
+                // Notas Administrativas de Pendência / O que Ajustar
+                if (isActionable && request.adminNotes.trim().isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: tokens.primary.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: tokens.primary.withValues(alpha: 0.25),
+                        width: 1,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              PhosphorIconsRegular.info,
+                              color: tokens.primary,
+                              size: 16,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'O que precisa ajustar:',
+                              style: GoogleFonts.inter(
+                                color: tokens.primary,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          request.adminNotes.trim(),
+                          style: GoogleFonts.inter(
+                            color: Colors.white.withValues(alpha: 0.88),
+                            fontSize: 12,
+                            height: 1.4,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
 
