@@ -19,6 +19,7 @@ class Member {
   final DateTime updatedAt;
   final String? gender;
   final String? racaCor;
+  final String? socialName;
 
   Member({
     required this.id,
@@ -40,6 +41,7 @@ class Member {
     required this.updatedAt,
     this.gender,
     this.racaCor,
+    this.socialName,
   });
 
   factory Member.empty() {
@@ -63,6 +65,7 @@ class Member {
       updatedAt: DateTime.now(),
       gender: null,
       racaCor: null,
+      socialName: null,
     );
   }
 
@@ -103,6 +106,7 @@ class Member {
                 : DateTime.now()),
       gender: json['gender']?.toString(),
       racaCor: json['raca_cor']?.toString() ?? json['racaCor']?.toString(),
+      socialName: json['social_name'] ?? json['socialName'],
     );
   }
 
@@ -127,6 +131,7 @@ class Member {
       'updated_at': updatedAt.toIso8601String(),
       'gender': gender,
       'raca_cor': racaCor,
+      'social_name': socialName,
     };
   }
 
@@ -150,6 +155,7 @@ class Member {
     DateTime? updatedAt,
     String? gender,
     String? racaCor,
+    String? socialName,
   }) {
     return Member(
       id: id ?? this.id,
@@ -171,6 +177,7 @@ class Member {
       updatedAt: updatedAt ?? this.updatedAt,
       gender: gender ?? this.gender,
       racaCor: racaCor ?? this.racaCor,
+      socialName: socialName ?? this.socialName,
     );
   }
 
@@ -183,4 +190,9 @@ class Member {
     }
     return parts.first[0].toUpperCase();
   }
+
+  String get displayName =>
+      (socialName != null && socialName!.trim().isNotEmpty)
+      ? socialName!.trim()
+      : name;
 }
