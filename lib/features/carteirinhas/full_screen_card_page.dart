@@ -67,12 +67,14 @@ class _FullScreenCardPageState extends State<FullScreenCardPage>
   Widget build(BuildContext context) {
     final member = widget.members[_selectedMemberIndex];
     final card = widget.cardsByMemberId[member.id]!;
+    final isPortrait =
+        MediaQuery.of(context).orientation == Orientation.portrait;
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Stack(
         children: [
-          // Gradiente de Fundo e Grade
+          // Gradiente de Fundo
           Positioned.fill(
             child: Container(
               decoration: const BoxDecoration(
@@ -84,12 +86,15 @@ class _FullScreenCardPageState extends State<FullScreenCardPage>
               ),
             ),
           ),
-          Positioned.fill(
-            child: Opacity(
-              opacity: 0.05,
-              child: CustomPaint(painter: _GridPainter()),
+
+          // Grade apenas em Portrait (evita stress gráfico de Canvas no landscape do Moto E7)
+          if (isPortrait)
+            Positioned.fill(
+              child: Opacity(
+                opacity: 0.05,
+                child: CustomPaint(painter: _GridPainter()),
+              ),
             ),
-          ),
 
           SafeArea(
             child: OrientationBuilder(
@@ -119,7 +124,7 @@ class _FullScreenCardPageState extends State<FullScreenCardPage>
                 const SizedBox(height: 16),
                 _buildMemberSelector(),
                 const SizedBox(height: 24),
-                _buildCardDisplay(member, card),
+                _buildCardDisplay(member, card, Orientation.portrait),
                 const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -161,7 +166,7 @@ class _FullScreenCardPageState extends State<FullScreenCardPage>
               vertical: 16.0,
               horizontal: 80.0,
             ),
-            child: _buildCardDisplay(member, card),
+            child: _buildCardDisplay(member, card, Orientation.landscape),
           ),
         ),
 
@@ -324,7 +329,35 @@ class _FullScreenCardPageState extends State<FullScreenCardPage>
     );
   }
 
-  Widget _buildCardDisplay(Member member, DigitalCard card) {
+  Widget _buildCardDisplay(
+    Member member,
+    DigitalCard card,
+    Orientation orientation,
+  ) {
+    final bool isLandscape = orientation == Orientation.landscape;
+
+    if (isLandscape) {
+      // Em landscape: renderização instantânea, sem FittedBox redundante, sem Matrix4 3D e sem Hero
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 500),
+            child: DigitalCardWidget(
+              member: member,
+              card: card,
+              showBack: _isBackVisible,
+              enableParallax: false,
+              enableEntryAnimation: false,
+              showCpf: _showCpf,
+              onToggleCpf: () => setState(() => _showCpf = !_showCpf),
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Em portrait: preserva animação tridimensional, FittedBox, Matrix4 3D e HeroMode
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
       child: Center(
