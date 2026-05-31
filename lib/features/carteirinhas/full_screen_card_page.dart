@@ -335,48 +335,52 @@ class _FullScreenCardPageState extends State<FullScreenCardPage>
             child: SizedBox(
               width: 450,
               height: 450 / 1.58,
-              child: Hero(
-                tag: 'card_${member.id}',
-                child: Material(
-                  type: MaterialType.transparency,
-                  child: AnimatedBuilder(
-                    animation: _animation,
-                    builder: (context, child) {
-                      final value = _animation.value;
-                      final isBack = value > 0.5;
+              child: HeroMode(
+                enabled:
+                    MediaQuery.of(context).orientation == Orientation.portrait,
+                child: Hero(
+                  tag: 'card_${member.id}',
+                  child: Material(
+                    type: MaterialType.transparency,
+                    child: AnimatedBuilder(
+                      animation: _animation,
+                      builder: (context, child) {
+                        final value = _animation.value;
+                        final isBack = value > 0.5;
 
-                      return Transform(
-                        transform: Matrix4.identity()
-                          ..setEntry(3, 2, 0.001)
-                          ..rotateY(value * pi),
-                        alignment: Alignment.center,
-                        child: isBack
-                            ? Transform(
-                                transform: Matrix4.identity()..rotateY(pi),
-                                alignment: Alignment.center,
-                                child: DigitalCardWidget(
+                        return Transform(
+                          transform: Matrix4.identity()
+                            ..setEntry(3, 2, 0.001)
+                            ..rotateY(value * pi),
+                          alignment: Alignment.center,
+                          child: isBack
+                              ? Transform(
+                                  transform: Matrix4.identity()..rotateY(pi),
+                                  alignment: Alignment.center,
+                                  child: DigitalCardWidget(
+                                    member: member,
+                                    card: card,
+                                    showBack: true,
+                                    enableParallax: false,
+                                    enableEntryAnimation: false,
+                                    showCpf: _showCpf,
+                                    onToggleCpf: () =>
+                                        setState(() => _showCpf = !_showCpf),
+                                  ),
+                                )
+                              : DigitalCardWidget(
                                   member: member,
                                   card: card,
-                                  showBack: true,
+                                  showBack: false,
                                   enableParallax: false,
                                   enableEntryAnimation: false,
                                   showCpf: _showCpf,
                                   onToggleCpf: () =>
                                       setState(() => _showCpf = !_showCpf),
                                 ),
-                              )
-                            : DigitalCardWidget(
-                                member: member,
-                                card: card,
-                                showBack: false,
-                                enableParallax: false,
-                                enableEntryAnimation: false,
-                                showCpf: _showCpf,
-                                onToggleCpf: () =>
-                                    setState(() => _showCpf = !_showCpf),
-                              ),
-                      );
-                    },
+                        );
+                      },
+                    ),
                   ),
                 ),
               ),

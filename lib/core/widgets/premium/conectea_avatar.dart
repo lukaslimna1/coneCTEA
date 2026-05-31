@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 
 /// Componente Mestre de Avatar do ConeCTEA - Refinamento Premium Circular.
-/// 
+///
 /// Identidade visual proprietária:
 /// - Formato Circular (Foco em representação humana).
 /// - Fundo "Lunar Glass" (Dark Glass com reflexos diagonais).
@@ -34,47 +35,30 @@ class ConecteaAvatar extends StatelessWidget {
     this.paletteSeed,
   });
 
-  /// Paletas premium neon/tech oficiais do ConeCTEA (P01 a P15).
-  /// A ordem desta lista deve permanecer estável após o lançamento para manter a identidade determinística.
-  static const List<_ConecteaPalette> _premiumPalettes = [
-    _ConecteaPalette(primary: Color(0xFF8B3DFF), harmonic: Color(0xFF2F80ED), contrast: Color(0xFF14D9D0)), // P01 - ConeCTEA Classic
-    _ConecteaPalette(primary: Color(0xFF39FF14), harmonic: Color(0xFF00B894), contrast: Color(0xFF0077FF)), // P02 - Matrix Aurora
-    _ConecteaPalette(primary: Color(0xFFFF6B00), harmonic: Color(0xFFFFD60A), contrast: Color(0xFFFF2D95)), // P03 - Solar Pulse
-    _ConecteaPalette(primary: Color(0xFFF000FF), harmonic: Color(0xFF6D28D9), contrast: Color(0xFF00E5FF)), // P04 - Cyber Magenta
-    _ConecteaPalette(primary: Color(0xFF00FF85), harmonic: Color(0xFF00C2A8), contrast: Color(0xFF245BFF)), // P05 - Emerald Circuit
-    _ConecteaPalette(primary: Color(0xFF3A0CA3), harmonic: Color(0xFF4361EE), contrast: Color(0xFF4CC9F0)), // P06 - Royal Laser
-    _ConecteaPalette(primary: Color(0xFFFF3366), harmonic: Color(0xFFFF8A00), contrast: Color(0xFFFFE600)), // P07 - Hyper Coral
-    _ConecteaPalette(primary: Color(0xFFB517FF), harmonic: Color(0xFF7209B7), contrast: Color(0xFF00F5D4)), // P08 - Toxic Violet
-    _ConecteaPalette(primary: Color(0xFF00A3FF), harmonic: Color(0xFF7B2CFF), contrast: Color(0xFF00FFB2)), // P09 - Ice Voltage
-    _ConecteaPalette(primary: Color(0xFFFF1744), harmonic: Color(0xFFD500F9), contrast: Color(0xFF2979FF)), // P10 - Neon Ruby
-    _ConecteaPalette(primary: Color(0xFFA3FF12), harmonic: Color(0xFF18FFFF), contrast: Color(0xFF651FFF)), // P11 - Acid Lime
-    _ConecteaPalette(primary: Color(0xFFAA00FF), harmonic: Color(0xFF304FFE), contrast: Color(0xFF64FFDA)), // P12 - Deep Plasma
-    _ConecteaPalette(primary: Color(0xFFFF3D00), harmonic: Color(0xFFFFEA00), contrast: Color(0xFF00B0FF)), // P13 - Flame Tech
-    _ConecteaPalette(primary: Color(0xFF00E676), harmonic: Color(0xFF1DE9B6), contrast: Color(0xFF6200EA)), // P14 - Quantum Green
-    _ConecteaPalette(primary: Color(0xFFFF00A8), harmonic: Color(0xFF7C4DFF), contrast: Color(0xFF00FFF0)), // P15 - Pink Circuit
-  ];
+
 
   @override
   Widget build(BuildContext context) {
     // Seleção da paleta determinística
-    final _ConecteaPalette palette = _getDeterministicPalette();
-    
+    final DsPaletteAvatar palette = _getDeterministicPalette();
+
     // A cor de acento manual só sobrescreve se não houver paletteSeed (respeitando a regra do titular)
-    final Color primaryColor = (paletteSeed == null || paletteSeed!.isEmpty) 
-        ? (accentColor ?? palette.primary) 
+    final Color primaryColor = (paletteSeed == null || paletteSeed!.isEmpty)
+        ? (accentColor ?? palette.primary)
         : palette.primary;
-    
+
     // Gradiente do Anel (Ativo: Neon Tech | Inativo: Dimmed Silver)
     final List<Color> ringGradient = isInactive
-      ? [
-          const Color(0xFF94A3B8).withValues(alpha: 0.5),
-          const Color(0xFFE2E8F0),
-          const Color(0xFF475569).withValues(alpha: 0.4),
-          const Color(0xFF94A3B8).withValues(alpha: 0.5),
-        ]
-      : palette.ringColors;
-    
-    final double effectiveBorderWidth = borderWidth ?? (size * 0.05).clamp(1.5, 3.5);
+        ? [
+            const Color(0xFF94A3B8).withValues(alpha: 0.5),
+            const Color(0xFFE2E8F0),
+            const Color(0xFF475569).withValues(alpha: 0.4),
+            const Color(0xFF94A3B8).withValues(alpha: 0.5),
+          ]
+        : palette.ringColors;
+
+    final double effectiveBorderWidth =
+        borderWidth ?? (size * 0.05).clamp(1.5, 3.5);
 
     return Semantics(
       label: semanticLabel ?? 'Avatar de $initials',
@@ -180,7 +164,8 @@ class ConecteaAvatar extends StatelessWidget {
                             width: double.infinity,
                             height: double.infinity,
                             fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) => _buildInitials(size),
+                            errorBuilder: (context, error, stackTrace) =>
+                                _buildInitials(size),
                           )
                         : _buildInitials(size),
                   ),
@@ -203,7 +188,7 @@ class ConecteaAvatar extends StatelessWidget {
         display = display.substring(0, 2);
       }
     }
-    
+
     return Text(
       display.toUpperCase(),
       textAlign: TextAlign.center,
@@ -223,30 +208,7 @@ class ConecteaAvatar extends StatelessWidget {
     );
   }
 
-  _ConecteaPalette _getDeterministicPalette() {
-    // A paletteSeed (ID do titular) é a prioridade absoluta
-    if (paletteSeed != null && paletteSeed!.isNotEmpty) {
-      return _premiumPalettes[paletteSeed.hashCode.abs() % _premiumPalettes.length];
-    }
-    
-    // Fallback: determinístico pelas iniciais
-    final int seed = initials.isNotEmpty ? initials.codeUnits.fold(0, (prev, element) => prev + element) : 0;
-    return _premiumPalettes[seed.abs() % _premiumPalettes.length];
+  DsPaletteAvatar _getDeterministicPalette() {
+    return DsPaletasAvatar.getDeterministicPalette(paletteSeed, initials);
   }
-}
-
-/// Representa uma paleta neon/tech do ConeCTEA.
-class _ConecteaPalette {
-  final Color primary;
-  final Color harmonic;
-  final Color contrast;
-
-  const _ConecteaPalette({
-    required this.primary,
-    required this.harmonic,
-    required this.contrast,
-  });
-
-  /// Gera a lista de cores para o gradiente do anel (primary -> harmonic -> contrast -> primary).
-  List<Color> get ringColors => [primary, harmonic, contrast, primary];
 }

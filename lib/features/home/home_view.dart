@@ -265,13 +265,13 @@ class _HomeViewState extends State<HomeView> {
 
   String get _displayName {
     if (_user != null) {
-      final String name =
-          (_user!.socialName != null && _user!.socialName!.isNotEmpty)
-          ? _user!.socialName!
-          : _user!.name;
+      final displayUserName =
+          (_user!.socialName != null && _user!.socialName!.trim().isNotEmpty)
+          ? _user!.socialName!.trim()
+          : _user!.name.trim();
 
-      if (name.trim().isNotEmpty && name != 'Usuário') {
-        return name.trim().split(' ').first;
+      if (displayUserName.isNotEmpty && displayUserName != 'Usuário') {
+        return displayUserName.split(' ').first;
       }
     }
 
