@@ -51,6 +51,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
   final _driveService = GoogleDriveService();
 
   final _nomeController = TextEditingController();
+  final _socialNameController = TextEditingController();
   final _cpfController = TextEditingController();
   final _telefoneController = TextEditingController();
   final _contatoEmergenciaNomeController = TextEditingController();
@@ -150,6 +151,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
     if (widget.member != null) {
       final m = widget.member!;
       _nomeController.text = m.name;
+      _socialNameController.text = m.socialName ?? '';
       _cpfController.text = m.cpf;
       _telefoneController.text = m.phone;
 
@@ -207,11 +209,8 @@ class _AddMemberPageState extends State<AddMemberPage> {
       if (user == null) return;
 
       setState(() {
-        final nameToUse =
-            (user.socialName != null && user.socialName!.isNotEmpty)
-            ? user.socialName!
-            : user.name;
-        _nomeController.text = nameToUse;
+        _nomeController.text = user.name;
+        _socialNameController.text = user.socialName ?? '';
         _cpfController.text = user.cpf;
         _telefoneController.text = user.phone;
         _nascimentoController.text = user.dateOfBirth ?? '';
@@ -300,6 +299,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
   @override
   void dispose() {
     _nomeController.dispose();
+    _socialNameController.dispose();
     _cpfController.dispose();
     _telefoneController.dispose();
     _contatoEmergenciaNomeController.dispose();
@@ -528,6 +528,9 @@ class _AddMemberPageState extends State<AddMemberPage> {
         id: isEditing ? widget.member!.id : const Uuid().v4(),
         userId: userId,
         name: _nomeController.text.trim(),
+        socialName: _socialNameController.text.trim().isNotEmpty
+            ? _socialNameController.text.trim()
+            : null,
         cpf: _cpfController.text,
         city: _selectedCity!,
         state: _selectedState!,
@@ -635,6 +638,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
   bool _hasUnsavedChanges() {
     if (widget.member == null) {
       return _nomeController.text.isNotEmpty ||
+          _socialNameController.text.isNotEmpty ||
           _cpfController.text.isNotEmpty ||
           _telefoneController.text.isNotEmpty ||
           _contatoEmergenciaNomeController.text.isNotEmpty ||
@@ -653,6 +657,12 @@ class _AddMemberPageState extends State<AddMemberPage> {
 
     final m = widget.member!;
     if (_nomeController.text.trim() != m.name.trim()) return true;
+    if ((_socialNameController.text.trim().isEmpty
+            ? null
+            : _socialNameController.text.trim()) !=
+        m.socialName) {
+      return true;
+    }
     if (_cpfController.text.trim() != m.cpf.trim()) return true;
     if (_telefoneController.text.trim() != m.phone.trim()) return true;
 
@@ -789,6 +799,30 @@ class _AddMemberPageState extends State<AddMemberPage> {
                                   validator: (v) =>
                                       v!.isEmpty ? 'Campo obrigatório' : null,
                                   enabled: _isFieldEnabled('Nome Completo'),
+                                ),
+                                const SizedBox(height: 20),
+
+                                RequestInputField(
+                                  label: 'Nome social (Opcional)',
+                                  controller: _socialNameController,
+                                  hint: 'Como deseja ser chamado(a)',
+                                  icon: PhosphorIconsRegular.user,
+                                  enabled:
+                                      _isFieldEnabled('Nome Social') ||
+                                      _isFieldEnabled('Nome Completo'),
+                                ),
+                                const SizedBox(height: 6),
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 4.0),
+                                  child: Text(
+                                    'Será usado na exibição da carteirinha quando preenchido.',
+                                    style: DsTipografia.bodySmall.copyWith(
+                                      color: DsCores.textSecondary.withValues(
+                                        alpha: 0.6,
+                                      ),
+                                      fontSize: 12,
+                                    ),
+                                  ),
                                 ),
                                 const SizedBox(height: 20),
 
