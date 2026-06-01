@@ -33,6 +33,7 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
   AppUser? _requester;
   Member? _member;
   final GoogleDriveService _driveService = GoogleDriveService();
+  bool _isProcessingAction = false;
 
   @override
   void initState() {
@@ -77,6 +78,9 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
     bool clearDocument = false,
     bool clearMedicalReport = false,
   }) async {
+    if (_isProcessingAction) return;
+    setState(() => _isProcessingAction = true);
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -88,7 +92,17 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
     bool driveCleanupSuccess = true;
 
     try {
-      // 1. Tentar deletar do Drive se clearDocument for verdadeiro e URL válida
+      if (newStatus == 'active') {
+        // 1. Limpeza automática obrigatória de documentos sensíveis ANTES de aprovar (fail-closed)
+        final cleanupSuccess = await _cleanupDocumentsAfterApproval();
+        if (!cleanupSuccess) {
+          throw Exception(
+            'A limpeza de segurança dos documentos falhou no Google Drive.',
+          );
+        }
+      }
+
+      // 2. Tentar deletar do Drive se clearDocument for verdadeiro e URL válida (reenvio/pendências)
       if (clearDocument &&
           widget.request.documentUrl.isNotEmpty &&
           _isValidDriveUrl(widget.request.documentUrl)) {
@@ -106,7 +120,7 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
         }
       }
 
-      // 2. Tentar deletar do Drive se clearMedicalReport for verdadeiro e URL válida
+      // 3. Tentar deletar do Drive se clearMedicalReport for verdadeiro e URL válida (reenvio/pendências)
       if (clearMedicalReport &&
           widget.request.medicalReportUrl.isNotEmpty &&
           _isValidDriveUrl(widget.request.medicalReportUrl)) {
@@ -124,7 +138,7 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
         }
       }
 
-      // 3. Limpar no Supabase (tanto em card_requests quanto em members)
+      // 4. Limpar no Supabase (tanto em card_requests quanto em members)
       if (clearDocument || clearMedicalReport) {
         await widget.databaseService.clearRequestDocumentUrls(
           requestId: widget.request.id,
@@ -134,7 +148,7 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
         );
       }
 
-      // 4. Único ponto de atualização — updateCardRequestStatus agora propaga
+      // 5. Único ponto de atualização — updateCardRequestStatus agora propaga
       // para member.status e digital_cards.is_active automaticamente
       await widget.databaseService.updateCardRequestStatus(
         widget.request.id,
@@ -143,37 +157,19 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
         expiresAt: expiresAt,
       );
 
-      bool cleanupSuccess = true;
-      if (newStatus == 'active') {
-        // Limpeza automática de documentos sensíveis após aprovação (LGPD/Segurança)
-        cleanupSuccess = await _cleanupDocumentsAfterApproval();
-      }
       if (mounted) {
         // 1. Fechar o dialog de carregamento
         Navigator.of(context, rootNavigator: true).pop();
 
         // 2. Mostrar feedback de sucesso ANTES de fechar o sheet para garantir o contexto
         if (newStatus == 'active') {
-          if (cleanupSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Status atualizado com sucesso!'),
-                backgroundColor: Colors.green,
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                  'Carteirinha aprovada, mas a limpeza automática dos documentos precisa ser revisada.',
-                ),
-                backgroundColor: Colors.orange,
-                behavior: SnackBarBehavior.floating,
-                duration: Duration(seconds: 5),
-              ),
-            );
-          }
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Status atualizado com sucesso!'),
+              backgroundColor: Colors.green,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
         } else if (newStatus == 'waiting_docs' ||
             newStatus == 'reviewing_data') {
           if (driveCleanupSuccess) {
@@ -219,15 +215,19 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
         // Fechar o dialog de carregamento em caso de erro
         Navigator.of(context, rootNavigator: true).pop();
 
+        final String errorMessage = e.toString().contains('Google Drive')
+            ? 'Erro crítico de LGPD: A remoção física dos documentos sensíveis falhou no Google Drive. A aprovação foi cancelada por segurança para evitar retenção de dados.'
+            : 'Não foi possível atualizar o status agora. Tente novamente.';
+
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Não foi possível atualizar o status agora. Tente novamente.',
-            ),
+          SnackBar(
+            content: Text(errorMessage),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 6),
           ),
         );
+        setState(() => _isProcessingAction = false);
       }
     }
   }
@@ -241,9 +241,13 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
   }
 
   void _confirmStatusUpdate(String status, String label) async {
+    if (_isProcessingAction) return;
+    setState(() => _isProcessingAction = true);
+
     // Aprovar e Renovar não precisam de justificativa, processam direto
     if (status == 'active' ||
         (status == 'renewing' && widget.request.status == 'renewing')) {
+      setState(() => _isProcessingAction = false);
       _updateStatus(status, 'Solicitação aprovada e processada.');
       return;
     }
@@ -676,6 +680,7 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
           );
         } catch (e) {
           if (mounted) {
+            setState(() => _isProcessingAction = false);
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text(
@@ -693,6 +698,7 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
           selectedOptions['Documento com Foto (RG/CNH)'] ?? false;
       final bool clearMedicalReport = selectedOptions['Laudo Médico'] ?? false;
 
+      setState(() => _isProcessingAction = false);
       _updateStatus(
         status,
         notesController.text.trim(),
@@ -700,6 +706,10 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
         clearDocument: clearDocument,
         clearMedicalReport: clearMedicalReport,
       );
+    } else {
+      if (mounted) {
+        setState(() => _isProcessingAction = false);
+      }
     }
   }
 

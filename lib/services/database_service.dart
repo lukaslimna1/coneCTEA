@@ -233,8 +233,6 @@ class DatabaseService {
       );
     }
 
-    final dbIssuedAt = DateTime.parse(issuedAtStr);
-
     // Verificar se já existe uma carteirinha para este membro
     final existing = await _supabase
         .from('digital_cards')
@@ -253,9 +251,12 @@ class DatabaseService {
           })
           .eq('member_id', memberId);
     } else {
-      // Criar nova carteirinha usando os timestamps do Postgres
-      final cardNumber =
-          'TEA-ID-${dbIssuedAt.millisecondsSinceEpoch.toRadixString(16).toUpperCase().substring(0, 8)}';
+      // Criar nova carteirinha usando os timestamps do Postgres e garantindo unicidade via UUID
+      final uniqueSegment = memberId
+          .replaceAll('-', '')
+          .toUpperCase()
+          .substring(0, 8);
+      final cardNumber = 'TEA-ID-$uniqueSegment';
       await _supabase.from('digital_cards').insert({
         'member_id': memberId,
         'user_id': userId,
@@ -441,23 +442,7 @@ class DatabaseService {
     final now = DateTime.now().toIso8601String();
     final String notes = adminNotes ?? '';
 
-    // 1. Atualizar o status da solicitação
-    final updateData = <String, dynamic>{
-      'status': status,
-      'admin_notes': notes,
-      'updated_at': now,
-    };
-
-    if (expiresAt != null) {
-      updateData['expires_at'] = expiresAt.toUtc().toIso8601String();
-    }
-
-    await _supabase
-        .from('card_requests')
-        .update(updateData)
-        .eq('id', requestId);
-
-    // 2. Buscar dados da solicitação e do membro
+    // 1. Buscar dados da solicitação e do membro (precisamos desses dados antes para a carteirinha)
     final requestData = await _supabase
         .from('card_requests')
         .select('user_id, member_id')
@@ -476,8 +461,33 @@ class DatabaseService {
 
     final Member member = Member.fromJson(memberData);
 
-    // 3. Sincronizar status com o Membro
-    // Se status for active ou approved, o membro fica ativo. Caso contrário, segue o status.
+    // 2. Se o status for 'active' (Aprovado), garantir a existência da carteirinha digital antes das atualizações de status
+    if (status == 'active' || status == 'approved') {
+      await ensureDigitalCard(
+        memberId: memberId,
+        userId: userId,
+        requestId: requestId,
+        member: member,
+      );
+    }
+
+    // 3. Atualizar o status da solicitação
+    final updateData = <String, dynamic>{
+      'status': status,
+      'admin_notes': notes,
+      'updated_at': now,
+    };
+
+    if (expiresAt != null) {
+      updateData['expires_at'] = expiresAt.toUtc().toIso8601String();
+    }
+
+    await _supabase
+        .from('card_requests')
+        .update(updateData)
+        .eq('id', requestId);
+
+    // 4. Sincronizar status com o Membro
     final String memberStatus = (status == 'active' || status == 'approved')
         ? 'active'
         : status;
@@ -486,16 +496,8 @@ class DatabaseService {
         .update({'status': memberStatus, 'updated_at': now})
         .eq('id', memberId);
 
-    // 4. Se o status for 'active' (Aprovado), garantir a existência da carteirinha digital
-    if (status == 'active' || status == 'approved') {
-      await ensureDigitalCard(
-        memberId: memberId,
-        userId: userId,
-        requestId: requestId,
-        member: member,
-      );
-    } else {
-      // Se mudar para qualquer outro status (suspenso, reprovado, etc), mudar status da carteirinha
+    // 5. Se mudar para qualquer outro status (suspenso, reprovado, etc), mudar status da carteirinha existente
+    if (status != 'active' && status != 'approved') {
       try {
         await _supabase
             .from('digital_cards')
