@@ -12,6 +12,7 @@ class DigitalCard {
   final bool isActive;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final String? teaRelationType;
 
   DigitalCard({
     required this.id,
@@ -27,32 +28,48 @@ class DigitalCard {
     required this.isActive,
     required this.createdAt,
     required this.updatedAt,
+    this.teaRelationType,
   });
 
   factory DigitalCard.fromJson(Map<String, dynamic> data) {
+    final membersNode = data['members'] as Map<String, dynamic>?;
+    final teaRelation =
+        membersNode?['tea_relation_type'] ??
+        data['tea_relation_type'] ??
+        data['teaRelationType'];
+
     return DigitalCard(
       id: data['id']?.toString() ?? '',
       memberId: data['memberId'] ?? data['member_id'] ?? '',
       userId: data['userId'] ?? data['user_id'] ?? '',
       cardNumber: data['cardNumber'] ?? data['card_number'] ?? '',
       status: data['status'] ?? 'pending',
-      validUntil: data['validUntil'] != null 
-          ? DateTime.parse(data['validUntil']) 
-          : (data['valid_until'] != null ? DateTime.parse(data['valid_until']) : DateTime.now()),
-      issuedAt: data['issuedAt'] != null 
-          ? DateTime.parse(data['issuedAt']) 
-          : (data['issued_at'] != null ? DateTime.parse(data['issued_at']) : DateTime.now()),
+      validUntil: data['validUntil'] != null
+          ? DateTime.parse(data['validUntil'])
+          : (data['valid_until'] != null
+                ? DateTime.parse(data['valid_until'])
+                : DateTime.now()),
+      issuedAt: data['issuedAt'] != null
+          ? DateTime.parse(data['issuedAt'])
+          : (data['issued_at'] != null
+                ? DateTime.parse(data['issued_at'])
+                : DateTime.now()),
       frontData: data['frontData'] ?? data['front_data'] ?? {},
       backData: data['backData'] ?? data['back_data'] ?? {},
-      qrValidationUrl: data['qrValidationUrl'] ?? data['qr_validation_url'] ?? '',
-      // isActive: usa is_active se existir, senão deriva de status
+      qrValidationUrl:
+          data['qrValidationUrl'] ?? data['qr_validation_url'] ?? '',
       isActive: data['is_active'] as bool? ?? (data['status'] == 'active'),
-      createdAt: data['createdAt'] != null 
-          ? DateTime.parse(data['createdAt']) 
-          : (data['created_at'] != null ? DateTime.parse(data['created_at']) : DateTime.now()),
-      updatedAt: data['updatedAt'] != null 
-          ? DateTime.parse(data['updatedAt']) 
-          : (data['updated_at'] != null ? DateTime.parse(data['updated_at']) : DateTime.now()),
+      createdAt: data['createdAt'] != null
+          ? DateTime.parse(data['createdAt'])
+          : (data['created_at'] != null
+                ? DateTime.parse(data['created_at'])
+                : DateTime.now()),
+      updatedAt: data['updatedAt'] != null
+          ? DateTime.parse(data['updatedAt'])
+          : (data['updated_at'] != null
+                ? DateTime.parse(data['updated_at'])
+                : DateTime.now()),
+      teaRelationType: teaRelation?.toString(),
     );
   }
 
@@ -68,9 +85,13 @@ class DigitalCard {
       'front_data': frontData,
       'back_data': backData,
       'qr_validation_url': qrValidationUrl,
-      // Não inclui 'is_active' — derivado de status=='active' no banco
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
+      if (teaRelationType != null) 'tea_relation_type': teaRelationType,
     };
   }
+
+  bool get isSupportNetwork => teaRelationType == 'rede_apoio_tea';
+  String get teaRelationLabel =>
+      isSupportNetwork ? 'Rede de Apoio TEA' : 'Pessoa TEA';
 }

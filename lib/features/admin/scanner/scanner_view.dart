@@ -8,6 +8,7 @@ import '../../../models/digital_card.dart';
 import 'package:intl/intl.dart';
 
 import 'package:conectea/core/utils/conectea_date_time_helper.dart';
+import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 
 class ScannerView extends StatefulWidget {
   const ScannerView({super.key});
@@ -35,7 +36,7 @@ class _ScannerViewState extends State<ScannerView> {
 
         // Extrair o número da carteirinha de forma robusta
         String extracted = code.trim();
-        
+
         // Se for uma URL, pegamos apenas o que vem depois do último '/'
         if (extracted.contains('/')) {
           // Remove barra final se houver antes de dar o split
@@ -44,7 +45,7 @@ class _ScannerViewState extends State<ScannerView> {
           }
           extracted = extracted.split('/').last;
         }
-        
+
         // Remove qualquer parâmetro de query (?...) ou fragmento (#...)
         if (extracted.contains('?')) {
           extracted = extracted.split('?').first;
@@ -64,7 +65,7 @@ class _ScannerViewState extends State<ScannerView> {
   Future<void> _validateCard(String cardNumber) async {
     try {
       final card = await _databaseService.getCardByNumber(cardNumber);
-      
+
       if (!mounted) return;
 
       if (card == null) {
@@ -77,7 +78,9 @@ class _ScannerViewState extends State<ScannerView> {
       }
 
       // Validação do vencimento via servidor (Postgres) baseado na data civil do projeto
-      final isExpired = await _databaseService.isDigitalCardExpiredServer(card.validUntil);
+      final isExpired = await _databaseService.isDigitalCardExpiredServer(
+        card.validUntil,
+      );
       final isActive = card.status == 'active';
 
       if (!mounted) return;
@@ -85,19 +88,23 @@ class _ScannerViewState extends State<ScannerView> {
       _showResultSheet(
         isValid: isActive && !isExpired,
         card: card,
-        title: isActive && !isExpired ? 'Carteirinha Válida' : 'Carteirinha Inválida',
+        title: isActive && !isExpired
+            ? 'Carteirinha Válida'
+            : 'Carteirinha Inválida',
         message: isExpired
             ? 'Esta carteirinha está vencida desde ${ConecteaDateTimeHelper.formatProjectDateShort(card.validUntil)}.'
             : !isActive
-                ? 'Esta carteirinha foi desativada pelo administrador.'
-                : 'Documento original e válido.',
+            ? 'Esta carteirinha foi desativada pelo administrador.'
+            : 'Documento original e válido.',
       );
     } catch (e) {
       debugPrint('Erro ao validar carteirinha no scanner: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Falha na conexão com o servidor. Não foi possível validar o vencimento agora. Tente novamente.'),
+            content: Text(
+              'Falha na conexão com o servidor. Não foi possível validar o vencimento agora. Tente novamente.',
+            ),
             backgroundColor: AppColors.errorRed,
           ),
         );
@@ -132,11 +139,14 @@ class _ScannerViewState extends State<ScannerView> {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: (isValid ? AppColors.statusGreen : AppColors.errorRed).withValues(alpha: 0.1),
+                color: (isValid ? AppColors.statusGreen : AppColors.errorRed)
+                    .withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                isValid ? PhosphorIconsRegular.checkCircle : PhosphorIconsRegular.warningCircle,
+                isValid
+                    ? PhosphorIconsRegular.checkCircle
+                    : PhosphorIconsRegular.warningCircle,
                 color: isValid ? AppColors.statusGreen : AppColors.errorRed,
                 size: 48,
               ),
@@ -163,7 +173,17 @@ class _ScannerViewState extends State<ScannerView> {
               const SizedBox(height: 24),
               _buildInfoRow('Nome:', card.frontData['name'] ?? 'N/A'),
               _buildInfoRow('Número:', card.cardNumber),
-              _buildInfoRow('Validade:', DateFormat('dd/MM/yyyy').format(card.validUntil)),
+              _buildInfoRow(
+                'Validade:',
+                DateFormat('dd/MM/yyyy').format(card.validUntil),
+              ),
+              _buildInfoRow(
+                'Tipo de Vínculo:',
+                card.teaRelationLabel,
+                valueColor: card.isSupportNetwork
+                    ? DsCores.institucional.accent
+                    : DsCores.carteirinha.accent,
+              ),
             ],
             const SizedBox(height: 32),
             SizedBox(
@@ -193,7 +213,7 @@ class _ScannerViewState extends State<ScannerView> {
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
+  Widget _buildInfoRow(String label, String value, {Color? valueColor}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -201,11 +221,17 @@ class _ScannerViewState extends State<ScannerView> {
         children: [
           Text(
             label,
-            style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+            style: GoogleFonts.inter(
+              fontWeight: FontWeight.w600,
+              color: AppColors.textSecondary,
+            ),
           ),
           Text(
             value,
-            style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+            style: GoogleFonts.inter(
+              fontWeight: FontWeight.bold,
+              color: valueColor ?? AppColors.textPrimary,
+            ),
           ),
         ],
       ),
@@ -237,10 +263,12 @@ class _ScannerViewState extends State<ScannerView> {
               children: [
                 IconButton(
                   onPressed: () => Navigator.pop(context),
-                  icon: const Icon(PhosphorIconsRegular.x, color: Colors.white, size: 28),
-                  style: IconButton.styleFrom(
-                    backgroundColor: Colors.black45,
+                  icon: const Icon(
+                    PhosphorIconsRegular.x,
+                    color: Colors.white,
+                    size: 28,
                   ),
+                  style: IconButton.styleFrom(backgroundColor: Colors.black45),
                 ),
                 Text(
                   'Validar Carteirinha',
@@ -345,16 +373,30 @@ class _ScannerViewState extends State<ScannerView> {
         height: 40,
         decoration: BoxDecoration(
           border: Border(
-            top: y == 0 ? BorderSide(color: AppColors.primary, width: 4) : BorderSide.none,
-            bottom: y == 1 ? BorderSide(color: AppColors.primary, width: 4) : BorderSide.none,
-            left: x == 0 ? BorderSide(color: AppColors.primary, width: 4) : BorderSide.none,
-            right: x == 1 ? BorderSide(color: AppColors.primary, width: 4) : BorderSide.none,
+            top: y == 0
+                ? BorderSide(color: AppColors.primary, width: 4)
+                : BorderSide.none,
+            bottom: y == 1
+                ? BorderSide(color: AppColors.primary, width: 4)
+                : BorderSide.none,
+            left: x == 0
+                ? BorderSide(color: AppColors.primary, width: 4)
+                : BorderSide.none,
+            right: x == 1
+                ? BorderSide(color: AppColors.primary, width: 4)
+                : BorderSide.none,
           ),
           borderRadius: BorderRadius.only(
             topLeft: x == 0 && y == 0 ? const Radius.circular(24) : Radius.zero,
-            topRight: x == 1 && y == 0 ? const Radius.circular(24) : Radius.zero,
-            bottomLeft: x == 0 && y == 1 ? const Radius.circular(24) : Radius.zero,
-            bottomRight: x == 1 && y == 1 ? const Radius.circular(24) : Radius.zero,
+            topRight: x == 1 && y == 0
+                ? const Radius.circular(24)
+                : Radius.zero,
+            bottomLeft: x == 0 && y == 1
+                ? const Radius.circular(24)
+                : Radius.zero,
+            bottomRight: x == 1 && y == 1
+                ? const Radius.circular(24)
+                : Radius.zero,
           ),
         ),
       ),
