@@ -82,6 +82,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
   bool _isLoading = false;
   String? _cpfDuplicateError;
   final List<String> _uploadedUrlsThisSession = [];
+  String? _selectedTeaRelationType;
 
   bool _isFieldEnabled(String fieldName) {
     if (widget.request == null) return true;
@@ -150,6 +151,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
     super.initState();
     if (widget.member != null) {
       final m = widget.member!;
+      _selectedTeaRelationType = m.teaRelationType ?? 'pessoa_tea';
       _nomeController.text = m.name;
       _socialNameController.text = m.socialName ?? '';
       _cpfController.text = m.cpf;
@@ -194,7 +196,10 @@ class _AddMemberPageState extends State<AddMemberPage> {
         _fetchCities(_selectedState!, resetCity: false);
       }
     } else if (widget.prefillForTitular) {
+      _selectedTeaRelationType = null;
       _loadTitularData();
+    } else {
+      _selectedTeaRelationType = null;
     }
     _fetchStates();
   }
@@ -420,6 +425,12 @@ class _AddMemberPageState extends State<AddMemberPage> {
   }
 
   Future<void> _handleSave() async {
+    if (_selectedTeaRelationType == null) {
+      _showErrorSnackBar(
+        'Por favor, selecione o Tipo de Vínculo do beneficiário.',
+      );
+      return;
+    }
     if (!_formKey.currentState!.validate()) return;
     if (_selectedState == null || _selectedCity == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -442,7 +453,8 @@ class _AddMemberPageState extends State<AddMemberPage> {
     */
 
     // Validação específica para o fluxo de correção/reenvio de pendências
-    if (widget.request != null &&
+    if (_selectedTeaRelationType == 'pessoa_tea' &&
+        widget.request != null &&
         (widget.request!.status == 'reviewing_data' ||
             widget.request!.status == 'waiting_docs')) {
       final docRequired = _isFieldEnabled('Documento com Foto (RG/CNH)');
@@ -513,7 +525,9 @@ class _AddMemberPageState extends State<AddMemberPage> {
     final shouldSubmit = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const RequestSubmitConfirmationDialog(),
+      builder: (context) => RequestSubmitConfirmationDialog(
+        teaRelationType: _selectedTeaRelationType,
+      ),
     );
 
     if (shouldSubmit != true) return;
@@ -523,6 +537,14 @@ class _AddMemberPageState extends State<AddMemberPage> {
     try {
       final userId = _authService.currentUser?.id;
       if (userId == null) throw Exception('Usuário não autenticado');
+
+      final docUrlToSave = _selectedTeaRelationType == 'rede_apoio_tea'
+          ? ''
+          : (_documentUrl ?? '');
+      final medicalReportUrlToSave =
+          _selectedTeaRelationType == 'rede_apoio_tea'
+          ? ''
+          : (_medicalReportUrl ?? '');
 
       final member = Member(
         id: isEditing ? widget.member!.id : const Uuid().v4(),
@@ -546,8 +568,9 @@ class _AddMemberPageState extends State<AddMemberPage> {
         dateOfBirth: _nascimentoController.text,
         bloodType: _selectedBloodType ?? '',
         cid: _cidController.text.trim(),
-        documentUrl: _documentUrl ?? '',
-        medicalReportUrl: _medicalReportUrl ?? '',
+        documentUrl: docUrlToSave,
+        medicalReportUrl: medicalReportUrlToSave,
+        teaRelationType: _selectedTeaRelationType,
         status: isEditing ? widget.member!.status : 'waiting_approval',
         createdAt: isEditing ? widget.member!.createdAt : DateTime.now(),
         updatedAt: DateTime.now(),
@@ -637,7 +660,8 @@ class _AddMemberPageState extends State<AddMemberPage> {
 
   bool _hasUnsavedChanges() {
     if (widget.member == null) {
-      return _nomeController.text.isNotEmpty ||
+      return _selectedTeaRelationType != null ||
+          _nomeController.text.isNotEmpty ||
           _socialNameController.text.isNotEmpty ||
           _cpfController.text.isNotEmpty ||
           _telefoneController.text.isNotEmpty ||
@@ -656,6 +680,8 @@ class _AddMemberPageState extends State<AddMemberPage> {
     }
 
     final m = widget.member!;
+    final origTeaRelation = m.teaRelationType ?? 'pessoa_tea';
+    if (_selectedTeaRelationType != origTeaRelation) return true;
     if (_nomeController.text.trim() != m.name.trim()) return true;
     if ((_socialNameController.text.trim().isEmpty
             ? null
@@ -791,6 +817,142 @@ class _AddMemberPageState extends State<AddMemberPage> {
                                 ),
                                 const SizedBox(height: 16),
 
+                                // Seletor do Tipo de vínculo
+                                Text(
+                                  'Tipo de vínculo*',
+                                  style: DsTipografia.inputLabel,
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  'Informe se a carteirinha é para uma pessoa TEA ou para alguém da rede de apoio.',
+                                  style: DsTipografia.bodySmall.copyWith(
+                                    color: DsCores.textSecondary.withValues(
+                                      alpha: 0.7,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+
+                                DsCard(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 12,
+                                  ),
+                                  borderColor:
+                                      _selectedTeaRelationType == 'pessoa_tea'
+                                      ? DsCores.solicitacao.accent.withValues(
+                                          alpha: 0.5,
+                                        )
+                                      : Colors.white.withValues(alpha: 0.08),
+                                  accentColor: DsCores.solicitacao.accent,
+                                  showGlow:
+                                      _selectedTeaRelationType == 'pessoa_tea',
+                                  onTap: () {
+                                    setState(() {
+                                      _selectedTeaRelationType = 'pessoa_tea';
+                                    });
+                                  },
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Icon(
+                                        _selectedTeaRelationType == 'pessoa_tea'
+                                            ? PhosphorIconsRegular.radioButton
+                                            : PhosphorIconsRegular.circle,
+                                        color:
+                                            _selectedTeaRelationType ==
+                                                'pessoa_tea'
+                                            ? DsCores.solicitacao.accent
+                                            : DsCores.iconMuted,
+                                        size: 22,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'Pessoa TEA',
+                                              style: DsTipografia.cardTitle,
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              'Para beneficiários no espectro autista. Exige documento com foto e laudo para análise.',
+                                              style:
+                                                  DsTipografia.cardDescription,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+
+                                DsCard(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 12,
+                                  ),
+                                  borderColor:
+                                      _selectedTeaRelationType ==
+                                          'rede_apoio_tea'
+                                      ? DsCores.solicitacao.accent.withValues(
+                                          alpha: 0.5,
+                                        )
+                                      : Colors.white.withValues(alpha: 0.08),
+                                  accentColor: DsCores.solicitacao.accent,
+                                  showGlow:
+                                      _selectedTeaRelationType ==
+                                      'rede_apoio_tea',
+                                  onTap: () {
+                                    setState(() {
+                                      _selectedTeaRelationType =
+                                          'rede_apoio_tea';
+                                    });
+                                  },
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Icon(
+                                        _selectedTeaRelationType ==
+                                                'rede_apoio_tea'
+                                            ? PhosphorIconsRegular.radioButton
+                                            : PhosphorIconsRegular.circle,
+                                        color:
+                                            _selectedTeaRelationType ==
+                                                'rede_apoio_tea'
+                                            ? DsCores.solicitacao.accent
+                                            : DsCores.iconMuted,
+                                        size: 22,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'Rede de Apoio TEA',
+                                              style: DsTipografia.cardTitle,
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              'Para familiares, responsáveis ou pessoas ligadas ao universo TEA. Não exige laudo neste fluxo.',
+                                              style:
+                                                  DsTipografia.cardDescription,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+
                                 RequestInputField(
                                   label: 'Nome completo do Beneficiário*',
                                   controller: _nomeController,
@@ -914,144 +1076,149 @@ class _AddMemberPageState extends State<AddMemberPage> {
                                   thickness: 1,
                                 ),
 
-                                // ==========================================
-                                // 2. DOCUMENTOS PARA ANÁLISE
-                                // ==========================================
-                                Text(
-                                  'DOCUMENTOS PARA ANÁLISE',
-                                  style: DsTipografia.sectionLabel,
-                                ),
-                                const SizedBox(height: 16),
-
-                                RequestUploadField(
-                                  label: 'Documento com Foto (RG/CNH)',
-                                  fileName: _documentFileName,
-                                  isUploading: _isUploadingDoc,
-                                  isUploaded: _documentUrl != null,
-                                  onTap: () =>
-                                      _pickAndUploadFile(isDocument: true),
-                                  icon: PhosphorIconsRegular.image,
-                                  enabled: _isFieldEnabled(
-                                    'Documento com Foto (RG/CNH)',
+                                if (_selectedTeaRelationType ==
+                                    'pessoa_tea') ...[
+                                  // ==========================================
+                                  // 2. DOCUMENTOS PARA ANÁLISE
+                                  // ==========================================
+                                  Text(
+                                    'DOCUMENTOS PARA ANÁLISE',
+                                    style: DsTipografia.sectionLabel,
                                   ),
-                                ),
-                                const SizedBox(height: 20),
+                                  const SizedBox(height: 16),
 
-                                RequestUploadField(
-                                  label: 'Laudo Médico',
-                                  fileName: _medicalReportFileName,
-                                  isUploading: _isUploadingReport,
-                                  isUploaded: _medicalReportUrl != null,
-                                  onTap: () =>
-                                      _pickAndUploadFile(isDocument: false),
-                                  icon: PhosphorIconsRegular.stethoscope,
-                                  enabled: _isFieldEnabled('Laudo Médico'),
-                                ),
-                                const SizedBox(height: 12),
+                                  RequestUploadField(
+                                    label: 'Documento com Foto (RG/CNH)',
+                                    fileName: _documentFileName,
+                                    isUploading: _isUploadingDoc,
+                                    isUploaded: _documentUrl != null,
+                                    onTap: () =>
+                                        _pickAndUploadFile(isDocument: true),
+                                    icon: PhosphorIconsRegular.image,
+                                    enabled: _isFieldEnabled(
+                                      'Documento com Foto (RG/CNH)',
+                                    ),
+                                  ),
+                                  const SizedBox(height: 20),
 
-                                // Determina se há documentos obrigatórios a reenviar
-                                (() {
-                                  final isReviewingRequest =
-                                      widget.request != null &&
-                                      (widget.request!.status ==
-                                              'reviewing_data' ||
-                                          widget.request!.status ==
-                                              'waiting_docs');
+                                  RequestUploadField(
+                                    label: 'Laudo Médico',
+                                    fileName: _medicalReportFileName,
+                                    isUploading: _isUploadingReport,
+                                    isUploaded: _medicalReportUrl != null,
+                                    onTap: () =>
+                                        _pickAndUploadFile(isDocument: false),
+                                    icon: PhosphorIconsRegular.stethoscope,
+                                    enabled: _isFieldEnabled('Laudo Médico'),
+                                  ),
+                                  const SizedBox(height: 12),
 
-                                  final isDocumentRequested =
-                                      isReviewingRequest &&
-                                      _isFieldEnabled(
-                                        'Documento com Foto (RG/CNH)',
-                                      );
+                                  // Determina se há documentos obrigatórios a reenviar
+                                  (() {
+                                    final isReviewingRequest =
+                                        widget.request != null &&
+                                        (widget.request!.status ==
+                                                'reviewing_data' ||
+                                            widget.request!.status ==
+                                                'waiting_docs');
 
-                                  final isMedicalReportRequested =
-                                      isReviewingRequest &&
-                                      _isFieldEnabled('Laudo Médico');
+                                    final isDocumentRequested =
+                                        isReviewingRequest &&
+                                        _isFieldEnabled(
+                                          'Documento com Foto (RG/CNH)',
+                                        );
 
-                                  final requiredDocumentsCount = [
-                                    isDocumentRequested,
-                                    isMedicalReportRequested,
-                                  ].where((required) => required).length;
+                                    final isMedicalReportRequested =
+                                        isReviewingRequest &&
+                                        _isFieldEnabled('Laudo Médico');
 
-                                  final String title;
-                                  final String message;
+                                    final requiredDocumentsCount = [
+                                      isDocumentRequested,
+                                      isMedicalReportRequested,
+                                    ].where((required) => required).length;
 
-                                  if (requiredDocumentsCount == 1) {
-                                    title = 'Documento obrigatório nesta etapa';
-                                    message =
-                                        'Envie o documento solicitado para que a análise da carteirinha possa continuar.';
-                                  } else if (requiredDocumentsCount > 1) {
-                                    title =
-                                        'Documentos obrigatórios nesta etapa';
-                                    message =
-                                        'Envie os documentos solicitados para que a análise da carteirinha possa continuar.';
-                                  } else {
-                                    title =
-                                        'Os documentos são opcionais agora.';
-                                    message =
-                                        'Podemos solicitar documentação complementar durante a análise.';
-                                  }
+                                    final String title;
+                                    final String message;
 
-                                  return Container(
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.alertOrange.withValues(
-                                        alpha: 0.1,
-                                      ),
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
+                                    if (requiredDocumentsCount == 1) {
+                                      title =
+                                          'Documento obrigatório nesta etapa';
+                                      message =
+                                          'Envie o documento solicitado para que a análise da carteirinha possa continuar.';
+                                    } else if (requiredDocumentsCount > 1) {
+                                      title =
+                                          'Documentos obrigatórios nesta etapa';
+                                      message =
+                                          'Envie os documentos solicitados para que a análise da carteirinha possa continuar.';
+                                    } else {
+                                      title =
+                                          'Os documentos são opcionais agora.';
+                                      message =
+                                          'Podemos solicitar documentação complementar durante a análise.';
+                                    }
+
+                                    return Container(
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
                                         color: AppColors.alertOrange.withValues(
-                                          alpha: 0.3,
+                                          alpha: 0.1,
+                                        ),
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: AppColors.alertOrange
+                                              .withValues(alpha: 0.3),
                                         ),
                                       ),
-                                    ),
-                                    child: Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        const Icon(
-                                          PhosphorIconsRegular.info,
-                                          color: AppColors.alertOrange,
-                                          size: 20,
-                                        ),
-                                        const SizedBox(width: 10),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                title,
-                                                style: GoogleFonts.inter(
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: AppColors.textPrimary
-                                                      .withValues(alpha: 0.9),
-                                                ),
-                                              ),
-                                              const SizedBox(height: 4),
-                                              Text(
-                                                message,
-                                                style: GoogleFonts.inter(
-                                                  fontSize: 12,
-                                                  color: AppColors.textPrimary
-                                                      .withValues(alpha: 0.8),
-                                                  height: 1.4,
-                                                ),
-                                              ),
-                                            ],
+                                      child: Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          const Icon(
+                                            PhosphorIconsRegular.info,
+                                            color: AppColors.alertOrange,
+                                            size: 20,
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                })(),
+                                          const SizedBox(width: 10),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  title,
+                                                  style: GoogleFonts.inter(
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: AppColors.textPrimary
+                                                        .withValues(alpha: 0.9),
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Text(
+                                                  message,
+                                                  style: GoogleFonts.inter(
+                                                    fontSize: 12,
+                                                    color: AppColors.textPrimary
+                                                        .withValues(alpha: 0.8),
+                                                    height: 1.4,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  })(),
 
-                                Divider(
-                                  color: DsCores.border.withValues(alpha: 0.3),
-                                  height: 40,
-                                  thickness: 1,
-                                ),
+                                  Divider(
+                                    color: DsCores.border.withValues(
+                                      alpha: 0.3,
+                                    ),
+                                    height: 40,
+                                    thickness: 1,
+                                  ),
+                                ],
 
                                 // ==========================================
                                 // 3. CONTATO DO BENEFICIÁRIO
@@ -1281,10 +1448,20 @@ class _AddMemberPageState extends State<AddMemberPage> {
 }
 
 class RequestSubmitConfirmationDialog extends StatelessWidget {
-  const RequestSubmitConfirmationDialog({super.key});
+  final String? teaRelationType;
+  const RequestSubmitConfirmationDialog({super.key, this.teaRelationType});
 
   @override
   Widget build(BuildContext context) {
+    final String dialogText;
+    if (teaRelationType == 'rede_apoio_tea') {
+      dialogText =
+          'Você vai enviar dados sensíveis para análise da carteirinha comunitária ConeCTEA.\n\nA carteirinha para Rede de Apoio TEA representa familiares/responsáveis/rede de apoio e não exige envio de laudo ou documento com foto neste fluxo. Os dados enviados serão tratados com cuidado e segurança conforme as regras do projeto.\n\nA carteirinha ConeCTEA é comunitária e não substitui CIPTEA, RG, CPF, CNH, laudo, diagnóstico ou atendimento público.';
+    } else {
+      dialogText =
+          'Você vai enviar dados e documentos sensíveis para análise da carteirinha comunitária ConeCTEA.\n\nO documento com foto ajuda na conferência de identificação. O laudo médico ajuda na análise da solicitação. Esses arquivos serão tratados com cuidado e descartados conforme as regras do projeto após a conclusão/aprovação do fluxo.\n\nA carteirinha ConeCTEA é comunitária e não substitui CIPTEA, RG, CPF, CNH, laudo, diagnóstico ou atendimento público.';
+    }
+
     return AlertDialog(
       backgroundColor: DsCores.glassStrong,
       surfaceTintColor: Colors.transparent,
@@ -1302,7 +1479,7 @@ class RequestSubmitConfirmationDialog extends StatelessWidget {
       content: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         child: Text(
-          'Você vai enviar dados e documentos sensíveis para análise da carteirinha comunitária ConeCTEA.\n\nO documento com foto ajuda na conferência de identificação. O laudo médico ajuda na análise da solicitação. Esses arquivos serão tratados com cuidado e descartados conforme as regras do projeto após a conclusão/aprovação do fluxo.\n\nA carteirinha ConeCTEA é comunitária e não substitui CIPTEA, RG, CPF, CNH, laudo, diagnóstico ou atendimento público.',
+          dialogText,
           style: DsTipografia.infoBody.copyWith(
             color: DsCores.textSecondary.withValues(alpha: 0.9),
             height: 1.45,
