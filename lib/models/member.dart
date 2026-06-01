@@ -20,6 +20,7 @@ class Member {
   final String? gender;
   final String? racaCor;
   final String? socialName;
+  final String? teaRelationType;
 
   Member({
     required this.id,
@@ -42,6 +43,7 @@ class Member {
     this.gender,
     this.racaCor,
     this.socialName,
+    this.teaRelationType,
   });
 
   factory Member.empty() {
@@ -66,6 +68,7 @@ class Member {
       gender: null,
       racaCor: null,
       socialName: null,
+      teaRelationType: null,
     );
   }
 
@@ -107,6 +110,9 @@ class Member {
       gender: json['gender']?.toString(),
       racaCor: json['raca_cor']?.toString() ?? json['racaCor']?.toString(),
       socialName: json['social_name'] ?? json['socialName'],
+      teaRelationType:
+          json['tea_relation_type']?.toString() ??
+          json['teaRelationType']?.toString(),
     );
   }
 
@@ -132,6 +138,7 @@ class Member {
       'gender': gender,
       'raca_cor': racaCor,
       'social_name': socialName,
+      'tea_relation_type': teaRelationType,
     };
   }
 
@@ -156,6 +163,7 @@ class Member {
     String? gender,
     String? racaCor,
     String? socialName,
+    String? teaRelationType,
   }) {
     return Member(
       id: id ?? this.id,
@@ -178,6 +186,7 @@ class Member {
       gender: gender ?? this.gender,
       racaCor: racaCor ?? this.racaCor,
       socialName: socialName ?? this.socialName,
+      teaRelationType: teaRelationType ?? this.teaRelationType,
     );
   }
 
@@ -195,4 +204,12 @@ class Member {
       (socialName != null && socialName!.trim().isNotEmpty)
       ? socialName!.trim()
       : name;
+
+  bool get isSupportNetwork => teaRelationType == 'rede_apoio_tea';
+
+  bool get isPessoaTea =>
+      teaRelationType == null || teaRelationType == 'pessoa_tea';
+
+  String get teaRelationLabel =>
+      isSupportNetwork ? 'Rede de Apoio TEA' : 'Pessoa TEA';
 }
