@@ -288,7 +288,11 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
         } catch (_) {}
       }
     } else if (status == 'waiting_docs') {
-      options = ['Documento com Foto (RG/CNH)', 'Laudo Médico'];
+      if (_member?.teaRelationType == 'rede_apoio_tea') {
+        options = [];
+      } else {
+        options = ['Documento com Foto (RG/CNH)', 'Laudo Médico'];
+      }
     }
 
     // Inicializar o mapa de opções selecionadas como falso para todos
@@ -934,10 +938,17 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
                           AdminDetailRow(label: 'Nome', value: _member!.name),
                           AdminDetailRow(
                             label: 'Nome Social',
-                            value: (_member!.socialName != null &&
+                            value:
+                                (_member!.socialName != null &&
                                     _member!.socialName!.trim().isNotEmpty)
                                 ? _member!.socialName!.trim()
                                 : 'Não informado',
+                          ),
+                          AdminDetailRow(
+                            label: 'Tipo de vínculo',
+                            value: (_member!.teaRelationType == null)
+                                ? 'Pessoa TEA'
+                                : _member!.teaRelationLabel,
                           ),
                           AdminDetailRow(
                             label: 'CPF',
@@ -954,14 +965,16 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
                           ),
                           AdminDetailRow(
                             label: 'Gênero',
-                            value: (_member!.gender != null &&
+                            value:
+                                (_member!.gender != null &&
                                     _member!.gender!.trim().isNotEmpty)
                                 ? _member!.gender!.trim()
                                 : 'Não informado',
                           ),
                           AdminDetailRow(
                             label: 'Raça/Cor',
-                            value: (_member!.racaCor != null &&
+                            value:
+                                (_member!.racaCor != null &&
                                     _member!.racaCor!.trim().isNotEmpty)
                                 ? _member!.racaCor!.trim()
                                 : 'Não informado',
@@ -1103,12 +1116,15 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
           spacing: 12,
           runSpacing: 12,
           children: [
-            AdminStatusActionButton(
-              label: 'SOLICITAR DOCS',
-              statusKey: 'waiting_docs',
-              onTap: () =>
-                  _confirmStatusUpdate('waiting_docs', 'Solicitar Documentos'),
-            ),
+            if (_member?.teaRelationType != 'rede_apoio_tea')
+              AdminStatusActionButton(
+                label: 'SOLICITAR DOCS',
+                statusKey: 'waiting_docs',
+                onTap: () => _confirmStatusUpdate(
+                  'waiting_docs',
+                  'Solicitar Documentos',
+                ),
+              ),
             AdminStatusActionButton(
               label: 'REVISAR DADOS',
               statusKey: 'reviewing_data',
