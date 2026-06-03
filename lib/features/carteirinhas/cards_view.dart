@@ -18,7 +18,7 @@ import 'package:conectea/features/carteirinhas/widgets/tela/cards_member_selecto
 import 'package:conectea/features/carteirinhas/widgets/tela/cards_empty_state.dart';
 import 'package:conectea/features/carteirinhas/widgets/tela/cards_details_section.dart';
 import 'package:conectea/features/carteirinhas/widgets/tela/cards_error_state.dart';
-import 'package:conectea/features/carteirinhas/widgets/tela/print_mode_entry_card.dart';
+import 'package:conectea/features/carteirinhas/widgets/impressao/print_mode_entry_card.dart';
 import 'package:conectea/features/carteirinhas/solicitacao/add_member_page.dart';
 import 'package:conectea/features/carteirinhas/solicitacao/requests_view.dart';
 import 'package:conectea/features/carteirinhas/solicitacao/widgets/request_beneficiary_choice_sheet.dart';
@@ -834,7 +834,12 @@ class _CardsViewState extends State<CardsView> {
                         ],
 
                         const SizedBox(height: 16),
-                        PrintModeEntryCard(isActive: selectedStatusInfo.isActive),
+                        PrintModeEntryCard(
+                          isActive: selectedStatusInfo.isActive,
+                          activeMembers: activeMembers,
+                          activeCardsMap: activeCardsMap,
+                          paletteSeed: _user?.id,
+                        ),
 
                         const SizedBox(height: 40),
                       ],
