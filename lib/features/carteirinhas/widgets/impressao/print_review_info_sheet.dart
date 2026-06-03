@@ -9,6 +9,7 @@ import 'revisao/print_review_preview_box.dart';
 import 'revisao/print_review_empty_warning_box.dart';
 import 'revisao/print_review_option_tile.dart';
 import 'revisao/print_review_extra_contacts_section.dart';
+import 'package:conectea/features/carteirinhas/services/print_support_profile_local_service.dart';
 
 /// **PrintReviewInfoSheet**
 /// Diálogo modal bottom sheet que permite ao responsável revisar
@@ -48,6 +49,11 @@ class PrintReviewInfoSheet extends StatefulWidget {
 }
 
 class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
+  // Servico local e estados do Perfil de Apoio TEA
+  final _localService = PrintSupportProfileLocalService();
+  PrintSupportProfileDraft? _supportProfileDraft;
+  bool _isLoadingSupportProfileDraft = false;
+
   // Estado local para checkboxes (Informações opcionais - todas desmarcadas por padrão)
   bool _includeBirthDate = false;
   bool _includeBloodType = false;
@@ -98,6 +104,34 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
 
     _tempEmergNameController = TextEditingController();
     _tempEmergPhoneController = TextEditingController();
+
+    // Carrega o rascunho local do Perfil de Apoio se solicitado no fluxo
+    if (widget.includeProfile) {
+      _loadSupportProfileDraft();
+    }
+  }
+
+  /// Carrega o rascunho de Perfil de Apoio TEA local de forma silenciosa
+  Future<void> _loadSupportProfileDraft() async {
+    setState(() {
+      _isLoadingSupportProfileDraft = true;
+    });
+    try {
+      final draft = await _localService.loadDraft(widget.member.id);
+      if (mounted) {
+        setState(() {
+          _supportProfileDraft = draft;
+        });
+      }
+    } catch (_) {
+      // Captura silenciosa e segura em caso de erros de leitura
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingSupportProfileDraft = false;
+        });
+      }
+    }
   }
 
   void _addExtraResponsible() {
@@ -394,6 +428,14 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
                         ),
                       ),
                       const SizedBox(height: 24),
+
+                      // ==========================================
+                      // Bloco 4 — PERFIL DE APOIO TEA (Condicional)
+                      // ==========================================
+                      if (widget.includeProfile) ...[
+                        _buildSupportProfileSection(),
+                        const SizedBox(height: 24),
+                      ],
 
                       // ==========================================
                       // BLOCO LEGAL E POLÍTICA
@@ -832,5 +874,157 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
       return '${clean.substring(0, 3)}.***.***-${clean.substring(9, 11)}';
     }
     return 'CPF mascarado será exibido na impressão.';
+  }
+
+  /// Constrói a seção visual informativa do Perfil de Apoio TEA
+  Widget _buildSupportProfileSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildBlockHeader(
+          title: 'Perfil de Apoio TEA',
+          description: 'Essas informações ficam salvas apenas neste aparelho e ajudam a preparar a versão impressa com mais contexto.',
+        ),
+        const SizedBox(height: 12),
+        DsCard(
+          backgroundColor: DsCores.surfaceElevated.withValues(alpha: 0.35),
+          borderColor: Colors.white.withValues(alpha: 0.05),
+          padding: const EdgeInsets.all(16.0),
+          child: Builder(
+            builder: (context) {
+              if (_isLoadingSupportProfileDraft) {
+                return Row(
+                  children: [
+                    SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 1.5,
+                        color: DsCores.carteirinha.accent,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      'Verificando rascunho local...',
+                      style: DsTipografia.caption.copyWith(
+                        color: DsCores.textSecondary,
+                      ),
+                    ),
+                  ],
+                );
+              }
+
+              final draft = _supportProfileDraft;
+              final hasContent = draft != null && draft.hasAnyContent;
+
+              if (hasContent) {
+                final preenchidos = <String>[];
+                if (draft.preferredName.trim().isNotEmpty) preenchidos.add('nome preferido');
+                if (draft.about.trim().isNotEmpty) preenchidos.add('sobre mim');
+                if (draft.commSpeech ||
+                    draft.commGestures ||
+                    draft.commPictograms ||
+                    draft.commApps ||
+                    draft.communicationNotes.trim().isNotEmpty) {
+                  preenchidos.add('comunicação');
+                }
+                if (draft.likes.any((e) => e.trim().isNotEmpty)) preenchidos.add('preferências');
+                if (draft.irritations.any((e) => e.trim().isNotEmpty)) preenchidos.add('irritações');
+                if (draft.abilities.any((e) => e.trim().isNotEmpty)) preenchidos.add('habilidades');
+                if (draft.supportTips.any((e) => e.trim().isNotEmpty)) preenchidos.add('dicas de apoio');
+                if (draft.medications.any((e) => e.trim().isNotEmpty)) preenchidos.add('medicações');
+                if (draft.allergies.any((e) => e.trim().isNotEmpty)) preenchidos.add('alergias');
+                if (draft.otherImportantInfo.trim().isNotEmpty) preenchidos.add('outras informações');
+
+                final String resumoSecoes = preenchidos.isNotEmpty
+                    ? 'Seções preenchidas: ${preenchidos.join(", ")}.'
+                    : 'Nenhuma seção preenchida.';
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Perfil de Apoio preenchido neste aparelho.',
+                            style: DsTipografia.bodySmall.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: DsCores.sucesso.accent,
+                            ),
+                          ),
+                        ),
+                        DsSelo.fromCorVisual(
+                          label: 'Local no aparelho',
+                          token: DsCores.privacidade,
+                          compact: true,
+                        ),
+                      ],
+                    ),
+                    if (draft.preferredName.trim().isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        'Como gosta de ser chamado(a): ${draft.preferredName}',
+                        style: DsTipografia.bodySmall.copyWith(
+                          color: DsCores.textPrimary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 8),
+                    Text(
+                      resumoSecoes,
+                      style: DsTipografia.caption.copyWith(
+                        color: DsCores.textSecondary,
+                        height: 1.35,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Dados locais, não enviados ao banco.',
+                      style: DsTipografia.caption.copyWith(
+                        color: DsCores.textMuted,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
+                );
+              }
+
+              // Caso sem rascunho ou vazio
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Nenhum Perfil de Apoio preenchido ainda.',
+                    style: DsTipografia.bodySmall.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: DsCores.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Você poderá preencher essas informações opcionais na próxima etapa.',
+                    style: DsTipografia.caption.copyWith(
+                      color: DsCores.textSecondary,
+                      height: 1.35,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Dados locais, não enviados ao banco.',
+                    style: DsTipografia.caption.copyWith(
+                      color: DsCores.textMuted,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      ],
+    );
   }
 }
