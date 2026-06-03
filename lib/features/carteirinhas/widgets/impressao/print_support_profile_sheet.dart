@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 import 'package:conectea/models/member.dart';
+import 'package:conectea/features/carteirinhas/services/print_support_profile_local_service.dart';
+
 
 
 /// **PrintSupportProfileSheet**
@@ -35,13 +37,18 @@ class PrintSupportProfileSheet extends StatefulWidget {
 }
 
 class _PrintSupportProfileSheetState extends State<PrintSupportProfileSheet> {
-  // Controllers locais temporários para digitação nos testes
+  // Controle de carregamento e servico de persistencia local
+  bool _isLoading = true;
+  bool _isSaving = false;
+  final _localService = PrintSupportProfileLocalService();
+
+  // Controllers locais temporarios para digitacao nos testes
   late final TextEditingController _nicknameController;
   late final TextEditingController _aboutMeController;
   late final TextEditingController _communicationObsController;
   late final TextEditingController _usefulInfoController;
 
-  // Listas de controllers para campos dinâmicos curtos
+  // Listas de controllers para campos dinamicos curtos
   final List<TextEditingController> _likesControllers = [];
   final List<TextEditingController> _dislikesControllers = [];
   final List<TextEditingController> _abilitiesControllers = [];
@@ -49,7 +56,7 @@ class _PrintSupportProfileSheetState extends State<PrintSupportProfileSheet> {
   final List<TextEditingController> _medicationsControllers = [];
   final List<TextEditingController> _allergiesControllers = [];
 
-  // Estado local para checkboxes de comunicação
+  // Estado local para checkboxes de comunicacao
   bool _commSpeech = false;
   bool _commGestures = false;
   bool _commPictograms = false;
@@ -70,6 +77,9 @@ class _PrintSupportProfileSheetState extends State<PrintSupportProfileSheet> {
     _howToHelpControllers.add(TextEditingController());
     _medicationsControllers.add(TextEditingController());
     _allergiesControllers.add(TextEditingController());
+
+    // Carrega o rascunho localmente no início
+    _loadLocalDraft();
   }
 
   @override
@@ -100,6 +110,118 @@ class _PrintSupportProfileSheetState extends State<PrintSupportProfileSheet> {
     }
 
     super.dispose();
+  }
+
+  /// Carrega as informacoes locais salvas e preenche o formulario
+  Future<void> _loadLocalDraft() async {
+    try {
+      final draft = await _localService.loadDraft(widget.member.id);
+      if (draft != null && mounted) {
+        setState(() {
+          _nicknameController.text = draft.preferredName;
+          _aboutMeController.text = draft.about;
+          _commSpeech = draft.commSpeech;
+          _commGestures = draft.commGestures;
+          _commPictograms = draft.commPictograms;
+          _commApps = draft.commApps;
+          _communicationObsController.text = draft.communicationNotes;
+
+          _fillControllers(_likesControllers, draft.likes);
+          _fillControllers(_dislikesControllers, draft.irritations);
+          _fillControllers(_abilitiesControllers, draft.abilities);
+          _fillControllers(_howToHelpControllers, draft.supportTips);
+          _fillControllers(_medicationsControllers, draft.medications);
+          _fillControllers(_allergiesControllers, draft.allergies);
+
+          _usefulInfoController.text = draft.otherImportantInfo;
+        });
+      }
+    } catch (_) {
+      // Captura silenciosa e segura
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  /// Auxiliar para substituir os controllers de listas de forma segura
+  void _fillControllers(List<TextEditingController> list, List<String> values) {
+    for (final c in list) {
+      c.dispose();
+    }
+    list.clear();
+    if (values.isEmpty) {
+      list.add(TextEditingController());
+    } else {
+      for (final val in values) {
+        list.add(TextEditingController(text: val));
+      }
+    }
+  }
+
+  /// Constroi um objeto de rascunho com o estado atual do formulario
+  PrintSupportProfileDraft _buildDraftFromCurrentForm() {
+    return PrintSupportProfileDraft(
+      memberId: widget.member.id,
+      updatedAt: '', // Atualizado internamente no servico
+      preferredName: _nicknameController.text,
+      about: _aboutMeController.text,
+      commSpeech: _commSpeech,
+      commGestures: _commGestures,
+      commPictograms: _commPictograms,
+      commApps: _commApps,
+      communicationNotes: _communicationObsController.text,
+      likes: _likesControllers.map((c) => c.text).toList(),
+      irritations: _dislikesControllers.map((c) => c.text).toList(),
+      abilities: _abilitiesControllers.map((c) => c.text).toList(),
+      supportTips: _howToHelpControllers.map((c) => c.text).toList(),
+      medications: _medicationsControllers.map((c) => c.text).toList(),
+      allergies: _allergiesControllers.map((c) => c.text).toList(),
+      otherImportantInfo: _usefulInfoController.text,
+    );
+  }
+
+  /// Trata a acao de salvar ou remover o rascunho antes de fechar a Bottom Sheet
+  Future<void> _handleContinue() async {
+    if (_isSaving) return;
+
+    setState(() {
+      _isSaving = true;
+    });
+
+    final draft = _buildDraftFromCurrentForm();
+    bool success = false;
+
+    try {
+      if (draft.hasAnyContent) {
+        await _localService.saveDraft(draft);
+      } else {
+        await _localService.deleteDraft(widget.member.id);
+      }
+      success = true;
+    } catch (_) {
+      // Falha silenciosa: sem logar dados pessoais, exibindo snackbar generica
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Não foi possível salvar o rascunho local agora.'),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
+    }
+
+    if (success && mounted) {
+      Navigator.pop(context, true);
+    }
   }
 
   @override
@@ -142,8 +264,15 @@ class _PrintSupportProfileSheetState extends State<PrintSupportProfileSheet> {
               ),
 
               // Área de Conteúdo Rolável
-              Expanded(
-                child: SingleChildScrollView(
+              if (_isLoading)
+                const Expanded(
+                  child: Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                )
+              else
+                Expanded(
+                  child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
                   padding: const EdgeInsets.fromLTRB(24.0, 8.0, 24.0, 16.0),
                   child: Column(
@@ -597,7 +726,7 @@ class _PrintSupportProfileSheetState extends State<PrintSupportProfileSheet> {
                       child: DsBotao(
                         label: 'Voltar',
                         variante: DsBotaoVariante.secundario,
-                        onPressed: () => Navigator.pop(context, false),
+                        onPressed: (_isLoading || _isSaving) ? null : () => Navigator.pop(context, false),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -606,7 +735,7 @@ class _PrintSupportProfileSheetState extends State<PrintSupportProfileSheet> {
                         label: 'Continuar',
                         variante: DsBotaoVariante.acao,
                         token: DsCores.sucesso,
-                        onPressed: () => Navigator.pop(context, true),
+                        onPressed: (_isLoading || _isSaving) ? null : _handleContinue,
                       ),
                     ),
                   ],
