@@ -10,6 +10,8 @@ import 'revisao/print_review_empty_warning_box.dart';
 import 'revisao/print_review_option_tile.dart';
 import 'revisao/print_review_extra_contacts_section.dart';
 import 'package:conectea/features/carteirinhas/services/print_support_profile_local_service.dart';
+import 'package:conectea/features/carteirinhas/models/impressao/print_card_options.dart';
+import 'package:conectea/features/carteirinhas/models/impressao/print_card_request.dart';
 
 /// **PrintReviewInfoSheet**
 /// Diálogo modal bottom sheet que permite ao responsável revisar
@@ -26,12 +28,12 @@ class PrintReviewInfoSheet extends StatefulWidget {
   });
 
   /// Método estático facilitador para exibir o bottom sheet.
-  static Future<bool?> show(
+  static Future<PrintCardRequest?> show(
     BuildContext context, {
     required Member member,
     required bool includeProfile,
   }) {
-    return showModalBottomSheet<bool>(
+    return showModalBottomSheet<PrintCardRequest>(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
@@ -458,7 +460,7 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
                       child: DsBotao(
                         label: 'Voltar',
                         variante: DsBotaoVariante.secundario,
-                        onPressed: () => Navigator.pop(context, false),
+                        onPressed: () => Navigator.pop(context, null),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -467,7 +469,10 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
                         label: 'Continuar',
                         variante: DsBotaoVariante.acao,
                         token: DsCores.sucesso,
-                        onPressed: () => Navigator.pop(context, true),
+                        onPressed: () {
+                          final request = _buildRequestFromState();
+                          Navigator.pop(context, request);
+                        },
                       ),
                     ),
                   ],
@@ -874,6 +879,106 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
       return '${clean.substring(0, 3)}.***.***-${clean.substring(9, 11)}';
     }
     return 'CPF mascarado será exibido na impressão.';
+  }
+
+  /// Constrói o objeto de requisição da impressão contendo todas as escolhas
+  /// de dados opcionais, dados sensíveis, contatos extras e overrides do formulário.
+  PrintCardRequest _buildRequestFromState() {
+    // Filtrar e converter contatos extras desconsiderando os que estão totalmente em branco
+    final List<PrintContactInfo> cleanResponsibles = [];
+    for (final item in _extraResponsibles) {
+      final name = item['name']?.text.trim() ?? '';
+      final phone = item['phone']?.text.trim() ?? '';
+      if (name.isNotEmpty || phone.isNotEmpty) {
+        cleanResponsibles.add(PrintContactInfo(name: name, phone: phone));
+      }
+    }
+
+    final List<PrintContactInfo> cleanEmergencies = [];
+    for (final item in _extraEmergencies) {
+      final name = item['name']?.text.trim() ?? '';
+      final phone = item['phone']?.text.trim() ?? '';
+      if (name.isNotEmpty || phone.isNotEmpty) {
+        cleanEmergencies.add(PrintContactInfo(name: name, phone: phone));
+      }
+    }
+
+    // Coletar overrides temporários informados na Bottom Sheet de revisão
+    String? bloodTypeOverride;
+    if (_includeBloodType && widget.member.bloodType.trim().isEmpty) {
+      bloodTypeOverride = _tempBloodType?.trim();
+    }
+
+    String? phoneOverride;
+    if (_includePhone && widget.member.phone.trim().isEmpty) {
+      phoneOverride = _tempPhoneController.text.trim();
+    }
+
+    String? cityUfOverride;
+    if (_includeCityUf && (widget.member.city.trim().isEmpty || widget.member.state.trim().isEmpty)) {
+      cityUfOverride = _tempCityUfController.text.trim();
+    }
+
+    String? raceColorOverride;
+    if (_includeRacaCor && (widget.member.racaCor == null || widget.member.racaCor!.trim().isEmpty)) {
+      raceColorOverride = _tempRacaCor?.trim();
+    }
+
+    String? genderOverride;
+    if (_includeGender && (widget.member.gender == null || widget.member.gender!.trim().isEmpty)) {
+      genderOverride = _tempGender?.trim();
+    }
+
+    String? cidOverride;
+    if (_includeCid && widget.member.cid.trim().isEmpty) {
+      cidOverride = _tempCidController.text.trim();
+    }
+
+    String? responsibleNameOverride;
+    String? responsiblePhoneOverride;
+    if (_includeResponsible && widget.member.responsibleName.trim().isEmpty) {
+      responsibleNameOverride = _tempRespNameController.text.trim();
+      responsiblePhoneOverride = _tempRespPhoneController.text.trim();
+    }
+
+    String? emergencyNameOverride;
+    String? emergencyPhoneOverride;
+    if (_includeEmergency && widget.member.emergencyContact.trim().isEmpty) {
+      emergencyNameOverride = _tempEmergNameController.text.trim();
+      emergencyPhoneOverride = _tempEmergPhoneController.text.trim();
+    }
+
+    final options = PrintCardOptions(
+      includeBirthDateAndAge: _includeBirthDate,
+      includeMaskedCpf: _includeCpfMasked,
+      includeBloodType: _includeBloodType,
+      includeCid: _includeCid,
+      includePhone: _includePhone,
+      includeCityUf: _includeCityUf,
+      includeResponsible: _includeResponsible,
+      includeEmergencyContacts: _includeEmergency,
+      includeRaceColor: _includeRacaCor,
+      includeGender: _includeGender,
+      includeProfile: widget.includeProfile,
+    );
+
+    return PrintCardRequest(
+      member: widget.member,
+      options: options,
+      includeProfile: widget.includeProfile,
+      extraResponsibles: cleanResponsibles,
+      extraEmergencyContacts: cleanEmergencies,
+      bloodTypeOverride: bloodTypeOverride?.isNotEmpty == true ? bloodTypeOverride : null,
+      phoneOverride: phoneOverride?.isNotEmpty == true ? phoneOverride : null,
+      cityUfOverride: cityUfOverride?.isNotEmpty == true ? cityUfOverride : null,
+      raceColorOverride: raceColorOverride?.isNotEmpty == true ? raceColorOverride : null,
+      genderOverride: genderOverride?.isNotEmpty == true ? genderOverride : null,
+      cidOverride: cidOverride?.isNotEmpty == true ? cidOverride : null,
+      responsibleNameOverride: responsibleNameOverride?.isNotEmpty == true ? responsibleNameOverride : null,
+      responsiblePhoneOverride: responsiblePhoneOverride?.isNotEmpty == true ? responsiblePhoneOverride : null,
+      emergencyNameOverride: emergencyNameOverride?.isNotEmpty == true ? emergencyNameOverride : null,
+      emergencyPhoneOverride: emergencyPhoneOverride?.isNotEmpty == true ? emergencyPhoneOverride : null,
+    );
   }
 
   /// Constrói a seção visual informativa do Perfil de Apoio TEA

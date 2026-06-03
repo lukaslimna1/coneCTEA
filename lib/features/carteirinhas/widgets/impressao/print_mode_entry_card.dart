@@ -7,6 +7,7 @@ import 'print_active_card_selection_sheet.dart';
 import 'print_type_decision_sheet.dart';
 import 'print_review_info_sheet.dart';
 import 'print_support_profile_sheet.dart';
+import 'package:conectea/features/carteirinhas/models/impressao/print_card_request.dart';
 
 
 /// **PrintModeEntryCard**
@@ -94,14 +95,15 @@ class PrintModeEntryCard extends StatelessWidget {
                     );
                     if (decision != null && context.mounted) {
                       // Abre a nova Bottom Sheet de Revisão das Informações
-                      final bool? continueFlow = await PrintReviewInfoSheet.show(
+                      // Abre a nova Bottom Sheet de Revisão das Informações e recebe a requisição estruturada
+                      final PrintCardRequest? printRequest = await PrintReviewInfoSheet.show(
                         context,
                         member: selected,
                         includeProfile: decision == 'include_profile',
                       );
 
-                      if (continueFlow == true && context.mounted) {
-                        if (decision == 'include_profile') {
+                      if (printRequest != null && context.mounted) {
+                        if (printRequest.includeProfile) {
                           // Abre a Bottom Sheet do Perfil de Apoio TEA
                           final bool? supportContinue = await PrintSupportProfileSheet.show(
                             context,
