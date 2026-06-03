@@ -3,7 +3,12 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 import 'package:conectea/models/member.dart';
 import 'package:conectea/core/campos_cadastrais/campos_cadastrais.dart';
-
+import 'revisao/print_review_mandatory_section.dart';
+import 'revisao/print_review_legal_section.dart';
+import 'revisao/print_review_preview_box.dart';
+import 'revisao/print_review_empty_warning_box.dart';
+import 'revisao/print_review_option_tile.dart';
+import 'revisao/print_review_extra_contacts_section.dart';
 
 /// **PrintReviewInfoSheet**
 /// Diálogo modal bottom sheet que permite ao responsável revisar
@@ -226,35 +231,7 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
                       // ==========================================
                       // Bloco 1 — DADOS OBRIGATÓRIOS
                       // ==========================================
-                      _buildBlockHeader(
-                        title: 'Entram sempre',
-                        description: 'Essas informações fazem parte da identificação comunitária e não podem ser removidas.',
-                      ),
-                      const SizedBox(height: 12),
-                      DsCard(
-                        backgroundColor: DsCores.surfaceElevated.withValues(alpha: 0.35),
-                        borderColor: Colors.white.withValues(alpha: 0.05),
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildBulletItem('Nome completo ou nome social'),
-                            const SizedBox(height: 10),
-                            _buildBulletItem('TEA-ID'),
-                            const SizedBox(height: 10),
-                            _buildBulletItem('Validade'),
-                            const SizedBox(height: 10),
-                            _buildBulletItem('QR Code'),
-                            const SizedBox(height: 10),
-                            _buildBulletItem('Logos ConeCTEA e Família TEA Bauru'),
-                            const SizedBox(height: 10),
-                            _buildBulletItem(
-                              'Aviso legal da carteirinha comunitária',
-                              isImportant: true,
-                            ),
-                          ],
-                        ),
-                      ),
+                      const PrintReviewMandatorySection(),
                       const SizedBox(height: 24),
 
                       // ==========================================
@@ -308,36 +285,32 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
                         padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
                         child: Column(
                           children: [
-
-                            DsCheckbox(
+                            PrintReviewOptionTile(
+                              title: 'Data de nascimento e idade',
                               value: _includeBirthDate,
                               onChanged: (val) => setState(() => _includeBirthDate = val ?? false),
-                              label: _buildCheckboxLabel('Data de nascimento e idade'),
-                              token: DsCores.sucesso,
+                              child: _buildBirthDatePreviewArea(),
                             ),
-                            _buildBirthDatePreviewArea(),
-                            DsCheckbox(
+                            PrintReviewOptionTile(
+                              title: 'Tipo sanguíneo',
                               value: _includeBloodType,
                               onChanged: (val) => setState(() => _includeBloodType = val ?? false),
-                              label: _buildCheckboxLabel('Tipo sanguíneo'),
-                              token: DsCores.sucesso,
+                              child: _buildBloodTypePreviewArea(),
                             ),
-                            _buildBloodTypePreviewArea(),
-                            DsCheckbox(
+                            PrintReviewOptionTile(
+                              title: 'Telefone da pessoa',
                               value: _includePhone,
                               onChanged: (val) => setState(() => _includePhone = val ?? false),
-                              label: _buildCheckboxLabel('Telefone da pessoa'),
-                              token: DsCores.sucesso,
+                              child: _buildPhonePreviewArea(),
                             ),
-                            _buildPhonePreviewArea(),
-                            DsCheckbox(
+                            PrintReviewOptionTile(
+                              title: 'Cidade / UF',
                               value: _includeCityUf,
                               onChanged: (val) => setState(() => _includeCityUf = val ?? false),
-                              label: _buildCheckboxLabel('Cidade / UF'),
-                              token: DsCores.sucesso,
+                              child: _buildCityUfPreviewArea(),
                             ),
-                            _buildCityUfPreviewArea(),
-                            DsCheckbox(
+                            PrintReviewOptionTile(
+                              title: 'Responsável(is)',
                               value: _includeResponsible,
                               onChanged: (val) {
                                 setState(() {
@@ -352,11 +325,10 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
                                   }
                                 });
                               },
-                              label: _buildCheckboxLabel('Responsável(is)'),
-                              token: DsCores.sucesso,
+                              child: _buildResponsiblePreviewArea(),
                             ),
-                            _buildResponsiblePreviewArea(),
-                            DsCheckbox(
+                            PrintReviewOptionTile(
+                              title: 'Contato(s) de emergência',
                               value: _includeEmergency,
                               onChanged: (val) {
                                 setState(() {
@@ -371,24 +343,20 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
                                   }
                                 });
                               },
-                              label: _buildCheckboxLabel('Contato(s) de emergência'),
-                              token: DsCores.sucesso,
+                              child: _buildEmergencyPreviewArea(),
                             ),
-                            _buildEmergencyPreviewArea(),
-                            DsCheckbox(
+                            PrintReviewOptionTile(
+                              title: 'Cor / raça',
                               value: _includeRacaCor,
                               onChanged: (val) => setState(() => _includeRacaCor = val ?? false),
-                              label: _buildCheckboxLabel('Cor / raça'),
-                              token: DsCores.sucesso,
+                              child: _buildRacaCorPreviewArea(),
                             ),
-                            _buildRacaCorPreviewArea(),
-                            DsCheckbox(
+                            PrintReviewOptionTile(
+                              title: 'Gênero',
                               value: _includeGender,
                               onChanged: (val) => setState(() => _includeGender = val ?? false),
-                              label: _buildCheckboxLabel('Gênero'),
-                              token: DsCores.sucesso,
+                              child: _buildGenderPreviewArea(),
                             ),
-                            _buildGenderPreviewArea(),
                           ],
                         ),
                       ),
@@ -408,22 +376,20 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
                         padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
                         child: Column(
                           children: [
-                            DsCheckbox(
+                            PrintReviewOptionTile(
+                              title: 'CPF mascarado',
+                              description: 'Exibe o documento com máscara de segurança.',
                               value: _includeCpfMasked,
                               onChanged: (val) => setState(() => _includeCpfMasked = val ?? false),
-                              label: _buildCheckboxLabel('CPF mascarado'),
-                              description: 'Exibe o documento com máscara de segurança.',
-                              token: DsCores.sucesso,
+                              child: _buildCpfPreviewArea(),
                             ),
-                            _buildCpfPreviewArea(),
-                            DsCheckbox(
+                            PrintReviewOptionTile(
+                              title: 'CID',
+                              description: 'Exibe o Código Internacional de Doenças.',
                               value: _includeCid,
                               onChanged: (val) => setState(() => _includeCid = val ?? false),
-                              label: _buildCheckboxLabel('CID'),
-                              description: 'Exibe o Código Internacional de Doenças.',
-                              token: DsCores.sucesso,
+                              child: _buildCidPreviewArea(),
                             ),
-                            _buildCidPreviewArea(),
                           ],
                         ),
                       ),
@@ -432,50 +398,7 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
                       // ==========================================
                       // BLOCO LEGAL E POLÍTICA
                       // ==========================================
-                      DsCard(
-                        backgroundColor: DsCores.privacidade.softBackground.withValues(alpha: 0.06),
-                        borderColor: DsCores.privacidade.border.withValues(alpha: 0.15),
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Icon(
-                                  PhosphorIconsRegular.shieldCheck,
-                                  color: DsCores.privacidade.accent,
-                                  size: 20,
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'A carteirinha é comunitária/interna e não substitui CIPTEA, RG, CPF, CNH, laudo, diagnóstico ou documento oficial.',
-                                        style: DsTipografia.caption.copyWith(
-                                          color: DsCores.textSecondary,
-                                          fontWeight: FontWeight.w600,
-                                          height: 1.4,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        'O PDF será gerado no aparelho. Ao imprimir ou compartilhar, a responsabilidade sobre o uso das informações é do usuário titular, da família ou do responsável.',
-                                        style: DsTipografia.caption.copyWith(
-                                          color: DsCores.textMuted,
-                                          height: 1.4,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
+                      const PrintReviewLegalSection(),
                       const SizedBox(height: 8),
                     ],
                   ),
@@ -538,323 +461,21 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
     );
   }
 
-  Widget _buildBulletItem(String text, {bool isImportant = false}) {
-    final Color bulletColor = isImportant ? DsCores.alerta.accent : DsCores.carteirinha.accent;
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        // Pequeno círculo visual customizado com brilho luminoso sutil
-        Container(
-          width: 6,
-          height: 6,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: bulletColor,
-            boxShadow: [
-              BoxShadow(
-                color: bulletColor.withValues(alpha: 0.35),
-                blurRadius: 4,
-                spreadRadius: 0.5,
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            text,
-            style: DsTipografia.bodySmall.copyWith(
-              color: DsCores.textSecondary,
-              fontWeight: isImportant ? FontWeight.w600 : FontWeight.w500,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCheckboxLabel(String text) {
-    return Text(
-      text,
-      style: DsTipografia.bodySmall.copyWith(
-        fontWeight: FontWeight.w600,
-        color: Colors.white.withValues(alpha: 0.9),
-      ),
-    );
-  }
-
-  Widget _buildExtraContactsSection({
-    required String title,
-    required String supportText,
-    required List<Map<String, TextEditingController>> list,
-    required VoidCallback onAdd,
-    required Function(int) onRemove,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Divider(
-          color: Colors.white.withValues(alpha: 0.05),
-          height: 24,
-          thickness: 1,
-        ),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: DsTipografia.bodySmall.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: DsCores.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    supportText,
-                    style: DsTipografia.caption.copyWith(
-                      color: DsCores.textMuted,
-                      height: 1.3,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            IconButton(
-              onPressed: onAdd,
-              icon: Icon(
-                Icons.add_circle_outline_rounded,
-                color: DsCores.sucesso.accent,
-                size: 22,
-              ),
-              constraints: const BoxConstraints(),
-              padding: const EdgeInsets.all(4),
-              tooltip: 'Adicionar outro',
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        ListView.separated(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: list.length,
-          separatorBuilder: (context, index) => Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: Divider(
-              color: Colors.white.withValues(alpha: 0.03),
-              height: 1,
-              thickness: 1,
-            ),
-          ),
-          itemBuilder: (context, index) {
-            return Container(
-              margin: const EdgeInsets.symmetric(vertical: 4.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Outro contato #${index + 1}',
-                        style: DsTipografia.caption.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: DsCores.textSecondary,
-                        ),
-                      ),
-                      IconButton(
-                        onPressed: () => onRemove(index),
-                        icon: Icon(
-                          Icons.delete_outline_rounded,
-                          color: DsCores.perigo.accent,
-                          size: 18,
-                        ),
-                        constraints: const BoxConstraints(),
-                        padding: const EdgeInsets.all(4),
-                        tooltip: 'Remover',
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  DsInput(
-                    label: 'Nome completo',
-                    controller: list[index]['name'],
-                    hint: 'Ex: Maria Silva (Mãe)',
-                  ),
-                  const SizedBox(height: 8),
-                  DsInput(
-                    label: 'Telefone',
-                    controller: list[index]['phone'],
-                    hint: 'Ex: (14) 99999-9999',
-                    keyboardType: TextInputType.phone,
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildEmptyWarningArea({
-    required String labelIfEmpty,
-    required Widget childField,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(top: 8.0, bottom: 16.0, left: 4.0, right: 4.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(
-                Icons.warning_amber_rounded,
-                color: DsCores.alerta.accent,
-                size: 15,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Informação não preenchida. Preencha para incluir na versão impressa.',
-                  style: DsTipografia.caption.copyWith(
-                    color: DsCores.textSecondary,
-                    height: 1.3,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          childField,
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPreviewArea({
-    required bool isVisible,
-    required String value,
-    required String labelIfEmpty,
-    String? customPreviewValue,
-  }) {
-    if (!isVisible) return const SizedBox.shrink();
-
-    final hasValue = value.trim().isNotEmpty;
-    final displayValue = customPreviewValue ?? value;
-
-    if (!hasValue) return const SizedBox.shrink();
-
-    return Container(
-      margin: const EdgeInsets.only(top: 6.0, bottom: 12.0, left: 4.0, right: 4.0),
-      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-      decoration: BoxDecoration(
-        color: DsCores.carteirinha.softBackground.withValues(alpha: 0.04),
-        borderRadius: BorderRadius.circular(DsRaios.card - 2),
-        border: Border.all(
-          color: DsCores.carteirinha.border.withValues(alpha: 0.08),
-          width: 1,
-        ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            Icons.check_circle_outline_rounded,
-            color: DsCores.carteirinha.accent,
-            size: 15,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Será impresso:',
-                  style: DsTipografia.caption.copyWith(
-                    color: DsCores.textSecondary,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  displayValue,
-                  style: DsTipografia.bodySmall.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildBirthDatePreviewArea() {
     if (!_includeBirthDate) return const SizedBox.shrink();
 
     final hasValue = widget.member.dateOfBirth.trim().isNotEmpty;
     if (hasValue) {
-      return _buildPreviewArea(
-        isVisible: true,
-        value: widget.member.dateOfBirth,
-        customPreviewValue: _getBirthDatePreview(),
-        labelIfEmpty: '',
+      return PrintReviewPreviewBox(
+        value: _getBirthDatePreview(),
       );
     }
 
-    return Container(
-      margin: const EdgeInsets.only(top: 6.0, bottom: 12.0, left: 4.0, right: 4.0),
-      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
-      decoration: BoxDecoration(
-        color: DsCores.alerta.softBackground.withValues(alpha: 0.03),
-        borderRadius: BorderRadius.circular(DsRaios.card - 2),
-        border: Border.all(
-          color: DsCores.alerta.border.withValues(alpha: 0.05),
-          width: 1,
-        ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            Icons.warning_amber_rounded,
-            color: DsCores.alerta.accent,
-            size: 15,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Data de nascimento não preenchida.',
-                  style: DsTipografia.caption.copyWith(
-                    color: DsCores.alerta.accent,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'Preencha no seu cadastro futuramente para incluir na versão impressa.',
-                  style: DsTipografia.caption.copyWith(
-                    color: DsCores.textMuted,
-                    height: 1.3,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+    return const PrintReviewEmptyWarningBox(
+      message: 'Data de nascimento não preenchida.',
+      helperText: 'Preencha no seu cadastro futuramente para incluir na versão impressa.',
+      isContainer: true,
     );
   }
 
@@ -863,16 +484,14 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
 
     final hasValue = widget.member.bloodType.trim().isNotEmpty;
     if (hasValue) {
-      return _buildPreviewArea(
-        isVisible: true,
+      return PrintReviewPreviewBox(
         value: widget.member.bloodType,
-        labelIfEmpty: '',
       );
     }
 
-    return _buildEmptyWarningArea(
-      labelIfEmpty: 'Tipo sanguíneo não preenchido.',
-      childField: CampoTipoSanguineo(
+    return PrintReviewEmptyWarningBox(
+      message: 'Informação não preenchida. Preencha para incluir na versão impressa.',
+      child: CampoTipoSanguineo(
         value: _tempBloodType,
         requiredField: false,
         onChanged: (val) {
@@ -889,16 +508,14 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
 
     final hasValue = widget.member.phone.trim().isNotEmpty;
     if (hasValue) {
-      return _buildPreviewArea(
-        isVisible: true,
+      return PrintReviewPreviewBox(
         value: widget.member.phone,
-        labelIfEmpty: '',
       );
     }
 
-    return _buildEmptyWarningArea(
-      labelIfEmpty: 'Telefone da pessoa não preenchido.',
-      childField: CampoTelefone(
+    return PrintReviewEmptyWarningBox(
+      message: 'Informação não preenchida. Preencha para incluir na versão impressa.',
+      child: CampoTelefone(
         controller: _tempPhoneController,
         requiredField: false,
       ),
@@ -910,16 +527,14 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
 
     final hasValue = widget.member.city.isNotEmpty && widget.member.state.isNotEmpty;
     if (hasValue) {
-      return _buildPreviewArea(
-        isVisible: true,
+      return PrintReviewPreviewBox(
         value: '${widget.member.city} / ${widget.member.state}',
-        labelIfEmpty: '',
       );
     }
 
-    return _buildEmptyWarningArea(
-      labelIfEmpty: 'Cidade ou UF não preenchida.',
-      childField: DsInput(
+    return PrintReviewEmptyWarningBox(
+      message: 'Informação não preenchida. Preencha para incluir na versão impressa.',
+      child: DsInput(
         label: 'Cidade / UF (Opcional)',
         controller: _tempCityUfController,
         hint: 'Ex: Bauru / SP',
@@ -933,16 +548,14 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
 
     final hasValue = widget.member.racaCor != null && widget.member.racaCor!.trim().isNotEmpty;
     if (hasValue) {
-      return _buildPreviewArea(
-        isVisible: true,
+      return PrintReviewPreviewBox(
         value: widget.member.racaCor!,
-        labelIfEmpty: '',
       );
     }
 
-    return _buildEmptyWarningArea(
-      labelIfEmpty: 'Cor / raça não preenchida.',
-      childField: CampoRacaCor(
+    return PrintReviewEmptyWarningBox(
+      message: 'Informação não preenchida. Preencha para incluir na versão impressa.',
+      child: CampoRacaCor(
         value: _tempRacaCor,
         requiredField: false,
         onChanged: (val) {
@@ -959,16 +572,14 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
 
     final hasValue = widget.member.gender != null && widget.member.gender!.trim().isNotEmpty;
     if (hasValue) {
-      return _buildPreviewArea(
-        isVisible: true,
+      return PrintReviewPreviewBox(
         value: widget.member.gender!,
-        labelIfEmpty: '',
       );
     }
 
-    return _buildEmptyWarningArea(
-      labelIfEmpty: 'Gênero não preenchido.',
-      childField: CampoGenero(
+    return PrintReviewEmptyWarningBox(
+      message: 'Informação não preenchida. Preencha para incluir na versão impressa.',
+      child: CampoGenero(
         value: _tempGender,
         requiredField: false,
         onChanged: (val) {
@@ -985,58 +596,15 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
 
     final hasValue = widget.member.cpf.trim().isNotEmpty;
     if (hasValue) {
-      return _buildPreviewArea(
-        isVisible: true,
-        value: widget.member.cpf,
-        customPreviewValue: _getCpfMasked(),
-        labelIfEmpty: '',
+      return PrintReviewPreviewBox(
+        value: _getCpfMasked(),
       );
     }
 
-    return Container(
-      margin: const EdgeInsets.only(top: 6.0, bottom: 12.0, left: 4.0, right: 4.0),
-      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
-      decoration: BoxDecoration(
-        color: DsCores.alerta.softBackground.withValues(alpha: 0.03),
-        borderRadius: BorderRadius.circular(DsRaios.card - 2),
-        border: Border.all(
-          color: DsCores.alerta.border.withValues(alpha: 0.05),
-          width: 1,
-        ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            Icons.warning_amber_rounded,
-            color: DsCores.alerta.accent,
-            size: 15,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'CPF não preenchido.',
-                  style: DsTipografia.caption.copyWith(
-                    color: DsCores.alerta.accent,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'O CPF é um dado pessoal sensível e não pode ser preenchido localmente por segurança.',
-                  style: DsTipografia.caption.copyWith(
-                    color: DsCores.textMuted,
-                    height: 1.3,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+    return const PrintReviewEmptyWarningBox(
+      message: 'CPF não preenchido.',
+      helperText: 'O CPF é um dado pessoal sensível e não pode ser preenchido localmente por segurança.',
+      isContainer: true,
     );
   }
 
@@ -1045,16 +613,14 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
 
     final hasValue = widget.member.cid.trim().isNotEmpty;
     if (hasValue) {
-      return _buildPreviewArea(
-        isVisible: true,
+      return PrintReviewPreviewBox(
         value: widget.member.cid,
-        labelIfEmpty: '',
       );
     }
 
-    return _buildEmptyWarningArea(
-      labelIfEmpty: 'CID não preenchido.',
-      childField: CampoCid(
+    return PrintReviewEmptyWarningBox(
+      message: 'Informação não preenchida. Preencha para incluir na versão impressa.',
+      child: CampoCid(
         controller: _tempCidController,
         requiredField: false,
       ),
@@ -1072,80 +638,26 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (hasResponsible) ...[
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-              decoration: BoxDecoration(
-                color: DsCores.carteirinha.softBackground.withValues(alpha: 0.04),
-                borderRadius: BorderRadius.circular(DsRaios.card - 2),
-                border: Border.all(
-                  color: DsCores.carteirinha.border.withValues(alpha: 0.08),
-                  width: 1,
-                ),
-              ),
-              child: Row(
+            PrintReviewPreviewBox(
+              value: widget.member.responsibleName,
+            ),
+          ] else ...[
+            PrintReviewEmptyWarningBox(
+              message: 'Responsável não preenchido. Preencha para incluir na versão impressa.',
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(
-                    Icons.check_circle_outline_rounded,
-                    color: DsCores.carteirinha.accent,
-                    size: 15,
+                  CampoNomeResponsavel(
+                    controller: _tempRespNameController,
+                    requiredField: false,
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Será impresso:',
-                          style: DsTipografia.caption.copyWith(
-                            color: DsCores.textSecondary,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          widget.member.responsibleName,
-                          style: DsTipografia.bodySmall.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
+                  const SizedBox(height: 10),
+                  CampoTelefoneResponsavel(
+                    controller: _tempRespPhoneController,
+                    requiredField: false,
                   ),
                 ],
               ),
-            ),
-          ] else ...[
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(
-                  Icons.warning_amber_rounded,
-                  color: DsCores.alerta.accent,
-                  size: 15,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Responsável não preenchido. Preencha para incluir na versão impressa.',
-                    style: DsTipografia.caption.copyWith(
-                      color: DsCores.textSecondary,
-                      height: 1.3,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            CampoNomeResponsavel(
-              controller: _tempRespNameController,
-              requiredField: false,
-            ),
-            const SizedBox(height: 10),
-            CampoTelefoneResponsavel(
-              controller: _tempRespPhoneController,
-              requiredField: false,
             ),
           ],
           
@@ -1180,10 +692,10 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
               ],
             ),
           ] else ...[
-            _buildExtraContactsSection(
+            PrintReviewExtraContactsSection(
               title: 'Outros responsáveis',
               supportText: 'Contatos adicionais não alteram o cadastro.',
-              list: _extraResponsibles,
+              contacts: _extraResponsibles,
               onAdd: _addExtraResponsible,
               onRemove: (idx) {
                 _removeExtraResponsible(idx);
@@ -1211,80 +723,27 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (hasEmergency) ...[
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-              decoration: BoxDecoration(
-                color: DsCores.carteirinha.softBackground.withValues(alpha: 0.04),
-                borderRadius: BorderRadius.circular(DsRaios.card - 2),
-                border: Border.all(
-                  color: DsCores.carteirinha.border.withValues(alpha: 0.08),
-                  width: 1,
-                ),
-              ),
-              child: Row(
+            PrintReviewPreviewBox(
+              value: widget.member.emergencyContact,
+              icon: Icons.phone_enabled_rounded,
+            ),
+          ] else ...[
+            PrintReviewEmptyWarningBox(
+              message: 'Contato de emergência não preenchido. Preencha para incluir na versão impressa.',
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(
-                    Icons.phone_enabled_rounded,
-                    color: DsCores.carteirinha.accent,
-                    size: 15,
+                  CampoNomeContatoEmergencia(
+                    controller: _tempEmergNameController,
+                    requiredField: false,
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Será impresso:',
-                          style: DsTipografia.caption.copyWith(
-                            color: DsCores.textSecondary,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          widget.member.emergencyContact,
-                          style: DsTipografia.bodySmall.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
+                  const SizedBox(height: 10),
+                  CampoTelefoneContatoEmergencia(
+                    controller: _tempEmergPhoneController,
+                    requiredField: false,
                   ),
                 ],
               ),
-            ),
-          ] else ...[
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(
-                  Icons.warning_amber_rounded,
-                  color: DsCores.alerta.accent,
-                  size: 15,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Contato de emergência não preenchido. Preencha para incluir na versão impressa.',
-                    style: DsTipografia.caption.copyWith(
-                      color: DsCores.textSecondary,
-                      height: 1.3,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            CampoNomeContatoEmergencia(
-              controller: _tempEmergNameController,
-              requiredField: false,
-            ),
-            const SizedBox(height: 10),
-            CampoTelefoneContatoEmergencia(
-              controller: _tempEmergPhoneController,
-              requiredField: false,
             ),
           ],
           
@@ -1319,10 +778,10 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
               ],
             ),
           ] else ...[
-            _buildExtraContactsSection(
+            PrintReviewExtraContactsSection(
               title: 'Outros contatos',
               supportText: 'Use apenas contatos que façam sentido para a versão impressa.',
-              list: _extraEmergencies,
+              contacts: _extraEmergencies,
               onAdd: _addExtraEmergency,
               onRemove: (idx) {
                 _removeExtraEmergency(idx);
