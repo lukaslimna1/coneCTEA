@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 import 'package:conectea/models/member.dart';
@@ -8,6 +9,7 @@ import 'print_type_decision_sheet.dart';
 import 'print_review_info_sheet.dart';
 import 'print_support_profile_sheet.dart';
 import 'package:conectea/features/carteirinhas/models/impressao/print_card_request.dart';
+import 'package:conectea/features/carteirinhas/services/print_card_pdf_service.dart';
 
 
 /// **PrintModeEntryCard**
@@ -103,30 +105,48 @@ class PrintModeEntryCard extends StatelessWidget {
                       );
 
                       if (printRequest != null && context.mounted) {
+                        bool shouldGeneratePdf = false;
                         if (printRequest.includeProfile) {
                           // Abre a Bottom Sheet do Perfil de Apoio TEA
                           final bool? supportContinue = await PrintSupportProfileSheet.show(
                             context,
                             member: selected,
                           );
-
-                          if (supportContinue == true && context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: const Text('Próxima etapa: preparar visualização da impressão.'),
-                                backgroundColor: DsCores.carteirinha.accent,
-                                duration: const Duration(seconds: 4),
-                              ),
-                            );
+                          if (supportContinue == true) {
+                            shouldGeneratePdf = true;
                           }
                         } else {
+                          shouldGeneratePdf = true;
+                        }
+
+                        if (shouldGeneratePdf && context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: const Text('Próxima etapa: preparar visualização da impressão.'),
+                              content: const Text('Preparando documento de impressão...'),
                               backgroundColor: DsCores.carteirinha.accent,
-                              duration: const Duration(seconds: 4),
+                              duration: const Duration(seconds: 2),
                             ),
                           );
+
+                          try {
+                            // Invoca o serviço para renderizar o PDF mínimo de teste e abrir o preview do sistema
+                            await PrintCardPdfService().previewBasicPrintPdf(printRequest);
+                          } catch (error, stackTrace) {
+                            if (kDebugMode) {
+                              debugPrint('[ModoImpressao] Falha ao preparar PDF: ${error.runtimeType}');
+                              debugPrint('[ModoImpressao] Detalhe técnico: $error');
+                              debugPrint('[ModoImpressao] StackTrace: $stackTrace');
+                            }
+                            // Captura silenciosa e segura em caso de erros de preparação ou hardware
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Não foi possível preparar a versão para impressão agora.'),
+                                  backgroundColor: Colors.redAccent,
+                                ),
+                              );
+                            }
+                          }
                         }
                       }
                     }
