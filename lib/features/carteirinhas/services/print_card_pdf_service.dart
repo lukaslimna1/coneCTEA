@@ -1,166 +1,274 @@
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/foundation.dart';
 import 'package:conectea/features/carteirinhas/models/impressao/print_card_request.dart';
+import 'package:conectea/core/utils/conectea_date_time_helper.dart';
+import 'package:conectea/features/carteirinhas/services/print_support_profile_local_service.dart';
 
 /// **PrintCardPdfService**
 ///
 /// Serviço local responsável por estruturar a geração do documento PDF e
 /// delegar o gerenciamento da visualização e impressão nativa ao sistema operacional.
 class PrintCardPdfService {
-  
-  /// Gera os bytes do PDF na memória de forma estritamente local e invoca a visualização/impressão do sistema
-  Future<void> previewBasicPrintPdf(PrintCardRequest request) async {
-    final pdf = pw.Document();
+  // Constantes de diagnóstico de performance (Tarefa 2)
+  static const bool _debugPdfDisableLogo = false;
+  static const bool _debugPdfDisableQr = false;
 
-    // Definição rígida do formato A4 paisagem (landscape) para evitar miniaturização em retrato
-    final pageFormat = PdfPageFormat.a4.landscape;
+  /// Gera os bytes do PDF na memória de forma estritamente local
+  Future<Uint8List> buildPrintCardPdfBytes(PrintCardRequest request) async {
+    final stopwatch = Stopwatch()..start();
+    int lastTime = 0;
+
+    void logStage(String stageName) {
+      if (kDebugMode) {
+        final elapsed = stopwatch.elapsedMilliseconds;
+        final duration = elapsed - lastTime;
+        debugPrint('[PrintPDF] $stageName: ${duration}ms (total: ${elapsed}ms)');
+        lastTime = elapsed;
+      }
+    }
+
+    logStage('inicio do metodo');
+
+    // Carrega a logo real do ConeCTEA se disponível (uma única vez)
+    pw.MemoryImage? logoImage;
+    if (!_debugPdfDisableLogo) {
+      try {
+        final logoBytes = await rootBundle.load('assets/images/conectea_logo.png');
+        logStage('rootBundle.load logo');
+        logoImage = pw.MemoryImage(logoBytes.buffer.asUint8List());
+        logStage('criação do MemoryImage da logo');
+      } catch (_) {
+        logStage('falha ao carregar a logo');
+      }
+    } else {
+      logStage('logo desabilitada via flag de debug');
+    }
+
+    // Definição rígida do formato A4 paisagem (landscape) com margens reduzidas para melhor aproveitamento
+    final pageFormat = PdfPageFormat.a4.landscape.copyWith(
+      marginLeft: 10,
+      marginRight: 10,
+      marginTop: 10,
+      marginBottom: 10,
+    );
+
+    final displayName = request.member.displayName.trim().isNotEmpty
+        ? request.member.displayName
+        : 'Nome não informado';
+
+    final teaId = request.activeCard.cardNumber;
+    final validade = ConecteaDateTimeHelper.formatProjectDateShort(request.activeCard.validUntil);
+    final vinculo = (request.activeCard.isSupportNetwork || request.member.isSupportNetwork)
+        ? 'REDE DE APOIO TEA'
+        : 'PESSOA TEA';
+
+    final statusLabel = request.activeCard.status.toUpperCase() == 'ACTIVE' ? 'ATIVA' : 'PENDENTE';
+
+    // BirthDate formatado
+    String? birthDateAndAge;
+    if (request.options.includeBirthDateAndAge && request.member.dateOfBirth.trim().isNotEmpty) {
+      birthDateAndAge = _getBirthDateAndAge(request.member.dateOfBirth);
+    }
+
+    // Tipo Sanguíneo
+    String? bloodType;
+    if (request.options.includeBloodType) {
+      bloodType = (request.bloodTypeOverride != null && request.bloodTypeOverride!.trim().isNotEmpty)
+          ? request.bloodTypeOverride!
+          : request.member.bloodType;
+      if (bloodType.trim().isEmpty) bloodType = null;
+    }
+
+    // Cidade / UF
+    String? cityUf;
+    if (request.options.includeCityUf) {
+      cityUf = (request.cityUfOverride != null && request.cityUfOverride!.trim().isNotEmpty)
+          ? request.cityUfOverride!
+          : (request.member.city.trim().isNotEmpty && request.member.state.trim().isNotEmpty)
+              ? '${request.member.city} / ${request.member.state}'
+              : null;
+    }
+    logStage('montagem dos dados em strings');
+
+    // Carrega rascunho de perfil local apenas se solicitado (Tarefa 2)
+    PrintSupportProfileDraft? draft;
+    if (request.includeProfile) {
+      try {
+        final localService = PrintSupportProfileLocalService();
+        draft = await localService.loadDraft(request.member.id);
+        logStage('leitura do SharedPreferences do Perfil');
+      } catch (_) {
+        logStage('falha ao ler perfil local');
+      }
+    } else {
+      logStage('perfil desconsiderado (includeProfile == false)');
+    }
+
+    final pdf = pw.Document();
+    logStage('criação do Document');
 
     // --- PÁGINA 1: Externa / Carteirinha (frente e verso lado a lado) ---
     pdf.addPage(
       pw.Page(
         pageFormat: pageFormat,
         build: (pw.Context context) {
-          final pw.Widget leftPanel = pw.Column(
-            mainAxisAlignment: pw.MainAxisAlignment.center,
-            children: [
-              _buildCardSkeleton(
-                title: 'Frente da carteirinha',
-                displayName: request.member.displayName,
-                isFront: true,
-              ),
-              pw.SizedBox(height: 16),
-              pw.Text(
-                'A carteirinha é comunitária/interna e não substitui CIPTEA, RG, CPF, CNH, laudo, diagnóstico ou documento oficial.',
-                textAlign: pw.TextAlign.center,
-                style: pw.TextStyle(
-                  fontSize: 8,
-                  fontWeight: pw.FontWeight.bold,
-                  color: PdfColors.grey800,
-                ),
-              ),
-            ],
-          );
-
-          final pw.Widget rightPanel = pw.Column(
-            mainAxisAlignment: pw.MainAxisAlignment.center,
-            children: [
-              _buildCardSkeleton(
-                title: 'Verso da carteirinha',
-                displayName: request.member.displayName,
-                isFront: false,
-              ),
-              pw.SizedBox(height: 16),
-              pw.Text(
-                'Ao imprimir ou compartilhar, a responsabilidade sobre o uso das informações é do usuário titular, da família ou do responsável.',
-                textAlign: pw.TextAlign.center,
-                style: pw.TextStyle(
-                  fontSize: 8,
-                  color: PdfColors.grey700,
-                ),
-              ),
-              if (request.includeProfile) ...[
-                pw.SizedBox(height: 4),
-                pw.Text(
-                  '* Perfil de Apoio TEA disponível no verso.',
-                  textAlign: pw.TextAlign.center,
-                  style: pw.TextStyle(
-                    fontSize: 8,
-                    fontWeight: pw.FontWeight.bold,
-                    color: PdfColors.grey800,
-                  ),
-                ),
-              ],
-              pw.SizedBox(height: 4),
-              pw.Text(
-                'Gerado localmente no aparelho.',
-                textAlign: pw.TextAlign.center,
-                style: pw.TextStyle(
-                  fontSize: 8,
-                  fontStyle: pw.FontStyle.italic,
-                  color: PdfColors.grey500,
-                ),
-              ),
-            ],
-          );
-
           return pw.Container(
-            padding: const pw.EdgeInsets.all(12),
+            padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             child: pw.Column(
               children: [
-                // Área superior da página reservada conceitualmente para as logos (fora da dobra/corte da carteirinha)
+                // Área superior reservada para as logos
                 pw.Row(
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
-                    pw.Text(
-                      '[Logo ConeCTEA]',
-                      style: pw.TextStyle(fontSize: 10, color: PdfColors.grey500, fontWeight: pw.FontWeight.bold),
-                    ),
+                    logoImage != null
+                        ? pw.Container(
+                            height: 42,
+                            child: pw.Image(logoImage, fit: pw.BoxFit.contain),
+                          )
+                        : pw.Text(
+                            '[Logo ConeCTEA]',
+                            style: pw.TextStyle(fontSize: 10, color: PdfColors.grey500, fontWeight: pw.FontWeight.bold),
+                          ),
                     pw.Text(
                       '[Logo Família TEA Bauru]',
                       style: pw.TextStyle(fontSize: 10, color: PdfColors.grey500, fontWeight: pw.FontWeight.bold),
                     ),
                   ],
                 ),
-                pw.SizedBox(height: 16),
-                // Área principal de corte e dobra
-                pw.Expanded(
-                  child: pw.Row(
-                    children: [
-                      // Painel Esquerdo
-                      pw.Expanded(
-                        flex: 5,
-                        child: leftPanel,
+                pw.SizedBox(height: 8),
+                // Área principal dos cards (alinhados horizontalmente)
+                pw.Row(
+                  crossAxisAlignment: pw.CrossAxisAlignment.center,
+                  children: [
+                    // Frente da carteirinha (Painel Esquerdo)
+                    pw.Expanded(
+                      flex: 5,
+                      child: pw.Align(
+                        alignment: pw.Alignment.centerRight,
+                        child: _buildFrontCardSkeleton(
+                          displayName: displayName,
+                          teaId: teaId,
+                          validade: validade,
+                          vinculo: vinculo,
+                          birthDateAndAge: birthDateAndAge,
+                          bloodType: bloodType,
+                          cityUf: cityUf,
+                          status: statusLabel,
+                          logoImage: logoImage,
+                        ),
                       ),
-                      // Divisor Central de Dobra
-                      pw.Container(
-                        width: 40,
-                        child: pw.Column(
-                          mainAxisAlignment: pw.MainAxisAlignment.center,
-                          children: [
-                            pw.Expanded(
-                              child: pw.Container(
-                                width: 1,
-                                color: PdfColors.grey300,
-                              ),
-                            ),
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.symmetric(vertical: 8),
-                              child: pw.Transform.rotateBox(
-                                angle: 1.57079, // 90 graus em radianos
-                                child: pw.Text(
-                                  'Dobre aqui',
-                                  style: pw.TextStyle(
-                                    fontSize: 8,
-                                    color: PdfColors.grey500,
-                                  ),
+                    ),
+                    // Divisor Central de Dobra (Linha tracejada discreta)
+                    pw.Container(
+                      width: 12,
+                      height: 96 * PdfPageFormat.mm,
+                      child: pw.Column(
+                        mainAxisAlignment: pw.MainAxisAlignment.center,
+                        children: [
+                          pw.Text('DOBRA', style: pw.TextStyle(fontSize: 5, color: PdfColors.grey600, fontWeight: pw.FontWeight.bold)),
+                          pw.SizedBox(height: 4),
+                          pw.Expanded(
+                            child: pw.Container(
+                              width: 0.8,
+                              decoration: const pw.BoxDecoration(
+                                border: pw.Border(
+                                  left: pw.BorderSide(color: PdfColors.grey600, width: 0.8, style: pw.BorderStyle.dashed),
                                 ),
                               ),
                             ),
-                            pw.Expanded(
-                              child: pw.Container(
-                                width: 1,
-                                color: PdfColors.grey300,
+                          ),
+                          pw.SizedBox(height: 4),
+                          pw.Text('DOBRA', style: pw.TextStyle(fontSize: 5, color: PdfColors.grey600, fontWeight: pw.FontWeight.bold)),
+                        ],
+                      ),
+                    ),
+                    // Verso da carteirinha (Painel Direito)
+                    pw.Expanded(
+                      flex: 5,
+                      child: pw.Align(
+                        alignment: pw.Alignment.centerLeft,
+                        child: _buildBackCardSkeleton(request, logoImage: logoImage),
+                      ),
+                    ),
+                  ],
+                ),
+                pw.SizedBox(height: 8),
+                // Área dos textos informativos (alinhados na base, sem afetar a posição dos cards)
+                pw.Row(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    // Avisos da Frente (Esquerdo)
+                    pw.Expanded(
+                      flex: 5,
+                      child: pw.Container(
+                        padding: const pw.EdgeInsets.symmetric(horizontal: 10),
+                        child: pw.Text(
+                          'A carteirinha é comunitária/interna e não substitui CIPTEA, RG, CPF, CNH, laudo, diagnóstico ou documento oficial.',
+                          textAlign: pw.TextAlign.center,
+                          style: pw.TextStyle(
+                            fontSize: 7.5,
+                            fontWeight: pw.FontWeight.bold,
+                            color: PdfColors.black,
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Espaço do divisor
+                    pw.SizedBox(width: 12),
+                    // Avisos do Verso (Direito)
+                    pw.Expanded(
+                      flex: 5,
+                      child: pw.Container(
+                        padding: const pw.EdgeInsets.symmetric(horizontal: 10),
+                        child: pw.Column(
+                          children: [
+                            pw.Text(
+                              'Ao imprimir ou compartilhar, a responsabilidade sobre o uso das informações é do usuário titular, da família ou do responsável.',
+                              textAlign: pw.TextAlign.center,
+                              style: pw.TextStyle(
+                                fontSize: 7.5,
+                                color: PdfColors.grey900,
+                              ),
+                            ),
+                            if (request.includeProfile) ...[
+                              pw.SizedBox(height: 2),
+                              pw.Text(
+                                '* Perfil de Apoio TEA disponível no verso.',
+                                textAlign: pw.TextAlign.center,
+                                style: pw.TextStyle(
+                                  fontSize: 7.5,
+                                  fontWeight: pw.FontWeight.bold,
+                                  color: PdfColors.black,
+                                ),
+                              ),
+                            ],
+                            pw.SizedBox(height: 2),
+                            pw.Text(
+                              'Gerado localmente no aparelho.',
+                              textAlign: pw.TextAlign.center,
+                              style: pw.TextStyle(
+                                fontSize: 7,
+                                fontStyle: pw.FontStyle.italic,
+                                color: PdfColors.grey800,
                               ),
                             ),
                           ],
                         ),
                       ),
-                      // Painel Direito
-                      pw.Expanded(
-                        flex: 5,
-                        child: rightPanel,
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                pw.SizedBox(height: 16),
+                pw.SizedBox(height: 8),
               ],
             ),
           );
         },
       ),
     );
+    logStage('adição Página 1');
 
     // --- PÁGINA 2: Interna / Perfil de Apoio TEA (Opcional, em folha dupla/verso) ---
     if (request.includeProfile) {
@@ -168,121 +276,210 @@ class PrintCardPdfService {
         pw.Page(
           pageFormat: pageFormat,
           build: (pw.Context context) {
-            return pw.Container(
-              padding: const pw.EdgeInsets.all(16),
-              child: pw.Column(
+            // Se o rascunho for nulo ou não contiver dados, exibe a página informativa de perfil vazio
+            if (draft == null || !draft.hasAnyContent) {
+              return _buildEmptyProfilePage();
+            }
+
+            final String preferredName = (draft.includePreferredName && draft.preferredName.trim().isNotEmpty)
+                ? draft.preferredName.trim()
+                : '';
+            final String supportLevel = (draft.includeSupportLevel && draft.supportLevel.trim().isNotEmpty)
+                ? draft.supportLevel.trim()
+                : '';
+
+            // Como me comunico
+            String commText = '';
+            if (draft.includeCommunication) {
+              final List<String> items = [];
+              if (draft.commSpeech) items.add('Fala');
+              if (draft.commGestures) items.add('Gestos/Expressões');
+              if (draft.commPictograms) items.add('Figuras/Pictogramas');
+              if (draft.commApps) items.add('Aplicativos/Dispositivos');
+
+              final optionsStr = items.join(' • ');
+              final notesStr = draft.communicationNotes.trim();
+              if (optionsStr.isNotEmpty && notesStr.isNotEmpty) {
+                commText = '$optionsStr\n$notesStr';
+              } else if (optionsStr.isNotEmpty) {
+                commText = optionsStr;
+              } else {
+                commText = notesStr;
+              }
+            }
+
+            // Helper interno para formatar listas dinâmicas com "• "
+            String formatList(List<String> list) {
+              final clean = list.map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+              if (clean.isEmpty) return '';
+              return clean.map((e) => '• $e').join('\n');
+            }
+
+            final String curiosities = draft.includeCuriosities ? formatList(draft.abilities) : '';
+            final String likes = draft.includeLikes ? formatList(draft.likes) : '';
+            final String irritations = draft.includeIrritations ? formatList(draft.irritations) : '';
+
+            final String foodLikes = draft.includeFoodLikes ? formatList(draft.foodLikes) : '';
+            final String foodDislikes = draft.includeFoodDislikes ? formatList(draft.foodDislikes) : '';
+            final String medications = draft.includeMedications ? formatList(draft.medications) : '';
+            final String allergies = draft.includeAllergies ? formatList(draft.allergies) : '';
+            final String supportTips = draft.includeSupportTips ? formatList(draft.supportTips) : '';
+
+            // Metade Esquerda
+            final leftWidgets = <pw.Widget>[
+              pw.Text(
+                'Perfil de Apoio TEA',
+                style: pw.TextStyle(
+                  fontSize: 12,
+                  fontWeight: pw.FontWeight.bold,
+                  color: PdfColors.black,
+                ),
+              ),
+              pw.SizedBox(height: 4),
+
+              // Cabeçalho da Identificação (Foto 3x4 + Me chame de + Nível de suporte)
+              pw.Row(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
-                  // Título
-                  pw.Text(
-                    'Perfil de Apoio TEA',
-                    style: pw.TextStyle(
-                      fontSize: 18,
-                      fontWeight: pw.FontWeight.bold,
-                      color: PdfColors.black,
+                  pw.Container(
+                    width: 30 * PdfPageFormat.mm,
+                    height: 40 * PdfPageFormat.mm,
+                    decoration: pw.BoxDecoration(
+                      border: pw.Border.all(color: PdfColors.grey600, width: 1),
+                      color: PdfColors.grey100,
+                      borderRadius: const pw.BorderRadius.all(pw.Radius.circular(3)),
+                    ),
+                    alignment: pw.Alignment.center,
+                    child: pw.Text(
+                      'Foto 3x4',
+                      style: pw.TextStyle(
+                        fontSize: 8,
+                        fontWeight: pw.FontWeight.bold,
+                        color: PdfColors.grey700,
+                      ),
                     ),
                   ),
-                  pw.SizedBox(height: 2),
-                  // Subtítulo
-                  pw.Text(
-                    'Página opcional para ajudar escola, cuidadores, familiares, eventos ou consultas a conhecerem melhor a pessoa e entenderem como apoiar.',
-                    style: pw.TextStyle(
-                      fontSize: 9,
-                      color: PdfColors.grey800,
+                  if (preferredName.isNotEmpty || supportLevel.isNotEmpty) ...[
+                    pw.SizedBox(width: 6),
+                    pw.Expanded(
+                      child: pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          if (preferredName.isNotEmpty) ...[
+                            _buildHeaderField('Me chame de:', preferredName),
+                            pw.SizedBox(height: 3),
+                          ],
+                          if (supportLevel.isNotEmpty) ...[
+                            _buildHeaderField('Nível de suporte:', supportLevel),
+                          ],
+                        ],
+                      ),
                     ),
-                  ),
-                  pw.SizedBox(height: 16),
+                  ],
+                ],
+              ),
+              pw.SizedBox(height: 4),
+            ];
 
-                  // Colunas de Placeholders do Perfil (Organizadas em 2 colunas largas para aproveitar o A4 landscape)
+            if (commText.isNotEmpty) {
+              leftWidgets.add(_buildHeaderField('Como me comunico:', commText));
+              leftWidgets.add(pw.SizedBox(height: 3));
+            }
+            if (draft.includeAbout && draft.about.trim().isNotEmpty) {
+              leftWidgets.add(_buildProfileBlock('Sobre mim', draft.about.trim()));
+            }
+            if (curiosities.isNotEmpty) {
+              leftWidgets.add(_buildProfileBlock('Curiosidades sobre mim', curiosities));
+            }
+            if (likes.isNotEmpty) {
+              leftWidgets.add(_buildProfileBlock('Coisas que eu gosto', likes));
+            }
+            if (irritations.isNotEmpty) {
+              leftWidgets.add(_buildProfileBlock('Coisas que me irritam', irritations));
+            }
+
+            leftWidgets.add(pw.Spacer());
+            leftWidgets.add(_buildProfileFooter());
+
+            // Metade Direita
+            final rightWidgets = <pw.Widget>[
+              pw.Text(
+                'Informações de Apoio (Continuação)',
+                style: pw.TextStyle(
+                  fontSize: 12,
+                  fontWeight: pw.FontWeight.bold,
+                  color: PdfColors.black,
+                ),
+              ),
+              pw.SizedBox(height: 4),
+            ];
+
+            if (foodLikes.isNotEmpty) {
+              rightWidgets.add(_buildProfileBlock('Comidas que eu gosto', foodLikes));
+            }
+            if (foodDislikes.isNotEmpty) {
+              rightWidgets.add(_buildProfileBlock('Comidas que eu não gosto / que me incomodam', foodDislikes));
+            }
+            if (medications.isNotEmpty) {
+              rightWidgets.add(_buildProfileBlock('Medicações', medications));
+            }
+            if (allergies.isNotEmpty) {
+              rightWidgets.add(_buildProfileBlock('Alergias', allergies));
+            }
+            if (draft.includeOtherImportantInfo && draft.otherImportantInfo.trim().isNotEmpty) {
+              rightWidgets.add(_buildProfileBlock('Outras informações importantes', draft.otherImportantInfo.trim()));
+            }
+            if (supportTips.isNotEmpty) {
+              rightWidgets.add(_buildProfileBlock('Como você pode me ajudar', supportTips));
+            }
+
+            rightWidgets.add(pw.Spacer());
+            rightWidgets.add(_buildProfileFooter());
+
+            return pw.Container(
+              padding: const pw.EdgeInsets.all(10),
+              child: pw.Row(
+                children: [
+                  // Metade Esquerda
                   pw.Expanded(
-                    child: pw.Row(
+                    flex: 5,
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: leftWidgets,
+                    ),
+                  ),
+
+                  // Divisor Central de Dobra
+                  pw.Container(
+                    width: 16,
+                    child: pw.Column(
+                      mainAxisAlignment: pw.MainAxisAlignment.center,
                       children: [
-                        // Coluna Esquerda
+                        pw.Text('DOBRA', style: pw.TextStyle(fontSize: 4, color: PdfColors.grey500, fontWeight: pw.FontWeight.bold)),
+                        pw.SizedBox(height: 4),
                         pw.Expanded(
-                          child: pw.Column(
-                            crossAxisAlignment: pw.CrossAxisAlignment.start,
-                            children: [
-                              _buildProfilePlaceholder('Foto / Como gosto de ser chamado(a)'),
-                              _buildProfilePlaceholder('Nível de suporte', placeholderText: '[Nível 1 / Nível 2 / Nível 3]'),
-                              _buildProfilePlaceholder('Sobre mim'),
-                              _buildProfilePlaceholder('Como me comunico'),
-                              _buildProfilePlaceholder('Coisas que eu gosto'),
-                            ],
+                          child: pw.Container(
+                            width: 0.8,
+                            decoration: const pw.BoxDecoration(
+                              border: pw.Border(
+                                left: pw.BorderSide(color: PdfColors.grey400, width: 0.8, style: pw.BorderStyle.dashed),
+                              ),
+                            ),
                           ),
                         ),
-                        pw.SizedBox(width: 24),
-                        // Linha central de guia física de dobra no verso
-                        pw.Container(
-                          width: 1,
-                          color: PdfColors.grey200,
-                        ),
-                        pw.SizedBox(width: 24),
-                        // Coluna Direita
-                        pw.Expanded(
-                          child: pw.Column(
-                            crossAxisAlignment: pw.CrossAxisAlignment.start,
-                            children: [
-                              _buildProfilePlaceholder('Coisas que me irritam'),
-                              _buildProfilePlaceholder('Coisas que eu posso fazer'),
-                              _buildProfilePlaceholder('Como você pode me ajudar'),
-                              _buildProfilePlaceholder('Alimentação', placeholderText: '[Comidas que eu gosto]\n[Comidas que eu não gosto ou que me incomodam]'),
-                              _buildProfilePlaceholder('Informações úteis'),
-                            ],
-                          ),
-                        ),
+                        pw.SizedBox(height: 4),
+                        pw.Text('DOBRA', style: pw.TextStyle(fontSize: 4, color: PdfColors.grey500, fontWeight: pw.FontWeight.bold)),
                       ],
                     ),
                   ),
 
-                  pw.SizedBox(height: 16),
-                  pw.Divider(color: PdfColors.grey300, thickness: 1),
-                  pw.SizedBox(height: 8),
-                  // Rodapé do Perfil
-                  pw.Row(
-                    mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: pw.CrossAxisAlignment.end,
-                    children: [
-                      pw.Expanded(
-                        child: pw.Column(
-                          crossAxisAlignment: pw.CrossAxisAlignment.start,
-                          children: [
-                            pw.Text(
-                              'A carteirinha é comunitária/interna e não substitui CIPTEA, RG, CPF, CNH, laudo, diagnóstico ou documento oficial.',
-                              style: pw.TextStyle(
-                                fontSize: 8,
-                                fontWeight: pw.FontWeight.bold,
-                                color: PdfColors.grey800,
-                              ),
-                            ),
-                            pw.SizedBox(height: 2),
-                            pw.Text(
-                              'Conteúdo opcional, gerenciado localmente, e não substitui documentos oficiais.',
-                              style: pw.TextStyle(
-                                fontSize: 8,
-                                color: PdfColors.grey700,
-                              ),
-                            ),
-                            pw.SizedBox(height: 2),
-                            pw.Text(
-                              'Ao imprimir ou compartilhar, a responsabilidade sobre o uso das informações é do usuário titular, da família ou do responsável.',
-                              style: pw.TextStyle(
-                                fontSize: 8,
-                                color: PdfColors.grey700,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      pw.SizedBox(width: 24),
-                      pw.Text(
-                        'Gerado localmente no aparelho.',
-                        style: pw.TextStyle(
-                          fontSize: 8,
-                          fontStyle: pw.FontStyle.italic,
-                          color: PdfColors.grey500,
-                        ),
-                      ),
-                    ],
+                  // Metade Direita
+                  pw.Expanded(
+                    flex: 5,
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: rightWidgets,
+                    ),
                   ),
                 ],
               ),
@@ -290,141 +487,878 @@ class PrintCardPdfService {
           },
         ),
       );
+      logStage('adição Página 2');
     }
 
-    // Aciona a impressão/prévia nativa do sistema passando os bytes em memória
-    // Passando o formato explícito A4 landscape para forçar o sistema operacional a renderizar em orientação paisagem
+    logStage('antes de pdf.save()');
+    // Pré-salva o PDF em bytes uma única vez para evitar múltiplas renderizações concorrentes no onLayout
+    final pdfBytes = await pdf.save();
+    logStage('depois de pdf.save() (geração de bytes)');
+    return pdfBytes;
+  }
+
+  /// Abre a visualização nativa de impressão com os bytes do PDF
+  Future<void> previewPrintCardPdfBytes(Uint8List bytes) async {
     await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async => pdf.save(),
-      name: 'carteirinha_conectea_${request.member.displayName.toLowerCase().replaceAll(RegExp(r'\s+'), '_')}',
-      format: pageFormat,
+      onLayout: (PdfPageFormat format) async => bytes,
+      name: 'carteirinha_conectea.pdf',
     );
   }
 
-  /// Constrói o esqueleto visual básico da carteirinha (Frente ou Verso)
-  pw.Widget _buildCardSkeleton({
-    required String title,
-    required String displayName,
-    required bool isFront,
-  }) {
+  /// Compartilha os bytes do PDF usando o menu nativo de compartilhamento
+  Future<void> sharePrintCardPdfBytes(Uint8List bytes) async {
+    await Printing.sharePdf(
+      bytes: bytes,
+      filename: 'carteirinha_conectea.pdf',
+    );
+  }
+
+  /// Método legado de compatibilidade que gera e abre o visualizador diretamente
+  Future<void> previewBasicPrintPdf(PrintCardRequest request) async {
+    final bytes = await buildPrintCardPdfBytes(request);
+    await previewPrintCardPdfBytes(bytes);
+  }
+
+  /// Constrói a página do perfil quando não está preenchido
+  pw.Widget _buildEmptyProfilePage() {
     return pw.Container(
-      width: 130 * PdfPageFormat.mm,
-      height: 90 * PdfPageFormat.mm,
-      padding: const pw.EdgeInsets.all(12),
-      decoration: pw.BoxDecoration(
-        color: PdfColors.white,
-        border: pw.Border.all(color: PdfColors.grey700, width: 1.5),
-        borderRadius: const pw.BorderRadius.all(pw.Radius.circular(6)),
-      ),
-      child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+      padding: const pw.EdgeInsets.all(10),
+      child: pw.Row(
         children: [
-          // Topo do card
-          pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+          pw.Expanded(
+            flex: 5,
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text(
+                  'Perfil de Apoio TEA',
+                  style: pw.TextStyle(
+                    fontSize: 12,
+                    fontWeight: pw.FontWeight.bold,
+                    color: PdfColors.black,
+                  ),
+                ),
+                pw.SizedBox(height: 20),
+                pw.Text(
+                  'Perfil de Apoio TEA não preenchido neste aparelho.',
+                  style: pw.TextStyle(
+                    fontSize: 10,
+                    fontStyle: pw.FontStyle.italic,
+                    color: PdfColors.grey700,
+                  ),
+                ),
+                pw.Spacer(),
+                _buildProfileFooter(),
+              ],
+            ),
+          ),
+          pw.Container(
+            width: 16,
+            child: pw.Column(
+              mainAxisAlignment: pw.MainAxisAlignment.center,
+              children: [
+                pw.Text('DOBRA', style: pw.TextStyle(fontSize: 4, color: PdfColors.grey500, fontWeight: pw.FontWeight.bold)),
+                pw.SizedBox(height: 4),
+                pw.Expanded(
+                  child: pw.Container(
+                    width: 0.8,
+                    decoration: const pw.BoxDecoration(
+                      border: pw.Border(
+                        left: pw.BorderSide(color: PdfColors.grey400, width: 0.8, style: pw.BorderStyle.dashed),
+                      ),
+                    ),
+                  ),
+                ),
+                pw.SizedBox(height: 4),
+                pw.Text('DOBRA', style: pw.TextStyle(fontSize: 4, color: PdfColors.grey500, fontWeight: pw.FontWeight.bold)),
+              ],
+            ),
+          ),
+          pw.Expanded(
+            flex: 5,
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text(
+                  'Informações de Apoio (Continuação)',
+                  style: pw.TextStyle(
+                    fontSize: 12,
+                    fontWeight: pw.FontWeight.bold,
+                    color: PdfColors.black,
+                  ),
+                ),
+                pw.Spacer(),
+                _buildProfileFooter(),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Constrói o rodapé informativo do perfil
+  pw.Widget _buildProfileFooter() {
+    return pw.Row(
+      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: pw.CrossAxisAlignment.end,
+      children: [
+        pw.Expanded(
+          child: pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
               pw.Text(
-                title,
+                'A carteirinha é comunitária/interna e não substitui CIPTEA, RG, CPF, CNH, laudo, diagnóstico ou documento oficial.',
                 style: pw.TextStyle(
-                  fontSize: 10,
+                  fontSize: 6.0,
                   fontWeight: pw.FontWeight.bold,
                   color: PdfColors.grey800,
                 ),
               ),
+              pw.SizedBox(height: 1),
+              pw.Text(
+                'Conteúdo opcional, gerenciado localmente, e não substitui documentos oficiais.',
+                style: pw.TextStyle(
+                  fontSize: 5.5,
+                  color: PdfColors.grey700,
+                ),
+              ),
+              pw.SizedBox(height: 1),
+              pw.Text(
+                'Ao imprimir ou compartilhar, a responsabilidade sobre o uso das informações é do usuário titular, da família ou do responsável.',
+                style: pw.TextStyle(
+                  fontSize: 5.5,
+                  color: PdfColors.grey700,
+                ),
+              ),
             ],
           ),
-          pw.SizedBox(height: 8),
-          // Corpo do card
-          if (isFront) ...[
-            pw.Text(
-              'Nome: $displayName',
-              style: pw.TextStyle(
-                fontSize: 12,
-                fontWeight: pw.FontWeight.bold,
-                color: PdfColors.black,
+        ),
+        pw.SizedBox(width: 8),
+        pw.Text(
+          'Gerado localmente no aparelho.',
+          style: pw.TextStyle(
+            fontSize: 5.5,
+            fontStyle: pw.FontStyle.italic,
+            color: PdfColors.grey500,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Constrói o esqueleto visual básico da carteirinha (Frente) com opcionais refinados
+  pw.Widget _buildFrontCardSkeleton({
+    required String displayName,
+    required String teaId,
+    required String validade,
+    required String vinculo,
+    String? birthDateAndAge,
+    String? bloodType,
+    String? cityUf,
+    required String status,
+    pw.MemoryImage? logoImage,
+  }) {
+    final isSupport = vinculo.contains('APOIO');
+    final isAtiva = status == 'ATIVA';
+
+    return pw.Container(
+      width: 142 * PdfPageFormat.mm,
+      height: 96 * PdfPageFormat.mm,
+      padding: const pw.EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: pw.BoxDecoration(
+        color: PdfColors.white,
+        border: pw.Border.all(color: PdfColors.black, width: 2.2),
+        borderRadius: const pw.BorderRadius.all(pw.Radius.circular(10)),
+      ),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          // TOPO: Cabeçalho com Logos e Pílulas de Validade/Status lado a lado
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              logoImage != null
+                  ? pw.Container(
+                      height: 26,
+                      child: pw.Image(logoImage, fit: pw.BoxFit.contain),
+                    )
+                  : pw.Text(
+                      '[Logo ConeCTEA]',
+                      style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
+                    ),
+              pw.Row(
+                children: [
+                  // Pílula de Validade (Contraste Reforçado)
+                  pw.Container(
+                    padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                    decoration: pw.BoxDecoration(
+                      color: PdfColors.white,
+                      borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+                      border: pw.Border.all(color: PdfColors.black, width: 0.9),
+                    ),
+                    child: pw.Text(
+                      'Validade: $validade',
+                      style: pw.TextStyle(
+                        fontSize: 8,
+                        fontWeight: pw.FontWeight.bold,
+                        color: PdfColors.black,
+                      ),
+                    ),
+                  ),
+                  pw.SizedBox(width: 5),
+                  // Pílula de Status (Contraste Reforçado)
+                  pw.Container(
+                    padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                    decoration: pw.BoxDecoration(
+                      color: isAtiva ? PdfColors.grey200 : PdfColors.white,
+                      borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+                      border: pw.Border.all(
+                        color: PdfColors.black,
+                        width: 0.9,
+                        style: isAtiva ? pw.BorderStyle.solid : pw.BorderStyle.dashed,
+                      ),
+                    ),
+                    child: pw.Text(
+                      status,
+                      style: pw.TextStyle(
+                        fontSize: 8,
+                        fontWeight: pw.FontWeight.bold,
+                        color: PdfColors.black,
+                      ),
+                    ),
+                  ),
+                ],
               ),
+            ],
+          ),
+          pw.SizedBox(height: 6),
+
+          // Títulos do Cartão
+          pw.Text(
+            'CARTEIRINHA DE IDENTIFICAÇÃO',
+            style: pw.TextStyle(
+              fontSize: 10.5,
+              fontWeight: pw.FontWeight.bold,
+              color: PdfColors.black,
             ),
-            pw.SizedBox(height: 4),
-            pw.Text(
-              'TEA-ID: [será inserido]',
-              style: pw.TextStyle(
-                fontSize: 9,
-                color: PdfColors.grey700,
-              ),
+          ),
+          pw.Text(
+            isSupport ? 'REDE DE APOIO AO TRANSTORNO DO ESPECTRO AUTISTA' : 'PESSOA COM TRANSTORNO DO ESPECTRO AUTISTA',
+            style: pw.TextStyle(
+              fontSize: 6.5,
+              fontWeight: pw.FontWeight.bold,
+              color: PdfColors.grey900,
             ),
-            pw.SizedBox(height: 4),
-            pw.Text(
-              'Validade: [será inserida]',
-              style: pw.TextStyle(
-                fontSize: 9,
-                color: PdfColors.grey700,
-              ),
-            ),
-          ] else ...[
-            pw.Center(
-              child: pw.Container(
-                width: 50,
-                height: 50,
+          ),
+
+          pw.Spacer(),
+
+          // MIOLO: Iniciais do Avatar e Dados do Membro lado a lado
+          pw.Row(
+            crossAxisAlignment: pw.CrossAxisAlignment.center,
+            children: [
+              // Avatar circular simulando a identidade digital
+              pw.Container(
+                width: 46,
+                height: 46,
                 decoration: pw.BoxDecoration(
-                  border: pw.Border.all(color: PdfColors.grey400, width: 1),
+                  shape: pw.BoxShape.circle,
+                  color: PdfColors.grey200,
+                  border: pw.Border.all(color: PdfColors.black, width: 1.8),
                 ),
                 alignment: pw.Alignment.center,
                 child: pw.Text(
-                  '[QR Code]',
+                  _getInitials(displayName),
                   style: pw.TextStyle(
-                    fontSize: 8,
-                    color: PdfColors.grey500,
+                    fontSize: 15,
+                    fontWeight: pw.FontWeight.bold,
+                    color: PdfColors.black,
                   ),
                 ),
               ),
+              pw.SizedBox(width: 14),
+              // Dados Principais
+              pw.Expanded(
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text(
+                      displayName,
+                      maxLines: 2,
+                      overflow: pw.TextOverflow.clip,
+                      style: pw.TextStyle(
+                        fontSize: 18,
+                        fontWeight: pw.FontWeight.bold,
+                        color: PdfColors.black,
+                      ),
+                    ),
+                    if (birthDateAndAge != null && birthDateAndAge.trim().isNotEmpty) ...[
+                      pw.SizedBox(height: 3),
+                      pw.Text(
+                        'Nascimento: $birthDateAndAge',
+                        style: pw.TextStyle(fontSize: 9.5, color: PdfColors.grey900),
+                      ),
+                    ],
+                    pw.SizedBox(height: 5),
+                    // Selos horizontais para Tipo Sanguíneo e Município
+                    pw.Row(
+                      children: [
+                        if (bloodType != null && bloodType.trim().isNotEmpty) ...[
+                          _buildFrontSelo('TIPO SANGUÍNEO', bloodType.trim()),
+                          pw.SizedBox(width: 6),
+                        ],
+                        if (cityUf != null && cityUf.trim().isNotEmpty) ...[
+                          _buildFrontSelo('MUNICÍPIO', cityUf.trim()),
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          pw.Spacer(),
+
+          // BASE: Token em container destacado e Tag do Vínculo
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: pw.CrossAxisAlignment.end,
+            children: [
+              // Token destacado (Contraste Reforçado)
+              pw.Container(
+                padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: pw.BoxDecoration(
+                  color: PdfColors.grey200,
+                  borderRadius: const pw.BorderRadius.all(pw.Radius.circular(6)),
+                  border: pw.Border.all(color: PdfColors.black, width: 1.0),
+                ),
+                child: pw.RichText(
+                  text: pw.TextSpan(
+                    text: 'TOKEN: ',
+                    style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold, color: PdfColors.grey900),
+                    children: [
+                      pw.TextSpan(
+                        text: teaId,
+                        style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              // Pílula do Vínculo (Contraste Reforçado)
+              pw.Container(
+                padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                decoration: pw.BoxDecoration(
+                  color: PdfColors.grey300,
+                  borderRadius: const pw.BorderRadius.all(pw.Radius.circular(6)),
+                  border: pw.Border.all(color: PdfColors.black, width: 1.0),
+                ),
+                child: pw.Text(
+                  vinculo,
+                  style: pw.TextStyle(
+                    fontSize: 8,
+                    fontWeight: pw.FontWeight.bold,
+                    color: PdfColors.black,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          pw.SizedBox(height: 5),
+          pw.Text(
+            'Documento de uso interno da Família TEA Bauru. Não substitui RG ou laudo oficial.',
+            textAlign: pw.TextAlign.center,
+            style: pw.TextStyle(
+              fontSize: 7.5,
+              color: PdfColors.grey900,
             ),
-          ],
-          pw.SizedBox(height: 8),
-          // Placeholder de espaço para o rodapé do card, se necessário
-          pw.SizedBox(height: 8),
+          ),
         ],
       ),
     );
   }
 
-  /// Constrói um bloco placeholder para o Perfil de Apoio
-  pw.Widget _buildProfilePlaceholder(String label, {String? placeholderText}) {
-    return pw.Expanded(
+  /// Constrói pequenos selos informativos horizontais na frente da carteirinha
+  pw.Widget _buildFrontSelo(String label, String value) {
+    return pw.Container(
+      padding: const pw.EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
+      decoration: pw.BoxDecoration(
+        color: PdfColors.grey200,
+        borderRadius: const pw.BorderRadius.all(pw.Radius.circular(3)),
+        border: pw.Border.all(color: PdfColors.black, width: 0.9),
+      ),
+      child: pw.RichText(
+        text: pw.TextSpan(
+          text: '$label: ',
+          style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
+          children: [
+            pw.TextSpan(
+              text: value,
+              style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.normal, color: PdfColors.black),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Constrói o esqueleto visual do Verso com contatos e QR Code real
+  pw.Widget _buildBackCardSkeleton(PrintCardRequest request, {pw.MemoryImage? logoImage}) {
+    final List<pw.Widget> identificacaoWidgets = [];
+    final List<pw.Widget> contatoWidgets = [];
+
+    // CPF (sempre mascarado)
+    if (request.options.includeMaskedCpf) {
+      final cpf = request.member.cpf.trim();
+      if (cpf.isNotEmpty) {
+        final clean = cpf.replaceAll(RegExp(r'\D'), '');
+        final cpfMasked = clean.length == 11
+            ? '${clean.substring(0, 3)}.***.***-${clean.substring(9, 11)}'
+            : cpf;
+        identificacaoWidgets.add(_buildBackInfoLine('CPF', cpfMasked));
+      }
+    }
+
+    // Telefone
+    if (request.options.includePhone) {
+      final phone = (request.phoneOverride != null && request.phoneOverride!.trim().isNotEmpty)
+          ? request.phoneOverride!.trim()
+          : request.member.phone.trim();
+      if (phone.isNotEmpty) {
+        contatoWidgets.add(_buildBackInfoLine('TELEFONE', phone));
+      }
+    }
+
+    // CID (Tag estilizada como na carteirinha digital)
+    if (request.options.includeCid) {
+      final cid = (request.cidOverride != null && request.cidOverride!.trim().isNotEmpty)
+          ? request.cidOverride!.trim()
+          : request.member.cid.trim();
+      if (cid.isNotEmpty) {
+        identificacaoWidgets.add(
+          pw.Container(
+            margin: const pw.EdgeInsets.only(bottom: 4.5),
+            padding: const pw.EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+            decoration: pw.BoxDecoration(
+              color: PdfColors.grey200,
+              border: pw.Border.all(color: PdfColors.black, width: 1.0),
+              borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+            ),
+            child: pw.RichText(
+              text: pw.TextSpan(
+                text: 'CID: ',
+                style: pw.TextStyle(fontSize: 9.5, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
+                children: [
+                  pw.TextSpan(
+                    text: cid,
+                    style: pw.TextStyle(fontSize: 9.5, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      }
+    }
+
+    // Raça/Cor
+    if (request.options.includeRaceColor) {
+      final race = (request.raceColorOverride != null && request.raceColorOverride!.trim().isNotEmpty)
+          ? request.raceColorOverride!.trim()
+          : (request.member.racaCor ?? '').trim();
+      if (race.isNotEmpty) {
+        identificacaoWidgets.add(_buildBackInfoLine('RAÇA/COR', race));
+      }
+    }
+
+    // Gênero
+    if (request.options.includeGender) {
+      final gender = (request.genderOverride != null && request.genderOverride!.trim().isNotEmpty)
+          ? request.genderOverride!.trim()
+          : (request.member.gender ?? '').trim();
+      if (gender.isNotEmpty) {
+        identificacaoWidgets.add(_buildBackInfoLine('GÊNERO', gender));
+      }
+    }
+
+    // Cidade / UF
+    if (request.options.includeCityUf) {
+      final cityUf = (request.cityUfOverride != null && request.cityUfOverride!.trim().isNotEmpty)
+          ? request.cityUfOverride!
+          : (request.member.city.trim().isNotEmpty && request.member.state.trim().isNotEmpty)
+              ? '${request.member.city} / ${request.member.state}'
+              : null;
+      if (cityUf != null) {
+        identificacaoWidgets.add(_buildBackInfoLine('CIDADE / UF', cityUf));
+      }
+    }
+
+    // Responsável Principal
+    if (request.options.includeResponsible) {
+      final respName = (request.responsibleNameOverride != null && request.responsibleNameOverride!.trim().isNotEmpty)
+          ? request.responsibleNameOverride!.trim()
+          : request.member.responsibleName.trim();
+      final respPhone = (request.responsiblePhoneOverride != null && request.responsiblePhoneOverride!.trim().isNotEmpty)
+          ? request.responsiblePhoneOverride!.trim()
+          : '';
+
+      if (respName.isNotEmpty) {
+        contatoWidgets.add(_buildBackContactLine('RESP. PRINC.', respName, respPhone));
+      }
+    }
+
+    // Responsáveis Extras
+    for (final extra in request.extraResponsibles) {
+      if (extra.hasAnyContent) {
+        contatoWidgets.add(_buildBackContactLine('RESP. EXTRA', extra.name, extra.phone));
+      }
+    }
+
+    // Contato de Emergência
+    if (request.options.includeEmergencyContacts) {
+      final emergName = (request.emergencyNameOverride != null && request.emergencyNameOverride!.trim().isNotEmpty)
+          ? request.emergencyNameOverride!.trim()
+          : '';
+
+      final emergPhone = (request.emergencyPhoneOverride != null && request.emergencyPhoneOverride!.trim().isNotEmpty)
+          ? request.emergencyPhoneOverride!.trim()
+          : request.member.emergencyContact.trim();
+
+      if (emergName.isNotEmpty || emergPhone.isNotEmpty) {
+        final displayName = emergName.isNotEmpty ? emergName : 'CONTATO DE EMERGÊNCIA';
+        contatoWidgets.add(_buildBackContactLine('EMERGÊNCIA', displayName, emergPhone));
+      }
+    }
+
+    // Contatos de Emergência Extras
+    for (final extra in request.extraEmergencyContacts) {
+      if (extra.hasAnyContent) {
+        contatoWidgets.add(_buildBackContactLine('EMERGÊNCIA EXTRA', extra.name, extra.phone));
+      }
+    }
+
+    // QR Code data (Url de validação ou CardNumber como fallback)
+    final qrData = request.activeCard.qrValidationUrl.trim().isNotEmpty
+        ? request.activeCard.qrValidationUrl.trim()
+        : request.activeCard.cardNumber.trim();
+
+    return pw.Container(
+      width: 142 * PdfPageFormat.mm,
+      height: 96 * PdfPageFormat.mm,
+      padding: const pw.EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: pw.BoxDecoration(
+        color: PdfColors.white,
+        border: pw.Border.all(color: PdfColors.black, width: 2.2),
+        borderRadius: const pw.BorderRadius.all(pw.Radius.circular(10)),
+      ),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Expanded(
+            child: pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                // Coluna Esquerda: Informações Adicionais agrupadas por Identificação e Contatos
+                pw.Expanded(
+                  flex: 3,
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text(
+                        'INFORMAÇÕES ADICIONAIS',
+                        style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
+                      ),
+                      pw.SizedBox(height: 3),
+                      pw.Container(
+                        width: 30,
+                        height: 2.5,
+                        decoration: const pw.BoxDecoration(
+                          color: PdfColors.black,
+                          borderRadius: pw.BorderRadius.all(pw.Radius.circular(2)),
+                        ),
+                      ),
+                      pw.SizedBox(height: 8),
+                      pw.Expanded(
+                        child: pw.Column(
+                          crossAxisAlignment: pw.CrossAxisAlignment.start,
+                          children: [
+                            if (identificacaoWidgets.isNotEmpty) ...[
+                              ...identificacaoWidgets,
+                              pw.SizedBox(height: 6),
+                            ],
+                            if (contatoWidgets.isNotEmpty) ...[
+                              ...contatoWidgets,
+                            ],
+                          ],
+                        ),
+                      ),
+                      pw.SizedBox(height: 4),
+                      pw.Text(
+                        'Carteirinha de uso interno da Família TEA Bauru. Não substitui CIPTEA, RG, CPF ou outro documento oficial. A autenticidade pode ser verificada pelo QR Code.',
+                        style: pw.TextStyle(
+                          fontSize: 6.5,
+                          fontWeight: pw.FontWeight.bold,
+                          color: PdfColors.grey900,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                pw.SizedBox(width: 14),
+
+                // Coluna Direita: Bloco do QR Code e autenticidade (estilo digital)
+                pw.Expanded(
+                  flex: 2,
+                  child: pw.Column(
+                    mainAxisAlignment: pw.MainAxisAlignment.center,
+                    crossAxisAlignment: pw.CrossAxisAlignment.center,
+                    children: [
+                      // QR Code com borda sutil
+                      pw.Container(
+                        padding: const pw.EdgeInsets.all(5),
+                        decoration: pw.BoxDecoration(
+                          border: pw.Border.all(color: PdfColors.black, width: 1.5),
+                          borderRadius: const pw.BorderRadius.all(pw.Radius.circular(5)),
+                          color: PdfColors.grey100,
+                        ),
+                        child: _debugPdfDisableQr
+                            ? pw.Container(
+                                width: 82,
+                                height: 82,
+                                color: PdfColors.grey300,
+                                alignment: pw.Alignment.center,
+                                child: pw.Text('QR Disabled', style: pw.TextStyle(fontSize: 8)),
+                              )
+                            : pw.BarcodeWidget(
+                                barcode: pw.Barcode.qrCode(),
+                                data: qrData,
+                                width: 82,
+                                height: 82,
+                              ),
+                      ),
+                      pw.SizedBox(height: 6),
+                      pw.Text(
+                        'VALIDAR AUTENTICIDADE',
+                        style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
+                      ),
+                      pw.SizedBox(height: 4),
+                      logoImage != null
+                          ? pw.Container(
+                              height: 20,
+                              child: pw.Image(logoImage, fit: pw.BoxFit.contain),
+                            )
+                          : pw.RichText(
+                              text: pw.TextSpan(
+                                style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
+                                children: [
+                                  pw.TextSpan(text: 'Cone', style: pw.TextStyle(color: PdfColors.grey700)),
+                                  pw.TextSpan(text: 'CTEA', style: pw.TextStyle(color: PdfColors.black, fontWeight: pw.FontWeight.bold)),
+                                ],
+                              ),
+                            ),
+                      pw.Text(
+                        'Família TEA Bauru',
+                        style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
+                      ),
+                      pw.SizedBox(height: 2),
+                      pw.Text(
+                        '#TODOSPELOAUTISMO',
+                        style: pw.TextStyle(fontSize: 7.5, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          pw.SizedBox(height: 8),
+          // Rodapé do verso
+          pw.Container(
+            padding: const pw.EdgeInsets.only(top: 4),
+            decoration: const pw.BoxDecoration(
+              border: pw.Border(top: pw.BorderSide(color: PdfColors.black, width: 0.8)),
+            ),
+            child: pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Expanded(
+                  child: pw.Text(
+                    'Documento gerado sem fins clínicos ou comprobatórios governamentais.',
+                    style: pw.TextStyle(fontSize: 7.5, color: PdfColors.grey900),
+                  ),
+                ),
+                pw.Text(
+                  'Gerado localmente no aparelho.',
+                  style: pw.TextStyle(fontSize: 7.5, fontStyle: pw.FontStyle.italic, color: PdfColors.grey900),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  pw.Widget _buildBackInfoLine(String label, String value) {
+    return pw.Container(
+      margin: const pw.EdgeInsets.only(bottom: 4.5),
+      child: pw.RichText(
+        text: pw.TextSpan(
+          text: '$label: ',
+          style: pw.TextStyle(fontSize: 9.5, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
+          children: [
+            pw.TextSpan(
+              text: value,
+              style: pw.TextStyle(fontSize: 9.5, fontWeight: pw.FontWeight.normal, color: PdfColors.black),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  pw.Widget _buildBackContactLine(String prefix, String name, String phone) {
+    return pw.Container(
+      margin: const pw.EdgeInsets.only(bottom: 4.5),
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
           pw.Text(
-            label,
-            style: pw.TextStyle(
-              fontSize: 9,
-              fontWeight: pw.FontWeight.bold,
-              color: PdfColors.grey700,
-            ),
+            '$prefix: $name',
+            style: pw.TextStyle(fontSize: 9.5, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
           ),
-          pw.SizedBox(height: 2),
-          pw.Expanded(
-            child: pw.Container(
-              width: double.infinity,
-              decoration: const pw.BoxDecoration(
-                color: PdfColors.grey100,
-                borderRadius: pw.BorderRadius.all(pw.Radius.circular(3)),
-              ),
-              alignment: pw.Alignment.topLeft,
-              padding: const pw.EdgeInsets.all(6),
-              child: pw.Text(
-                placeholderText ?? '[Placeholder - O conteúdo será inserido em etapa futura]',
-                style: pw.TextStyle(
-                  fontSize: 8,
-                  fontStyle: pw.FontStyle.italic,
-                  color: PdfColors.grey500,
-                ),
-              ),
+          if (phone.isNotEmpty) ...[
+            pw.Text(
+              'Tel: $phone',
+              style: pw.TextStyle(fontSize: 8.5, color: PdfColors.grey900),
             ),
-          ),
-          pw.SizedBox(height: 8),
+          ],
         ],
       ),
     );
+  }
+
+  /// Constrói um bloco com conteúdo simulado para o Perfil de Apoio com destaque visual
+  pw.Widget _buildProfileBlock(String label, String text) {
+    return pw.Container(
+      margin: const pw.EdgeInsets.only(bottom: 5),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Container(
+            width: double.infinity,
+            margin: const pw.EdgeInsets.only(bottom: 2),
+            decoration: const pw.BoxDecoration(
+              border: pw.Border(
+                bottom: pw.BorderSide(color: PdfColors.grey300, width: 0.6),
+              ),
+            ),
+            padding: const pw.EdgeInsets.only(bottom: 1),
+            child: pw.Text(
+              label.toUpperCase(),
+              style: pw.TextStyle(
+                fontSize: 8.0,
+                fontWeight: pw.FontWeight.bold,
+                color: PdfColors.grey900,
+              ),
+            ),
+          ),
+          pw.Container(
+            width: double.infinity,
+            decoration: pw.BoxDecoration(
+              color: PdfColors.white,
+              border: pw.Border.all(color: PdfColors.grey400, width: 0.5),
+              borderRadius: const pw.BorderRadius.all(pw.Radius.circular(2)),
+            ),
+            padding: const pw.EdgeInsets.symmetric(horizontal: 5, vertical: 2.5),
+            child: pw.Text(
+              text,
+              style: pw.TextStyle(
+                fontSize: 7.0,
+                color: PdfColors.black,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Helper exclusivo para campos do topo do Perfil de Apoio
+  pw.Widget _buildHeaderField(String label, String value) {
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Text(
+          label.toUpperCase(),
+          style: pw.TextStyle(
+            fontSize: 7.0,
+            fontWeight: pw.FontWeight.bold,
+            color: PdfColors.grey700,
+          ),
+        ),
+        pw.SizedBox(height: 1.0),
+        pw.Container(
+          width: double.infinity,
+          decoration: pw.BoxDecoration(
+            color: PdfColors.grey100,
+            border: pw.Border.all(color: PdfColors.grey300, width: 0.5),
+            borderRadius: const pw.BorderRadius.all(pw.Radius.circular(2)),
+          ),
+          padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 2.5),
+          child: pw.Text(
+            value,
+            style: pw.TextStyle(
+              fontSize: 7.5,
+              fontWeight: pw.FontWeight.bold,
+              color: PdfColors.black,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Formata data de nascimento e idade de forma segura
+  String _getBirthDateAndAge(String dob) {
+    final cleanDob = dob.trim();
+    if (cleanDob.isEmpty) return '';
+    try {
+      DateTime? dt;
+      if (cleanDob.contains('/')) {
+        final parts = cleanDob.split('/');
+        if (parts.length == 3) {
+          dt = DateTime.parse('${parts[2]}-${parts[1].padLeft(2, '0')}-${parts[0].padLeft(2, '0')}');
+        }
+      } else if (cleanDob.contains('-')) {
+        dt = DateTime.parse(cleanDob);
+      }
+      if (dt != null) {
+        final today = DateTime.now();
+        int age = today.year - dt.year;
+        if (today.month < dt.month || (today.month == dt.month && today.day < dt.day)) {
+          age--;
+        }
+        final formattedDate = cleanDob.contains('/')
+            ? cleanDob
+            : '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
+        return '$formattedDate · $age anos';
+      }
+    } catch (_) {}
+    return cleanDob;
+  }
+
+  /// Extrai as iniciais do nome do membro de forma segura
+  String _getInitials(String name) {
+    final clean = name.trim();
+    if (clean.isEmpty) return '?';
+    final parts = clean.split(RegExp(r'\s+'));
+    if (parts.length >= 2) {
+      return (parts.first[0] + parts.last[0]).toUpperCase();
+    }
+    return parts.first[0].toUpperCase();
   }
 }

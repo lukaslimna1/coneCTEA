@@ -583,7 +583,7 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
                             await _prefsService.delete(widget.member.id);
                           }
 
-                          if (mounted) {
+                          if (context.mounted) {
                             Navigator.pop(context, request);
                           }
                         },

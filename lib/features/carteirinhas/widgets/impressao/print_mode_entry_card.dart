@@ -8,6 +8,7 @@ import 'print_active_card_selection_sheet.dart';
 import 'print_type_decision_sheet.dart';
 import 'print_review_info_sheet.dart';
 import 'print_support_profile_sheet.dart';
+import 'print_actions_bottom_sheet.dart';
 import 'package:conectea/features/carteirinhas/models/impressao/print_card_request.dart';
 import 'package:conectea/features/carteirinhas/services/print_card_pdf_service.dart';
 
@@ -141,15 +142,50 @@ class PrintModeEntryCard extends StatelessWidget {
                           );
 
                           try {
-                            // Invoca o serviço para renderizar o PDF mínimo de teste e abrir o preview do sistema
-                            await PrintCardPdfService().previewBasicPrintPdf(printRequest);
+                            // Gera os bytes do PDF na memória de forma estritamente local (Tarefa 4)
+                            final pdfBytes = await PrintCardPdfService().buildPrintCardPdfBytes(printRequest);
+
+                            if (context.mounted) {
+                              // Abre a nova Bottom Sheet de ações do PDF
+                              await PrintActionsBottomSheet.show(
+                                context,
+                                onPreview: () async {
+                                  try {
+                                    await PrintCardPdfService().previewPrintCardPdfBytes(pdfBytes);
+                                  } catch (error) {
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('Não foi possível abrir a visualização agora.'),
+                                          backgroundColor: Colors.redAccent,
+                                        ),
+                                      );
+                                    }
+                                  }
+                                },
+                                onShare: () async {
+                                  try {
+                                    await PrintCardPdfService().sharePrintCardPdfBytes(pdfBytes);
+                                  } catch (error) {
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('Não foi possível compartilhar o PDF agora.'),
+                                          backgroundColor: Colors.redAccent,
+                                        ),
+                                      );
+                                    }
+                                  }
+                                },
+                              );
+                            }
                           } catch (error, stackTrace) {
                             if (kDebugMode) {
                               debugPrint('[ModoImpressao] Falha ao preparar PDF: ${error.runtimeType}');
                               debugPrint('[ModoImpressao] Detalhe técnico: $error');
                               debugPrint('[ModoImpressao] StackTrace: $stackTrace');
                             }
-                            // Captura silenciosa e segura em caso de erros de preparação ou hardware
+                            // Captura silenciosa e segura em caso de erros de preparação
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
