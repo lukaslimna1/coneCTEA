@@ -42,7 +42,7 @@ class PrintReviewOptionTile extends StatelessWidget {
           description: description,
           token: token,
         ),
-        if (localChild != null) localChild,
+        ?localChild,
       ],
     );
   }

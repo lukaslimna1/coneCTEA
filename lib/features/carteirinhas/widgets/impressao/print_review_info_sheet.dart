@@ -1024,22 +1024,43 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
 
               if (hasContent) {
                 final preenchidos = <String>[];
-                if (draft.preferredName.trim().isNotEmpty) preenchidos.add('nome preferido');
-                if (draft.about.trim().isNotEmpty) preenchidos.add('sobre mim');
-                if (draft.commSpeech ||
+                if (draft.includePreferredName && draft.preferredName.trim().isNotEmpty) preenchidos.add('nome preferido');
+                if (draft.includeAbout && draft.about.trim().isNotEmpty) preenchidos.add('sobre mim');
+                if (draft.includeCommunication && (draft.commSpeech ||
                     draft.commGestures ||
                     draft.commPictograms ||
                     draft.commApps ||
-                    draft.communicationNotes.trim().isNotEmpty) {
+                    draft.communicationNotes.trim().isNotEmpty)) {
                   preenchidos.add('comunicação');
                 }
-                if (draft.likes.any((e) => e.trim().isNotEmpty)) preenchidos.add('preferências');
-                if (draft.irritations.any((e) => e.trim().isNotEmpty)) preenchidos.add('irritações');
-                if (draft.abilities.any((e) => e.trim().isNotEmpty)) preenchidos.add('habilidades');
-                if (draft.supportTips.any((e) => e.trim().isNotEmpty)) preenchidos.add('dicas de apoio');
-                if (draft.medications.any((e) => e.trim().isNotEmpty)) preenchidos.add('medicações');
-                if (draft.allergies.any((e) => e.trim().isNotEmpty)) preenchidos.add('alergias');
-                if (draft.otherImportantInfo.trim().isNotEmpty) preenchidos.add('outras informações');
+                if (draft.includeLikes && draft.likes.any((e) => e.trim().isNotEmpty)) {
+                  preenchidos.add('preferências');
+                }
+                if (draft.includeIrritations && draft.irritations.any((e) => e.trim().isNotEmpty)) {
+                  preenchidos.add('irritações');
+                }
+                if (draft.includeCuriosities && draft.abilities.any((e) => e.trim().isNotEmpty)) {
+                  preenchidos.add('curiosidades');
+                }
+                if (draft.includeSupportTips && draft.supportTips.any((e) => e.trim().isNotEmpty)) {
+                  preenchidos.add('dicas de apoio');
+                }
+                if (draft.includeSupportLevel && draft.supportLevel.trim().isNotEmpty) {
+                  preenchidos.add('nível de suporte');
+                }
+                if ((draft.includeFoodLikes && draft.foodLikes.any((e) => e.trim().isNotEmpty)) ||
+                    (draft.includeFoodDislikes && draft.foodDislikes.any((e) => e.trim().isNotEmpty))) {
+                  preenchidos.add('alimentação');
+                }
+                if (draft.includeMedications && draft.medications.any((e) => e.trim().isNotEmpty)) {
+                  preenchidos.add('medicações');
+                }
+                if (draft.includeAllergies && draft.allergies.any((e) => e.trim().isNotEmpty)) {
+                  preenchidos.add('alergias');
+                }
+                if (draft.includeOtherImportantInfo && draft.otherImportantInfo.trim().isNotEmpty) {
+                  preenchidos.add('outras informações');
+                }
 
                 final String resumoSecoes = preenchidos.isNotEmpty
                     ? 'Seções preenchidas: ${preenchidos.join(", ")}.'

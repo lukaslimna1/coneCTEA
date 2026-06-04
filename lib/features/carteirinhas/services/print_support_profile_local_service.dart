@@ -14,13 +14,33 @@ class PrintSupportProfileDraft {
   final String updatedAt;
   final String preferredName;
   final String about;
-  
+
+  // Seleção/visibilidade dos blocos
+  final bool includePreferredName;
+  final bool includeAbout;
+  final bool includeCommunication;
+  final bool includeLikes;
+  final bool includeIrritations;
+  final bool includeCuriosities;
+  final bool includeSupportTips;
+  final bool includeSupportLevel;
+  final bool includeFoodLikes;
+  final bool includeFoodDislikes;
+  final bool includeMedications;
+  final bool includeAllergies;
+  final bool includeOtherImportantInfo;
+
   // Opções de comunicação
   final bool commSpeech;
   final bool commGestures;
   final bool commPictograms;
   final bool commApps;
   final String communicationNotes;
+
+  // Dados novos
+  final String supportLevel;
+  final List<String> foodLikes;
+  final List<String> foodDislikes;
 
   // Listas dinâmicas de textos
   final List<String> likes;
@@ -29,7 +49,7 @@ class PrintSupportProfileDraft {
   final List<String> supportTips;
   final List<String> medications;
   final List<String> allergies;
-  
+
   final String otherImportantInfo;
 
   PrintSupportProfileDraft({
@@ -37,11 +57,27 @@ class PrintSupportProfileDraft {
     required this.updatedAt,
     required this.preferredName,
     required this.about,
+    required this.includePreferredName,
+    required this.includeAbout,
+    required this.includeCommunication,
+    required this.includeLikes,
+    required this.includeIrritations,
+    required this.includeCuriosities,
+    required this.includeSupportTips,
+    required this.includeSupportLevel,
+    required this.includeFoodLikes,
+    required this.includeFoodDislikes,
+    required this.includeMedications,
+    required this.includeAllergies,
+    required this.includeOtherImportantInfo,
     required this.commSpeech,
     required this.commGestures,
     required this.commPictograms,
     required this.commApps,
     required this.communicationNotes,
+    required this.supportLevel,
+    required this.foodLikes,
+    required this.foodDislikes,
     required this.likes,
     required this.irritations,
     required this.abilities,
@@ -58,11 +94,27 @@ class PrintSupportProfileDraft {
       updatedAt: '',
       preferredName: '',
       about: '',
+      includePreferredName: false,
+      includeAbout: false,
+      includeCommunication: false,
+      includeLikes: false,
+      includeIrritations: false,
+      includeCuriosities: false,
+      includeSupportTips: false,
+      includeSupportLevel: false,
+      includeFoodLikes: false,
+      includeFoodDislikes: false,
+      includeMedications: false,
+      includeAllergies: false,
+      includeOtherImportantInfo: false,
       commSpeech: false,
       commGestures: false,
       commPictograms: false,
       commApps: false,
       communicationNotes: '',
+      supportLevel: '',
+      foodLikes: const [],
+      foodDislikes: const [],
       likes: const [],
       irritations: const [],
       abilities: const [],
@@ -75,23 +127,69 @@ class PrintSupportProfileDraft {
 
   /// Instancia o rascunho a partir de um mapa JSON obtido localmente.
   factory PrintSupportProfileDraft.fromJson(Map<String, dynamic> json) {
+    // Leitura dos campos
+    final preferredName = json['preferred_name']?.toString() ?? '';
+    final about = json['about']?.toString() ?? '';
+
+    final commSpeech = json['comm_speech'] == true;
+    final commGestures = json['comm_gestures'] == true;
+    final commPictograms = json['comm_pictograms'] == true;
+    final commApps = json['comm_apps'] == true;
+    final communicationNotes = json['communication_notes']?.toString() ?? '';
+
+    final likes = _toListString(json['likes']);
+    final irritations = _toListString(json['irritations']);
+    final abilities = _toListString(json['abilities']);
+    final supportTips = _toListString(json['support_tips']);
+    final medications = _toListString(json['medications']);
+    final allergies = _toListString(json['allergies']);
+    final otherImportantInfo = json['other_important_info']?.toString() ?? '';
+
+    final supportLevel = json['support_level']?.toString() ?? '';
+    final foodLikes = _toListString(json['food_likes']);
+    final foodDislikes = _toListString(json['food_dislikes']);
+
+    // Fallback para flags antigas: se não houver a flag no JSON, consideramos true se o campo correspondente tiver conteúdo.
+    bool parseFlag(String key, bool hasContent) {
+      if (json.containsKey(key)) return json[key] == true;
+      return hasContent;
+    }
+
+    final hasComm = commSpeech || commGestures || commPictograms || commApps || communicationNotes.trim().isNotEmpty;
+
     return PrintSupportProfileDraft(
       memberId: json['member_id']?.toString() ?? '',
       updatedAt: json['updated_at']?.toString() ?? '',
-      preferredName: json['preferred_name']?.toString() ?? '',
-      about: json['about']?.toString() ?? '',
-      commSpeech: json['comm_speech'] == true,
-      commGestures: json['comm_gestures'] == true,
-      commPictograms: json['comm_pictograms'] == true,
-      commApps: json['comm_apps'] == true,
-      communicationNotes: json['communication_notes']?.toString() ?? '',
-      likes: _toListString(json['likes']),
-      irritations: _toListString(json['irritations']),
-      abilities: _toListString(json['abilities']),
-      supportTips: _toListString(json['support_tips']),
-      medications: _toListString(json['medications']),
-      allergies: _toListString(json['allergies']),
-      otherImportantInfo: json['other_important_info']?.toString() ?? '',
+      preferredName: preferredName,
+      about: about,
+      includePreferredName: parseFlag('include_preferred_name', preferredName.trim().isNotEmpty),
+      includeAbout: parseFlag('include_about', about.trim().isNotEmpty),
+      includeCommunication: parseFlag('include_communication', hasComm),
+      includeLikes: parseFlag('include_likes', likes.any((e) => e.trim().isNotEmpty)),
+      includeIrritations: parseFlag('include_irritations', irritations.any((e) => e.trim().isNotEmpty)),
+      includeCuriosities: parseFlag('include_curiosities', abilities.any((e) => e.trim().isNotEmpty)),
+      includeSupportTips: parseFlag('include_support_tips', supportTips.any((e) => e.trim().isNotEmpty)),
+      includeSupportLevel: parseFlag('include_support_level', supportLevel.trim().isNotEmpty),
+      includeFoodLikes: parseFlag('include_food_likes', foodLikes.any((e) => e.trim().isNotEmpty)),
+      includeFoodDislikes: parseFlag('include_food_dislikes', foodDislikes.any((e) => e.trim().isNotEmpty)),
+      includeMedications: parseFlag('include_medications', medications.any((e) => e.trim().isNotEmpty)),
+      includeAllergies: parseFlag('include_allergies', allergies.any((e) => e.trim().isNotEmpty)),
+      includeOtherImportantInfo: parseFlag('include_other_important_info', otherImportantInfo.trim().isNotEmpty),
+      commSpeech: commSpeech,
+      commGestures: commGestures,
+      commPictograms: commPictograms,
+      commApps: commApps,
+      communicationNotes: communicationNotes,
+      supportLevel: supportLevel,
+      foodLikes: foodLikes,
+      foodDislikes: foodDislikes,
+      likes: likes,
+      irritations: irritations,
+      abilities: abilities,
+      supportTips: supportTips,
+      medications: medications,
+      allergies: allergies,
+      otherImportantInfo: otherImportantInfo,
     );
   }
 
@@ -103,11 +201,27 @@ class PrintSupportProfileDraft {
       'updated_at': updatedAt,
       'preferred_name': preferredName.trim(),
       'about': about.trim(),
+      'include_preferred_name': includePreferredName,
+      'include_about': includeAbout,
+      'include_communication': includeCommunication,
+      'include_likes': includeLikes,
+      'include_irritations': includeIrritations,
+      'include_curiosities': includeCuriosities,
+      'include_support_tips': includeSupportTips,
+      'include_support_level': includeSupportLevel,
+      'include_food_likes': includeFoodLikes,
+      'include_food_dislikes': includeFoodDislikes,
+      'include_medications': includeMedications,
+      'include_allergies': includeAllergies,
+      'include_other_important_info': includeOtherImportantInfo,
       'comm_speech': commSpeech,
       'comm_gestures': commGestures,
       'comm_pictograms': commPictograms,
       'comm_apps': commApps,
       'communication_notes': communicationNotes.trim(),
+      'support_level': supportLevel.trim(),
+      'food_likes': _normalizeList(foodLikes),
+      'food_dislikes': _normalizeList(foodDislikes),
       'likes': _normalizeList(likes),
       'irritations': _normalizeList(irritations),
       'abilities': _normalizeList(abilities),
@@ -127,6 +241,9 @@ class PrintSupportProfileDraft {
         commPictograms ||
         commApps ||
         communicationNotes.trim().isNotEmpty ||
+        supportLevel.trim().isNotEmpty ||
+        _normalizeList(foodLikes).isNotEmpty ||
+        _normalizeList(foodDislikes).isNotEmpty ||
         _normalizeList(likes).isNotEmpty ||
         _normalizeList(irritations).isNotEmpty ||
         _normalizeList(abilities).isNotEmpty ||
@@ -141,11 +258,27 @@ class PrintSupportProfileDraft {
     String? updatedAt,
     String? preferredName,
     String? about,
+    bool? includePreferredName,
+    bool? includeAbout,
+    bool? includeCommunication,
+    bool? includeLikes,
+    bool? includeIrritations,
+    bool? includeCuriosities,
+    bool? includeSupportTips,
+    bool? includeSupportLevel,
+    bool? includeFoodLikes,
+    bool? includeFoodDislikes,
+    bool? includeMedications,
+    bool? includeAllergies,
+    bool? includeOtherImportantInfo,
     bool? commSpeech,
     bool? commGestures,
     bool? commPictograms,
     bool? commApps,
     String? communicationNotes,
+    String? supportLevel,
+    List<String>? foodLikes,
+    List<String>? foodDislikes,
     List<String>? likes,
     List<String>? irritations,
     List<String>? abilities,
@@ -159,11 +292,27 @@ class PrintSupportProfileDraft {
       updatedAt: updatedAt ?? this.updatedAt,
       preferredName: preferredName ?? this.preferredName,
       about: about ?? this.about,
+      includePreferredName: includePreferredName ?? this.includePreferredName,
+      includeAbout: includeAbout ?? this.includeAbout,
+      includeCommunication: includeCommunication ?? this.includeCommunication,
+      includeLikes: includeLikes ?? this.includeLikes,
+      includeIrritations: includeIrritations ?? this.includeIrritations,
+      includeCuriosities: includeCuriosities ?? this.includeCuriosities,
+      includeSupportTips: includeSupportTips ?? this.includeSupportTips,
+      includeSupportLevel: includeSupportLevel ?? this.includeSupportLevel,
+      includeFoodLikes: includeFoodLikes ?? this.includeFoodLikes,
+      includeFoodDislikes: includeFoodDislikes ?? this.includeFoodDislikes,
+      includeMedications: includeMedications ?? this.includeMedications,
+      includeAllergies: includeAllergies ?? this.includeAllergies,
+      includeOtherImportantInfo: includeOtherImportantInfo ?? this.includeOtherImportantInfo,
       commSpeech: commSpeech ?? this.commSpeech,
       commGestures: commGestures ?? this.commGestures,
       commPictograms: commPictograms ?? this.commPictograms,
       commApps: commApps ?? this.commApps,
       communicationNotes: communicationNotes ?? this.communicationNotes,
+      supportLevel: supportLevel ?? this.supportLevel,
+      foodLikes: foodLikes ?? this.foodLikes,
+      foodDislikes: foodDislikes ?? this.foodDislikes,
       likes: likes ?? this.likes,
       irritations: irritations ?? this.irritations,
       abilities: abilities ?? this.abilities,

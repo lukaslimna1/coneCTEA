@@ -42,11 +42,31 @@ class _PrintSupportProfileSheetState extends State<PrintSupportProfileSheet> {
   bool _isSaving = false;
   final _localService = PrintSupportProfileLocalService();
 
+  // Flags de inclusão
+  bool _includePreferredName = false;
+  bool _includeAbout = false;
+  bool _includeCommunication = false;
+  bool _includeLikes = false;
+  bool _includeIrritations = false;
+  bool _includeCuriosities = false;
+  bool _includeSupportTips = false;
+  bool _includeSupportLevel = false;
+  bool _includeFoodLikes = false;
+  bool _includeFoodDislikes = false;
+  bool _includeMedications = false;
+  bool _includeAllergies = false;
+  bool _includeOtherImportantInfo = false;
+
   // Controllers locais temporarios para digitacao nos testes
   late final TextEditingController _nicknameController;
   late final TextEditingController _aboutMeController;
   late final TextEditingController _communicationObsController;
   late final TextEditingController _usefulInfoController;
+
+  // Dropdown e novas listas
+  String? _supportLevel;
+  final List<TextEditingController> _foodLikesControllers = [];
+  final List<TextEditingController> _foodDislikesControllers = [];
 
   // Listas de controllers para campos dinamicos curtos
   final List<TextEditingController> _likesControllers = [];
@@ -77,6 +97,8 @@ class _PrintSupportProfileSheetState extends State<PrintSupportProfileSheet> {
     _howToHelpControllers.add(TextEditingController());
     _medicationsControllers.add(TextEditingController());
     _allergiesControllers.add(TextEditingController());
+    _foodLikesControllers.add(TextEditingController());
+    _foodDislikesControllers.add(TextEditingController());
 
     // Carrega o rascunho localmente no início
     _loadLocalDraft();
@@ -108,6 +130,12 @@ class _PrintSupportProfileSheetState extends State<PrintSupportProfileSheet> {
     for (final c in _allergiesControllers) {
       c.dispose();
     }
+    for (final c in _foodLikesControllers) {
+      c.dispose();
+    }
+    for (final c in _foodDislikesControllers) {
+      c.dispose();
+    }
 
     super.dispose();
   }
@@ -126,12 +154,30 @@ class _PrintSupportProfileSheetState extends State<PrintSupportProfileSheet> {
           _commApps = draft.commApps;
           _communicationObsController.text = draft.communicationNotes;
 
+          _includePreferredName = draft.includePreferredName;
+          _includeAbout = draft.includeAbout;
+          _includeCommunication = draft.includeCommunication;
+          _includeLikes = draft.includeLikes;
+          _includeIrritations = draft.includeIrritations;
+          _includeCuriosities = draft.includeCuriosities;
+          _includeSupportTips = draft.includeSupportTips;
+          _includeSupportLevel = draft.includeSupportLevel;
+          _includeFoodLikes = draft.includeFoodLikes;
+          _includeFoodDislikes = draft.includeFoodDislikes;
+          _includeMedications = draft.includeMedications;
+          _includeAllergies = draft.includeAllergies;
+          _includeOtherImportantInfo = draft.includeOtherImportantInfo;
+
+          _supportLevel = draft.supportLevel.isNotEmpty ? draft.supportLevel : null;
+
           _fillControllers(_likesControllers, draft.likes);
           _fillControllers(_dislikesControllers, draft.irritations);
           _fillControllers(_abilitiesControllers, draft.abilities);
           _fillControllers(_howToHelpControllers, draft.supportTips);
           _fillControllers(_medicationsControllers, draft.medications);
           _fillControllers(_allergiesControllers, draft.allergies);
+          _fillControllers(_foodLikesControllers, draft.foodLikes);
+          _fillControllers(_foodDislikesControllers, draft.foodDislikes);
 
           _usefulInfoController.text = draft.otherImportantInfo;
         });
@@ -169,11 +215,27 @@ class _PrintSupportProfileSheetState extends State<PrintSupportProfileSheet> {
       updatedAt: '', // Atualizado internamente no servico
       preferredName: _nicknameController.text,
       about: _aboutMeController.text,
+      includePreferredName: _includePreferredName,
+      includeAbout: _includeAbout,
+      includeCommunication: _includeCommunication,
+      includeLikes: _includeLikes,
+      includeIrritations: _includeIrritations,
+      includeCuriosities: _includeCuriosities,
+      includeSupportTips: _includeSupportTips,
+      includeSupportLevel: _includeSupportLevel,
+      includeFoodLikes: _includeFoodLikes,
+      includeFoodDislikes: _includeFoodDislikes,
+      includeMedications: _includeMedications,
+      includeAllergies: _includeAllergies,
+      includeOtherImportantInfo: _includeOtherImportantInfo,
       commSpeech: _commSpeech,
       commGestures: _commGestures,
       commPictograms: _commPictograms,
       commApps: _commApps,
       communicationNotes: _communicationObsController.text,
+      supportLevel: _supportLevel ?? '',
+      foodLikes: _foodLikesControllers.map((c) => c.text).toList(),
+      foodDislikes: _foodDislikesControllers.map((c) => c.text).toList(),
       likes: _likesControllers.map((c) => c.text).toList(),
       irritations: _dislikesControllers.map((c) => c.text).toList(),
       abilities: _abilitiesControllers.map((c) => c.text).toList(),
@@ -387,63 +449,52 @@ class _PrintSupportProfileSheetState extends State<PrintSupportProfileSheet> {
                       ),
                       const SizedBox(height: 28),
 
-                      // Campo: Como gosto de ser chamado(a)
-                      DsInput(
-                        label: 'Como gosto de ser chamado(a)',
-                        controller: _nicknameController,
-                        hint: 'Ex: Dudu, Cacá, etc.',
-                      ),
-                      const SizedBox(height: 24),
 
-                      // ==========================================
-                      // BLOCO 1 — SOBRE MIM (Multilinha livre)
-                      // ==========================================
-                      DsCard(
-                        showTopAccent: true,
-                        accentColor: DsCores.conta.accent,
-                        borderColor: DsCores.conta.border,
-                        backgroundColor: DsCores.surfaceElevated.withValues(alpha: 0.25),
-                        padding: const EdgeInsets.all(16.0),
+                      _buildSectionBlock(
+                        isChecked: _includePreferredName,
+                        onChanged: (val) => setState(() => _includePreferredName = val ?? false),
+                        title: 'Como gosto de ser chamado(a)',
                         child: DsInput(
-                          label: 'Sobre mim',
-                          controller: _aboutMeController,
-                          hint: 'Escreva um resumo sobre a personalidade e características marcantes da pessoa.',
-                          maxLines: 3,
+                          label: 'Nome preferido',
+                          controller: _nicknameController,
+                          hint: 'Ex: Dudu, Cacá, etc.',
                         ),
                       ),
-                      const SizedBox(height: 20),
 
-                      // ==========================================
-                      // BLOCO 2 — COMO ME COMUNICO
-                      // ==========================================
-                      DsCard(
-                        showTopAccent: true,
-                        accentColor: DsCores.comunicacao.accent,
-                        borderColor: DsCores.comunicacao.border,
-                        backgroundColor: DsCores.surfaceElevated.withValues(alpha: 0.25),
-                        padding: const EdgeInsets.all(16.0),
+                      _buildSectionBlock(
+                        isChecked: _includeSupportLevel,
+                        onChanged: (val) => setState(() => _includeSupportLevel = val ?? false),
+                        title: 'Nível de suporte',
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              children: [
-                                Icon(
-                                  PhosphorIconsRegular.chatsTeardrop,
-                                  color: DsCores.comunicacao.accent,
-                                  size: 18,
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Como me comunico',
-                                  style: DsTipografia.cardTitle.copyWith(
-                                    fontSize: 14.5,
-                                    fontWeight: FontWeight.w700,
-                                    color: DsCores.comunicacao.accent,
-                                  ),
-                                ),
-                              ],
+                            Text(
+                              'Selecione o nível de suporte, se desejar informar.',
+                              style: DsTipografia.bodySmall.copyWith(color: DsCores.textSecondary),
                             ),
                             const SizedBox(height: 12),
+                            DsDropdown(
+                              label: 'Nível de suporte',
+                              value: _supportLevel,
+                              items: const [
+                                'Não informado',
+                                'Nível 1 de suporte',
+                                'Nível 2 de suporte',
+                                'Nível 3 de suporte',
+                              ],
+                              onChanged: (val) => setState(() => _supportLevel = (val == 'Não informado') ? '' : (val ?? '')),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      _buildSectionBlock(
+                        isChecked: _includeCommunication,
+                        onChanged: (val) => setState(() => _includeCommunication = val ?? false),
+                        title: 'Como me comunico',
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
                             DsCheckbox(
                               value: _commSpeech,
                               onChanged: (val) => setState(() => _commSpeech = val ?? false),
@@ -477,223 +528,159 @@ class _PrintSupportProfileSheetState extends State<PrintSupportProfileSheet> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 20),
 
-                      // ==========================================
-                      // BLOCO 3 — COISAS QUE GOSTO (Lista Dinâmica)
-                      // ==========================================
-                      DsCard(
-                        showTopAccent: true,
-                        accentColor: DsCores.sucesso.accent,
-                        borderColor: DsCores.sucesso.border,
-                        backgroundColor: DsCores.surfaceElevated.withValues(alpha: 0.25),
-                        padding: const EdgeInsets.all(16.0),
+                      _buildSectionBlock(
+                        isChecked: _includeAbout,
+                        onChanged: (val) => setState(() => _includeAbout = val ?? false),
+                        title: 'Sobre mim',
+                        child: DsInput(
+                          label: 'Resumo sobre mim',
+                          controller: _aboutMeController,
+                          hint: 'Escreva um resumo sobre a personalidade e características marcantes da pessoa.',
+                          maxLines: 3,
+                        ),
+                      ),
+
+                      _buildSectionBlock(
+                        isChecked: _includeCuriosities,
+                        onChanged: (val) => setState(() => _includeCuriosities = val ?? false),
+                        title: 'Curiosidades sobre mim',
                         child: _buildDynamicListSection(
-                          title: 'Coisas que eu gosto',
-                          titleColor: DsCores.sucesso.accent,
-                          titleIcon: PhosphorIconsRegular.smiley,
+                          title: '',
+                          controllers: _abilitiesControllers,
+                          hint: 'Ex: sei montar cubo mágico, adoro dinossauros...',
+                          onAdd: () => setState(() => _abilitiesControllers.add(TextEditingController())),
+                          onRemove: (idx) => setState(() {
+                            final c = _abilitiesControllers.removeAt(idx);
+                            c.dispose();
+                          }),
+                        ),
+                      ),
+
+                      _buildSectionBlock(
+                        isChecked: _includeLikes,
+                        onChanged: (val) => setState(() => _includeLikes = val ?? false),
+                        title: 'Coisas que eu gosto',
+                        child: _buildDynamicListSection(
+                          title: '',
                           controllers: _likesControllers,
                           hint: 'Ex: dinossauros, massinha, abraço apertado...',
-                          onAdd: () {
-                            setState(() {
-                              _likesControllers.add(TextEditingController());
-                            });
-                          },
-                          onRemove: (idx) {
-                            setState(() {
-                              final controller = _likesControllers.removeAt(idx);
-                              controller.dispose();
-                            });
-                          },
+                          onAdd: () => setState(() => _likesControllers.add(TextEditingController())),
+                          onRemove: (idx) => setState(() {
+                            final c = _likesControllers.removeAt(idx);
+                            c.dispose();
+                          }),
                         ),
                       ),
-                      const SizedBox(height: 20),
 
-                      // ==========================================
-                      // BLOCO 4 — COISAS QUE ME IRRITAM (Lista Dinâmica)
-                      // ==========================================
-                      DsCard(
-                        showTopAccent: true,
-                        accentColor: DsCores.alerta.accent,
-                        borderColor: DsCores.alerta.border,
-                        backgroundColor: DsCores.surfaceElevated.withValues(alpha: 0.25),
-                        padding: const EdgeInsets.all(16.0),
+                      _buildSectionBlock(
+                        isChecked: _includeIrritations,
+                        onChanged: (val) => setState(() => _includeIrritations = val ?? false),
+                        title: 'Coisas que me irritam',
                         child: _buildDynamicListSection(
-                          title: 'Coisas que me irritam',
-                          titleColor: DsCores.alerta.accent,
-                          titleIcon: PhosphorIconsRegular.smileySad,
+                          title: '',
                           controllers: _dislikesControllers,
-                          hint: 'Ex: barulhos imprevistos, luz forte, ser interrompido...',
-                          onAdd: () {
-                            setState(() {
-                              _dislikesControllers.add(TextEditingController());
-                            });
-                          },
-                          onRemove: (idx) {
-                            setState(() {
-                              final controller = _dislikesControllers.removeAt(idx);
-                              controller.dispose();
-                            });
-                          },
+                          hint: 'Ex: barulho alto, lugares muito cheios...',
+                          onAdd: () => setState(() => _dislikesControllers.add(TextEditingController())),
+                          onRemove: (idx) => setState(() {
+                            final c = _dislikesControllers.removeAt(idx);
+                            c.dispose();
+                          }),
                         ),
                       ),
-                      const SizedBox(height: 20),
 
-                      // ==========================================
-                      // BLOCO 5 — COISAS QUE POSSO FAZER (Lista Dinâmica)
-                      // ==========================================
-                      DsCard(
-                        showTopAccent: true,
-                        accentColor: DsCores.sucesso.accent,
-                        borderColor: DsCores.sucesso.border,
-                        backgroundColor: DsCores.surfaceElevated.withValues(alpha: 0.25),
-                        padding: const EdgeInsets.all(16.0),
+                      _buildSectionBlock(
+                        isChecked: _includeFoodLikes,
+                        onChanged: (val) => setState(() => _includeFoodLikes = val ?? false),
+                        title: 'Comidas que eu gosto',
                         child: _buildDynamicListSection(
-                          title: 'Coisas que eu posso fazer',
-                          titleColor: DsCores.sucesso.accent,
-                          titleIcon: PhosphorIconsRegular.star,
-                          controllers: _abilitiesControllers,
-                          hint: 'Ex: ir ao banheiro sozinho, calçar sapatos...',
-                          onAdd: () {
-                            setState(() {
-                              _abilitiesControllers.add(TextEditingController());
-                            });
-                          },
-                          onRemove: (idx) {
-                            setState(() {
-                              final controller = _abilitiesControllers.removeAt(idx);
-                              controller.dispose();
-                            });
-                          },
+                          title: '',
+                          controllers: _foodLikesControllers,
+                          hint: 'Use frases curtas para facilitar a leitura.',
+                          onAdd: () => setState(() => _foodLikesControllers.add(TextEditingController())),
+                          onRemove: (idx) => setState(() {
+                            final c = _foodLikesControllers.removeAt(idx);
+                            c.dispose();
+                          }),
                         ),
                       ),
-                      const SizedBox(height: 20),
 
-                      // ==========================================
-                      // BLOCO 6 — COMO ME AJUDAR (Lista Dinâmica)
-                      // ==========================================
-                      DsCard(
-                        showTopAccent: true,
-                        accentColor: DsCores.suporte.accent,
-                        borderColor: DsCores.suporte.border,
-                        backgroundColor: DsCores.surfaceElevated.withValues(alpha: 0.25),
-                        padding: const EdgeInsets.all(16.0),
+                      _buildSectionBlock(
+                        isChecked: _includeFoodDislikes,
+                        onChanged: (val) => setState(() => _includeFoodDislikes = val ?? false),
+                        title: 'Comidas que eu não gosto / que me incomodam',
                         child: _buildDynamicListSection(
-                          title: 'Como você pode me ajudar',
-                          titleColor: DsCores.suporte.accent,
-                          titleIcon: Icons.favorite_border_rounded,
+                          title: '',
+                          controllers: _foodDislikesControllers,
+                          hint: 'Use frases curtas para facilitar a leitura.',
+                          onAdd: () => setState(() => _foodDislikesControllers.add(TextEditingController())),
+                          onRemove: (idx) => setState(() {
+                            final c = _foodDislikesControllers.removeAt(idx);
+                            c.dispose();
+                          }),
+                        ),
+                      ),
+
+                      _buildSectionBlock(
+                        isChecked: _includeSupportTips,
+                        onChanged: (val) => setState(() => _includeSupportTips = val ?? false),
+                        title: 'Como você pode me ajudar',
+                        child: _buildDynamicListSection(
+                          title: '',
                           controllers: _howToHelpControllers,
-                          hint: 'Ex: falar pausadamente, oferecer fone abafador...',
-                          onAdd: () {
-                            setState(() {
-                              _howToHelpControllers.add(TextEditingController());
-                            });
-                          },
-                          onRemove: (idx) {
-                            setState(() {
-                              final controller = _howToHelpControllers.removeAt(idx);
-                              controller.dispose();
-                            });
-                          },
+                          hint: 'Ex: fale de forma clara, evite me tocar de surpresa...',
+                          onAdd: () => setState(() => _howToHelpControllers.add(TextEditingController())),
+                          onRemove: (idx) => setState(() {
+                            final c = _howToHelpControllers.removeAt(idx);
+                            c.dispose();
+                          }),
                         ),
                       ),
-                      const SizedBox(height: 20),
 
-                      // ==========================================
-                      // BLOCO 7 — INFORMAÇÕES ÚTEIS (Reorganizado)
-                      // ==========================================
-                      DsCard(
-                        showTopAccent: true,
-                        accentColor: DsCores.dadosProtegidos.accent,
-                        borderColor: DsCores.dadosProtegidos.border,
-                        backgroundColor: DsCores.surfaceElevated.withValues(alpha: 0.25),
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(
-                                  PhosphorIconsRegular.shieldWarning,
-                                  color: DsCores.dadosProtegidos.accent,
-                                  size: 18,
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Informações úteis',
-                                  style: DsTipografia.cardTitle.copyWith(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w700,
-                                    color: DsCores.dadosProtegidos.accent,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                               'Exemplo: medicações, alergias, restrições, cuidados e outras informações importantes que o usuário titular, família ou responsável desejar incluir.',
-                              style: DsTipografia.caption.copyWith(
-                                color: DsCores.textSecondary,
-                                height: 1.35,
-                              ),
-                            ),
-                            const SizedBox(height: 20),
-
-                            // 1. Lista Medicações
-                            _buildDynamicListSection(
-                              title: 'Medicações',
-                              titleColor: DsCores.dadosProtegidos.accent,
-                              titleIcon: PhosphorIconsRegular.pill,
-                              controllers: _medicationsControllers,
-                              hint: 'Ex: Paracetamol 500mg de 8/8h...',
-                              onAdd: () {
-                                setState(() {
-                                  _medicationsControllers.add(TextEditingController());
-                                });
-                              },
-                              onRemove: (idx) {
-                                setState(() {
-                                  final controller = _medicationsControllers.removeAt(idx);
-                                  controller.dispose();
-                                });
-                              },
-                            ),
-                            const SizedBox(height: 20),
-
-                            // 2. Lista Alergias
-                            _buildDynamicListSection(
-                              title: 'Alergias',
-                              titleColor: DsCores.alerta.accent,
-                              titleIcon: PhosphorIconsRegular.warning,
-                              controllers: _allergiesControllers,
-                              hint: 'Ex: APLV, Dipirona, poeira...',
-                              onAdd: () {
-                                setState(() {
-                                  _allergiesControllers.add(TextEditingController());
-                                });
-                              },
-                              onRemove: (idx) {
-                                setState(() {
-                                  final controller = _allergiesControllers.removeAt(idx);
-                                  controller.dispose();
-                                });
-                              },
-                            ),
-                            const SizedBox(height: 20),
-
-                            // 3. Outras informações (Multilinha maior)
-                            DsInput(
-                              label: 'Outras informações importantes',
-                              controller: _usefulInfoController,
-                              hint: 'Descreva outras recomendações importantes de cuidados diários, rotinas ou particularidades.',
-                              maxLines: 4,
-                            ),
-                          ],
+                      _buildSectionBlock(
+                        isChecked: _includeMedications,
+                        onChanged: (val) => setState(() => _includeMedications = val ?? false),
+                        title: 'Medicações',
+                        child: _buildDynamicListSection(
+                          title: '',
+                          controllers: _medicationsControllers,
+                          hint: 'Ex: Paracetamol 500mg de 8/8h...',
+                          onAdd: () => setState(() => _medicationsControllers.add(TextEditingController())),
+                          onRemove: (idx) => setState(() {
+                            final c = _medicationsControllers.removeAt(idx);
+                            c.dispose();
+                          }),
                         ),
                       ),
-                      const SizedBox(height: 28),
 
-                      // Texto Inspirador final
+                      _buildSectionBlock(
+                        isChecked: _includeAllergies,
+                        onChanged: (val) => setState(() => _includeAllergies = val ?? false),
+                        title: 'Alergias',
+                        child: _buildDynamicListSection(
+                          title: '',
+                          controllers: _allergiesControllers,
+                          hint: 'Ex: APLV, Dipirona, poeira...',
+                          onAdd: () => setState(() => _allergiesControllers.add(TextEditingController())),
+                          onRemove: (idx) => setState(() {
+                            final c = _allergiesControllers.removeAt(idx);
+                            c.dispose();
+                          }),
+                        ),
+                      ),
+
+                      _buildSectionBlock(
+                        isChecked: _includeOtherImportantInfo,
+                        onChanged: (val) => setState(() => _includeOtherImportantInfo = val ?? false),
+                        title: 'Outras informações importantes',
+                        child: DsInput(
+                          label: 'Observações finais',
+                          controller: _usefulInfoController,
+                          hint: 'Descreva outras recomendações importantes de cuidados diários, rotinas ou particularidades.',
+                          maxLines: 4,
+                        ),
+                      ),
+// Texto Inspirador final
                       Center(
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -760,49 +747,60 @@ class _PrintSupportProfileSheetState extends State<PrintSupportProfileSheet> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Row(
-                children: [
-                  if (titleIcon != null) ...[
-                    Icon(
-                      titleIcon,
-                      color: titleColor ?? DsCores.textPrimary,
-                      size: 18,
-                    ),
-                    const SizedBox(width: 8),
-                  ],
-                  Expanded(
-                    child: Text(
-                      title,
-                      style: DsTipografia.cardTitle.copyWith(
-                        fontSize: 14.5,
-                        fontWeight: FontWeight.w700,
+        if (title.isNotEmpty) ...[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    if (titleIcon != null) ...[
+                      Icon(
+                        titleIcon,
                         color: titleColor ?? DsCores.textPrimary,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: DsTipografia.cardTitle.copyWith(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w700,
+                          color: titleColor ?? DsCores.textPrimary,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            // Botão Adicionar Item discreto com ícone de "+"
-            IconButton(
+              IconButton(
+                onPressed: onAdd,
+                icon: Icon(Icons.add_circle_outline_rounded, color: DsCores.sucesso.accent, size: 22),
+                constraints: const BoxConstraints(),
+                padding: EdgeInsets.zero,
+                tooltip: 'Adicionar item',
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+        ] else ...[
+          // Title empty, just show Add button top right aligned
+          Align(
+            alignment: Alignment.centerRight,
+            child: IconButton(
               onPressed: onAdd,
-              icon: Icon(
-                Icons.add_circle_outline_rounded,
-                color: DsCores.sucesso.accent,
-                size: 22,
-              ),
+              icon: Icon(Icons.add_circle_outline_rounded, color: DsCores.sucesso.accent, size: 22),
               constraints: const BoxConstraints(),
               padding: EdgeInsets.zero,
               tooltip: 'Adicionar item',
             ),
-          ],
-        ),
-        const SizedBox(height: 8),
+          ),
+          const SizedBox(height: 8),
+        ],
         ListView.separated(
+
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: controllers.length,
@@ -845,12 +843,52 @@ class _PrintSupportProfileSheetState extends State<PrintSupportProfileSheet> {
     );
   }
 
+
+  Widget _buildSectionBlock({
+    required bool isChecked,
+    required ValueChanged<bool?> onChanged,
+    required String title,
+    required Widget child,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12.0),
+      decoration: BoxDecoration(
+        color: isChecked ? DsCores.surfaceElevated.withValues(alpha: 0.25) : DsCores.surface,
+        border: Border.all(
+          color: isChecked ? DsCores.sucesso.accent.withValues(alpha: 0.4) : DsCores.border,
+          width: 1,
+        ),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
+            child: DsCheckbox(
+              value: isChecked,
+              onChanged: onChanged,
+              label: _buildCheckboxLabel(title),
+            ),
+          ),
+          if (isChecked) ...[
+            const Divider(height: 1, color: DsCores.border),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: child,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   Widget _buildCheckboxLabel(String text) {
     return Text(
       text,
       style: DsTipografia.bodySmall.copyWith(
         fontWeight: FontWeight.w600,
-        color: Colors.white.withValues(alpha: 0.9),
+        color: DsCores.textPrimary,
       ),
     );
   }
