@@ -1,3 +1,4 @@
+import 'package:conectea/models/digital_card.dart';
 import 'package:conectea/models/member.dart';
 import 'print_card_options.dart';
 
@@ -38,6 +39,7 @@ class PrintContactInfo {
 /// overrides temporários e contatos extras locais para a geração do PDF.
 class PrintCardRequest {
   final Member member;
+  final DigitalCard activeCard;
   final PrintCardOptions options;
   final bool includeProfile;
   final List<PrintContactInfo> extraResponsibles;
@@ -57,6 +59,7 @@ class PrintCardRequest {
 
   const PrintCardRequest({
     required this.member,
+    required this.activeCard,
     required this.options,
     required this.includeProfile,
     required this.extraResponsibles,

@@ -90,6 +90,17 @@ class PrintModeEntryCard extends StatelessWidget {
                     paletteSeed: paletteSeed,
                   );
                   if (selected != null && context.mounted) {
+                    final activeCard = activeCardsMap[selected.id];
+                    if (activeCard == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Não foi possível localizar a carteirinha ativa para impressão.'),
+                          backgroundColor: Colors.redAccent,
+                        ),
+                      );
+                      return;
+                    }
+
                     // Abre a Bottom Sheet de decisão condicional por tipo
                     final String? decision = await PrintTypeDecisionSheet.show(
                       context,
@@ -101,6 +112,7 @@ class PrintModeEntryCard extends StatelessWidget {
                       final PrintCardRequest? printRequest = await PrintReviewInfoSheet.show(
                         context,
                         member: selected,
+                        activeCard: activeCard,
                         includeProfile: decision == 'include_profile',
                       );
 

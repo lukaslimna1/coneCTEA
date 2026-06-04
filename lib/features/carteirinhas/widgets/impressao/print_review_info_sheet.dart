@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 import 'package:conectea/models/member.dart';
+import 'package:conectea/models/digital_card.dart';
 import 'package:conectea/core/campos_cadastrais/campos_cadastrais.dart';
 import 'revisao/print_review_mandatory_section.dart';
 import 'revisao/print_review_legal_section.dart';
@@ -20,11 +21,13 @@ import 'package:conectea/features/carteirinhas/services/print_card_preferences_l
 /// opcionais e sensíveis serão incluídos na versão para impressão.
 class PrintReviewInfoSheet extends StatefulWidget {
   final Member member;
+  final DigitalCard activeCard;
   final bool includeProfile;
 
   const PrintReviewInfoSheet({
     super.key,
     required this.member,
+    required this.activeCard,
     required this.includeProfile,
   });
 
@@ -32,6 +35,7 @@ class PrintReviewInfoSheet extends StatefulWidget {
   static Future<PrintCardRequest?> show(
     BuildContext context, {
     required Member member,
+    required DigitalCard activeCard,
     required bool includeProfile,
   }) {
     return showModalBottomSheet<PrintCardRequest>(
@@ -41,6 +45,7 @@ class PrintReviewInfoSheet extends StatefulWidget {
       builder: (context) {
         return PrintReviewInfoSheet(
           member: member,
+          activeCard: activeCard,
           includeProfile: includeProfile,
         );
       },
@@ -1073,6 +1078,7 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
 
     return PrintCardRequest(
       member: widget.member,
+      activeCard: widget.activeCard,
       options: options,
       includeProfile: widget.includeProfile,
       extraResponsibles: cleanResponsibles,
