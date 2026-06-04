@@ -56,4 +56,36 @@ class PrintCardOptions {
       includeProfile: includeProfile ?? this.includeProfile,
     );
   }
+
+  factory PrintCardOptions.fromJson(Map<String, dynamic> json) {
+    return PrintCardOptions(
+      includeBirthDateAndAge: json['includeBirthDateAndAge'] as bool? ?? false,
+      includeMaskedCpf: json['includeMaskedCpf'] as bool? ?? false,
+      includeBloodType: json['includeBloodType'] as bool? ?? false,
+      includeCid: json['includeCid'] as bool? ?? false,
+      includePhone: json['includePhone'] as bool? ?? false,
+      includeCityUf: json['includeCityUf'] as bool? ?? false,
+      includeResponsible: json['includeResponsible'] as bool? ?? false,
+      includeEmergencyContacts: json['includeEmergencyContacts'] as bool? ?? false,
+      includeRaceColor: json['includeRaceColor'] as bool? ?? false,
+      includeGender: json['includeGender'] as bool? ?? false,
+      includeProfile: json['includeProfile'] as bool? ?? false,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'includeBirthDateAndAge': includeBirthDateAndAge,
+      'includeMaskedCpf': includeMaskedCpf,
+      'includeBloodType': includeBloodType,
+      'includeCid': includeCid,
+      'includePhone': includePhone,
+      'includeCityUf': includeCityUf,
+      'includeResponsible': includeResponsible,
+      'includeEmergencyContacts': includeEmergencyContacts,
+      'includeRaceColor': includeRaceColor,
+      'includeGender': includeGender,
+      'includeProfile': includeProfile,
+    };
+  }
 }

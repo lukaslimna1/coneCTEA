@@ -12,6 +12,7 @@ import 'revisao/print_review_extra_contacts_section.dart';
 import 'package:conectea/features/carteirinhas/services/print_support_profile_local_service.dart';
 import 'package:conectea/features/carteirinhas/models/impressao/print_card_options.dart';
 import 'package:conectea/features/carteirinhas/models/impressao/print_card_request.dart';
+import 'package:conectea/features/carteirinhas/services/print_card_preferences_local_service.dart';
 
 /// **PrintReviewInfoSheet**
 /// Diálogo modal bottom sheet que permite ao responsável revisar
@@ -53,6 +54,7 @@ class PrintReviewInfoSheet extends StatefulWidget {
 class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
   // Servico local e estados do Perfil de Apoio TEA
   final _localService = PrintSupportProfileLocalService();
+  final _prefsService = PrintCardPreferencesLocalService();
   PrintSupportProfileDraft? _supportProfileDraft;
   bool _isLoadingSupportProfileDraft = false;
 
@@ -110,6 +112,62 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
     // Carrega o rascunho local do Perfil de Apoio se solicitado no fluxo
     if (widget.includeProfile) {
       _loadSupportProfileDraft();
+    }
+
+    // Carrega preferências de opções de impressão da última vez
+    _loadPreferencesDraft();
+  }
+
+  Future<void> _loadPreferencesDraft() async {
+    final prefs = await _prefsService.load(widget.member.id);
+    if (prefs != null && mounted) {
+      setState(() {
+        _includeBirthDate = prefs.options.includeBirthDateAndAge;
+        _includeBloodType = prefs.options.includeBloodType;
+        _includePhone = prefs.options.includePhone;
+        _includeCityUf = prefs.options.includeCityUf;
+        _includeResponsible = prefs.options.includeResponsible;
+        _includeEmergency = prefs.options.includeEmergencyContacts;
+        _includeRacaCor = prefs.options.includeRaceColor;
+        _includeGender = prefs.options.includeGender;
+        _includeCid = prefs.options.includeCid;
+        _includeCpfMasked = prefs.options.includeMaskedCpf;
+
+        if (prefs.bloodTypeOverride != null) _tempBloodType = prefs.bloodTypeOverride;
+        if (prefs.phoneOverride != null) _tempPhoneController.text = prefs.phoneOverride!;
+        if (prefs.cityUfOverride != null) _tempCityUfController.text = prefs.cityUfOverride!;
+        if (prefs.raceColorOverride != null) _tempRacaCor = prefs.raceColorOverride;
+        if (prefs.genderOverride != null) _tempGender = prefs.genderOverride;
+        if (prefs.cidOverride != null) _tempCidController.text = prefs.cidOverride!;
+
+        if (prefs.responsibleNameOverride != null) _tempRespNameController.text = prefs.responsibleNameOverride!;
+        if (prefs.responsiblePhoneOverride != null) _tempRespPhoneController.text = prefs.responsiblePhoneOverride!;
+
+        if (prefs.emergencyNameOverride != null) _tempEmergNameController.text = prefs.emergencyNameOverride!;
+        if (prefs.emergencyPhoneOverride != null) _tempEmergPhoneController.text = prefs.emergencyPhoneOverride!;
+
+        if (prefs.extraResponsibles.isNotEmpty) {
+          _showExtraResponsiblesForm = true;
+          _extraResponsibles.clear();
+          for (var item in prefs.extraResponsibles) {
+            _extraResponsibles.add({
+              'name': TextEditingController(text: item.name),
+              'phone': TextEditingController(text: item.phone),
+            });
+          }
+        }
+
+        if (prefs.extraEmergencyContacts.isNotEmpty) {
+          _showExtraEmergenciesForm = true;
+          _extraEmergencies.clear();
+          for (var item in prefs.extraEmergencyContacts) {
+            _extraEmergencies.add({
+              'name': TextEditingController(text: item.name),
+              'phone': TextEditingController(text: item.phone),
+            });
+          }
+        }
+      });
     }
   }
 
@@ -469,9 +527,60 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
                         label: 'Continuar',
                         variante: DsBotaoVariante.acao,
                         token: DsCores.sucesso,
-                        onPressed: () {
+                        onPressed: () async {
                           final request = _buildRequestFromState();
-                          Navigator.pop(context, request);
+
+                          // Verifica se há algo marcado para salvar nas preferências
+                          final hasAnyOptionSelected = request.options.includeBirthDateAndAge ||
+                              request.options.includeMaskedCpf ||
+                              request.options.includeBloodType ||
+                              request.options.includeCid ||
+                              request.options.includePhone ||
+                              request.options.includeCityUf ||
+                              request.options.includeResponsible ||
+                              request.options.includeEmergencyContacts ||
+                              request.options.includeRaceColor ||
+                              request.options.includeGender;
+
+                          final hasOverridesOrExtras = request.bloodTypeOverride != null ||
+                              request.phoneOverride != null ||
+                              request.cityUfOverride != null ||
+                              request.raceColorOverride != null ||
+                              request.genderOverride != null ||
+                              request.cidOverride != null ||
+                              request.responsibleNameOverride != null ||
+                              request.responsiblePhoneOverride != null ||
+                              request.emergencyNameOverride != null ||
+                              request.emergencyPhoneOverride != null ||
+                              request.extraResponsibles.isNotEmpty ||
+                              request.extraEmergencyContacts.isNotEmpty;
+
+                          if (hasAnyOptionSelected || hasOverridesOrExtras) {
+                            final draft = PrintCardPreferencesDraft(
+                              options: request.options,
+                              extraResponsibles: request.extraResponsibles,
+                              extraEmergencyContacts: request.extraEmergencyContacts,
+                              bloodTypeOverride: request.bloodTypeOverride,
+                              phoneOverride: request.phoneOverride,
+                              cityUfOverride: request.cityUfOverride,
+                              raceColorOverride: request.raceColorOverride,
+                              genderOverride: request.genderOverride,
+                              cidOverride: request.cidOverride,
+                              responsibleNameOverride: request.responsibleNameOverride,
+                              responsiblePhoneOverride: request.responsiblePhoneOverride,
+                              emergencyNameOverride: request.emergencyNameOverride,
+                              emergencyPhoneOverride: request.emergencyPhoneOverride,
+                              updatedAt: DateTime.now().toIso8601String(),
+                            );
+                            await _prefsService.save(widget.member.id, draft);
+                          } else {
+                            // Se tudo estiver vazio/padrão, apaga as preferências antigas
+                            await _prefsService.delete(widget.member.id);
+                          }
+
+                          if (mounted) {
+                            Navigator.pop(context, request);
+                          }
                         },
                       ),
                     ),

@@ -16,6 +16,20 @@ class PrintContactInfo {
 
   /// Retorna true se houver qualquer conteúdo válido.
   bool get hasAnyContent => name.trim().isNotEmpty || phone.trim().isNotEmpty;
+
+  factory PrintContactInfo.fromJson(Map<String, dynamic> json) {
+    return PrintContactInfo(
+      name: json['name'] as String? ?? '',
+      phone: json['phone'] as String? ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'phone': phone,
+    };
+  }
 }
 
 /// **PrintCardRequest**
