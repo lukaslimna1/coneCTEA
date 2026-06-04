@@ -100,7 +100,8 @@ class PrintActionsBottomSheet extends StatelessWidget {
             // Ação 1: Visualizar e imprimir
             DsBotao(
               label: 'Visualizar e imprimir',
-              variante: DsBotaoVariante.primario,
+              variante: DsBotaoVariante.acao,
+              token: DsCores.carteirinha,
               icon: PhosphorIconsRegular.printer,
               onPressed: onPreview,
             ),
