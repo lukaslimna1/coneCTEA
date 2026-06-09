@@ -297,7 +297,7 @@ class PrintCardPdfService {
               if (draft.commPictograms) items.add('Figuras/Pictogramas');
               if (draft.commApps) items.add('Aplicativos/Dispositivos');
 
-              final optionsStr = items.join(' • ');
+              final optionsStr = items.join(' | ');
               final notesStr = draft.communicationNotes.trim();
               if (optionsStr.isNotEmpty && notesStr.isNotEmpty) {
                 commText = '$optionsStr\n$notesStr';
@@ -330,14 +330,14 @@ class PrintCardPdfService {
               pw.Text(
                 'Perfil de Apoio TEA',
                 style: pw.TextStyle(
-                  fontSize: 12,
+                  fontSize: 13,
                   fontWeight: pw.FontWeight.bold,
                   color: PdfColors.black,
                 ),
               ),
               pw.SizedBox(height: 4),
 
-              // Cabeçalho da Identificação (Foto 3x4 + Me chame de + Nível de suporte)
+              // Cabeçalho da Identificação (Foto 3x4 + Me chame de + Nível de suporte + Como me comunico)
               pw.Row(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
@@ -359,7 +359,7 @@ class PrintCardPdfService {
                       ),
                     ),
                   ),
-                  if (preferredName.isNotEmpty || supportLevel.isNotEmpty) ...[
+                  if (preferredName.isNotEmpty || supportLevel.isNotEmpty || commText.isNotEmpty) ...[
                     pw.SizedBox(width: 6),
                     pw.Expanded(
                       child: pw.Column(
@@ -371,6 +371,10 @@ class PrintCardPdfService {
                           ],
                           if (supportLevel.isNotEmpty) ...[
                             _buildHeaderField('Nível de suporte:', supportLevel),
+                            if (commText.isNotEmpty) pw.SizedBox(height: 3),
+                          ],
+                          if (commText.isNotEmpty) ...[
+                            _buildHeaderField('Como me comunico:', commText),
                           ],
                         ],
                       ),
@@ -378,13 +382,8 @@ class PrintCardPdfService {
                   ],
                 ],
               ),
-              pw.SizedBox(height: 4),
+              pw.SizedBox(height: 5),
             ];
-
-            if (commText.isNotEmpty) {
-              leftWidgets.add(_buildHeaderField('Como me comunico:', commText));
-              leftWidgets.add(pw.SizedBox(height: 3));
-            }
             if (draft.includeAbout && draft.about.trim().isNotEmpty) {
               leftWidgets.add(_buildProfileBlock('Sobre mim', draft.about.trim()));
             }
@@ -402,17 +401,7 @@ class PrintCardPdfService {
             leftWidgets.add(_buildProfileFooter());
 
             // Metade Direita
-            final rightWidgets = <pw.Widget>[
-              pw.Text(
-                'Informações de Apoio (Continuação)',
-                style: pw.TextStyle(
-                  fontSize: 12,
-                  fontWeight: pw.FontWeight.bold,
-                  color: PdfColors.black,
-                ),
-              ),
-              pw.SizedBox(height: 4),
-            ];
+            final rightWidgets = <pw.Widget>[];
 
             if (foodLikes.isNotEmpty) {
               rightWidgets.add(_buildProfileBlock('Comidas que eu gosto', foodLikes));
@@ -501,7 +490,10 @@ class PrintCardPdfService {
   Future<void> previewPrintCardPdfBytes(Uint8List bytes) async {
     await Printing.layoutPdf(
       onLayout: (PdfPageFormat format) async => bytes,
-      name: 'carteirinha_conectea.pdf',
+      name: 'Carteirinha ConeCTEA',
+      format: PdfPageFormat.a4.landscape,
+      dynamicLayout: false,
+      usePrinterSettings: false,
     );
   }
 
@@ -579,14 +571,6 @@ class PrintCardPdfService {
             child: pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-                pw.Text(
-                  'Informações de Apoio (Continuação)',
-                  style: pw.TextStyle(
-                    fontSize: 12,
-                    fontWeight: pw.FontWeight.bold,
-                    color: PdfColors.black,
-                  ),
-                ),
                 pw.Spacer(),
                 _buildProfileFooter(),
               ],
@@ -608,22 +592,14 @@ class PrintCardPdfService {
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
               pw.Text(
-                'A carteirinha é comunitária/interna e não substitui CIPTEA, RG, CPF, CNH, laudo, diagnóstico ou documento oficial.',
+                'Documento comunitário/interno de uso opcional. Não substitui CIPTEA, RG, CPF, CNH, laudo, diagnóstico ou qualquer documento oficial.',
                 style: pw.TextStyle(
                   fontSize: 6.0,
                   fontWeight: pw.FontWeight.bold,
                   color: PdfColors.grey800,
                 ),
               ),
-              pw.SizedBox(height: 1),
-              pw.Text(
-                'Conteúdo opcional, gerenciado localmente, e não substitui documentos oficiais.',
-                style: pw.TextStyle(
-                  fontSize: 5.5,
-                  color: PdfColors.grey700,
-                ),
-              ),
-              pw.SizedBox(height: 1),
+              pw.SizedBox(height: 1.5),
               pw.Text(
                 'Ao imprimir ou compartilhar, a responsabilidade sobre o uso das informações é do usuário titular, da família ou do responsável.',
                 style: pw.TextStyle(
@@ -1243,8 +1219,65 @@ class PrintCardPdfService {
 
   /// Constrói um bloco com conteúdo simulado para o Perfil de Apoio com destaque visual
   pw.Widget _buildProfileBlock(String label, String text) {
+    final cleanText = _normalizePdfText(text);
+    final List<String> lines = cleanText.split('\n');
+    final isList = lines.any((line) => line.trim().startsWith('•'));
+
+    pw.Widget contentWidget;
+    if (isList) {
+      contentWidget = pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: lines.map((line) {
+          final cleanLine = line.trim();
+          if (cleanLine.isEmpty) return pw.SizedBox.shrink();
+
+          final hasBullet = cleanLine.startsWith('•');
+          final itemText = hasBullet ? cleanLine.substring(1).trim() : cleanLine;
+
+          return pw.Padding(
+            padding: const pw.EdgeInsets.only(bottom: 2.5),
+            child: pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                if (hasBullet) ...[
+                  pw.Padding(
+                    padding: const pw.EdgeInsets.only(top: 3.5, left: 1.0, right: 4.5),
+                    child: pw.Container(
+                      width: 3.0,
+                      height: 3.0,
+                      decoration: const pw.BoxDecoration(
+                        color: PdfColors.black,
+                        shape: pw.BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                ],
+                pw.Expanded(
+                  child: pw.Text(
+                    itemText,
+                    style: pw.TextStyle(
+                      fontSize: 8.0,
+                      color: PdfColors.black,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      );
+    } else {
+      contentWidget = pw.Text(
+        cleanText,
+        style: pw.TextStyle(
+          fontSize: 8.0,
+          color: PdfColors.black,
+        ),
+      );
+    }
+
     return pw.Container(
-      margin: const pw.EdgeInsets.only(bottom: 5),
+      margin: const pw.EdgeInsets.only(bottom: 6),
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
@@ -1253,14 +1286,14 @@ class PrintCardPdfService {
             margin: const pw.EdgeInsets.only(bottom: 2),
             decoration: const pw.BoxDecoration(
               border: pw.Border(
-                bottom: pw.BorderSide(color: PdfColors.grey300, width: 0.6),
+                bottom: pw.BorderSide(color: PdfColors.grey500, width: 0.7),
               ),
             ),
             padding: const pw.EdgeInsets.only(bottom: 1),
             child: pw.Text(
               label.toUpperCase(),
               style: pw.TextStyle(
-                fontSize: 8.0,
+                fontSize: 9.0,
                 fontWeight: pw.FontWeight.bold,
                 color: PdfColors.grey900,
               ),
@@ -1270,17 +1303,11 @@ class PrintCardPdfService {
             width: double.infinity,
             decoration: pw.BoxDecoration(
               color: PdfColors.white,
-              border: pw.Border.all(color: PdfColors.grey400, width: 0.5),
+              border: pw.Border.all(color: PdfColors.grey600, width: 0.6),
               borderRadius: const pw.BorderRadius.all(pw.Radius.circular(2)),
             ),
-            padding: const pw.EdgeInsets.symmetric(horizontal: 5, vertical: 2.5),
-            child: pw.Text(
-              text,
-              style: pw.TextStyle(
-                fontSize: 7.0,
-                color: PdfColors.black,
-              ),
-            ),
+            padding: const pw.EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+            child: contentWidget,
           ),
         ],
       ),
@@ -1289,15 +1316,16 @@ class PrintCardPdfService {
 
   /// Helper exclusivo para campos do topo do Perfil de Apoio
   pw.Widget _buildHeaderField(String label, String value) {
+    final cleanValue = _normalizePdfText(value);
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
         pw.Text(
           label.toUpperCase(),
           style: pw.TextStyle(
-            fontSize: 7.0,
+            fontSize: 7.5,
             fontWeight: pw.FontWeight.bold,
-            color: PdfColors.grey700,
+            color: PdfColors.grey800,
           ),
         ),
         pw.SizedBox(height: 1.0),
@@ -1305,14 +1333,14 @@ class PrintCardPdfService {
           width: double.infinity,
           decoration: pw.BoxDecoration(
             color: PdfColors.grey100,
-            border: pw.Border.all(color: PdfColors.grey300, width: 0.5),
+            border: pw.Border.all(color: PdfColors.grey500, width: 0.5),
             borderRadius: const pw.BorderRadius.all(pw.Radius.circular(2)),
           ),
           padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 2.5),
           child: pw.Text(
-            value,
+            cleanValue,
             style: pw.TextStyle(
-              fontSize: 7.5,
+              fontSize: 8.0,
               fontWeight: pw.FontWeight.bold,
               color: PdfColors.black,
             ),
@@ -1360,5 +1388,10 @@ class PrintCardPdfService {
       return (parts.first[0] + parts.last[0]).toUpperCase();
     }
     return parts.first[0].toUpperCase();
+  }
+
+  /// Normaliza caracteres de travessão incompatíveis com a fonte do PDF
+  String _normalizePdfText(String text) {
+    return text.replaceAll('—', '-').replaceAll('–', '-');
   }
 }
