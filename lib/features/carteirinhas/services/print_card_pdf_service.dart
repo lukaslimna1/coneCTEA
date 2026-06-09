@@ -270,213 +270,448 @@ class PrintCardPdfService {
     );
     logStage('adição Página 1');
 
-    // --- PÁGINA 2: Interna / Perfil de Apoio TEA (Opcional, em folha dupla/verso) ---
+    // --- PÁGINA 2 E PÁGINA 3 CONDICIONAL: Interna / Perfil de Apoio TEA (Opcional, em folha dupla/verso) ---
     if (request.includeProfile) {
-      pdf.addPage(
-        pw.Page(
-          pageFormat: pageFormat,
-          build: (pw.Context context) {
-            // Se o rascunho for nulo ou não contiver dados, exibe a página informativa de perfil vazio
-            if (draft == null || !draft.hasAnyContent) {
+      bool hasPage3 = false;
+      if (draft == null || !draft.hasAnyContent) {
+        pdf.addPage(
+          pw.Page(
+            pageFormat: pageFormat,
+            build: (pw.Context context) {
               return _buildEmptyProfilePage();
-            }
+            },
+          ),
+        );
+        logStage('adição Página 2 (Perfil Vazio)');
+      } else {
+        final String preferredName = (draft.includePreferredName && draft.preferredName.trim().isNotEmpty)
+            ? draft.preferredName.trim()
+            : '';
+        final String supportLevel = (draft.includeSupportLevel && draft.supportLevel.trim().isNotEmpty)
+            ? draft.supportLevel.trim()
+            : '';
 
-            final String preferredName = (draft.includePreferredName && draft.preferredName.trim().isNotEmpty)
-                ? draft.preferredName.trim()
-                : '';
-            final String supportLevel = (draft.includeSupportLevel && draft.supportLevel.trim().isNotEmpty)
-                ? draft.supportLevel.trim()
-                : '';
+        // Como me comunico
+        String commText = '';
+        if (draft.includeCommunication) {
+          final List<String> items = [];
+          if (draft.commSpeech) items.add('Fala');
+          if (draft.commGestures) items.add('Gestos/Expressões');
+          if (draft.commPictograms) items.add('Figuras/Pictogramas');
+          if (draft.commApps) items.add('Aplicativos/Dispositivos');
 
-            // Como me comunico
-            String commText = '';
-            if (draft.includeCommunication) {
-              final List<String> items = [];
-              if (draft.commSpeech) items.add('Fala');
-              if (draft.commGestures) items.add('Gestos/Expressões');
-              if (draft.commPictograms) items.add('Figuras/Pictogramas');
-              if (draft.commApps) items.add('Aplicativos/Dispositivos');
+          final optionsStr = items.join(' | ');
+          final notesStr = draft.communicationNotes.trim();
+          if (optionsStr.isNotEmpty && notesStr.isNotEmpty) {
+            commText = '$optionsStr\n$notesStr';
+          } else if (optionsStr.isNotEmpty) {
+            commText = optionsStr;
+          } else {
+            commText = notesStr;
+          }
+        }
 
-              final optionsStr = items.join(' | ');
-              final notesStr = draft.communicationNotes.trim();
-              if (optionsStr.isNotEmpty && notesStr.isNotEmpty) {
-                commText = '$optionsStr\n$notesStr';
-              } else if (optionsStr.isNotEmpty) {
-                commText = optionsStr;
+        // Helper interno para formatar listas dinâmicas com "• "
+        String formatList(List<String> list) {
+          final clean = list.map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+          if (clean.isEmpty) return '';
+          return clean.map((e) => '• $e').join('\n');
+        }
+
+        final String curiosities = draft.includeCuriosities ? formatList(draft.abilities) : '';
+        final String likes = draft.includeLikes ? formatList(draft.likes) : '';
+        final String irritations = draft.includeIrritations ? formatList(draft.irritations) : '';
+
+        final String foodLikes = draft.includeFoodLikes ? formatList(draft.foodLikes) : '';
+        final String foodDislikes = draft.includeFoodDislikes ? formatList(draft.foodDislikes) : '';
+        final String medications = draft.includeMedications ? formatList(draft.medications) : '';
+        final String allergies = draft.includeAllergies ? formatList(draft.allergies) : '';
+        final String supportTips = draft.includeSupportTips ? formatList(draft.supportTips) : '';
+
+        // Coleta de Specs para a Metade Esquerda
+        final leftSpecs = <_ProfileBlockSpec>[];
+        if (draft.includeAbout && draft.about.trim().isNotEmpty) {
+          leftSpecs.add(_ProfileBlockSpec('Sobre mim', draft.about.trim()));
+        }
+        if (curiosities.isNotEmpty) {
+          leftSpecs.add(_ProfileBlockSpec('Curiosidades sobre mim', curiosities));
+        }
+        if (likes.isNotEmpty) {
+          leftSpecs.add(_ProfileBlockSpec('Coisas que eu gosto', likes));
+        }
+        if (irritations.isNotEmpty) {
+          leftSpecs.add(_ProfileBlockSpec('Coisas que me irritam', irritations));
+        }
+
+        // Coleta de Specs para a Metade Direita
+        final rightSpecs = <_ProfileBlockSpec>[];
+        if (foodLikes.isNotEmpty) {
+          rightSpecs.add(_ProfileBlockSpec('Comidas que eu gosto', foodLikes));
+        }
+        if (foodDislikes.isNotEmpty) {
+          rightSpecs.add(_ProfileBlockSpec('Comidas que eu não gosto / que me incomodam', foodDislikes));
+        }
+        if (medications.isNotEmpty) {
+          rightSpecs.add(_ProfileBlockSpec('Medicações', medications));
+        }
+        if (allergies.isNotEmpty) {
+          rightSpecs.add(_ProfileBlockSpec('Alergias', allergies));
+        }
+        if (draft.includeOtherImportantInfo && draft.otherImportantInfo.trim().isNotEmpty) {
+          rightSpecs.add(_ProfileBlockSpec('Outras informações importantes', draft.otherImportantInfo.trim()));
+        }
+        if (supportTips.isNotEmpty) {
+          rightSpecs.add(_ProfileBlockSpec('Como você pode me ajudar', supportTips));
+        }
+
+        // Constantes de layout para cálculo de overflow físico (Tarefa 2)
+        const double pageHeightUseful = 555.275; // Altura útil da página
+        const double footerHeightReserved = 25.0; // Altura do rodapé e margem
+        const double leftHeaderHeight = 139.38; // Título (19 pt) + Foto 3x4 (115.38 pt) + Espaçador (5 pt)
+
+        // Limites úteis reais para a distribuição dos blocos na Página 2
+        const double leftLimitP2 = pageHeightUseful - leftHeaderHeight - footerHeightReserved; // ~390.89 pt
+        const double rightLimitP2 = pageHeightUseful - footerHeightReserved; // ~530.275 pt
+
+        // Algoritmo de partição para a Metade Esquerda
+        final leftP2 = <_ProfileBlockSpec>[];
+        final leftP3 = <_ProfileBlockSpec>[];
+        double leftHeightP2 = 0.0;
+
+        for (final block in leftSpecs) {
+          final double h = _estimateBlockHeight(block.label, block.content, block.isList);
+          if (leftHeightP2 + h <= leftLimitP2) {
+            leftP2.add(block);
+            leftHeightP2 += h;
+          } else {
+            final double remainingSpace = leftLimitP2 - leftHeightP2;
+            if (remainingSpace >= 50.0) {
+              if (block.isList) {
+                final items = block.getItems();
+                final p2Items = <String>[];
+                final p3Items = <String>[];
+                double currentH = 28.0;
+
+                for (final item in items) {
+                  final itemText = item.startsWith('•') ? item.substring(1).trim() : item;
+                  final int itemLines = (itemText.length / 75.0).ceil();
+                  final double itemH = (itemLines * 9.6) + 2.5;
+
+                  if (leftHeightP2 + currentH + itemH <= leftLimitP2) {
+                    p2Items.add(item);
+                    currentH += itemH;
+                  } else {
+                    p3Items.add(item);
+                  }
+                }
+
+                if (p2Items.isNotEmpty && p3Items.isNotEmpty) {
+                  leftP2.add(_ProfileBlockSpec(block.label, p2Items.join('\n')));
+                  leftP3.add(_ProfileBlockSpec('${block.label} (continuação)', p3Items.join('\n')));
+                  leftHeightP2 += currentH;
+                  continue;
+                }
               } else {
-                commText = notesStr;
+                final paragraphs = block.content.split('\n');
+                final p2Paragraphs = <String>[];
+                final p3Paragraphs = <String>[];
+                double currentH = 28.0;
+
+                for (final para in paragraphs) {
+                  final int textLines = para.trim().isEmpty ? 1 : (para.trim().length / 80.0).ceil();
+                  final double paraH = textLines * 9.6;
+
+                  if (leftHeightP2 + currentH + paraH <= leftLimitP2) {
+                    p2Paragraphs.add(para);
+                    currentH += paraH;
+                  } else {
+                    p3Paragraphs.add(para);
+                  }
+                }
+
+                if (p2Paragraphs.isNotEmpty && p3Paragraphs.isNotEmpty) {
+                  leftP2.add(_ProfileBlockSpec(block.label, p2Paragraphs.join('\n')));
+                  leftP3.add(_ProfileBlockSpec('${block.label} (continuação)', p3Paragraphs.join('\n')));
+                  leftHeightP2 += currentH;
+                  continue;
+                }
               }
             }
+            leftP3.add(block);
+          }
+        }
 
-            // Helper interno para formatar listas dinâmicas com "• "
-            String formatList(List<String> list) {
-              final clean = list.map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
-              if (clean.isEmpty) return '';
-              return clean.map((e) => '• $e').join('\n');
+        // Algoritmo de partição para a Metade Direita
+        final rightP2 = <_ProfileBlockSpec>[];
+        final rightP3 = <_ProfileBlockSpec>[];
+        double rightHeightP2 = 0.0;
+
+        for (final block in rightSpecs) {
+          final double h = _estimateBlockHeight(block.label, block.content, block.isList);
+          if (rightHeightP2 + h <= rightLimitP2) {
+            rightP2.add(block);
+            rightHeightP2 += h;
+          } else {
+            final double remainingSpace = rightLimitP2 - rightHeightP2;
+            if (remainingSpace >= 50.0) {
+              if (block.isList) {
+                final items = block.getItems();
+                final p2Items = <String>[];
+                final p3Items = <String>[];
+                double currentH = 28.0;
+
+                for (final item in items) {
+                  final itemText = item.startsWith('•') ? item.substring(1).trim() : item;
+                  final int itemLines = (itemText.length / 75.0).ceil();
+                  final double itemH = (itemLines * 9.6) + 2.5;
+
+                  if (rightHeightP2 + currentH + itemH <= rightLimitP2) {
+                    p2Items.add(item);
+                    currentH += itemH;
+                  } else {
+                    p3Items.add(item);
+                  }
+                }
+
+                if (p2Items.isNotEmpty && p3Items.isNotEmpty) {
+                  rightP2.add(_ProfileBlockSpec(block.label, p2Items.join('\n')));
+                  rightP3.add(_ProfileBlockSpec('${block.label} (continuação)', p3Items.join('\n')));
+                  rightHeightP2 += currentH;
+                  continue;
+                }
+              } else {
+                final paragraphs = block.content.split('\n');
+                final p2Paragraphs = <String>[];
+                final p3Paragraphs = <String>[];
+                double currentH = 28.0;
+
+                for (final para in paragraphs) {
+                  final int textLines = para.trim().isEmpty ? 1 : (para.trim().length / 80.0).ceil();
+                  final double paraH = textLines * 9.6;
+
+                  if (rightHeightP2 + currentH + paraH <= rightLimitP2) {
+                    p2Paragraphs.add(para);
+                    currentH += paraH;
+                  } else {
+                    p3Paragraphs.add(para);
+                  }
+                }
+
+                if (p2Paragraphs.isNotEmpty && p3Paragraphs.isNotEmpty) {
+                  rightP2.add(_ProfileBlockSpec(block.label, p2Paragraphs.join('\n')));
+                  rightP3.add(_ProfileBlockSpec('${block.label} (continuação)', p3Paragraphs.join('\n')));
+                  rightHeightP2 += currentH;
+                  continue;
+                }
+              }
             }
+            rightP3.add(block);
+          }
+        }
 
-            final String curiosities = draft.includeCuriosities ? formatList(draft.abilities) : '';
-            final String likes = draft.includeLikes ? formatList(draft.likes) : '';
-            final String irritations = draft.includeIrritations ? formatList(draft.irritations) : '';
-
-            final String foodLikes = draft.includeFoodLikes ? formatList(draft.foodLikes) : '';
-            final String foodDislikes = draft.includeFoodDislikes ? formatList(draft.foodDislikes) : '';
-            final String medications = draft.includeMedications ? formatList(draft.medications) : '';
-            final String allergies = draft.includeAllergies ? formatList(draft.allergies) : '';
-            final String supportTips = draft.includeSupportTips ? formatList(draft.supportTips) : '';
-
-            // Metade Esquerda
-            final leftWidgets = <pw.Widget>[
-              pw.Text(
-                'Perfil de Apoio TEA',
-                style: pw.TextStyle(
-                  fontSize: 13,
-                  fontWeight: pw.FontWeight.bold,
-                  color: PdfColors.black,
+        // Construção dos Widgets da Página 2 Esquerda
+        final leftWidgetsP2 = <pw.Widget>[
+          pw.Text(
+            'Perfil de Apoio TEA',
+            style: pw.TextStyle(
+              fontSize: 13,
+              fontWeight: pw.FontWeight.bold,
+              color: PdfColors.black,
+            ),
+          ),
+          pw.SizedBox(height: 4),
+          pw.Row(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Container(
+                width: 30 * PdfPageFormat.mm,
+                height: 40 * PdfPageFormat.mm,
+                decoration: pw.BoxDecoration(
+                  border: pw.Border.all(color: PdfColors.grey600, width: 1),
+                  color: PdfColors.grey100,
+                  borderRadius: const pw.BorderRadius.all(pw.Radius.circular(3)),
+                ),
+                alignment: pw.Alignment.center,
+                child: pw.Text(
+                  'Foto 3x4',
+                  style: pw.TextStyle(
+                    fontSize: 8,
+                    fontWeight: pw.FontWeight.bold,
+                    color: PdfColors.grey700,
+                  ),
                 ),
               ),
-              pw.SizedBox(height: 4),
-
-              // Cabeçalho da Identificação (Foto 3x4 + Me chame de + Nível de suporte + Como me comunico)
-              pw.Row(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  pw.Container(
-                    width: 30 * PdfPageFormat.mm,
-                    height: 40 * PdfPageFormat.mm,
-                    decoration: pw.BoxDecoration(
-                      border: pw.Border.all(color: PdfColors.grey600, width: 1),
-                      color: PdfColors.grey100,
-                      borderRadius: const pw.BorderRadius.all(pw.Radius.circular(3)),
-                    ),
-                    alignment: pw.Alignment.center,
-                    child: pw.Text(
-                      'Foto 3x4',
-                      style: pw.TextStyle(
-                        fontSize: 8,
-                        fontWeight: pw.FontWeight.bold,
-                        color: PdfColors.grey700,
-                      ),
-                    ),
+              if (preferredName.isNotEmpty || supportLevel.isNotEmpty || commText.isNotEmpty) ...[
+                pw.SizedBox(width: 6),
+                pw.Expanded(
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      if (preferredName.isNotEmpty) ...[
+                        _buildHeaderField('Me chame de:', preferredName),
+                        pw.SizedBox(height: 3),
+                      ],
+                      if (supportLevel.isNotEmpty) ...[
+                        _buildHeaderField('Nível de suporte:', supportLevel),
+                        if (commText.isNotEmpty) pw.SizedBox(height: 3),
+                      ],
+                      if (commText.isNotEmpty) ...[
+                        _buildHeaderField('Como me comunico:', commText),
+                      ],
+                    ],
                   ),
-                  if (preferredName.isNotEmpty || supportLevel.isNotEmpty || commText.isNotEmpty) ...[
-                    pw.SizedBox(width: 6),
+                ),
+              ],
+            ],
+          ),
+          pw.SizedBox(height: 5),
+          ...leftP2.map((b) => _buildProfileBlock(b.label, b.content)),
+          pw.Spacer(),
+          _buildProfileFooter(),
+        ];
+
+        // Construção dos Widgets da Página 2 Direita
+        final rightWidgetsP2 = <pw.Widget>[
+          ...rightP2.map((b) => _buildProfileBlock(b.label, b.content)),
+          pw.Spacer(),
+          _buildProfileFooter(),
+        ];
+
+        // Adiciona Página 2
+        pdf.addPage(
+          pw.Page(
+            pageFormat: pageFormat,
+            build: (pw.Context context) {
+              return pw.Container(
+                padding: const pw.EdgeInsets.all(10),
+                child: pw.Row(
+                  children: [
                     pw.Expanded(
+                      flex: 5,
                       child: pw.Column(
                         crossAxisAlignment: pw.CrossAxisAlignment.start,
-                        children: [
-                          if (preferredName.isNotEmpty) ...[
-                            _buildHeaderField('Me chame de:', preferredName),
-                            pw.SizedBox(height: 3),
-                          ],
-                          if (supportLevel.isNotEmpty) ...[
-                            _buildHeaderField('Nível de suporte:', supportLevel),
-                            if (commText.isNotEmpty) pw.SizedBox(height: 3),
-                          ],
-                          if (commText.isNotEmpty) ...[
-                            _buildHeaderField('Como me comunico:', commText),
-                          ],
-                        ],
+                        children: leftWidgetsP2,
                       ),
                     ),
-                  ],
-                ],
-              ),
-              pw.SizedBox(height: 5),
-            ];
-            if (draft.includeAbout && draft.about.trim().isNotEmpty) {
-              leftWidgets.add(_buildProfileBlock('Sobre mim', draft.about.trim()));
-            }
-            if (curiosities.isNotEmpty) {
-              leftWidgets.add(_buildProfileBlock('Curiosidades sobre mim', curiosities));
-            }
-            if (likes.isNotEmpty) {
-              leftWidgets.add(_buildProfileBlock('Coisas que eu gosto', likes));
-            }
-            if (irritations.isNotEmpty) {
-              leftWidgets.add(_buildProfileBlock('Coisas que me irritam', irritations));
-            }
-
-            leftWidgets.add(pw.Spacer());
-            leftWidgets.add(_buildProfileFooter());
-
-            // Metade Direita
-            final rightWidgets = <pw.Widget>[];
-
-            if (foodLikes.isNotEmpty) {
-              rightWidgets.add(_buildProfileBlock('Comidas que eu gosto', foodLikes));
-            }
-            if (foodDislikes.isNotEmpty) {
-              rightWidgets.add(_buildProfileBlock('Comidas que eu não gosto / que me incomodam', foodDislikes));
-            }
-            if (medications.isNotEmpty) {
-              rightWidgets.add(_buildProfileBlock('Medicações', medications));
-            }
-            if (allergies.isNotEmpty) {
-              rightWidgets.add(_buildProfileBlock('Alergias', allergies));
-            }
-            if (draft.includeOtherImportantInfo && draft.otherImportantInfo.trim().isNotEmpty) {
-              rightWidgets.add(_buildProfileBlock('Outras informações importantes', draft.otherImportantInfo.trim()));
-            }
-            if (supportTips.isNotEmpty) {
-              rightWidgets.add(_buildProfileBlock('Como você pode me ajudar', supportTips));
-            }
-
-            rightWidgets.add(pw.Spacer());
-            rightWidgets.add(_buildProfileFooter());
-
-            return pw.Container(
-              padding: const pw.EdgeInsets.all(10),
-              child: pw.Row(
-                children: [
-                  // Metade Esquerda
-                  pw.Expanded(
-                    flex: 5,
-                    child: pw.Column(
-                      crossAxisAlignment: pw.CrossAxisAlignment.start,
-                      children: leftWidgets,
-                    ),
-                  ),
-
-                  // Divisor Central de Dobra
-                  pw.Container(
-                    width: 16,
-                    child: pw.Column(
-                      mainAxisAlignment: pw.MainAxisAlignment.center,
-                      children: [
-                        pw.Text('DOBRA', style: pw.TextStyle(fontSize: 4, color: PdfColors.grey500, fontWeight: pw.FontWeight.bold)),
-                        pw.SizedBox(height: 4),
-                        pw.Expanded(
-                          child: pw.Container(
-                            width: 0.8,
-                            decoration: const pw.BoxDecoration(
-                              border: pw.Border(
-                                left: pw.BorderSide(color: PdfColors.grey400, width: 0.8, style: pw.BorderStyle.dashed),
+                    pw.Container(
+                      width: 16,
+                      child: pw.Column(
+                        mainAxisAlignment: pw.MainAxisAlignment.center,
+                        children: [
+                          pw.Text('DOBRA', style: pw.TextStyle(fontSize: 4, color: PdfColors.grey500, fontWeight: pw.FontWeight.bold)),
+                          pw.SizedBox(height: 4),
+                          pw.Expanded(
+                            child: pw.Container(
+                              width: 0.8,
+                              decoration: const pw.BoxDecoration(
+                                border: pw.Border(
+                                  left: pw.BorderSide(color: PdfColors.grey400, width: 0.8, style: pw.BorderStyle.dashed),
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        pw.SizedBox(height: 4),
-                        pw.Text('DOBRA', style: pw.TextStyle(fontSize: 4, color: PdfColors.grey500, fontWeight: pw.FontWeight.bold)),
-                      ],
+                          pw.SizedBox(height: 4),
+                          pw.Text('DOBRA', style: pw.TextStyle(fontSize: 4, color: PdfColors.grey500, fontWeight: pw.FontWeight.bold)),
+                        ],
+                      ),
                     ),
-                  ),
+                    pw.Expanded(
+                      flex: 5,
+                      child: pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: rightWidgetsP2,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+        logStage('adição Página 2');
 
-                  // Metade Direita
-                  pw.Expanded(
-                    flex: 5,
-                    child: pw.Column(
-                      crossAxisAlignment: pw.CrossAxisAlignment.start,
-                      children: rightWidgets,
-                    ),
-                  ),
-                ],
+        // Adiciona Página 3 Condicional se houver blocos excedentes
+        if (leftP3.isNotEmpty || rightP3.isNotEmpty) {
+          hasPage3 = true;
+          final leftWidgetsP3 = <pw.Widget>[
+            pw.Text(
+              'Perfil de Apoio TEA — continuação',
+              style: pw.TextStyle(
+                fontSize: 11,
+                fontWeight: pw.FontWeight.bold,
+                color: PdfColors.black,
               ),
-            );
-          },
-        ),
-      );
-      logStage('adição Página 2');
+            ),
+            pw.SizedBox(height: 6),
+            ...leftP3.map((b) => _buildProfileBlock(b.label, b.content)),
+            pw.Spacer(),
+            _buildProfileFooter(),
+          ];
+
+          final rightWidgetsP3 = <pw.Widget>[
+            ...rightP3.map((b) => _buildProfileBlock(b.label, b.content)),
+            pw.Spacer(),
+            _buildProfileFooter(),
+          ];
+
+          pdf.addPage(
+            pw.Page(
+              pageFormat: pageFormat,
+              build: (pw.Context context) {
+                return pw.Container(
+                  padding: const pw.EdgeInsets.all(10),
+                  child: pw.Row(
+                    children: [
+                      pw.Expanded(
+                        flex: 5,
+                        child: pw.Column(
+                          crossAxisAlignment: pw.CrossAxisAlignment.start,
+                          children: leftWidgetsP3,
+                        ),
+                      ),
+                      pw.Container(
+                        width: 16,
+                        child: pw.Column(
+                          mainAxisAlignment: pw.MainAxisAlignment.center,
+                          children: [
+                            pw.Text('DOBRA', style: pw.TextStyle(fontSize: 4, color: PdfColors.grey500, fontWeight: pw.FontWeight.bold)),
+                            pw.SizedBox(height: 4),
+                            pw.Expanded(
+                              child: pw.Container(
+                                width: 0.8,
+                                decoration: const pw.BoxDecoration(
+                                  border: pw.Border(
+                                    left: pw.BorderSide(color: PdfColors.grey400, width: 0.8, style: pw.BorderStyle.dashed),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            pw.SizedBox(height: 4),
+                            pw.Text('DOBRA', style: pw.TextStyle(fontSize: 4, color: PdfColors.grey500, fontWeight: pw.FontWeight.bold)),
+                          ],
+                        ),
+                      ),
+                      pw.Expanded(
+                        flex: 5,
+                        child: pw.Column(
+                          crossAxisAlignment: pw.CrossAxisAlignment.start,
+                          children: rightWidgetsP3,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          );
+          logStage('adição Página 3');
+        }
+      }
+      if (kDebugMode) {
+        final totalPagesCount = hasPage3 ? 3 : 2;
+        debugPrint('[PrintPDF] Quantidade de páginas: $totalPagesCount');
+        debugPrint('[PrintPDF] Página de continuação criada: ${totalPagesCount > 2 ? 'sim' : 'não'}');
+      }
     }
 
     logStage('antes de pdf.save()');
@@ -1393,5 +1628,45 @@ class PrintCardPdfService {
   /// Normaliza caracteres de travessão incompatíveis com a fonte do PDF
   String _normalizePdfText(String text) {
     return text.replaceAll('—', '-').replaceAll('–', '-');
+  }
+
+  /// Estima a altura de um bloco de perfil no PDF de forma conservadora
+  double _estimateBlockHeight(String label, String content, bool isList) {
+    const double baseHeight = 28.0;
+    final lines = content.split('\n').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+
+    if (isList) {
+      double contentHeight = 0.0;
+      for (final line in lines) {
+        final itemText = line.startsWith('•') ? line.substring(1).trim() : line;
+        final int itemLines = (itemText.length / 75.0).ceil();
+        contentHeight += (itemLines * 9.6) + 2.5;
+      }
+      return baseHeight + contentHeight;
+    } else {
+      double contentHeight = 0.0;
+      for (final line in lines) {
+        final int textLines = line.isEmpty ? 1 : (line.length / 80.0).ceil();
+        contentHeight += textLines * 9.6;
+      }
+      return baseHeight + contentHeight;
+    }
+  }
+}
+
+class _ProfileBlockSpec {
+  final String label;
+  final String content;
+  final bool isList;
+
+  _ProfileBlockSpec(this.label, this.content)
+      : isList = content.split('\n').any((line) => line.trim().startsWith('•'));
+
+  List<String> getItems() {
+    return content
+        .split('\n')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
   }
 }
