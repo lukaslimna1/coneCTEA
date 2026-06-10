@@ -62,6 +62,9 @@ class PrintReviewInfoSheet extends StatefulWidget {
 }
 
 class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
+  // Chave global para a validação do formulário
+  final _formKey = GlobalKey<FormState>();
+
   // Servico local e estados do Perfil de Apoio TEA
   final _localService = PrintSupportProfileLocalService();
   final _prefsService = PrintCardPreferencesLocalService();
@@ -301,12 +304,14 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
 
               // Área de Conteúdo Rolável
               Expanded(
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(24.0, 8.0, 24.0, 16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                child: Form(
+                  key: _formKey,
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.fromLTRB(24.0, 8.0, 24.0, 16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                       // Cabeçalho e Título
                       Row(
                         children: [
@@ -517,6 +522,7 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
                   ),
                 ),
               ),
+            ),
 
               // ==========================================
               // BOTÕES DE AÇÃO FIXOS NO RODAPÉ
@@ -542,6 +548,15 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
                         onPressed: _isProcessing
                             ? null
                             : () async {
+                                if (_formKey.currentState?.validate() == false) {
+                                  return;
+                                }
+
+                                final bool hasNewCid = _includeCid &&
+                                    widget.member.cid.trim().isEmpty &&
+                                    _tempCidController.text.trim().isNotEmpty &&
+                                    _tempCidController.text.trim().length <= 20;
+
                                 final bool hasNewBloodType = _includeBloodType &&
                                     widget.member.bloodType.trim().isEmpty &&
                                     _tempBloodType != null &&
@@ -567,7 +582,7 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
                                     _tempGender!.trim().isNotEmpty &&
                                     OpcoesCadastrais.genero.contains(_tempGender);
 
-                                final bool hasAnyNewField = hasNewBloodType || hasNewPhone || hasNewRacaCor || hasNewGender;
+                                final bool hasAnyNewField = hasNewBloodType || hasNewPhone || hasNewRacaCor || hasNewGender || hasNewCid;
 
                                 Member currentMember = widget.member;
 
@@ -584,6 +599,7 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
                                       phone: hasNewPhone ? _tempPhoneController.text.trim() : null,
                                       racaCor: hasNewRacaCor ? _tempRacaCor : null,
                                       gender: hasNewGender ? _tempGender : null,
+                                      cid: hasNewCid ? _tempCidController.text.trim() : null,
                                     );
 
                                     final result = await dbService.fillEmptyMemberOptionalFields(params);
@@ -872,6 +888,20 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
     );
   }
 
+  String? _validateCid(String? value) {
+    if (!_includeCid || widget.member.cid.trim().isNotEmpty) {
+      return null;
+    }
+    final trimmed = value?.trim() ?? '';
+    if (trimmed.isEmpty) {
+      return 'Informe o CID para incluir na impressão.';
+    }
+    if (trimmed.length > 20) {
+      return 'Digite apenas o código do CID, com até 20 caracteres.';
+    }
+    return null;
+  }
+
   Widget _buildCidPreviewArea() {
     if (!_includeCid) return const SizedBox.shrink();
 
@@ -887,6 +917,7 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
       child: CampoCid(
         controller: _tempCidController,
         requiredField: false,
+        validator: _validateCid,
       ),
     );
   }
