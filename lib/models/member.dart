@@ -1,3 +1,5 @@
+import 'package:conectea/core/campos_cadastrais/helpers/legacy_contact_parser.dart';
+
 class Member {
   final String id;
   final String userId;
@@ -21,6 +23,10 @@ class Member {
   final String? racaCor;
   final String? socialName;
   final String? teaRelationType;
+  final String? responsiblePersonName;
+  final String? responsiblePhone;
+  final String? emergencyPersonName;
+  final String? emergencyPhone;
 
   Member({
     required this.id,
@@ -44,6 +50,10 @@ class Member {
     this.racaCor,
     this.socialName,
     this.teaRelationType,
+    this.responsiblePersonName,
+    this.responsiblePhone,
+    this.emergencyPersonName,
+    this.emergencyPhone,
   });
 
   factory Member.empty() {
@@ -69,6 +79,10 @@ class Member {
       racaCor: null,
       socialName: null,
       teaRelationType: null,
+      responsiblePersonName: null,
+      responsiblePhone: null,
+      emergencyPersonName: null,
+      emergencyPhone: null,
     );
   }
 
@@ -113,6 +127,12 @@ class Member {
       teaRelationType:
           json['tea_relation_type']?.toString() ??
           json['teaRelationType']?.toString(),
+      responsiblePersonName:
+          json['responsible_person_name'] ?? json['responsiblePersonName'],
+      responsiblePhone: json['responsible_phone'] ?? json['responsiblePhone'],
+      emergencyPersonName:
+          json['emergency_person_name'] ?? json['emergencyPersonName'],
+      emergencyPhone: json['emergency_phone'] ?? json['emergencyPhone'],
     );
   }
 
@@ -139,6 +159,10 @@ class Member {
       'raca_cor': racaCor,
       'social_name': socialName,
       'tea_relation_type': teaRelationType,
+      'responsible_person_name': responsiblePersonName,
+      'responsible_phone': responsiblePhone,
+      'emergency_person_name': emergencyPersonName,
+      'emergency_phone': emergencyPhone,
     };
   }
 
@@ -164,6 +188,10 @@ class Member {
     String? racaCor,
     String? socialName,
     String? teaRelationType,
+    String? responsiblePersonName,
+    String? responsiblePhone,
+    String? emergencyPersonName,
+    String? emergencyPhone,
   }) {
     return Member(
       id: id ?? this.id,
@@ -187,6 +215,11 @@ class Member {
       racaCor: racaCor ?? this.racaCor,
       socialName: socialName ?? this.socialName,
       teaRelationType: teaRelationType ?? this.teaRelationType,
+      responsiblePersonName:
+          responsiblePersonName ?? this.responsiblePersonName,
+      responsiblePhone: responsiblePhone ?? this.responsiblePhone,
+      emergencyPersonName: emergencyPersonName ?? this.emergencyPersonName,
+      emergencyPhone: emergencyPhone ?? this.emergencyPhone,
     );
   }
 
@@ -212,4 +245,80 @@ class Member {
 
   String get teaRelationLabel =>
       isSupportNetwork ? 'Rede de Apoio TEA' : 'Pessoa TEA';
+
+  // Getters estruturados consolidados com fallback
+  String get effectiveResponsiblePersonName =>
+      _getEffectiveName(responsiblePersonName, responsibleName);
+
+  String get effectiveResponsiblePhone =>
+      _getEffectivePhone(responsiblePhone, responsibleName);
+
+  String get effectiveEmergencyPersonName =>
+      _getEffectiveName(emergencyPersonName, emergencyContact);
+
+  String get effectiveEmergencyPhone =>
+      _getEffectivePhone(emergencyPhone, emergencyContact);
+
+  // Getters visuais temporários de compatibilidade
+  String get responsibleLegacyDisplayValue => _getLegacyDisplayValue(
+        responsiblePersonName,
+        responsiblePhone,
+        responsibleName,
+      );
+
+  String get emergencyLegacyDisplayValue => _getLegacyDisplayValue(
+        emergencyPersonName,
+        emergencyPhone,
+        emergencyContact,
+      );
+
+  // Helpers privados de parsing e fallback
+  String _getEffectiveName(String? structuredName, String legacyComposed) {
+    if (structuredName != null && structuredName.trim().isNotEmpty) {
+      return structuredName.trim();
+    }
+    final parts = LegacyContactParser.parse(legacyComposed);
+    if (parts.classification == LegacyContactClassification.complete ||
+        parts.classification == LegacyContactClassification.nameOnly) {
+      return parts.name ?? '';
+    }
+    return '';
+  }
+
+  String _getEffectivePhone(String? structuredPhone, String legacyComposed) {
+    if (structuredPhone != null && structuredPhone.trim().isNotEmpty) {
+      return structuredPhone.trim();
+    }
+    final parts = LegacyContactParser.parse(legacyComposed);
+    if (parts.classification == LegacyContactClassification.complete) {
+      return parts.phone ?? '';
+    }
+    return '';
+  }
+
+  String _getLegacyDisplayValue(
+    String? structuredName,
+    String? structuredPhone,
+    String legacyComposed,
+  ) {
+    final hasStructName =
+        structuredName != null && structuredName.trim().isNotEmpty;
+    final hasStructPhone =
+        structuredPhone != null && structuredPhone.trim().isNotEmpty;
+
+    if (hasStructName || hasStructPhone) {
+      if (hasStructName && hasStructPhone) {
+        return '${structuredName.trim()} - ${structuredPhone.trim()}';
+      } else if (hasStructName) {
+        return structuredName.trim();
+      }
+      return ''; // Telefone sem nome localmente -> Inválido
+    }
+
+    final parts = LegacyContactParser.parse(legacyComposed);
+    if (parts.classification == LegacyContactClassification.empty) {
+      return '';
+    }
+    return parts.rawValue;
+  }
 }
