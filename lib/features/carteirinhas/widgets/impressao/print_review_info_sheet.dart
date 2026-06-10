@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 import 'package:conectea/models/member.dart';
@@ -14,6 +15,10 @@ import 'package:conectea/features/carteirinhas/services/print_support_profile_lo
 import 'package:conectea/features/carteirinhas/models/impressao/print_card_options.dart';
 import 'package:conectea/features/carteirinhas/models/impressao/print_card_request.dart';
 import 'package:conectea/features/carteirinhas/services/print_card_preferences_local_service.dart';
+import 'package:conectea/features/carteirinhas/models/fill_empty_member_optional_fields_params.dart';
+import 'package:conectea/features/carteirinhas/models/member_rpc_merge_extension.dart';
+import 'package:conectea/services/database_service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// **PrintReviewInfoSheet**
 /// Diálogo modal bottom sheet que permite ao responsável revisar
@@ -62,6 +67,7 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
   final _prefsService = PrintCardPreferencesLocalService();
   PrintSupportProfileDraft? _supportProfileDraft;
   bool _isLoadingSupportProfileDraft = false;
+  bool _isProcessing = false;
 
   // Estado local para checkboxes (Informações opcionais - todas desmarcadas por padrão)
   bool _includeBirthDate = false;
@@ -532,61 +538,158 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
                         label: 'Continuar',
                         variante: DsBotaoVariante.acao,
                         token: DsCores.sucesso,
-                        onPressed: () async {
-                          final request = _buildRequestFromState();
+                        isLoading: _isProcessing,
+                        onPressed: _isProcessing
+                            ? null
+                            : () async {
+                                final bool hasNewBloodType = _includeBloodType &&
+                                    widget.member.bloodType.trim().isEmpty &&
+                                    _tempBloodType != null &&
+                                    _tempBloodType!.trim().isNotEmpty &&
+                                    _tempBloodType != 'Não sei' &&
+                                    _tempBloodType != 'Prefiro não informar' &&
+                                    const ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].contains(_tempBloodType);
 
-                          // Verifica se há algo marcado para salvar nas preferências
-                          final hasAnyOptionSelected = request.options.includeBirthDateAndAge ||
-                              request.options.includeMaskedCpf ||
-                              request.options.includeBloodType ||
-                              request.options.includeCid ||
-                              request.options.includePhone ||
-                              request.options.includeCityUf ||
-                              request.options.includeResponsible ||
-                              request.options.includeEmergencyContacts ||
-                              request.options.includeRaceColor ||
-                              request.options.includeGender;
+                                final bool hasNewPhone = _includePhone &&
+                                    widget.member.phone.trim().isEmpty &&
+                                    _tempPhoneController.text.trim().isNotEmpty &&
+                                    ValidadoresCadastrais.telefone(_tempPhoneController.text.trim()) == null;
 
-                          final hasOverridesOrExtras = request.bloodTypeOverride != null ||
-                              request.phoneOverride != null ||
-                              request.cityUfOverride != null ||
-                              request.raceColorOverride != null ||
-                              request.genderOverride != null ||
-                              request.cidOverride != null ||
-                              request.responsibleNameOverride != null ||
-                              request.responsiblePhoneOverride != null ||
-                              request.emergencyNameOverride != null ||
-                              request.emergencyPhoneOverride != null ||
-                              request.extraResponsibles.isNotEmpty ||
-                              request.extraEmergencyContacts.isNotEmpty;
+                                final bool hasNewRacaCor = _includeRacaCor &&
+                                    (widget.member.racaCor == null || widget.member.racaCor!.trim().isEmpty) &&
+                                    _tempRacaCor != null &&
+                                    _tempRacaCor!.trim().isNotEmpty &&
+                                    OpcoesCadastrais.racaCor.contains(_tempRacaCor);
 
-                          if (hasAnyOptionSelected || hasOverridesOrExtras) {
-                            final draft = PrintCardPreferencesDraft(
-                              options: request.options,
-                              extraResponsibles: request.extraResponsibles,
-                              extraEmergencyContacts: request.extraEmergencyContacts,
-                              bloodTypeOverride: request.bloodTypeOverride,
-                              phoneOverride: request.phoneOverride,
-                              cityUfOverride: request.cityUfOverride,
-                              raceColorOverride: request.raceColorOverride,
-                              genderOverride: request.genderOverride,
-                              cidOverride: request.cidOverride,
-                              responsibleNameOverride: request.responsibleNameOverride,
-                              responsiblePhoneOverride: request.responsiblePhoneOverride,
-                              emergencyNameOverride: request.emergencyNameOverride,
-                              emergencyPhoneOverride: request.emergencyPhoneOverride,
-                              updatedAt: DateTime.now().toIso8601String(),
-                            );
-                            await _prefsService.save(widget.member.id, draft);
-                          } else {
-                            // Se tudo estiver vazio/padrão, apaga as preferências antigas
-                            await _prefsService.delete(widget.member.id);
-                          }
+                                final bool hasNewGender = _includeGender &&
+                                    (widget.member.gender == null || widget.member.gender!.trim().isEmpty) &&
+                                    _tempGender != null &&
+                                    _tempGender!.trim().isNotEmpty &&
+                                    OpcoesCadastrais.genero.contains(_tempGender);
 
-                          if (context.mounted) {
-                            Navigator.pop(context, request);
-                          }
-                        },
+                                final bool hasAnyNewField = hasNewBloodType || hasNewPhone || hasNewRacaCor || hasNewGender;
+
+                                Member currentMember = widget.member;
+
+                                if (hasAnyNewField) {
+                                  setState(() {
+                                    _isProcessing = true;
+                                  });
+
+                                  try {
+                                    final dbService = DatabaseService();
+                                    final params = FillEmptyMemberOptionalFieldsParams(
+                                      memberId: widget.member.id,
+                                      bloodType: hasNewBloodType ? _tempBloodType : null,
+                                      phone: hasNewPhone ? _tempPhoneController.text.trim() : null,
+                                      racaCor: hasNewRacaCor ? _tempRacaCor : null,
+                                      gender: hasNewGender ? _tempGender : null,
+                                    );
+
+                                    final result = await dbService.fillEmptyMemberOptionalFields(params);
+                                    currentMember = currentMember.mergeRpcResult(result);
+
+                                    if (result.preservedFields.isNotEmpty) {
+                                      if (!context.mounted) return;
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('Algumas informações já estavam atualizadas no cadastro e foram preservadas.'),
+                                        ),
+                                      );
+                                    }
+                                  } on PostgrestException catch (e) {
+                                    if (!context.mounted) return;
+                                    _handleError(e, context);
+                                    return;
+                                  } on FormatException catch (e) {
+                                    if (!context.mounted) return;
+                                    _handleError(e, context);
+                                    return;
+                                  } on StateError catch (e) {
+                                    if (!context.mounted) return;
+                                    _handleError(e, context);
+                                    return;
+                                  } on ArgumentError catch (e) {
+                                    if (!context.mounted) return;
+                                    _handleError(e, context);
+                                    return;
+                                  } catch (e) {
+                                    if (!context.mounted) return;
+                                    _handleError(e, context);
+                                    return;
+                                  }
+                                }
+
+                                final request = _buildRequestFromState(currentMember);
+
+                                final preferencesOptions = PrintCardOptions(
+                                  includeBirthDateAndAge: _includeBirthDate,
+                                  includeMaskedCpf: _includeCpfMasked,
+                                  includeBloodType: _includeBloodType,
+                                  includeCid: _includeCid,
+                                  includePhone: _includePhone,
+                                  includeCityUf: _includeCityUf,
+                                  includeResponsible: _includeResponsible,
+                                  includeEmergencyContacts: _includeEmergency,
+                                  includeRaceColor: _includeRacaCor,
+                                  includeGender: _includeGender,
+                                  includeProfile: widget.includeProfile,
+                                );
+
+                                // Verifica se há algo marcado para salvar nas preferências
+                                final hasAnyOptionSelected = preferencesOptions.includeBirthDateAndAge ||
+                                    preferencesOptions.includeMaskedCpf ||
+                                    preferencesOptions.includeBloodType ||
+                                    preferencesOptions.includeCid ||
+                                    preferencesOptions.includePhone ||
+                                    preferencesOptions.includeCityUf ||
+                                    preferencesOptions.includeResponsible ||
+                                    preferencesOptions.includeEmergencyContacts ||
+                                    preferencesOptions.includeRaceColor ||
+                                    preferencesOptions.includeGender;
+
+                                final hasOverridesOrExtras = request.bloodTypeOverride != null ||
+                                    request.phoneOverride != null ||
+                                    request.cityUfOverride != null ||
+                                    request.raceColorOverride != null ||
+                                    request.genderOverride != null ||
+                                    request.cidOverride != null ||
+                                    request.responsibleNameOverride != null ||
+                                    request.responsiblePhoneOverride != null ||
+                                    request.emergencyNameOverride != null ||
+                                    request.emergencyPhoneOverride != null ||
+                                    request.extraResponsibles.isNotEmpty ||
+                                    request.extraEmergencyContacts.isNotEmpty;
+
+                                if (hasAnyOptionSelected || hasOverridesOrExtras) {
+                                  final draft = PrintCardPreferencesDraft(
+                                    options: preferencesOptions,
+                                    extraResponsibles: request.extraResponsibles,
+                                    extraEmergencyContacts: request.extraEmergencyContacts,
+                                    bloodTypeOverride: request.bloodTypeOverride,
+                                    phoneOverride: request.phoneOverride,
+                                    cityUfOverride: request.cityUfOverride,
+                                    raceColorOverride: request.raceColorOverride,
+                                    genderOverride: request.genderOverride,
+                                    cidOverride: request.cidOverride,
+                                    responsibleNameOverride: request.responsibleNameOverride,
+                                    responsiblePhoneOverride: request.responsiblePhoneOverride,
+                                    emergencyNameOverride: request.emergencyNameOverride,
+                                    emergencyPhoneOverride: request.emergencyPhoneOverride,
+                                    updatedAt: DateTime.now().toIso8601String(),
+                                  );
+                                  await _prefsService.save(widget.member.id, draft);
+                                } else {
+                                  // Se tudo estiver vazio/padrão, apaga as preferências antigas
+                                  await _prefsService.delete(widget.member.id);
+                                }
+
+                                if (!context.mounted) return;
+                                setState(() {
+                                  _isProcessing = false;
+                                });
+                                Navigator.pop(context, request);
+                              },
                       ),
                     ),
                   ],
@@ -995,9 +1098,37 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
     return 'CPF mascarado será exibido na impressão.';
   }
 
+  void _handleError(Object error, BuildContext context) {
+    if (!context.mounted) return;
+    setState(() {
+      _isProcessing = false;
+    });
+
+    final String message;
+    if (error is PostgrestException) {
+      message = 'Não foi possível atualizar as informações agora. Tente novamente.';
+    } else if (error is FormatException || error is StateError || error is ArgumentError) {
+      if (kDebugMode) {
+        print('Falha interna ao consolidar informações opcionais.');
+      }
+      message = 'Não foi possível concluir esta operação agora. Tente novamente.';
+    } else {
+      if (kDebugMode) {
+        print('Falha interna ao consolidar informações opcionais.');
+      }
+      message = 'Não foi possível concluir esta operação agora. Tente novamente.';
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+      ),
+    );
+  }
+
   /// Constrói o objeto de requisição da impressão contendo todas as escolhas
   /// de dados opcionais, dados sensíveis, contatos extras e overrides do formulário.
-  PrintCardRequest _buildRequestFromState() {
+  PrintCardRequest _buildRequestFromState(Member member) {
     // Filtrar e converter contatos extras desconsiderando os que estão totalmente em branco
     final List<PrintContactInfo> cleanResponsibles = [];
     for (final item in _extraResponsibles) {
@@ -1018,46 +1149,65 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
     }
 
     // Coletar overrides temporários informados na Bottom Sheet de revisão
+    // REGRA DA TAREFA 3: Não passar 'Prefiro não informar' ou 'Não sei' como overrides, e desativar flags correspondentes.
+
+    // 1. Tipo Sanguíneo
     String? bloodTypeOverride;
-    if (_includeBloodType && widget.member.bloodType.trim().isEmpty) {
+    bool includeBloodType = _includeBloodType;
+    final finalBloodType = member.bloodType.isNotEmpty ? member.bloodType : (_tempBloodType ?? '');
+    if (finalBloodType == 'Não sei' || finalBloodType == 'Prefiro não informar' || finalBloodType.trim().isEmpty) {
+      includeBloodType = false;
+    } else if (member.bloodType.trim().isEmpty) {
       bloodTypeOverride = _tempBloodType?.trim();
     }
 
+    // 2. Telefone
     String? phoneOverride;
-    if (_includePhone && widget.member.phone.trim().isEmpty) {
+    if (_includePhone && member.phone.trim().isEmpty) {
       phoneOverride = _tempPhoneController.text.trim();
     }
 
+    // 3. Cidade / UF
     String? cityUfOverride;
-    if (_includeCityUf && (widget.member.city.trim().isEmpty || widget.member.state.trim().isEmpty)) {
+    if (_includeCityUf && (member.city.trim().isEmpty || member.state.trim().isEmpty)) {
       cityUfOverride = _tempCityUfController.text.trim();
     }
 
+    // 4. Raça / Cor
     String? raceColorOverride;
-    if (_includeRacaCor && (widget.member.racaCor == null || widget.member.racaCor!.trim().isEmpty)) {
+    bool includeRaceColor = _includeRacaCor;
+    final finalRacaCor = (member.racaCor != null && member.racaCor!.isNotEmpty) ? member.racaCor! : (_tempRacaCor ?? '');
+    if (finalRacaCor == 'Prefiro não informar' || finalRacaCor.trim().isEmpty) {
+      includeRaceColor = false;
+    } else if (member.racaCor == null || member.racaCor!.trim().isEmpty) {
       raceColorOverride = _tempRacaCor?.trim();
     }
 
+    // 5. Gênero
     String? genderOverride;
-    if (_includeGender && (widget.member.gender == null || widget.member.gender!.trim().isEmpty)) {
+    bool includeGender = _includeGender;
+    final finalGender = (member.gender != null && member.gender!.isNotEmpty) ? member.gender! : (_tempGender ?? '');
+    if (finalGender == 'Prefiro não informar' || finalGender.trim().isEmpty) {
+      includeGender = false;
+    } else if (member.gender == null || member.gender!.trim().isEmpty) {
       genderOverride = _tempGender?.trim();
     }
 
     String? cidOverride;
-    if (_includeCid && widget.member.cid.trim().isEmpty) {
+    if (_includeCid && member.cid.trim().isEmpty) {
       cidOverride = _tempCidController.text.trim();
     }
 
     String? responsibleNameOverride;
     String? responsiblePhoneOverride;
-    if (_includeResponsible && widget.member.responsibleName.trim().isEmpty) {
+    if (_includeResponsible && member.responsibleName.trim().isEmpty) {
       responsibleNameOverride = _tempRespNameController.text.trim();
       responsiblePhoneOverride = _tempRespPhoneController.text.trim();
     }
 
     String? emergencyNameOverride;
     String? emergencyPhoneOverride;
-    if (_includeEmergency && widget.member.emergencyContact.trim().isEmpty) {
+    if (_includeEmergency && member.emergencyContact.trim().isEmpty) {
       emergencyNameOverride = _tempEmergNameController.text.trim();
       emergencyPhoneOverride = _tempEmergPhoneController.text.trim();
     }
@@ -1065,19 +1215,19 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
     final options = PrintCardOptions(
       includeBirthDateAndAge: _includeBirthDate,
       includeMaskedCpf: _includeCpfMasked,
-      includeBloodType: _includeBloodType,
+      includeBloodType: includeBloodType,
       includeCid: _includeCid,
       includePhone: _includePhone,
       includeCityUf: _includeCityUf,
       includeResponsible: _includeResponsible,
       includeEmergencyContacts: _includeEmergency,
-      includeRaceColor: _includeRacaCor,
-      includeGender: _includeGender,
+      includeRaceColor: includeRaceColor,
+      includeGender: includeGender,
       includeProfile: widget.includeProfile,
     );
 
     return PrintCardRequest(
-      member: widget.member,
+      member: member,
       activeCard: widget.activeCard,
       options: options,
       includeProfile: widget.includeProfile,
