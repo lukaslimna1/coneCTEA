@@ -557,6 +557,32 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
                                     _tempCidController.text.trim().isNotEmpty &&
                                     _tempCidController.text.trim().length <= 20;
 
+                                final bool hasNewResponsible = _includeResponsible &&
+                                    widget.member.responsibleName.trim().isEmpty &&
+                                    _tempRespNameController.text.trim().isNotEmpty &&
+                                    _tempRespNameController.text.trim().length <= 100 &&
+                                    (_tempRespPhoneController.text.trim().isEmpty ||
+                                        (_tempRespPhoneController.text.trim().replaceAll(RegExp(r'\D'), '').length >= 10 &&
+                                            _tempRespPhoneController.text.trim().replaceAll(RegExp(r'\D'), '').length <= 11 &&
+                                            !_isRepeatedPhoneDigits(_tempRespPhoneController.text.trim()))) &&
+                                    (_tempRespNameController.text.trim().length +
+                                            (_tempRespPhoneController.text.trim().isNotEmpty
+                                                ? (3 + _tempRespPhoneController.text.trim().length)
+                                                : 0) <= 150);
+
+                                final bool hasNewEmergency = _includeEmergency &&
+                                    widget.member.emergencyContact.trim().isEmpty &&
+                                    _tempEmergNameController.text.trim().isNotEmpty &&
+                                    _tempEmergNameController.text.trim().length <= 100 &&
+                                    (_tempEmergPhoneController.text.trim().isEmpty ||
+                                        (_tempEmergPhoneController.text.trim().replaceAll(RegExp(r'\D'), '').length >= 10 &&
+                                            _tempEmergPhoneController.text.trim().replaceAll(RegExp(r'\D'), '').length <= 11 &&
+                                            !_isRepeatedPhoneDigits(_tempEmergPhoneController.text.trim()))) &&
+                                    (_tempEmergNameController.text.trim().length +
+                                            (_tempEmergPhoneController.text.trim().isNotEmpty
+                                                ? (3 + _tempEmergPhoneController.text.trim().length)
+                                                : 0) <= 150);
+
                                 final bool hasNewBloodType = _includeBloodType &&
                                     widget.member.bloodType.trim().isEmpty &&
                                     _tempBloodType != null &&
@@ -582,7 +608,13 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
                                     _tempGender!.trim().isNotEmpty &&
                                     OpcoesCadastrais.genero.contains(_tempGender);
 
-                                final bool hasAnyNewField = hasNewBloodType || hasNewPhone || hasNewRacaCor || hasNewGender || hasNewCid;
+                                final bool hasAnyNewField = hasNewBloodType ||
+                                    hasNewPhone ||
+                                    hasNewRacaCor ||
+                                    hasNewGender ||
+                                    hasNewCid ||
+                                    hasNewResponsible ||
+                                    hasNewEmergency;
 
                                 Member currentMember = widget.member;
 
@@ -600,6 +632,14 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
                                       racaCor: hasNewRacaCor ? _tempRacaCor : null,
                                       gender: hasNewGender ? _tempGender : null,
                                       cid: hasNewCid ? _tempCidController.text.trim() : null,
+                                      responsiblePersonName: hasNewResponsible ? _tempRespNameController.text.trim() : null,
+                                      responsiblePhone: hasNewResponsible && _tempRespPhoneController.text.trim().isNotEmpty
+                                          ? _tempRespPhoneController.text.trim()
+                                          : null,
+                                      emergencyPersonName: hasNewEmergency ? _tempEmergNameController.text.trim() : null,
+                                      emergencyPhone: hasNewEmergency && _tempEmergPhoneController.text.trim().isNotEmpty
+                                          ? _tempEmergPhoneController.text.trim()
+                                          : null,
                                     );
 
                                     final result = await dbService.fillEmptyMemberOptionalFields(params);
@@ -888,6 +928,76 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
     );
   }
 
+  bool _isRepeatedPhoneDigits(String phone) {
+    final clean = phone.replaceAll(RegExp(r'\D'), '');
+    if (clean.length != 10 && clean.length != 11) return false;
+    return RegExp(r'^(\d)\1+$').hasMatch(clean);
+  }
+
+  String? _validateRespName(String? value) {
+    if (!_includeResponsible || widget.member.responsibleName.trim().isNotEmpty) {
+      return null;
+    }
+    final name = value?.trim() ?? '';
+    if (name.isEmpty) {
+      return 'Informe o nome do responsável.';
+    }
+    if (name.length > 100) {
+      return 'O nome deve ter no máximo 100 caracteres.';
+    }
+    final phone = _tempRespPhoneController.text.trim();
+    final int phoneLen = phone.isNotEmpty ? (3 + phone.length) : 0;
+    if (name.length + phoneLen > 150) {
+      return 'Os dados do responsável estão muito longos.';
+    }
+    return null;
+  }
+
+  String? _validateRespPhone(String? value) {
+    if (!_includeResponsible || widget.member.responsibleName.trim().isNotEmpty) {
+      return null;
+    }
+    final phone = value?.trim() ?? '';
+    if (phone.isEmpty) return null;
+    final clean = phone.replaceAll(RegExp(r'\D'), '');
+    if (clean.length < 10 || clean.length > 11 || _isRepeatedPhoneDigits(clean)) {
+      return 'Informe um telefone válido com DDD.';
+    }
+    return null;
+  }
+
+  String? _validateEmergName(String? value) {
+    if (!_includeEmergency || widget.member.emergencyContact.trim().isNotEmpty) {
+      return null;
+    }
+    final name = value?.trim() ?? '';
+    if (name.isEmpty) {
+      return 'Informe o nome do contato de emergência.';
+    }
+    if (name.length > 100) {
+      return 'O nome deve ter no máximo 100 caracteres.';
+    }
+    final phone = _tempEmergPhoneController.text.trim();
+    final int phoneLen = phone.isNotEmpty ? (3 + phone.length) : 0;
+    if (name.length + phoneLen > 150) {
+      return 'Os dados do contato de emergência estão muito longos.';
+    }
+    return null;
+  }
+
+  String? _validateEmergPhone(String? value) {
+    if (!_includeEmergency || widget.member.emergencyContact.trim().isNotEmpty) {
+      return null;
+    }
+    final phone = value?.trim() ?? '';
+    if (phone.isEmpty) return null;
+    final clean = phone.replaceAll(RegExp(r'\D'), '');
+    if (clean.length < 10 || clean.length > 11 || _isRepeatedPhoneDigits(clean)) {
+      return 'Informe um telefone válido com DDD.';
+    }
+    return null;
+  }
+
   String? _validateCid(String? value) {
     if (!_includeCid || widget.member.cid.trim().isNotEmpty) {
       return null;
@@ -945,11 +1055,13 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
                   CampoNomeResponsavel(
                     controller: _tempRespNameController,
                     requiredField: false,
+                    validator: _validateRespName,
                   ),
                   const SizedBox(height: 10),
                   CampoTelefoneResponsavel(
                     controller: _tempRespPhoneController,
                     requiredField: false,
+                    validator: _validateRespPhone,
                   ),
                 ],
               ),
@@ -1031,11 +1143,13 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
                   CampoNomeContatoEmergencia(
                     controller: _tempEmergNameController,
                     requiredField: false,
+                    validator: _validateEmergName,
                   ),
                   const SizedBox(height: 10),
                   CampoTelefoneContatoEmergencia(
                     controller: _tempEmergPhoneController,
                     requiredField: false,
+                    validator: _validateEmergPhone,
                   ),
                 ],
               ),
