@@ -5,6 +5,8 @@ import 'package:conectea/models/member.dart';
 import 'package:conectea/models/card_request.dart';
 import 'package:conectea/models/digital_card.dart';
 import 'package:conectea/models/notification_item.dart';
+import 'package:conectea/features/carteirinhas/models/fill_empty_member_optional_fields_params.dart';
+import 'package:conectea/features/carteirinhas/models/fill_empty_member_optional_fields_result.dart';
 
 class DatabaseService {
   final _supabase = Supabase.instance.client;
@@ -887,5 +889,51 @@ class DatabaseService {
       }
     }
     return cleaned;
+  }
+
+  /// Preenche de forma atômica os campos opcionais vazios de um membro.
+  Future<FillEmptyMemberOptionalFieldsResult> fillEmptyMemberOptionalFields(
+    FillEmptyMemberOptionalFieldsParams params,
+  ) async {
+    try {
+      final response = await _supabase.rpc(
+        'conectea_fill_empty_member_optional_fields',
+        params: params.toRpcParams(),
+      );
+
+      if (response == null) {
+        throw Exception('A resposta do servidor foi nula.');
+      }
+
+      final List<dynamic> list;
+      if (response is List) {
+        list = response;
+      } else {
+        throw Exception('A resposta do servidor possui formato inesperado.');
+      }
+
+      if (list.isEmpty) {
+        throw Exception('Nenhum dado retornado do servidor.');
+      }
+
+      if (list.length != 1) {
+        throw Exception('Número inesperado de linhas retornadas do servidor.');
+      }
+
+      final rawLine = list.first;
+      if (rawLine is! Map) {
+        throw Exception('A linha retornada pelo servidor não é um mapa válido.');
+      }
+
+      final Map<String, dynamic> data = Map<String, dynamic>.from(rawLine);
+      return FillEmptyMemberOptionalFieldsResult.fromJson(data);
+    } on PostgrestException {
+      if (kDebugMode) {
+        debugPrint('Falha ao preencher campos opcionais do membro.');
+      }
+      rethrow;
+    } catch (_) {
+      rethrow;
+    }
   }
 }
