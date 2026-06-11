@@ -91,6 +91,9 @@ class _PrintSupportProfileSheetState extends State<PrintSupportProfileSheet> {
   bool _commApps = false;
   Uint8List? _supportPhotoBytes;
   String? _localPhotoPath;
+  // Sinaliza que o usuário tocou em "Remover foto" nesta sessão.
+  // A exclusão física do arquivo só ocorre ao confirmar (Continuar).
+  bool _photoRemovedByUser = false;
 
   Future<void> _pickImage(ImageSource source) async {
     try {
@@ -323,7 +326,9 @@ class _PrintSupportProfileSheetState extends State<PrintSupportProfileSheet> {
     }
   }
 
-  /// Constroi um objeto de rascunho com o estado atual do formulario
+  /// Constroi um objeto de rascunho com o estado atual do formulario.
+  /// Se o usuário removeu a foto nesta sessão, localPhotoPath é enviado como
+  /// null para que o draft salvo não referencie o arquivo anterior.
   PrintSupportProfileDraft _buildDraftFromCurrentForm() {
     return PrintSupportProfileDraft(
       memberId: widget.member.id,
@@ -358,16 +363,41 @@ class _PrintSupportProfileSheetState extends State<PrintSupportProfileSheet> {
       medications: _medicationsControllers.map((c) => c.text).toList(),
       allergies: _allergiesControllers.map((c) => c.text).toList(),
       otherImportantInfo: _usefulInfoController.text,
+      // Se o usuário removeu a foto nesta sessão, não propagar o path anterior.
+      localPhotoPath: _photoRemovedByUser ? null : _localPhotoPath,
     );
   }
 
-  /// Trata a acao de salvar ou remover o rascunho antes de fechar a Bottom Sheet
+  /// Exclui o arquivo físico da foto anterior de forma silenciosa.
+  /// Chamado somente APÓS o saveDraft/deleteDraft bem-sucedido,
+  /// garantindo que o arquivo só é removido se o novo draft já foi persistido.
+  Future<void> _deletePhysicalPhotoSilently(String path) async {
+    try {
+      final file = File(path);
+      if (await file.exists()) {
+        await file.delete();
+      }
+    } catch (_) {
+      // Falha silenciosa: não bloquear o usuário e não logar o path.
+    }
+  }
+
+  /// Trata a acao de salvar ou remover o rascunho antes de fechar a Bottom Sheet.
+  /// Ordem transacional garantida:
+  /// 1. Constrói o draft com localPhotoPath: null (se foto removida).
+  /// 2. Persiste o draft.
+  /// 3. Somente após persistência bem-sucedida, exclui o arquivo físico anterior.
   Future<void> _handleContinue() async {
     if (_isSaving) return;
 
     setState(() {
       _isSaving = true;
     });
+
+    // Captura o caminho anterior antes de construir o draft, para que,
+    // se a persistência falhar, o arquivo físico seja preservado.
+    final String? stalePhotoPath =
+        _photoRemovedByUser ? _localPhotoPath : null;
 
     final draft = _buildDraftFromCurrentForm();
     bool success = false;
@@ -396,11 +426,25 @@ class _PrintSupportProfileSheetState extends State<PrintSupportProfileSheet> {
       }
     }
 
-    if (success && mounted) {
-      Navigator.pop(
-        context,
-        PrintSupportProfileResult(true, _supportPhotoBytes),
-      );
+    if (success) {
+      // Draft persistido com sucesso: agora é seguro limpar o estado e
+      // tentar excluir o arquivo físico anterior.
+      if (stalePhotoPath != null && stalePhotoPath.isNotEmpty) {
+        if (mounted) {
+          setState(() {
+            _localPhotoPath = null;
+            _photoRemovedByUser = false;
+          });
+        }
+        await _deletePhysicalPhotoSilently(stalePhotoPath);
+      }
+
+      if (mounted) {
+        Navigator.pop(
+          context,
+          PrintSupportProfileResult(true, _supportPhotoBytes),
+        );
+      }
     }
   }
 
@@ -608,6 +652,9 @@ class _PrintSupportProfileSheetState extends State<PrintSupportProfileSheet> {
                                       onTap: () {
                                         setState(() {
                                           _supportPhotoBytes = null;
+                                          // Marca que o usuário solicitou remoção.
+                                          // O arquivo físico só será excluído ao confirmar (Continuar).
+                                          _photoRemovedByUser = true;
                                         });
                                       },
                                       child: Text(
