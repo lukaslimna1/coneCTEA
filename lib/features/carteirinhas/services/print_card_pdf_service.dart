@@ -25,7 +25,9 @@ class PrintCardPdfService {
       if (kDebugMode) {
         final elapsed = stopwatch.elapsedMilliseconds;
         final duration = elapsed - lastTime;
-        debugPrint('[PrintPDF] $stageName: ${duration}ms (total: ${elapsed}ms)');
+        debugPrint(
+          '[PrintPDF] $stageName: ${duration}ms (total: ${elapsed}ms)',
+        );
         lastTime = elapsed;
       }
     }
@@ -36,7 +38,9 @@ class PrintCardPdfService {
     pw.MemoryImage? logoImage;
     if (!_debugPdfDisableLogo) {
       try {
-        final logoBytes = await rootBundle.load('assets/images/conectea_logo.png');
+        final logoBytes = await rootBundle.load(
+          'assets/images/conectea_logo.png',
+        );
         logStage('rootBundle.load logo');
         logoImage = pw.MemoryImage(logoBytes.buffer.asUint8List());
         logStage('criação do MemoryImage da logo');
@@ -60,23 +64,31 @@ class PrintCardPdfService {
         : 'Nome não informado';
 
     final teaId = request.activeCard.cardNumber;
-    final validade = ConecteaDateTimeHelper.formatProjectDateShort(request.activeCard.validUntil);
-    final vinculo = (request.activeCard.isSupportNetwork || request.member.isSupportNetwork)
+    final validade = ConecteaDateTimeHelper.formatProjectDateShort(
+      request.activeCard.validUntil,
+    );
+    final vinculo =
+        (request.activeCard.isSupportNetwork || request.member.isSupportNetwork)
         ? 'REDE DE APOIO TEA'
         : 'PESSOA TEA';
 
-    final statusLabel = request.activeCard.status.toUpperCase() == 'ACTIVE' ? 'ATIVA' : 'PENDENTE';
+    final statusLabel = request.activeCard.status.toUpperCase() == 'ACTIVE'
+        ? 'ATIVA'
+        : 'PENDENTE';
 
     // BirthDate formatado
     String? birthDateAndAge;
-    if (request.options.includeBirthDateAndAge && request.member.dateOfBirth.trim().isNotEmpty) {
+    if (request.options.includeBirthDateAndAge &&
+        request.member.dateOfBirth.trim().isNotEmpty) {
       birthDateAndAge = _getBirthDateAndAge(request.member.dateOfBirth);
     }
 
     // Tipo Sanguíneo
     String? bloodType;
     if (request.options.includeBloodType) {
-      bloodType = (request.bloodTypeOverride != null && request.bloodTypeOverride!.trim().isNotEmpty)
+      bloodType =
+          (request.bloodTypeOverride != null &&
+              request.bloodTypeOverride!.trim().isNotEmpty)
           ? request.bloodTypeOverride!
           : request.member.bloodType;
       if (bloodType.trim().isEmpty) bloodType = null;
@@ -85,11 +97,14 @@ class PrintCardPdfService {
     // Cidade / UF
     String? cityUf;
     if (request.options.includeCityUf) {
-      cityUf = (request.cityUfOverride != null && request.cityUfOverride!.trim().isNotEmpty)
+      cityUf =
+          (request.cityUfOverride != null &&
+              request.cityUfOverride!.trim().isNotEmpty)
           ? request.cityUfOverride!
-          : (request.member.city.trim().isNotEmpty && request.member.state.trim().isNotEmpty)
-              ? '${request.member.city} / ${request.member.state}'
-              : null;
+          : (request.member.city.trim().isNotEmpty &&
+                request.member.state.trim().isNotEmpty)
+          ? '${request.member.city} / ${request.member.state}'
+          : null;
     }
     logStage('montagem dos dados em strings');
 
@@ -130,11 +145,19 @@ class PrintCardPdfService {
                           )
                         : pw.Text(
                             '[Logo ConeCTEA]',
-                            style: pw.TextStyle(fontSize: 10, color: PdfColors.grey500, fontWeight: pw.FontWeight.bold),
+                            style: pw.TextStyle(
+                              fontSize: 10,
+                              color: PdfColors.grey500,
+                              fontWeight: pw.FontWeight.bold,
+                            ),
                           ),
                     pw.Text(
                       '[Logo Família TEA Bauru]',
-                      style: pw.TextStyle(fontSize: 10, color: PdfColors.grey500, fontWeight: pw.FontWeight.bold),
+                      style: pw.TextStyle(
+                        fontSize: 10,
+                        color: PdfColors.grey500,
+                        fontWeight: pw.FontWeight.bold,
+                      ),
                     ),
                   ],
                 ),
@@ -168,20 +191,38 @@ class PrintCardPdfService {
                       child: pw.Column(
                         mainAxisAlignment: pw.MainAxisAlignment.center,
                         children: [
-                          pw.Text('DOBRA', style: pw.TextStyle(fontSize: 5, color: PdfColors.grey600, fontWeight: pw.FontWeight.bold)),
+                          pw.Text(
+                            'DOBRA',
+                            style: pw.TextStyle(
+                              fontSize: 5,
+                              color: PdfColors.grey600,
+                              fontWeight: pw.FontWeight.bold,
+                            ),
+                          ),
                           pw.SizedBox(height: 4),
                           pw.Expanded(
                             child: pw.Container(
                               width: 0.8,
                               decoration: const pw.BoxDecoration(
                                 border: pw.Border(
-                                  left: pw.BorderSide(color: PdfColors.grey600, width: 0.8, style: pw.BorderStyle.dashed),
+                                  left: pw.BorderSide(
+                                    color: PdfColors.grey600,
+                                    width: 0.8,
+                                    style: pw.BorderStyle.dashed,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
                           pw.SizedBox(height: 4),
-                          pw.Text('DOBRA', style: pw.TextStyle(fontSize: 5, color: PdfColors.grey600, fontWeight: pw.FontWeight.bold)),
+                          pw.Text(
+                            'DOBRA',
+                            style: pw.TextStyle(
+                              fontSize: 5,
+                              color: PdfColors.grey600,
+                              fontWeight: pw.FontWeight.bold,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -190,7 +231,10 @@ class PrintCardPdfService {
                       flex: 5,
                       child: pw.Align(
                         alignment: pw.Alignment.centerLeft,
-                        child: _buildBackCardSkeleton(request, logoImage: logoImage),
+                        child: _buildBackCardSkeleton(
+                          request,
+                          logoImage: logoImage,
+                        ),
                       ),
                     ),
                   ],
@@ -284,10 +328,13 @@ class PrintCardPdfService {
         );
         logStage('adição Página 2 (Perfil Vazio)');
       } else {
-        final String preferredName = (draft.includePreferredName && draft.preferredName.trim().isNotEmpty)
+        final String preferredName =
+            (draft.includePreferredName &&
+                draft.preferredName.trim().isNotEmpty)
             ? draft.preferredName.trim()
             : '';
-        final String supportLevel = (draft.includeSupportLevel && draft.supportLevel.trim().isNotEmpty)
+        final String supportLevel =
+            (draft.includeSupportLevel && draft.supportLevel.trim().isNotEmpty)
             ? draft.supportLevel.trim()
             : '';
 
@@ -313,20 +360,37 @@ class PrintCardPdfService {
 
         // Helper interno para formatar listas dinâmicas com "• "
         String formatList(List<String> list) {
-          final clean = list.map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+          final clean = list
+              .map((e) => e.trim())
+              .where((e) => e.isNotEmpty)
+              .toList();
           if (clean.isEmpty) return '';
           return clean.map((e) => '• $e').join('\n');
         }
 
-        final String curiosities = draft.includeCuriosities ? formatList(draft.abilities) : '';
+        final String curiosities = draft.includeCuriosities
+            ? formatList(draft.abilities)
+            : '';
         final String likes = draft.includeLikes ? formatList(draft.likes) : '';
-        final String irritations = draft.includeIrritations ? formatList(draft.irritations) : '';
+        final String irritations = draft.includeIrritations
+            ? formatList(draft.irritations)
+            : '';
 
-        final String foodLikes = draft.includeFoodLikes ? formatList(draft.foodLikes) : '';
-        final String foodDislikes = draft.includeFoodDislikes ? formatList(draft.foodDislikes) : '';
-        final String medications = draft.includeMedications ? formatList(draft.medications) : '';
-        final String allergies = draft.includeAllergies ? formatList(draft.allergies) : '';
-        final String supportTips = draft.includeSupportTips ? formatList(draft.supportTips) : '';
+        final String foodLikes = draft.includeFoodLikes
+            ? formatList(draft.foodLikes)
+            : '';
+        final String foodDislikes = draft.includeFoodDislikes
+            ? formatList(draft.foodDislikes)
+            : '';
+        final String medications = draft.includeMedications
+            ? formatList(draft.medications)
+            : '';
+        final String allergies = draft.includeAllergies
+            ? formatList(draft.allergies)
+            : '';
+        final String supportTips = draft.includeSupportTips
+            ? formatList(draft.supportTips)
+            : '';
 
         // Coleta de Specs para a Metade Esquerda
         final leftSpecs = <_ProfileBlockSpec>[];
@@ -334,13 +398,17 @@ class PrintCardPdfService {
           leftSpecs.add(_ProfileBlockSpec('Sobre mim', draft.about.trim()));
         }
         if (curiosities.isNotEmpty) {
-          leftSpecs.add(_ProfileBlockSpec('Curiosidades sobre mim', curiosities));
+          leftSpecs.add(
+            _ProfileBlockSpec('Curiosidades sobre mim', curiosities),
+          );
         }
         if (likes.isNotEmpty) {
           leftSpecs.add(_ProfileBlockSpec('Coisas que eu gosto', likes));
         }
         if (irritations.isNotEmpty) {
-          leftSpecs.add(_ProfileBlockSpec('Coisas que me irritam', irritations));
+          leftSpecs.add(
+            _ProfileBlockSpec('Coisas que me irritam', irritations),
+          );
         }
 
         // Coleta de Specs para a Metade Direita
@@ -349,7 +417,12 @@ class PrintCardPdfService {
           rightSpecs.add(_ProfileBlockSpec('Comidas que eu gosto', foodLikes));
         }
         if (foodDislikes.isNotEmpty) {
-          rightSpecs.add(_ProfileBlockSpec('Comidas que eu não gosto / que me incomodam', foodDislikes));
+          rightSpecs.add(
+            _ProfileBlockSpec(
+              'Comidas que eu não gosto / que me incomodam',
+              foodDislikes,
+            ),
+          );
         }
         if (medications.isNotEmpty) {
           rightSpecs.add(_ProfileBlockSpec('Medicações', medications));
@@ -357,21 +430,34 @@ class PrintCardPdfService {
         if (allergies.isNotEmpty) {
           rightSpecs.add(_ProfileBlockSpec('Alergias', allergies));
         }
-        if (draft.includeOtherImportantInfo && draft.otherImportantInfo.trim().isNotEmpty) {
-          rightSpecs.add(_ProfileBlockSpec('Outras informações importantes', draft.otherImportantInfo.trim()));
+        if (draft.includeOtherImportantInfo &&
+            draft.otherImportantInfo.trim().isNotEmpty) {
+          rightSpecs.add(
+            _ProfileBlockSpec(
+              'Outras informações importantes',
+              draft.otherImportantInfo.trim(),
+            ),
+          );
         }
         if (supportTips.isNotEmpty) {
-          rightSpecs.add(_ProfileBlockSpec('Como você pode me ajudar', supportTips));
+          rightSpecs.add(
+            _ProfileBlockSpec('Como você pode me ajudar', supportTips),
+          );
         }
 
         // Constantes de layout para cálculo de overflow físico (Tarefa 2)
         const double pageHeightUseful = 555.275; // Altura útil da página
         const double footerHeightReserved = 25.0; // Altura do rodapé e margem
-        const double leftHeaderHeight = 139.38; // Título (19 pt) + Foto 3x4 (115.38 pt) + Espaçador (5 pt)
+        const double leftHeaderHeight =
+            139.38; // Título (19 pt) + Foto 3x4 (115.38 pt) + Espaçador (5 pt)
 
         // Limites úteis reais para a distribuição dos blocos na Página 2
-        const double leftLimitP2 = pageHeightUseful - leftHeaderHeight - footerHeightReserved; // ~390.89 pt
-        const double rightLimitP2 = pageHeightUseful - footerHeightReserved; // ~530.275 pt
+        const double leftLimitP2 =
+            pageHeightUseful -
+            leftHeaderHeight -
+            footerHeightReserved; // ~390.89 pt
+        const double rightLimitP2 =
+            pageHeightUseful - footerHeightReserved; // ~530.275 pt
 
         // Algoritmo de partição para a Metade Esquerda
         final leftP2 = <_ProfileBlockSpec>[];
@@ -379,7 +465,11 @@ class PrintCardPdfService {
         double leftHeightP2 = 0.0;
 
         for (final block in leftSpecs) {
-          final double h = _estimateBlockHeight(block.label, block.content, block.isList);
+          final double h = _estimateBlockHeight(
+            block.label,
+            block.content,
+            block.isList,
+          );
           if (leftHeightP2 + h <= leftLimitP2) {
             leftP2.add(block);
             leftHeightP2 += h;
@@ -393,7 +483,9 @@ class PrintCardPdfService {
                 double currentH = 28.0;
 
                 for (final item in items) {
-                  final itemText = item.startsWith('•') ? item.substring(1).trim() : item;
+                  final itemText = item.startsWith('•')
+                      ? item.substring(1).trim()
+                      : item;
                   final int itemLines = (itemText.length / 75.0).ceil();
                   final double itemH = (itemLines * 9.6) + 2.5;
 
@@ -406,8 +498,15 @@ class PrintCardPdfService {
                 }
 
                 if (p2Items.isNotEmpty && p3Items.isNotEmpty) {
-                  leftP2.add(_ProfileBlockSpec(block.label, p2Items.join('\n')));
-                  leftP3.add(_ProfileBlockSpec('${block.label} (continuação)', p3Items.join('\n')));
+                  leftP2.add(
+                    _ProfileBlockSpec(block.label, p2Items.join('\n')),
+                  );
+                  leftP3.add(
+                    _ProfileBlockSpec(
+                      '${block.label} (continuação)',
+                      p3Items.join('\n'),
+                    ),
+                  );
                   leftHeightP2 += currentH;
                   continue;
                 }
@@ -418,7 +517,9 @@ class PrintCardPdfService {
                 double currentH = 28.0;
 
                 for (final para in paragraphs) {
-                  final int textLines = para.trim().isEmpty ? 1 : (para.trim().length / 80.0).ceil();
+                  final int textLines = para.trim().isEmpty
+                      ? 1
+                      : (para.trim().length / 80.0).ceil();
                   final double paraH = textLines * 9.6;
 
                   if (leftHeightP2 + currentH + paraH <= leftLimitP2) {
@@ -430,8 +531,15 @@ class PrintCardPdfService {
                 }
 
                 if (p2Paragraphs.isNotEmpty && p3Paragraphs.isNotEmpty) {
-                  leftP2.add(_ProfileBlockSpec(block.label, p2Paragraphs.join('\n')));
-                  leftP3.add(_ProfileBlockSpec('${block.label} (continuação)', p3Paragraphs.join('\n')));
+                  leftP2.add(
+                    _ProfileBlockSpec(block.label, p2Paragraphs.join('\n')),
+                  );
+                  leftP3.add(
+                    _ProfileBlockSpec(
+                      '${block.label} (continuação)',
+                      p3Paragraphs.join('\n'),
+                    ),
+                  );
                   leftHeightP2 += currentH;
                   continue;
                 }
@@ -447,7 +555,11 @@ class PrintCardPdfService {
         double rightHeightP2 = 0.0;
 
         for (final block in rightSpecs) {
-          final double h = _estimateBlockHeight(block.label, block.content, block.isList);
+          final double h = _estimateBlockHeight(
+            block.label,
+            block.content,
+            block.isList,
+          );
           if (rightHeightP2 + h <= rightLimitP2) {
             rightP2.add(block);
             rightHeightP2 += h;
@@ -461,7 +573,9 @@ class PrintCardPdfService {
                 double currentH = 28.0;
 
                 for (final item in items) {
-                  final itemText = item.startsWith('•') ? item.substring(1).trim() : item;
+                  final itemText = item.startsWith('•')
+                      ? item.substring(1).trim()
+                      : item;
                   final int itemLines = (itemText.length / 75.0).ceil();
                   final double itemH = (itemLines * 9.6) + 2.5;
 
@@ -474,8 +588,15 @@ class PrintCardPdfService {
                 }
 
                 if (p2Items.isNotEmpty && p3Items.isNotEmpty) {
-                  rightP2.add(_ProfileBlockSpec(block.label, p2Items.join('\n')));
-                  rightP3.add(_ProfileBlockSpec('${block.label} (continuação)', p3Items.join('\n')));
+                  rightP2.add(
+                    _ProfileBlockSpec(block.label, p2Items.join('\n')),
+                  );
+                  rightP3.add(
+                    _ProfileBlockSpec(
+                      '${block.label} (continuação)',
+                      p3Items.join('\n'),
+                    ),
+                  );
                   rightHeightP2 += currentH;
                   continue;
                 }
@@ -486,7 +607,9 @@ class PrintCardPdfService {
                 double currentH = 28.0;
 
                 for (final para in paragraphs) {
-                  final int textLines = para.trim().isEmpty ? 1 : (para.trim().length / 80.0).ceil();
+                  final int textLines = para.trim().isEmpty
+                      ? 1
+                      : (para.trim().length / 80.0).ceil();
                   final double paraH = textLines * 9.6;
 
                   if (rightHeightP2 + currentH + paraH <= rightLimitP2) {
@@ -498,8 +621,15 @@ class PrintCardPdfService {
                 }
 
                 if (p2Paragraphs.isNotEmpty && p3Paragraphs.isNotEmpty) {
-                  rightP2.add(_ProfileBlockSpec(block.label, p2Paragraphs.join('\n')));
-                  rightP3.add(_ProfileBlockSpec('${block.label} (continuação)', p3Paragraphs.join('\n')));
+                  rightP2.add(
+                    _ProfileBlockSpec(block.label, p2Paragraphs.join('\n')),
+                  );
+                  rightP3.add(
+                    _ProfileBlockSpec(
+                      '${block.label} (continuação)',
+                      p3Paragraphs.join('\n'),
+                    ),
+                  );
                   rightHeightP2 += currentH;
                   continue;
                 }
@@ -529,19 +659,32 @@ class PrintCardPdfService {
                 decoration: pw.BoxDecoration(
                   border: pw.Border.all(color: PdfColors.grey600, width: 1),
                   color: PdfColors.grey100,
-                  borderRadius: const pw.BorderRadius.all(pw.Radius.circular(3)),
-                ),
-                alignment: pw.Alignment.center,
-                child: pw.Text(
-                  'Foto 3x4',
-                  style: pw.TextStyle(
-                    fontSize: 8,
-                    fontWeight: pw.FontWeight.bold,
-                    color: PdfColors.grey700,
+                  borderRadius: const pw.BorderRadius.all(
+                    pw.Radius.circular(3),
                   ),
                 ),
+                alignment: pw.Alignment.center,
+                child: () {
+                  final photoBytes = request.supportProfilePhotoBytes;
+                  if (photoBytes != null && photoBytes.isNotEmpty) {
+                    return pw.Image(
+                      pw.MemoryImage(photoBytes),
+                      fit: pw.BoxFit.cover,
+                    );
+                  }
+                  return pw.Text(
+                    'Foto 3x4',
+                    style: pw.TextStyle(
+                      fontSize: 8,
+                      fontWeight: pw.FontWeight.bold,
+                      color: PdfColors.grey700,
+                    ),
+                  );
+                }(),
               ),
-              if (preferredName.isNotEmpty || supportLevel.isNotEmpty || commText.isNotEmpty) ...[
+              if (preferredName.isNotEmpty ||
+                  supportLevel.isNotEmpty ||
+                  commText.isNotEmpty) ...[
                 pw.SizedBox(width: 6),
                 pw.Expanded(
                   child: pw.Column(
@@ -598,20 +741,38 @@ class PrintCardPdfService {
                       child: pw.Column(
                         mainAxisAlignment: pw.MainAxisAlignment.center,
                         children: [
-                          pw.Text('DOBRA', style: pw.TextStyle(fontSize: 4, color: PdfColors.grey500, fontWeight: pw.FontWeight.bold)),
+                          pw.Text(
+                            'DOBRA',
+                            style: pw.TextStyle(
+                              fontSize: 4,
+                              color: PdfColors.grey500,
+                              fontWeight: pw.FontWeight.bold,
+                            ),
+                          ),
                           pw.SizedBox(height: 4),
                           pw.Expanded(
                             child: pw.Container(
                               width: 0.8,
                               decoration: const pw.BoxDecoration(
                                 border: pw.Border(
-                                  left: pw.BorderSide(color: PdfColors.grey400, width: 0.8, style: pw.BorderStyle.dashed),
+                                  left: pw.BorderSide(
+                                    color: PdfColors.grey400,
+                                    width: 0.8,
+                                    style: pw.BorderStyle.dashed,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
                           pw.SizedBox(height: 4),
-                          pw.Text('DOBRA', style: pw.TextStyle(fontSize: 4, color: PdfColors.grey500, fontWeight: pw.FontWeight.bold)),
+                          pw.Text(
+                            'DOBRA',
+                            style: pw.TextStyle(
+                              fontSize: 4,
+                              color: PdfColors.grey500,
+                              fontWeight: pw.FontWeight.bold,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -674,20 +835,38 @@ class PrintCardPdfService {
                         child: pw.Column(
                           mainAxisAlignment: pw.MainAxisAlignment.center,
                           children: [
-                            pw.Text('DOBRA', style: pw.TextStyle(fontSize: 4, color: PdfColors.grey500, fontWeight: pw.FontWeight.bold)),
+                            pw.Text(
+                              'DOBRA',
+                              style: pw.TextStyle(
+                                fontSize: 4,
+                                color: PdfColors.grey500,
+                                fontWeight: pw.FontWeight.bold,
+                              ),
+                            ),
                             pw.SizedBox(height: 4),
                             pw.Expanded(
                               child: pw.Container(
                                 width: 0.8,
                                 decoration: const pw.BoxDecoration(
                                   border: pw.Border(
-                                    left: pw.BorderSide(color: PdfColors.grey400, width: 0.8, style: pw.BorderStyle.dashed),
+                                    left: pw.BorderSide(
+                                      color: PdfColors.grey400,
+                                      width: 0.8,
+                                      style: pw.BorderStyle.dashed,
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
                             pw.SizedBox(height: 4),
-                            pw.Text('DOBRA', style: pw.TextStyle(fontSize: 4, color: PdfColors.grey500, fontWeight: pw.FontWeight.bold)),
+                            pw.Text(
+                              'DOBRA',
+                              style: pw.TextStyle(
+                                fontSize: 4,
+                                color: PdfColors.grey500,
+                                fontWeight: pw.FontWeight.bold,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -710,7 +889,9 @@ class PrintCardPdfService {
       if (kDebugMode) {
         final totalPagesCount = hasPage3 ? 3 : 2;
         debugPrint('[PrintPDF] Quantidade de páginas: $totalPagesCount');
-        debugPrint('[PrintPDF] Página de continuação criada: ${totalPagesCount > 2 ? 'sim' : 'não'}');
+        debugPrint(
+          '[PrintPDF] Página de continuação criada: ${totalPagesCount > 2 ? 'sim' : 'não'}',
+        );
       }
     }
 
@@ -734,10 +915,7 @@ class PrintCardPdfService {
 
   /// Compartilha os bytes do PDF usando o menu nativo de compartilhamento
   Future<void> sharePrintCardPdfBytes(Uint8List bytes) async {
-    await Printing.sharePdf(
-      bytes: bytes,
-      filename: 'carteirinha_conectea.pdf',
-    );
+    await Printing.sharePdf(bytes: bytes, filename: 'carteirinha_conectea.pdf');
   }
 
   /// Método legado de compatibilidade que gera e abre o visualizador diretamente
@@ -784,20 +962,38 @@ class PrintCardPdfService {
             child: pw.Column(
               mainAxisAlignment: pw.MainAxisAlignment.center,
               children: [
-                pw.Text('DOBRA', style: pw.TextStyle(fontSize: 4, color: PdfColors.grey500, fontWeight: pw.FontWeight.bold)),
+                pw.Text(
+                  'DOBRA',
+                  style: pw.TextStyle(
+                    fontSize: 4,
+                    color: PdfColors.grey500,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
                 pw.SizedBox(height: 4),
                 pw.Expanded(
                   child: pw.Container(
                     width: 0.8,
                     decoration: const pw.BoxDecoration(
                       border: pw.Border(
-                        left: pw.BorderSide(color: PdfColors.grey400, width: 0.8, style: pw.BorderStyle.dashed),
+                        left: pw.BorderSide(
+                          color: PdfColors.grey400,
+                          width: 0.8,
+                          style: pw.BorderStyle.dashed,
+                        ),
                       ),
                     ),
                   ),
                 ),
                 pw.SizedBox(height: 4),
-                pw.Text('DOBRA', style: pw.TextStyle(fontSize: 4, color: PdfColors.grey500, fontWeight: pw.FontWeight.bold)),
+                pw.Text(
+                  'DOBRA',
+                  style: pw.TextStyle(
+                    fontSize: 4,
+                    color: PdfColors.grey500,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
               ],
             ),
           ),
@@ -805,10 +1001,7 @@ class PrintCardPdfService {
             flex: 5,
             child: pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                pw.Spacer(),
-                _buildProfileFooter(),
-              ],
+              children: [pw.Spacer(), _buildProfileFooter()],
             ),
           ),
         ],
@@ -837,10 +1030,7 @@ class PrintCardPdfService {
               pw.SizedBox(height: 1.5),
               pw.Text(
                 'Ao imprimir ou compartilhar, a responsabilidade sobre o uso das informações é do usuário titular, da família ou do responsável.',
-                style: pw.TextStyle(
-                  fontSize: 5.5,
-                  color: PdfColors.grey700,
-                ),
+                style: pw.TextStyle(fontSize: 5.5, color: PdfColors.grey700),
               ),
             ],
           ),
@@ -897,16 +1087,25 @@ class PrintCardPdfService {
                     )
                   : pw.Text(
                       '[Logo ConeCTEA]',
-                      style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
+                      style: pw.TextStyle(
+                        fontSize: 12,
+                        fontWeight: pw.FontWeight.bold,
+                        color: PdfColors.black,
+                      ),
                     ),
               pw.Row(
                 children: [
                   // Pílula de Validade (Contraste Reforçado)
                   pw.Container(
-                    padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                    padding: const pw.EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 3,
+                    ),
                     decoration: pw.BoxDecoration(
                       color: PdfColors.white,
-                      borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+                      borderRadius: const pw.BorderRadius.all(
+                        pw.Radius.circular(4),
+                      ),
                       border: pw.Border.all(color: PdfColors.black, width: 0.9),
                     ),
                     child: pw.Text(
@@ -921,14 +1120,21 @@ class PrintCardPdfService {
                   pw.SizedBox(width: 5),
                   // Pílula de Status (Contraste Reforçado)
                   pw.Container(
-                    padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                    padding: const pw.EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 3,
+                    ),
                     decoration: pw.BoxDecoration(
                       color: isAtiva ? PdfColors.grey200 : PdfColors.white,
-                      borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+                      borderRadius: const pw.BorderRadius.all(
+                        pw.Radius.circular(4),
+                      ),
                       border: pw.Border.all(
                         color: PdfColors.black,
                         width: 0.9,
-                        style: isAtiva ? pw.BorderStyle.solid : pw.BorderStyle.dashed,
+                        style: isAtiva
+                            ? pw.BorderStyle.solid
+                            : pw.BorderStyle.dashed,
                       ),
                     ),
                     child: pw.Text(
@@ -956,7 +1162,9 @@ class PrintCardPdfService {
             ),
           ),
           pw.Text(
-            isSupport ? 'REDE DE APOIO AO TRANSTORNO DO ESPECTRO AUTISTA' : 'PESSOA COM TRANSTORNO DO ESPECTRO AUTISTA',
+            isSupport
+                ? 'REDE DE APOIO AO TRANSTORNO DO ESPECTRO AUTISTA'
+                : 'PESSOA COM TRANSTORNO DO ESPECTRO AUTISTA',
             style: pw.TextStyle(
               fontSize: 6.5,
               fontWeight: pw.FontWeight.bold,
@@ -1005,18 +1213,23 @@ class PrintCardPdfService {
                         color: PdfColors.black,
                       ),
                     ),
-                    if (birthDateAndAge != null && birthDateAndAge.trim().isNotEmpty) ...[
+                    if (birthDateAndAge != null &&
+                        birthDateAndAge.trim().isNotEmpty) ...[
                       pw.SizedBox(height: 3),
                       pw.Text(
                         'Nascimento: $birthDateAndAge',
-                        style: pw.TextStyle(fontSize: 9.5, color: PdfColors.grey900),
+                        style: pw.TextStyle(
+                          fontSize: 9.5,
+                          color: PdfColors.grey900,
+                        ),
                       ),
                     ],
                     pw.SizedBox(height: 5),
                     // Selos horizontais para Tipo Sanguíneo e Município
                     pw.Row(
                       children: [
-                        if (bloodType != null && bloodType.trim().isNotEmpty) ...[
+                        if (bloodType != null &&
+                            bloodType.trim().isNotEmpty) ...[
                           _buildFrontSelo('TIPO SANGUÍNEO', bloodType.trim()),
                           pw.SizedBox(width: 6),
                         ],
@@ -1040,20 +1253,33 @@ class PrintCardPdfService {
             children: [
               // Token destacado (Contraste Reforçado)
               pw.Container(
-                padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const pw.EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: pw.BoxDecoration(
                   color: PdfColors.grey200,
-                  borderRadius: const pw.BorderRadius.all(pw.Radius.circular(6)),
+                  borderRadius: const pw.BorderRadius.all(
+                    pw.Radius.circular(6),
+                  ),
                   border: pw.Border.all(color: PdfColors.black, width: 1.0),
                 ),
                 child: pw.RichText(
                   text: pw.TextSpan(
                     text: 'TOKEN: ',
-                    style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold, color: PdfColors.grey900),
+                    style: pw.TextStyle(
+                      fontSize: 8.5,
+                      fontWeight: pw.FontWeight.bold,
+                      color: PdfColors.grey900,
+                    ),
                     children: [
                       pw.TextSpan(
                         text: teaId,
-                        style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
+                        style: pw.TextStyle(
+                          fontSize: 10,
+                          fontWeight: pw.FontWeight.bold,
+                          color: PdfColors.black,
+                        ),
                       ),
                     ],
                   ),
@@ -1061,10 +1287,15 @@ class PrintCardPdfService {
               ),
               // Pílula do Vínculo (Contraste Reforçado)
               pw.Container(
-                padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                padding: const pw.EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 5,
+                ),
                 decoration: pw.BoxDecoration(
                   color: PdfColors.grey300,
-                  borderRadius: const pw.BorderRadius.all(pw.Radius.circular(6)),
+                  borderRadius: const pw.BorderRadius.all(
+                    pw.Radius.circular(6),
+                  ),
                   border: pw.Border.all(color: PdfColors.black, width: 1.0),
                 ),
                 child: pw.Text(
@@ -1082,10 +1313,7 @@ class PrintCardPdfService {
           pw.Text(
             'Documento de uso interno da Família TEA Bauru. Não substitui RG ou laudo oficial.',
             textAlign: pw.TextAlign.center,
-            style: pw.TextStyle(
-              fontSize: 7.5,
-              color: PdfColors.grey900,
-            ),
+            style: pw.TextStyle(fontSize: 7.5, color: PdfColors.grey900),
           ),
         ],
       ),
@@ -1104,11 +1332,19 @@ class PrintCardPdfService {
       child: pw.RichText(
         text: pw.TextSpan(
           text: '$label: ',
-          style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
+          style: pw.TextStyle(
+            fontSize: 8,
+            fontWeight: pw.FontWeight.bold,
+            color: PdfColors.black,
+          ),
           children: [
             pw.TextSpan(
               text: value,
-              style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.normal, color: PdfColors.black),
+              style: pw.TextStyle(
+                fontSize: 8,
+                fontWeight: pw.FontWeight.normal,
+                color: PdfColors.black,
+              ),
             ),
           ],
         ),
@@ -1117,7 +1353,10 @@ class PrintCardPdfService {
   }
 
   /// Constrói o esqueleto visual do Verso com contatos e QR Code real
-  pw.Widget _buildBackCardSkeleton(PrintCardRequest request, {pw.MemoryImage? logoImage}) {
+  pw.Widget _buildBackCardSkeleton(
+    PrintCardRequest request, {
+    pw.MemoryImage? logoImage,
+  }) {
     final List<pw.Widget> identificacaoWidgets = [];
     final List<pw.Widget> contatoWidgets = [];
 
@@ -1135,7 +1374,9 @@ class PrintCardPdfService {
 
     // Telefone
     if (request.options.includePhone) {
-      final phone = (request.phoneOverride != null && request.phoneOverride!.trim().isNotEmpty)
+      final phone =
+          (request.phoneOverride != null &&
+              request.phoneOverride!.trim().isNotEmpty)
           ? request.phoneOverride!.trim()
           : request.member.phone.trim();
       if (phone.isNotEmpty) {
@@ -1145,7 +1386,9 @@ class PrintCardPdfService {
 
     // CID (Tag estilizada como na carteirinha digital)
     if (request.options.includeCid) {
-      final cid = (request.cidOverride != null && request.cidOverride!.trim().isNotEmpty)
+      final cid =
+          (request.cidOverride != null &&
+              request.cidOverride!.trim().isNotEmpty)
           ? request.cidOverride!.trim()
           : request.member.cid.trim();
       if (cid.isNotEmpty) {
@@ -1161,11 +1404,19 @@ class PrintCardPdfService {
             child: pw.RichText(
               text: pw.TextSpan(
                 text: 'CID: ',
-                style: pw.TextStyle(fontSize: 9.5, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
+                style: pw.TextStyle(
+                  fontSize: 9.5,
+                  fontWeight: pw.FontWeight.bold,
+                  color: PdfColors.black,
+                ),
                 children: [
                   pw.TextSpan(
                     text: cid,
-                    style: pw.TextStyle(fontSize: 9.5, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
+                    style: pw.TextStyle(
+                      fontSize: 9.5,
+                      fontWeight: pw.FontWeight.bold,
+                      color: PdfColors.black,
+                    ),
                   ),
                 ],
               ),
@@ -1177,7 +1428,9 @@ class PrintCardPdfService {
 
     // Raça/Cor
     if (request.options.includeRaceColor) {
-      final race = (request.raceColorOverride != null && request.raceColorOverride!.trim().isNotEmpty)
+      final race =
+          (request.raceColorOverride != null &&
+              request.raceColorOverride!.trim().isNotEmpty)
           ? request.raceColorOverride!.trim()
           : (request.member.racaCor ?? '').trim();
       if (race.isNotEmpty) {
@@ -1187,7 +1440,9 @@ class PrintCardPdfService {
 
     // Gênero
     if (request.options.includeGender) {
-      final gender = (request.genderOverride != null && request.genderOverride!.trim().isNotEmpty)
+      final gender =
+          (request.genderOverride != null &&
+              request.genderOverride!.trim().isNotEmpty)
           ? request.genderOverride!.trim()
           : (request.member.gender ?? '').trim();
       if (gender.isNotEmpty) {
@@ -1197,11 +1452,14 @@ class PrintCardPdfService {
 
     // Cidade / UF
     if (request.options.includeCityUf) {
-      final cityUf = (request.cityUfOverride != null && request.cityUfOverride!.trim().isNotEmpty)
+      final cityUf =
+          (request.cityUfOverride != null &&
+              request.cityUfOverride!.trim().isNotEmpty)
           ? request.cityUfOverride!
-          : (request.member.city.trim().isNotEmpty && request.member.state.trim().isNotEmpty)
-              ? '${request.member.city} / ${request.member.state}'
-              : null;
+          : (request.member.city.trim().isNotEmpty &&
+                request.member.state.trim().isNotEmpty)
+          ? '${request.member.city} / ${request.member.state}'
+          : null;
       if (cityUf != null) {
         identificacaoWidgets.add(_buildBackInfoLine('CIDADE / UF', cityUf));
       }
@@ -1228,14 +1486,18 @@ class PrintCardPdfService {
 
       if (respName.isNotEmpty || respPhone.isNotEmpty) {
         final displayName = respName.isNotEmpty ? respName : 'RESP. PRINC.';
-        contatoWidgets.add(_buildBackContactLine('RESP. PRINC.', displayName, respPhone));
+        contatoWidgets.add(
+          _buildBackContactLine('RESP. PRINC.', displayName, respPhone),
+        );
       }
     }
 
     // Responsáveis Extras
     for (final extra in request.extraResponsibles) {
       if (extra.hasAnyContent) {
-        contatoWidgets.add(_buildBackContactLine('RESP. EXTRA', extra.name, extra.phone));
+        contatoWidgets.add(
+          _buildBackContactLine('RESP. EXTRA', extra.name, extra.phone),
+        );
       }
     }
 
@@ -1259,15 +1521,21 @@ class PrintCardPdfService {
       }
 
       if (emergName.isNotEmpty || emergPhone.isNotEmpty) {
-        final displayName = emergName.isNotEmpty ? emergName : 'CONTATO DE EMERGÊNCIA';
-        contatoWidgets.add(_buildBackContactLine('EMERGÊNCIA', displayName, emergPhone));
+        final displayName = emergName.isNotEmpty
+            ? emergName
+            : 'CONTATO DE EMERGÊNCIA';
+        contatoWidgets.add(
+          _buildBackContactLine('EMERGÊNCIA', displayName, emergPhone),
+        );
       }
     }
 
     // Contatos de Emergência Extras
     for (final extra in request.extraEmergencyContacts) {
       if (extra.hasAnyContent) {
-        contatoWidgets.add(_buildBackContactLine('EMERGÊNCIA EXTRA', extra.name, extra.phone));
+        contatoWidgets.add(
+          _buildBackContactLine('EMERGÊNCIA EXTRA', extra.name, extra.phone),
+        );
       }
     }
 
@@ -1300,7 +1568,11 @@ class PrintCardPdfService {
                     children: [
                       pw.Text(
                         'INFORMAÇÕES ADICIONAIS',
-                        style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
+                        style: pw.TextStyle(
+                          fontSize: 11,
+                          fontWeight: pw.FontWeight.bold,
+                          color: PdfColors.black,
+                        ),
                       ),
                       pw.SizedBox(height: 3),
                       pw.Container(
@@ -1308,7 +1580,9 @@ class PrintCardPdfService {
                         height: 2.5,
                         decoration: const pw.BoxDecoration(
                           color: PdfColors.black,
-                          borderRadius: pw.BorderRadius.all(pw.Radius.circular(2)),
+                          borderRadius: pw.BorderRadius.all(
+                            pw.Radius.circular(2),
+                          ),
                         ),
                       ),
                       pw.SizedBox(height: 8),
@@ -1351,8 +1625,13 @@ class PrintCardPdfService {
                       pw.Container(
                         padding: const pw.EdgeInsets.all(5),
                         decoration: pw.BoxDecoration(
-                          border: pw.Border.all(color: PdfColors.black, width: 1.5),
-                          borderRadius: const pw.BorderRadius.all(pw.Radius.circular(5)),
+                          border: pw.Border.all(
+                            color: PdfColors.black,
+                            width: 1.5,
+                          ),
+                          borderRadius: const pw.BorderRadius.all(
+                            pw.Radius.circular(5),
+                          ),
                           color: PdfColors.grey100,
                         ),
                         child: _debugPdfDisableQr
@@ -1361,7 +1640,10 @@ class PrintCardPdfService {
                                 height: 82,
                                 color: PdfColors.grey300,
                                 alignment: pw.Alignment.center,
-                                child: pw.Text('QR Disabled', style: pw.TextStyle(fontSize: 8)),
+                                child: pw.Text(
+                                  'QR Disabled',
+                                  style: pw.TextStyle(fontSize: 8),
+                                ),
                               )
                             : pw.BarcodeWidget(
                                 barcode: pw.Barcode.qrCode(),
@@ -1373,31 +1655,60 @@ class PrintCardPdfService {
                       pw.SizedBox(height: 6),
                       pw.Text(
                         'VALIDAR AUTENTICIDADE',
-                        style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
+                        style: pw.TextStyle(
+                          fontSize: 8.5,
+                          fontWeight: pw.FontWeight.bold,
+                          color: PdfColors.black,
+                        ),
                       ),
                       pw.SizedBox(height: 4),
                       logoImage != null
                           ? pw.Container(
                               height: 20,
-                              child: pw.Image(logoImage, fit: pw.BoxFit.contain),
+                              child: pw.Image(
+                                logoImage,
+                                fit: pw.BoxFit.contain,
+                              ),
                             )
                           : pw.RichText(
                               text: pw.TextSpan(
-                                style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
+                                style: pw.TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: pw.FontWeight.bold,
+                                ),
                                 children: [
-                                  pw.TextSpan(text: 'Cone', style: pw.TextStyle(color: PdfColors.grey700)),
-                                  pw.TextSpan(text: 'CTEA', style: pw.TextStyle(color: PdfColors.black, fontWeight: pw.FontWeight.bold)),
+                                  pw.TextSpan(
+                                    text: 'Cone',
+                                    style: pw.TextStyle(
+                                      color: PdfColors.grey700,
+                                    ),
+                                  ),
+                                  pw.TextSpan(
+                                    text: 'CTEA',
+                                    style: pw.TextStyle(
+                                      color: PdfColors.black,
+                                      fontWeight: pw.FontWeight.bold,
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
                       pw.Text(
                         'Família TEA Bauru',
-                        style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
+                        style: pw.TextStyle(
+                          fontSize: 8.5,
+                          fontWeight: pw.FontWeight.bold,
+                          color: PdfColors.black,
+                        ),
                       ),
                       pw.SizedBox(height: 2),
                       pw.Text(
                         '#TODOSPELOAUTISMO',
-                        style: pw.TextStyle(fontSize: 7.5, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
+                        style: pw.TextStyle(
+                          fontSize: 7.5,
+                          fontWeight: pw.FontWeight.bold,
+                          color: PdfColors.black,
+                        ),
                       ),
                     ],
                   ),
@@ -1410,7 +1721,9 @@ class PrintCardPdfService {
           pw.Container(
             padding: const pw.EdgeInsets.only(top: 4),
             decoration: const pw.BoxDecoration(
-              border: pw.Border(top: pw.BorderSide(color: PdfColors.black, width: 0.8)),
+              border: pw.Border(
+                top: pw.BorderSide(color: PdfColors.black, width: 0.8),
+              ),
             ),
             child: pw.Row(
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
@@ -1418,12 +1731,19 @@ class PrintCardPdfService {
                 pw.Expanded(
                   child: pw.Text(
                     'Documento gerado sem fins clínicos ou comprobatórios governamentais.',
-                    style: pw.TextStyle(fontSize: 7.5, color: PdfColors.grey900),
+                    style: pw.TextStyle(
+                      fontSize: 7.5,
+                      color: PdfColors.grey900,
+                    ),
                   ),
                 ),
                 pw.Text(
                   'Gerado localmente no aparelho.',
-                  style: pw.TextStyle(fontSize: 7.5, fontStyle: pw.FontStyle.italic, color: PdfColors.grey900),
+                  style: pw.TextStyle(
+                    fontSize: 7.5,
+                    fontStyle: pw.FontStyle.italic,
+                    color: PdfColors.grey900,
+                  ),
                 ),
               ],
             ),
@@ -1439,11 +1759,19 @@ class PrintCardPdfService {
       child: pw.RichText(
         text: pw.TextSpan(
           text: '$label: ',
-          style: pw.TextStyle(fontSize: 9.5, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
+          style: pw.TextStyle(
+            fontSize: 9.5,
+            fontWeight: pw.FontWeight.bold,
+            color: PdfColors.black,
+          ),
           children: [
             pw.TextSpan(
               text: value,
-              style: pw.TextStyle(fontSize: 9.5, fontWeight: pw.FontWeight.normal, color: PdfColors.black),
+              style: pw.TextStyle(
+                fontSize: 9.5,
+                fontWeight: pw.FontWeight.normal,
+                color: PdfColors.black,
+              ),
             ),
           ],
         ),
@@ -1459,7 +1787,11 @@ class PrintCardPdfService {
         children: [
           pw.Text(
             '$prefix: $name',
-            style: pw.TextStyle(fontSize: 9.5, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
+            style: pw.TextStyle(
+              fontSize: 9.5,
+              fontWeight: pw.FontWeight.bold,
+              color: PdfColors.black,
+            ),
           ),
           if (phone.isNotEmpty) ...[
             pw.Text(
@@ -1487,7 +1819,9 @@ class PrintCardPdfService {
           if (cleanLine.isEmpty) return pw.SizedBox.shrink();
 
           final hasBullet = cleanLine.startsWith('•');
-          final itemText = hasBullet ? cleanLine.substring(1).trim() : cleanLine;
+          final itemText = hasBullet
+              ? cleanLine.substring(1).trim()
+              : cleanLine;
 
           return pw.Padding(
             padding: const pw.EdgeInsets.only(bottom: 2.5),
@@ -1496,7 +1830,11 @@ class PrintCardPdfService {
               children: [
                 if (hasBullet) ...[
                   pw.Padding(
-                    padding: const pw.EdgeInsets.only(top: 3.5, left: 1.0, right: 4.5),
+                    padding: const pw.EdgeInsets.only(
+                      top: 3.5,
+                      left: 1.0,
+                      right: 4.5,
+                    ),
                     child: pw.Container(
                       width: 3.0,
                       height: 3.0,
@@ -1510,10 +1848,7 @@ class PrintCardPdfService {
                 pw.Expanded(
                   child: pw.Text(
                     itemText,
-                    style: pw.TextStyle(
-                      fontSize: 8.0,
-                      color: PdfColors.black,
-                    ),
+                    style: pw.TextStyle(fontSize: 8.0, color: PdfColors.black),
                   ),
                 ),
               ],
@@ -1524,10 +1859,7 @@ class PrintCardPdfService {
     } else {
       contentWidget = pw.Text(
         cleanText,
-        style: pw.TextStyle(
-          fontSize: 8.0,
-          color: PdfColors.black,
-        ),
+        style: pw.TextStyle(fontSize: 8.0, color: PdfColors.black),
       );
     }
 
@@ -1614,7 +1946,9 @@ class PrintCardPdfService {
       if (cleanDob.contains('/')) {
         final parts = cleanDob.split('/');
         if (parts.length == 3) {
-          dt = DateTime.parse('${parts[2]}-${parts[1].padLeft(2, '0')}-${parts[0].padLeft(2, '0')}');
+          dt = DateTime.parse(
+            '${parts[2]}-${parts[1].padLeft(2, '0')}-${parts[0].padLeft(2, '0')}',
+          );
         }
       } else if (cleanDob.contains('-')) {
         dt = DateTime.parse(cleanDob);
@@ -1622,7 +1956,8 @@ class PrintCardPdfService {
       if (dt != null) {
         final today = DateTime.now();
         int age = today.year - dt.year;
-        if (today.month < dt.month || (today.month == dt.month && today.day < dt.day)) {
+        if (today.month < dt.month ||
+            (today.month == dt.month && today.day < dt.day)) {
           age--;
         }
         final formattedDate = cleanDob.contains('/')
@@ -1653,7 +1988,11 @@ class PrintCardPdfService {
   /// Estima a altura de um bloco de perfil no PDF de forma conservadora
   double _estimateBlockHeight(String label, String content, bool isList) {
     const double baseHeight = 28.0;
-    final lines = content.split('\n').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+    final lines = content
+        .split('\n')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
 
     if (isList) {
       double contentHeight = 0.0;
@@ -1680,7 +2019,7 @@ class _ProfileBlockSpec {
   final bool isList;
 
   _ProfileBlockSpec(this.label, this.content)
-      : isList = content.split('\n').any((line) => line.trim().startsWith('•'));
+    : isList = content.split('\n').any((line) => line.trim().startsWith('•'));
 
   List<String> getItems() {
     return content

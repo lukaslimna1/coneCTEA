@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// **PrintSupportProfileDraft**
@@ -14,6 +15,7 @@ class PrintSupportProfileDraft {
   final String updatedAt;
   final String preferredName;
   final String about;
+  final String? localPhotoPath;
 
   // Seleção/visibilidade dos blocos
   final bool includePreferredName;
@@ -85,6 +87,7 @@ class PrintSupportProfileDraft {
     required this.medications,
     required this.allergies,
     required this.otherImportantInfo,
+    this.localPhotoPath,
   });
 
   /// Instância inicial em branco de um rascunho de Perfil de Apoio para um membro.
@@ -94,6 +97,7 @@ class PrintSupportProfileDraft {
       updatedAt: '',
       preferredName: '',
       about: '',
+      localPhotoPath: null,
       includePreferredName: false,
       includeAbout: false,
       includeCommunication: false,
@@ -155,26 +159,64 @@ class PrintSupportProfileDraft {
       return hasContent;
     }
 
-    final hasComm = commSpeech || commGestures || commPictograms || commApps || communicationNotes.trim().isNotEmpty;
+    final hasComm =
+        commSpeech ||
+        commGestures ||
+        commPictograms ||
+        commApps ||
+        communicationNotes.trim().isNotEmpty;
 
     return PrintSupportProfileDraft(
       memberId: json['member_id']?.toString() ?? '',
       updatedAt: json['updated_at']?.toString() ?? '',
       preferredName: preferredName,
       about: about,
-      includePreferredName: parseFlag('include_preferred_name', preferredName.trim().isNotEmpty),
+      includePreferredName: parseFlag(
+        'include_preferred_name',
+        preferredName.trim().isNotEmpty,
+      ),
       includeAbout: parseFlag('include_about', about.trim().isNotEmpty),
       includeCommunication: parseFlag('include_communication', hasComm),
-      includeLikes: parseFlag('include_likes', likes.any((e) => e.trim().isNotEmpty)),
-      includeIrritations: parseFlag('include_irritations', irritations.any((e) => e.trim().isNotEmpty)),
-      includeCuriosities: parseFlag('include_curiosities', abilities.any((e) => e.trim().isNotEmpty)),
-      includeSupportTips: parseFlag('include_support_tips', supportTips.any((e) => e.trim().isNotEmpty)),
-      includeSupportLevel: parseFlag('include_support_level', supportLevel.trim().isNotEmpty),
-      includeFoodLikes: parseFlag('include_food_likes', foodLikes.any((e) => e.trim().isNotEmpty)),
-      includeFoodDislikes: parseFlag('include_food_dislikes', foodDislikes.any((e) => e.trim().isNotEmpty)),
-      includeMedications: parseFlag('include_medications', medications.any((e) => e.trim().isNotEmpty)),
-      includeAllergies: parseFlag('include_allergies', allergies.any((e) => e.trim().isNotEmpty)),
-      includeOtherImportantInfo: parseFlag('include_other_important_info', otherImportantInfo.trim().isNotEmpty),
+      includeLikes: parseFlag(
+        'include_likes',
+        likes.any((e) => e.trim().isNotEmpty),
+      ),
+      includeIrritations: parseFlag(
+        'include_irritations',
+        irritations.any((e) => e.trim().isNotEmpty),
+      ),
+      includeCuriosities: parseFlag(
+        'include_curiosities',
+        abilities.any((e) => e.trim().isNotEmpty),
+      ),
+      includeSupportTips: parseFlag(
+        'include_support_tips',
+        supportTips.any((e) => e.trim().isNotEmpty),
+      ),
+      includeSupportLevel: parseFlag(
+        'include_support_level',
+        supportLevel.trim().isNotEmpty,
+      ),
+      includeFoodLikes: parseFlag(
+        'include_food_likes',
+        foodLikes.any((e) => e.trim().isNotEmpty),
+      ),
+      includeFoodDislikes: parseFlag(
+        'include_food_dislikes',
+        foodDislikes.any((e) => e.trim().isNotEmpty),
+      ),
+      includeMedications: parseFlag(
+        'include_medications',
+        medications.any((e) => e.trim().isNotEmpty),
+      ),
+      includeAllergies: parseFlag(
+        'include_allergies',
+        allergies.any((e) => e.trim().isNotEmpty),
+      ),
+      includeOtherImportantInfo: parseFlag(
+        'include_other_important_info',
+        otherImportantInfo.trim().isNotEmpty,
+      ),
       commSpeech: commSpeech,
       commGestures: commGestures,
       commPictograms: commPictograms,
@@ -190,6 +232,7 @@ class PrintSupportProfileDraft {
       medications: medications,
       allergies: allergies,
       otherImportantInfo: otherImportantInfo,
+      localPhotoPath: json['localPhotoPath']?.toString(),
     );
   }
 
@@ -229,6 +272,7 @@ class PrintSupportProfileDraft {
       'medications': _normalizeList(medications),
       'allergies': _normalizeList(allergies),
       'other_important_info': otherImportantInfo.trim(),
+      'localPhotoPath': localPhotoPath,
     };
   }
 
@@ -286,6 +330,8 @@ class PrintSupportProfileDraft {
     List<String>? medications,
     List<String>? allergies,
     String? otherImportantInfo,
+    String? localPhotoPath,
+    bool clearLocalPhotoPath = false,
   }) {
     return PrintSupportProfileDraft(
       memberId: memberId ?? this.memberId,
@@ -304,7 +350,8 @@ class PrintSupportProfileDraft {
       includeFoodDislikes: includeFoodDislikes ?? this.includeFoodDislikes,
       includeMedications: includeMedications ?? this.includeMedications,
       includeAllergies: includeAllergies ?? this.includeAllergies,
-      includeOtherImportantInfo: includeOtherImportantInfo ?? this.includeOtherImportantInfo,
+      includeOtherImportantInfo:
+          includeOtherImportantInfo ?? this.includeOtherImportantInfo,
       commSpeech: commSpeech ?? this.commSpeech,
       commGestures: commGestures ?? this.commGestures,
       commPictograms: commPictograms ?? this.commPictograms,
@@ -320,6 +367,9 @@ class PrintSupportProfileDraft {
       medications: medications ?? this.medications,
       allergies: allergies ?? this.allergies,
       otherImportantInfo: otherImportantInfo ?? this.otherImportantInfo,
+      localPhotoPath: clearLocalPhotoPath
+          ? null
+          : (localPhotoPath ?? this.localPhotoPath),
     );
   }
 
@@ -333,10 +383,7 @@ class PrintSupportProfileDraft {
 
   // Helper para normalização e limpeza de listas antes de persistir
   List<String> _normalizeList(List<String> list) {
-    return list
-        .map((e) => e.trim())
-        .where((e) => e.isNotEmpty)
-        .toList();
+    return list.map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
   }
 }
 
@@ -397,6 +444,18 @@ class PrintSupportProfileLocalService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final key = _getPrefKey(memberId);
+
+      final jsonString = prefs.getString(key);
+      if (jsonString != null) {
+        final decoded = jsonDecode(jsonString);
+        final path = decoded['localPhotoPath'] as String?;
+        if (path != null && path.isNotEmpty) {
+          final file = File(path);
+          if (await file.exists()) {
+            await file.delete();
+          }
+        }
+      }
       await prefs.remove(key);
     } catch (_) {
       // Silencioso em caso de falha de remoção

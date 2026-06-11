@@ -1,28 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
+import 'dart:typed_data';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:uuid/uuid.dart';
 import 'package:conectea/models/member.dart';
 import 'package:conectea/features/carteirinhas/services/print_support_profile_local_service.dart';
-
-
 
 /// **PrintSupportProfileSheet**
 /// Diálogo modal bottom sheet que permite ao responsável preencher
 /// visualmente as informações que constituem o Perfil de Apoio TEA.
+
+class PrintSupportProfileResult {
+  final bool continuePrint;
+  final Uint8List? photoBytes;
+  PrintSupportProfileResult(this.continuePrint, this.photoBytes);
+}
+
 class PrintSupportProfileSheet extends StatefulWidget {
   final Member member;
 
-  const PrintSupportProfileSheet({
-    super.key,
-    required this.member,
-  });
+  const PrintSupportProfileSheet({super.key, required this.member});
 
   /// Método estático facilitador para exibir o bottom sheet.
-  static Future<bool?> show(
+  static Future<PrintSupportProfileResult?> show(
     BuildContext context, {
     required Member member,
   }) {
-    return showModalBottomSheet<bool>(
+    return showModalBottomSheet<PrintSupportProfileResult>(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
@@ -33,7 +40,8 @@ class PrintSupportProfileSheet extends StatefulWidget {
   }
 
   @override
-  State<PrintSupportProfileSheet> createState() => _PrintSupportProfileSheetState();
+  State<PrintSupportProfileSheet> createState() =>
+      _PrintSupportProfileSheetState();
 }
 
 class _PrintSupportProfileSheetState extends State<PrintSupportProfileSheet> {
@@ -81,6 +89,106 @@ class _PrintSupportProfileSheetState extends State<PrintSupportProfileSheet> {
   bool _commGestures = false;
   bool _commPictograms = false;
   bool _commApps = false;
+  Uint8List? _supportPhotoBytes;
+  String? _localPhotoPath;
+
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(
+        source: source,
+        maxWidth: 600,
+        maxHeight: 800,
+        imageQuality: 80,
+      );
+      if (pickedFile != null) {
+        final bytes = await pickedFile.readAsBytes();
+
+        final dir = await getApplicationSupportDirectory();
+        final conecteaDir = Directory(
+          '${dir.path}/conectea/print_support_profile',
+        );
+        if (!await conecteaDir.exists()) {
+          await conecteaDir.create(recursive: true);
+        }
+
+        final newFileName = '${const Uuid().v4()}.jpg';
+        final newFilePath = '${conecteaDir.path}/$newFileName';
+        final savedFile = await File(pickedFile.path).copy(newFilePath);
+
+        final oldPath = _localPhotoPath;
+        if (oldPath != null && oldPath.isNotEmpty) {
+          final oldFile = File(oldPath);
+          if (await oldFile.exists()) {
+            await oldFile.delete();
+          }
+        }
+
+        if (mounted) {
+          setState(() {
+            _supportPhotoBytes = bytes;
+            _localPhotoPath = savedFile.path;
+          });
+        }
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Não foi possível carregar a imagem.')),
+        );
+      }
+    }
+  }
+
+  Future<void> _loadExistingPhoto(String path) async {
+    if (path.isNotEmpty) {
+      try {
+        final file = File(path);
+        if (await file.exists()) {
+          final bytes = await file.readAsBytes();
+          if (mounted) {
+            setState(() {
+              _supportPhotoBytes = bytes;
+            });
+          }
+        } else {
+          if (mounted) {
+            setState(() {
+              _localPhotoPath = null;
+            });
+          }
+        }
+      } catch (_) {}
+    }
+  }
+
+  void _showImagePickerOptions() {
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(PhosphorIconsRegular.camera),
+              title: const Text('Tirar foto'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _pickImage(ImageSource.camera);
+              },
+            ),
+            ListTile(
+              leading: const Icon(PhosphorIconsRegular.image),
+              title: const Text('Escolher da galeria'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _pickImage(ImageSource.gallery);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -146,6 +254,7 @@ class _PrintSupportProfileSheetState extends State<PrintSupportProfileSheet> {
       final draft = await _localService.loadDraft(widget.member.id);
       if (draft != null && mounted) {
         setState(() {
+          _localPhotoPath = draft.localPhotoPath;
           _nicknameController.text = draft.preferredName;
           _aboutMeController.text = draft.about;
           _commSpeech = draft.commSpeech;
@@ -168,7 +277,9 @@ class _PrintSupportProfileSheetState extends State<PrintSupportProfileSheet> {
           _includeAllergies = draft.includeAllergies;
           _includeOtherImportantInfo = draft.includeOtherImportantInfo;
 
-          _supportLevel = draft.supportLevel.isNotEmpty ? draft.supportLevel : null;
+          _supportLevel = draft.supportLevel.isNotEmpty
+              ? draft.supportLevel
+              : null;
 
           _fillControllers(_likesControllers, draft.likes);
           _fillControllers(_dislikesControllers, draft.irritations);
@@ -181,6 +292,10 @@ class _PrintSupportProfileSheetState extends State<PrintSupportProfileSheet> {
 
           _usefulInfoController.text = draft.otherImportantInfo;
         });
+        final path = draft.localPhotoPath;
+        if (path != null) {
+          await _loadExistingPhoto(path);
+        }
       }
     } catch (_) {
       // Captura silenciosa e segura
@@ -282,7 +397,10 @@ class _PrintSupportProfileSheetState extends State<PrintSupportProfileSheet> {
     }
 
     if (success && mounted) {
-      Navigator.pop(context, true);
+      Navigator.pop(
+        context,
+        PrintSupportProfileResult(true, _supportPhotoBytes),
+      );
     }
   }
 
@@ -298,17 +416,12 @@ class _PrintSupportProfileSheetState extends State<PrintSupportProfileSheet> {
           topRight: Radius.circular(DsRaios.card),
         ),
         border: Border(
-          top: BorderSide(
-            color: Colors.white.withValues(alpha: 0.1),
-            width: 1,
-          ),
+          top: BorderSide(color: Colors.white.withValues(alpha: 0.1), width: 1),
         ),
       ),
       child: SafeArea(
         child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxHeight: screenHeight * 0.85,
-          ),
+          constraints: BoxConstraints(maxHeight: screenHeight * 0.85),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -328,379 +441,521 @@ class _PrintSupportProfileSheetState extends State<PrintSupportProfileSheet> {
               // Área de Conteúdo Rolável
               if (_isLoading)
                 const Expanded(
-                  child: Center(
-                    child: CircularProgressIndicator(),
-                  ),
+                  child: Center(child: CircularProgressIndicator()),
                 )
               else
                 Expanded(
                   child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(24.0, 8.0, 24.0, 16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Cabeçalho e Título
-                      Row(
-                        children: [
-                          Icon(
-                            PhosphorIconsBold.heart,
-                            color: DsCores.carteirinha.accent,
-                            size: 26,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              'Perfil de Apoio TEA',
-                              style: DsTipografia.sectionTitle,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Subtítulo descritivo
-                      Text(
-                        'Preencha informações opcionais para ajudar escola, cuidadores, familiares, eventos ou consultas a entenderem melhor como apoiar a pessoa.',
-                        style: DsTipografia.infoBody,
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Bloco Informativo de Privacidade e Segurança
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 10.0),
-                        decoration: BoxDecoration(
-                          color: DsCores.privacidade.softBackground.withValues(alpha: 0.05),
-                          borderRadius: BorderRadius.circular(DsRaios.card),
-                          border: Border.all(
-                            color: DsCores.privacidade.border.withValues(alpha: 0.1),
-                          ),
-                        ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.fromLTRB(24.0, 8.0, 24.0, 16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Cabeçalho e Título
+                        Row(
                           children: [
                             Icon(
-                              PhosphorIconsRegular.shieldCheck,
-                              color: DsCores.privacidade.accent,
-                              size: 18,
+                              PhosphorIconsBold.heart,
+                              color: DsCores.carteirinha.accent,
+                              size: 26,
                             ),
-                            const SizedBox(width: 10),
+                            const SizedBox(width: 12),
                             Expanded(
                               child: Text(
-                                'Essas informações ficam salvas apenas neste aparelho e não são enviadas para o banco de dados. Preencha apenas o que fizer sentido. Campos vazios não serão incluídos na versão impressa.',
-                                style: DsTipografia.caption.copyWith(
-                                  color: DsCores.textSecondary,
-                                  height: 1.35,
-                                ),
+                                'Perfil de Apoio TEA',
+                                style: DsTipografia.sectionTitle,
                               ),
                             ),
                           ],
                         ),
-                      ),
-                      const SizedBox(height: 24),
+                        const SizedBox(height: 12),
 
-                      // ==========================================
-                      // MOLDURA DA FOTO (Placeholder Visual)
-                      // ==========================================
-                      Center(
-                        child: Column(
-                          children: [
-                            Container(
-                              width: 100,
-                              height: 100,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: DsCores.surfaceElevated.withValues(alpha: 0.4),
-                                border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.1),
-                                  width: 2.0,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.25),
-                                    blurRadius: 10,
+                        // Subtítulo descritivo
+                        Text(
+                          'Preencha informações opcionais para ajudar escola, cuidadores, familiares, eventos ou consultas a entenderem melhor como apoiar a pessoa.',
+                          style: DsTipografia.infoBody,
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Bloco Informativo de Privacidade e Segurança
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14.0,
+                            vertical: 10.0,
+                          ),
+                          decoration: BoxDecoration(
+                            color: DsCores.privacidade.softBackground
+                                .withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(DsRaios.card),
+                            border: Border.all(
+                              color: DsCores.privacidade.border.withValues(
+                                alpha: 0.1,
+                              ),
+                            ),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(
+                                PhosphorIconsRegular.shieldCheck,
+                                color: DsCores.privacidade.accent,
+                                size: 18,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  'Essas informações ficam salvas apenas neste aparelho e não são enviadas para o banco de dados. Preencha apenas o que fizer sentido. Campos vazios não serão incluídos na versão impressa.',
+                                  style: DsTipografia.caption.copyWith(
+                                    color: DsCores.textSecondary,
+                                    height: 1.35,
                                   ),
-                                ],
-                              ),
-                              child: Icon(
-                                PhosphorIconsRegular.camera,
-                                color: Colors.white.withValues(alpha: 0.4),
-                                size: 36,
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            // Botão/Rótulo de foto desabilitado
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.04),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Text(
-                                'Adicionar Foto (Em breve)',
-                                style: DsTipografia.caption.copyWith(
-                                  color: DsCores.textMuted,
-                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+
+                        // ==========================================
+                        // MOLDURA DA FOTO
+                        // ==========================================
+                        Center(
+                          child: Column(
+                            children: [
+                              GestureDetector(
+                                onTap: _showImagePickerOptions,
+                                child: Container(
+                                  width: 100,
+                                  height: 100,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: DsCores.surfaceElevated.withValues(
+                                      alpha: 0.4,
+                                    ),
+                                    border: Border.all(
+                                      color: Colors.white.withValues(
+                                        alpha: 0.1,
+                                      ),
+                                      width: 2.0,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(
+                                          alpha: 0.25,
+                                        ),
+                                        blurRadius: 10,
+                                      ),
+                                    ],
+                                    image: _supportPhotoBytes != null
+                                        ? DecorationImage(
+                                            image: MemoryImage(
+                                              _supportPhotoBytes!,
+                                            ),
+                                            fit: BoxFit.cover,
+                                          )
+                                        : null,
+                                  ),
+                                  child: _supportPhotoBytes == null
+                                      ? Icon(
+                                          PhosphorIconsRegular.camera,
+                                          color: Colors.white.withValues(
+                                            alpha: 0.4,
+                                          ),
+                                          size: 36,
+                                        )
+                                      : null,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              if (_supportPhotoBytes == null)
+                                GestureDetector(
+                                  onTap: _showImagePickerOptions,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12.0,
+                                      vertical: 6.0,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: DsCores.carteirinha.accent
+                                          .withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Text(
+                                      'Adicionar Foto',
+                                      style: DsTipografia.caption.copyWith(
+                                        color: DsCores.carteirinha.accent,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              else
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    GestureDetector(
+                                      onTap: _showImagePickerOptions,
+                                      child: Text(
+                                        'Trocar',
+                                        style: DsTipografia.caption.copyWith(
+                                          color: DsCores.carteirinha.accent,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          _supportPhotoBytes = null;
+                                        });
+                                      },
+                                      child: Text(
+                                        'Remover',
+                                        style: DsTipografia.caption.copyWith(
+                                          color: DsCores.perigo.accent,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 28),
+
+                        _buildSectionBlock(
+                          isChecked: _includePreferredName,
+                          onChanged: (val) => setState(
+                            () => _includePreferredName = val ?? false,
+                          ),
+                          title: 'Como gosto de ser chamado(a)',
+                          child: DsInput(
+                            label: 'Nome preferido',
+                            controller: _nicknameController,
+                            hint: 'Ex: Dudu, Cacá, etc.',
+                          ),
+                        ),
+
+                        _buildSectionBlock(
+                          isChecked: _includeSupportLevel,
+                          onChanged: (val) => setState(
+                            () => _includeSupportLevel = val ?? false,
+                          ),
+                          title: 'Nível de suporte',
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Selecione o nível de suporte, se desejar informar.',
+                                style: DsTipografia.bodySmall.copyWith(
+                                  color: DsCores.textSecondary,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              DsDropdown(
+                                label: 'Nível de suporte',
+                                value: _supportLevel,
+                                items: const [
+                                  'Não informado',
+                                  'Nível 1 de suporte',
+                                  'Nível 2 de suporte',
+                                  'Nível 3 de suporte',
+                                ],
+                                onChanged: (val) => setState(
+                                  () => _supportLevel = (val == 'Não informado')
+                                      ? ''
+                                      : (val ?? ''),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        _buildSectionBlock(
+                          isChecked: _includeCommunication,
+                          onChanged: (val) => setState(
+                            () => _includeCommunication = val ?? false,
+                          ),
+                          title: 'Como me comunico',
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              DsCheckbox(
+                                value: _commSpeech,
+                                onChanged: (val) =>
+                                    setState(() => _commSpeech = val ?? false),
+                                label: _buildCheckboxLabel('Fala'),
+                                token: DsCores.sucesso,
+                              ),
+                              DsCheckbox(
+                                value: _commGestures,
+                                onChanged: (val) => setState(
+                                  () => _commGestures = val ?? false,
+                                ),
+                                label: _buildCheckboxLabel(
+                                  'Gestos / expressões',
+                                ),
+                                token: DsCores.sucesso,
+                              ),
+                              DsCheckbox(
+                                value: _commPictograms,
+                                onChanged: (val) => setState(
+                                  () => _commPictograms = val ?? false,
+                                ),
+                                label: _buildCheckboxLabel(
+                                  'Figuras / pictogramas',
+                                ),
+                                token: DsCores.sucesso,
+                              ),
+                              DsCheckbox(
+                                value: _commApps,
+                                onChanged: (val) =>
+                                    setState(() => _commApps = val ?? false),
+                                label: _buildCheckboxLabel(
+                                  'Dispositivos / aplicativos',
+                                ),
+                                token: DsCores.sucesso,
+                              ),
+                              const SizedBox(height: 16),
+                              DsInput(
+                                label: 'Outras formas / observações',
+                                controller: _communicationObsController,
+                                hint:
+                                    'Ex: usa prancha de comunicação alternativa...',
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        _buildSectionBlock(
+                          isChecked: _includeAbout,
+                          onChanged: (val) =>
+                              setState(() => _includeAbout = val ?? false),
+                          title: 'Sobre mim',
+                          child: DsInput(
+                            label: 'Resumo sobre mim',
+                            controller: _aboutMeController,
+                            hint:
+                                'Escreva um resumo sobre a personalidade e características marcantes da pessoa.',
+                            maxLines: 3,
+                          ),
+                        ),
+
+                        _buildSectionBlock(
+                          isChecked: _includeCuriosities,
+                          onChanged: (val) => setState(
+                            () => _includeCuriosities = val ?? false,
+                          ),
+                          title: 'Curiosidades sobre mim',
+                          child: _buildDynamicListSection(
+                            title: '',
+                            controllers: _abilitiesControllers,
+                            hint:
+                                'Ex: sei montar cubo mágico, adoro dinossauros...',
+                            onAdd: () => setState(
+                              () => _abilitiesControllers.add(
+                                TextEditingController(),
+                              ),
                             ),
-                          ],
+                            onRemove: (idx) => setState(() {
+                              final c = _abilitiesControllers.removeAt(idx);
+                              c.dispose();
+                            }),
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 28),
 
-
-                      _buildSectionBlock(
-                        isChecked: _includePreferredName,
-                        onChanged: (val) => setState(() => _includePreferredName = val ?? false),
-                        title: 'Como gosto de ser chamado(a)',
-                        child: DsInput(
-                          label: 'Nome preferido',
-                          controller: _nicknameController,
-                          hint: 'Ex: Dudu, Cacá, etc.',
-                        ),
-                      ),
-
-                      _buildSectionBlock(
-                        isChecked: _includeSupportLevel,
-                        onChanged: (val) => setState(() => _includeSupportLevel = val ?? false),
-                        title: 'Nível de suporte',
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Selecione o nível de suporte, se desejar informar.',
-                              style: DsTipografia.bodySmall.copyWith(color: DsCores.textSecondary),
+                        _buildSectionBlock(
+                          isChecked: _includeLikes,
+                          onChanged: (val) =>
+                              setState(() => _includeLikes = val ?? false),
+                          title: 'Coisas que eu gosto',
+                          child: _buildDynamicListSection(
+                            title: '',
+                            controllers: _likesControllers,
+                            hint:
+                                'Ex: dinossauros, massinha, abraço apertado...',
+                            onAdd: () => setState(
+                              () => _likesControllers.add(
+                                TextEditingController(),
+                              ),
                             ),
-                            const SizedBox(height: 12),
-                            DsDropdown(
-                              label: 'Nível de suporte',
-                              value: _supportLevel,
-                              items: const [
-                                'Não informado',
-                                'Nível 1 de suporte',
-                                'Nível 2 de suporte',
-                                'Nível 3 de suporte',
-                              ],
-                              onChanged: (val) => setState(() => _supportLevel = (val == 'Não informado') ? '' : (val ?? '')),
+                            onRemove: (idx) => setState(() {
+                              final c = _likesControllers.removeAt(idx);
+                              c.dispose();
+                            }),
+                          ),
+                        ),
+
+                        _buildSectionBlock(
+                          isChecked: _includeIrritations,
+                          onChanged: (val) => setState(
+                            () => _includeIrritations = val ?? false,
+                          ),
+                          title: 'Coisas que me irritam',
+                          child: _buildDynamicListSection(
+                            title: '',
+                            controllers: _dislikesControllers,
+                            hint: 'Ex: barulho alto, lugares muito cheios...',
+                            onAdd: () => setState(
+                              () => _dislikesControllers.add(
+                                TextEditingController(),
+                              ),
                             ),
-                          ],
+                            onRemove: (idx) => setState(() {
+                              final c = _dislikesControllers.removeAt(idx);
+                              c.dispose();
+                            }),
+                          ),
                         ),
-                      ),
 
-                      _buildSectionBlock(
-                        isChecked: _includeCommunication,
-                        onChanged: (val) => setState(() => _includeCommunication = val ?? false),
-                        title: 'Como me comunico',
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            DsCheckbox(
-                              value: _commSpeech,
-                              onChanged: (val) => setState(() => _commSpeech = val ?? false),
-                              label: _buildCheckboxLabel('Fala'),
-                              token: DsCores.sucesso,
+                        _buildSectionBlock(
+                          isChecked: _includeFoodLikes,
+                          onChanged: (val) =>
+                              setState(() => _includeFoodLikes = val ?? false),
+                          title: 'Comidas que eu gosto',
+                          child: _buildDynamicListSection(
+                            title: '',
+                            controllers: _foodLikesControllers,
+                            hint: 'Use frases curtas para facilitar a leitura.',
+                            onAdd: () => setState(
+                              () => _foodLikesControllers.add(
+                                TextEditingController(),
+                              ),
                             ),
-                            DsCheckbox(
-                              value: _commGestures,
-                              onChanged: (val) => setState(() => _commGestures = val ?? false),
-                              label: _buildCheckboxLabel('Gestos / expressões'),
-                              token: DsCores.sucesso,
+                            onRemove: (idx) => setState(() {
+                              final c = _foodLikesControllers.removeAt(idx);
+                              c.dispose();
+                            }),
+                          ),
+                        ),
+
+                        _buildSectionBlock(
+                          isChecked: _includeFoodDislikes,
+                          onChanged: (val) => setState(
+                            () => _includeFoodDislikes = val ?? false,
+                          ),
+                          title: 'Comidas que eu não gosto / que me incomodam',
+                          child: _buildDynamicListSection(
+                            title: '',
+                            controllers: _foodDislikesControllers,
+                            hint: 'Use frases curtas para facilitar a leitura.',
+                            onAdd: () => setState(
+                              () => _foodDislikesControllers.add(
+                                TextEditingController(),
+                              ),
                             ),
-                            DsCheckbox(
-                              value: _commPictograms,
-                              onChanged: (val) => setState(() => _commPictograms = val ?? false),
-                              label: _buildCheckboxLabel('Figuras / pictogramas'),
-                              token: DsCores.sucesso,
+                            onRemove: (idx) => setState(() {
+                              final c = _foodDislikesControllers.removeAt(idx);
+                              c.dispose();
+                            }),
+                          ),
+                        ),
+
+                        _buildSectionBlock(
+                          isChecked: _includeSupportTips,
+                          onChanged: (val) => setState(
+                            () => _includeSupportTips = val ?? false,
+                          ),
+                          title: 'Como você pode me ajudar',
+                          child: _buildDynamicListSection(
+                            title: '',
+                            controllers: _howToHelpControllers,
+                            hint:
+                                'Ex: fale de forma clara, evite me tocar de surpresa...',
+                            onAdd: () => setState(
+                              () => _howToHelpControllers.add(
+                                TextEditingController(),
+                              ),
                             ),
-                            DsCheckbox(
-                              value: _commApps,
-                              onChanged: (val) => setState(() => _commApps = val ?? false),
-                              label: _buildCheckboxLabel('Dispositivos / aplicativos'),
-                              token: DsCores.sucesso,
+                            onRemove: (idx) => setState(() {
+                              final c = _howToHelpControllers.removeAt(idx);
+                              c.dispose();
+                            }),
+                          ),
+                        ),
+
+                        _buildSectionBlock(
+                          isChecked: _includeMedications,
+                          onChanged: (val) => setState(
+                            () => _includeMedications = val ?? false,
+                          ),
+                          title: 'Medicações',
+                          child: _buildDynamicListSection(
+                            title: '',
+                            controllers: _medicationsControllers,
+                            hint: 'Ex: Paracetamol 500mg de 8/8h...',
+                            onAdd: () => setState(
+                              () => _medicationsControllers.add(
+                                TextEditingController(),
+                              ),
                             ),
-                            const SizedBox(height: 16),
-                            DsInput(
-                              label: 'Outras formas / observações',
-                              controller: _communicationObsController,
-                              hint: 'Ex: usa prancha de comunicação alternativa...',
+                            onRemove: (idx) => setState(() {
+                              final c = _medicationsControllers.removeAt(idx);
+                              c.dispose();
+                            }),
+                          ),
+                        ),
+
+                        _buildSectionBlock(
+                          isChecked: _includeAllergies,
+                          onChanged: (val) =>
+                              setState(() => _includeAllergies = val ?? false),
+                          title: 'Alergias',
+                          child: _buildDynamicListSection(
+                            title: '',
+                            controllers: _allergiesControllers,
+                            hint: 'Ex: APLV, Dipirona, poeira...',
+                            onAdd: () => setState(
+                              () => _allergiesControllers.add(
+                                TextEditingController(),
+                              ),
                             ),
-                          ],
+                            onRemove: (idx) => setState(() {
+                              final c = _allergiesControllers.removeAt(idx);
+                              c.dispose();
+                            }),
+                          ),
                         ),
-                      ),
 
-                      _buildSectionBlock(
-                        isChecked: _includeAbout,
-                        onChanged: (val) => setState(() => _includeAbout = val ?? false),
-                        title: 'Sobre mim',
-                        child: DsInput(
-                          label: 'Resumo sobre mim',
-                          controller: _aboutMeController,
-                          hint: 'Escreva um resumo sobre a personalidade e características marcantes da pessoa.',
-                          maxLines: 3,
+                        _buildSectionBlock(
+                          isChecked: _includeOtherImportantInfo,
+                          onChanged: (val) => setState(
+                            () => _includeOtherImportantInfo = val ?? false,
+                          ),
+                          title: 'Outras informações importantes',
+                          child: DsInput(
+                            label: 'Observações finais',
+                            controller: _usefulInfoController,
+                            hint:
+                                'Descreva outras recomendações importantes de cuidados diários, rotinas ou particularidades.',
+                            maxLines: 4,
+                          ),
                         ),
-                      ),
-
-                      _buildSectionBlock(
-                        isChecked: _includeCuriosities,
-                        onChanged: (val) => setState(() => _includeCuriosities = val ?? false),
-                        title: 'Curiosidades sobre mim',
-                        child: _buildDynamicListSection(
-                          title: '',
-                          controllers: _abilitiesControllers,
-                          hint: 'Ex: sei montar cubo mágico, adoro dinossauros...',
-                          onAdd: () => setState(() => _abilitiesControllers.add(TextEditingController())),
-                          onRemove: (idx) => setState(() {
-                            final c = _abilitiesControllers.removeAt(idx);
-                            c.dispose();
-                          }),
-                        ),
-                      ),
-
-                      _buildSectionBlock(
-                        isChecked: _includeLikes,
-                        onChanged: (val) => setState(() => _includeLikes = val ?? false),
-                        title: 'Coisas que eu gosto',
-                        child: _buildDynamicListSection(
-                          title: '',
-                          controllers: _likesControllers,
-                          hint: 'Ex: dinossauros, massinha, abraço apertado...',
-                          onAdd: () => setState(() => _likesControllers.add(TextEditingController())),
-                          onRemove: (idx) => setState(() {
-                            final c = _likesControllers.removeAt(idx);
-                            c.dispose();
-                          }),
-                        ),
-                      ),
-
-                      _buildSectionBlock(
-                        isChecked: _includeIrritations,
-                        onChanged: (val) => setState(() => _includeIrritations = val ?? false),
-                        title: 'Coisas que me irritam',
-                        child: _buildDynamicListSection(
-                          title: '',
-                          controllers: _dislikesControllers,
-                          hint: 'Ex: barulho alto, lugares muito cheios...',
-                          onAdd: () => setState(() => _dislikesControllers.add(TextEditingController())),
-                          onRemove: (idx) => setState(() {
-                            final c = _dislikesControllers.removeAt(idx);
-                            c.dispose();
-                          }),
-                        ),
-                      ),
-
-                      _buildSectionBlock(
-                        isChecked: _includeFoodLikes,
-                        onChanged: (val) => setState(() => _includeFoodLikes = val ?? false),
-                        title: 'Comidas que eu gosto',
-                        child: _buildDynamicListSection(
-                          title: '',
-                          controllers: _foodLikesControllers,
-                          hint: 'Use frases curtas para facilitar a leitura.',
-                          onAdd: () => setState(() => _foodLikesControllers.add(TextEditingController())),
-                          onRemove: (idx) => setState(() {
-                            final c = _foodLikesControllers.removeAt(idx);
-                            c.dispose();
-                          }),
-                        ),
-                      ),
-
-                      _buildSectionBlock(
-                        isChecked: _includeFoodDislikes,
-                        onChanged: (val) => setState(() => _includeFoodDislikes = val ?? false),
-                        title: 'Comidas que eu não gosto / que me incomodam',
-                        child: _buildDynamicListSection(
-                          title: '',
-                          controllers: _foodDislikesControllers,
-                          hint: 'Use frases curtas para facilitar a leitura.',
-                          onAdd: () => setState(() => _foodDislikesControllers.add(TextEditingController())),
-                          onRemove: (idx) => setState(() {
-                            final c = _foodDislikesControllers.removeAt(idx);
-                            c.dispose();
-                          }),
-                        ),
-                      ),
-
-                      _buildSectionBlock(
-                        isChecked: _includeSupportTips,
-                        onChanged: (val) => setState(() => _includeSupportTips = val ?? false),
-                        title: 'Como você pode me ajudar',
-                        child: _buildDynamicListSection(
-                          title: '',
-                          controllers: _howToHelpControllers,
-                          hint: 'Ex: fale de forma clara, evite me tocar de surpresa...',
-                          onAdd: () => setState(() => _howToHelpControllers.add(TextEditingController())),
-                          onRemove: (idx) => setState(() {
-                            final c = _howToHelpControllers.removeAt(idx);
-                            c.dispose();
-                          }),
-                        ),
-                      ),
-
-                      _buildSectionBlock(
-                        isChecked: _includeMedications,
-                        onChanged: (val) => setState(() => _includeMedications = val ?? false),
-                        title: 'Medicações',
-                        child: _buildDynamicListSection(
-                          title: '',
-                          controllers: _medicationsControllers,
-                          hint: 'Ex: Paracetamol 500mg de 8/8h...',
-                          onAdd: () => setState(() => _medicationsControllers.add(TextEditingController())),
-                          onRemove: (idx) => setState(() {
-                            final c = _medicationsControllers.removeAt(idx);
-                            c.dispose();
-                          }),
-                        ),
-                      ),
-
-                      _buildSectionBlock(
-                        isChecked: _includeAllergies,
-                        onChanged: (val) => setState(() => _includeAllergies = val ?? false),
-                        title: 'Alergias',
-                        child: _buildDynamicListSection(
-                          title: '',
-                          controllers: _allergiesControllers,
-                          hint: 'Ex: APLV, Dipirona, poeira...',
-                          onAdd: () => setState(() => _allergiesControllers.add(TextEditingController())),
-                          onRemove: (idx) => setState(() {
-                            final c = _allergiesControllers.removeAt(idx);
-                            c.dispose();
-                          }),
-                        ),
-                      ),
-
-                      _buildSectionBlock(
-                        isChecked: _includeOtherImportantInfo,
-                        onChanged: (val) => setState(() => _includeOtherImportantInfo = val ?? false),
-                        title: 'Outras informações importantes',
-                        child: DsInput(
-                          label: 'Observações finais',
-                          controller: _usefulInfoController,
-                          hint: 'Descreva outras recomendações importantes de cuidados diários, rotinas ou particularidades.',
-                          maxLines: 4,
-                        ),
-                      ),
-// Texto Inspirador final
-                      Center(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: Text(
-                            '“Cada pessoa é única. Pequenas adaptações fazem uma grande diferença.”',
-                            textAlign: TextAlign.center,
-                            style: DsTipografia.caption.copyWith(
-                              color: DsCores.textSecondary,
-                              fontStyle: FontStyle.italic,
-                              fontWeight: FontWeight.w600,
-                              height: 1.4,
+                        // Texto Inspirador final
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16.0,
+                            ),
+                            child: Text(
+                              '“Cada pessoa é única. Pequenas adaptações fazem uma grande diferença.”',
+                              textAlign: TextAlign.center,
+                              style: DsTipografia.caption.copyWith(
+                                color: DsCores.textSecondary,
+                                fontStyle: FontStyle.italic,
+                                fontWeight: FontWeight.w600,
+                                height: 1.4,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                    ],
+                        const SizedBox(height: 8),
+                      ],
+                    ),
                   ),
                 ),
-              ),
 
               // ==========================================
               // BOTÕES DE AÇÃO FIXOS NO RODAPÉ
@@ -713,7 +968,9 @@ class _PrintSupportProfileSheetState extends State<PrintSupportProfileSheet> {
                       child: DsBotao(
                         label: 'Voltar',
                         variante: DsBotaoVariante.secundario,
-                        onPressed: (_isLoading || _isSaving) ? null : () => Navigator.pop(context, false),
+                        onPressed: (_isLoading || _isSaving)
+                            ? null
+                            : () => Navigator.pop(context, null),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -722,7 +979,9 @@ class _PrintSupportProfileSheetState extends State<PrintSupportProfileSheet> {
                         label: 'Continuar',
                         variante: DsBotaoVariante.acao,
                         token: DsCores.sucesso,
-                        onPressed: (_isLoading || _isSaving) ? null : _handleContinue,
+                        onPressed: (_isLoading || _isSaving)
+                            ? null
+                            : _handleContinue,
                       ),
                     ),
                   ],
@@ -777,7 +1036,11 @@ class _PrintSupportProfileSheetState extends State<PrintSupportProfileSheet> {
               ),
               IconButton(
                 onPressed: onAdd,
-                icon: Icon(Icons.add_circle_outline_rounded, color: DsCores.sucesso.accent, size: 22),
+                icon: Icon(
+                  Icons.add_circle_outline_rounded,
+                  color: DsCores.sucesso.accent,
+                  size: 22,
+                ),
                 constraints: const BoxConstraints(),
                 padding: EdgeInsets.zero,
                 tooltip: 'Adicionar item',
@@ -791,7 +1054,11 @@ class _PrintSupportProfileSheetState extends State<PrintSupportProfileSheet> {
             alignment: Alignment.centerRight,
             child: IconButton(
               onPressed: onAdd,
-              icon: Icon(Icons.add_circle_outline_rounded, color: DsCores.sucesso.accent, size: 22),
+              icon: Icon(
+                Icons.add_circle_outline_rounded,
+                color: DsCores.sucesso.accent,
+                size: 22,
+              ),
               constraints: const BoxConstraints(),
               padding: EdgeInsets.zero,
               tooltip: 'Adicionar item',
@@ -800,7 +1067,6 @@ class _PrintSupportProfileSheetState extends State<PrintSupportProfileSheet> {
           const SizedBox(height: 8),
         ],
         ListView.separated(
-
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: controllers.length,
@@ -821,7 +1087,9 @@ class _PrintSupportProfileSheetState extends State<PrintSupportProfileSheet> {
                 if (controllers.length > 1) ...[
                   const SizedBox(width: 8),
                   Padding(
-                    padding: const EdgeInsets.only(top: 24.0), // Alinha com a caixa de texto
+                    padding: const EdgeInsets.only(
+                      top: 24.0,
+                    ), // Alinha com a caixa de texto
                     child: IconButton(
                       onPressed: () => onRemove(index),
                       icon: Icon(
@@ -843,7 +1111,6 @@ class _PrintSupportProfileSheetState extends State<PrintSupportProfileSheet> {
     );
   }
 
-
   Widget _buildSectionBlock({
     required bool isChecked,
     required ValueChanged<bool?> onChanged,
@@ -853,9 +1120,13 @@ class _PrintSupportProfileSheetState extends State<PrintSupportProfileSheet> {
     return Container(
       margin: const EdgeInsets.only(bottom: 12.0),
       decoration: BoxDecoration(
-        color: isChecked ? DsCores.surfaceElevated.withValues(alpha: 0.25) : DsCores.surface,
+        color: isChecked
+            ? DsCores.surfaceElevated.withValues(alpha: 0.25)
+            : DsCores.surface,
         border: Border.all(
-          color: isChecked ? DsCores.sucesso.accent.withValues(alpha: 0.4) : DsCores.border,
+          color: isChecked
+              ? DsCores.sucesso.accent.withValues(alpha: 0.4)
+              : DsCores.border,
           width: 1,
         ),
         borderRadius: BorderRadius.circular(12),
@@ -873,10 +1144,7 @@ class _PrintSupportProfileSheetState extends State<PrintSupportProfileSheet> {
           ),
           if (isChecked) ...[
             const Divider(height: 1, color: DsCores.border),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: child,
-            ),
+            Padding(padding: const EdgeInsets.all(16.0), child: child),
           ],
         ],
       ),
