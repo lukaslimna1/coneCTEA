@@ -4,7 +4,7 @@ import 'package:conectea/features/carteirinhas/models/fill_empty_member_optional
 import 'package:conectea/features/carteirinhas/models/member_rpc_merge_extension.dart';
 
 void main() {
-  group('MemberRpcMergeExtension Tests', () {
+  group('MemberRpcMergeExtension Tests (V2)', () {
     final originalCreatedAt = DateTime(2026, 1, 1, 12, 0);
     final originalUpdatedAt = DateTime(2026, 1, 2, 14, 0);
 
@@ -32,39 +32,48 @@ void main() {
       teaRelationType: 'pessoa_tea',
     );
 
-    test('1. mescla válida com todos os sete campos', () {
-      final result = FillEmptyMemberOptionalFieldsResult(
-        memberId: 'a3d07e60-4e56-4b8c-8c7e-976e1a123456',
-        bloodType: 'A-',
-        phone: '14988887777',
-        racaCor: 'Branca',
-        gender: 'Outro',
-        cid: 'F84.1',
-        responsibleName: 'Carla Silva - 14966665555',
-        emergencyContact: 'Tadeu Silva - 14944443333',
-        appliedFields: [
-          'blood_type',
-          'phone',
-          'raca_cor',
-          'gender',
-          'cid',
-          'responsible_name',
-          'emergency_contact',
-        ],
-        preservedFields: [],
-        changed: true,
-      );
+    test(
+      '1. mescla válida com todos os quatro campos estruturados aplicados',
+      () {
+        final result = FillEmptyMemberOptionalFieldsResult(
+          memberId: 'a3d07e60-4e56-4b8c-8c7e-976e1a123456',
+          bloodType: 'A-',
+          phone: '14988887777',
+          racaCor: 'Branca',
+          gender: 'Outro',
+          cid: 'F84.1',
+          responsiblePersonName: 'Carla Silva',
+          responsiblePhone: '14966665555',
+          emergencyPersonName: 'Tadeu Silva',
+          emergencyPhone: '14944443333',
+          appliedFields: [
+            'blood_type',
+            'phone',
+            'raca_cor',
+            'gender',
+            'cid',
+            'responsible_person_name',
+            'responsible_phone',
+            'emergency_person_name',
+            'emergency_phone',
+          ],
+          preservedFields: [],
+          changed: true,
+        );
 
-      final merged = originalMember.mergeRpcResult(result);
+        final merged = originalMember.mergeRpcResult(result);
 
-      expect(merged.bloodType, 'A-');
-      expect(merged.phone, '14988887777');
-      expect(merged.racaCor, 'Branca');
-      expect(merged.gender, 'Outro');
-      expect(merged.cid, 'F84.1');
-      expect(merged.responsibleName, 'Carla Silva - 14966665555');
-      expect(merged.emergencyContact, 'Tadeu Silva - 14944443333');
-    });
+        expect(merged.bloodType, 'A-');
+        expect(merged.phone, '14988887777');
+        expect(merged.racaCor, 'Branca');
+        expect(merged.gender, 'Outro');
+        expect(merged.cid, 'F84.1');
+        expect(merged.responsiblePersonName, 'Carla Silva');
+        expect(merged.responsiblePhone, '14966665555');
+        expect(merged.emergencyPersonName, 'Tadeu Silva');
+        expect(merged.emergencyPhone, '14944443333');
+      },
+    );
 
     test('2. preservação de id', () {
       final result = FillEmptyMemberOptionalFieldsResult(
@@ -74,8 +83,10 @@ void main() {
         racaCor: 'Branca',
         gender: 'Outro',
         cid: 'F84.1',
-        responsibleName: 'Carla Silva',
-        emergencyContact: 'Tadeu Silva',
+        responsiblePersonName: null,
+        responsiblePhone: null,
+        emergencyPersonName: null,
+        emergencyPhone: null,
         appliedFields: [],
         preservedFields: [],
         changed: true,
@@ -93,8 +104,10 @@ void main() {
         racaCor: 'Branca',
         gender: 'Outro',
         cid: 'F84.1',
-        responsibleName: 'Carla Silva',
-        emergencyContact: 'Tadeu Silva',
+        responsiblePersonName: null,
+        responsiblePhone: null,
+        emergencyPersonName: null,
+        emergencyPhone: null,
         appliedFields: [],
         preservedFields: [],
         changed: true,
@@ -112,8 +125,10 @@ void main() {
         racaCor: 'Branca',
         gender: 'Outro',
         cid: 'F84.1',
-        responsibleName: 'Carla Silva',
-        emergencyContact: 'Tadeu Silva',
+        responsiblePersonName: null,
+        responsiblePhone: null,
+        emergencyPersonName: null,
+        emergencyPhone: null,
         appliedFields: [],
         preservedFields: [],
         changed: true,
@@ -131,8 +146,10 @@ void main() {
         racaCor: 'Branca',
         gender: 'Outro',
         cid: 'F84.1',
-        responsibleName: 'Carla Silva',
-        emergencyContact: 'Tadeu Silva',
+        responsiblePersonName: null,
+        responsiblePhone: null,
+        emergencyPersonName: null,
+        emergencyPhone: null,
         appliedFields: [],
         preservedFields: [],
         changed: true,
@@ -150,8 +167,10 @@ void main() {
         racaCor: 'Branca',
         gender: 'Outro',
         cid: 'F84.1',
-        responsibleName: 'Carla Silva',
-        emergencyContact: 'Tadeu Silva',
+        responsiblePersonName: null,
+        responsiblePhone: null,
+        emergencyPersonName: null,
+        emergencyPhone: null,
         appliedFields: [],
         preservedFields: [],
         changed: true,
@@ -170,8 +189,10 @@ void main() {
         racaCor: 'Branca',
         gender: 'Outro',
         cid: 'F84.1',
-        responsibleName: 'Carla Silva',
-        emergencyContact: 'Tadeu Silva',
+        responsiblePersonName: null,
+        responsiblePhone: null,
+        emergencyPersonName: null,
+        emergencyPhone: null,
         appliedFields: [],
         preservedFields: [],
         changed: true,
@@ -189,8 +210,10 @@ void main() {
         racaCor: 'Branca',
         gender: 'Outro',
         cid: 'F84.1',
-        responsibleName: 'Carla Silva',
-        emergencyContact: 'Tadeu Silva',
+        responsiblePersonName: null,
+        responsiblePhone: null,
+        emergencyPersonName: null,
+        emergencyPhone: null,
         appliedFields: [],
         preservedFields: [],
         changed: true,
@@ -200,7 +223,7 @@ void main() {
       expect(merged.updatedAt, originalUpdatedAt);
     });
 
-    test('9. racaCor null', () {
+    test('9. racaCor null respeitado', () {
       final result = FillEmptyMemberOptionalFieldsResult(
         memberId: 'a3d07e60-4e56-4b8c-8c7e-976e1a123456',
         bloodType: 'A-',
@@ -208,8 +231,10 @@ void main() {
         racaCor: null,
         gender: 'Masculino',
         cid: 'F84.1',
-        responsibleName: 'Carla Silva',
-        emergencyContact: 'Tadeu Silva',
+        responsiblePersonName: null,
+        responsiblePhone: null,
+        emergencyPersonName: null,
+        emergencyPhone: null,
         appliedFields: [],
         preservedFields: [],
         changed: true,
@@ -219,7 +244,7 @@ void main() {
       expect(merged.racaCor, isNull);
     });
 
-    test('10. gender null', () {
+    test('10. gender null respeitado', () {
       final result = FillEmptyMemberOptionalFieldsResult(
         memberId: 'a3d07e60-4e56-4b8c-8c7e-976e1a123456',
         bloodType: 'A-',
@@ -227,8 +252,10 @@ void main() {
         racaCor: 'Branca',
         gender: null,
         cid: 'F84.1',
-        responsibleName: 'Carla Silva',
-        emergencyContact: 'Tadeu Silva',
+        responsiblePersonName: null,
+        responsiblePhone: null,
+        emergencyPersonName: null,
+        emergencyPhone: null,
         appliedFields: [],
         preservedFields: [],
         changed: true,
@@ -238,7 +265,7 @@ void main() {
       expect(merged.gender, isNull);
     });
 
-    test('11. strings vazias retornadas', () {
+    test('11. null estruturado é respeitado', () {
       final result = FillEmptyMemberOptionalFieldsResult(
         memberId: 'a3d07e60-4e56-4b8c-8c7e-976e1a123456',
         bloodType: '',
@@ -246,66 +273,49 @@ void main() {
         racaCor: 'Parda',
         gender: 'Masculino',
         cid: '',
-        responsibleName: '',
-        emergencyContact: '',
+        responsiblePersonName: null,
+        responsiblePhone: null,
+        emergencyPersonName: null,
+        emergencyPhone: null,
         appliedFields: [],
         preservedFields: [],
         changed: true,
       );
 
       final merged = originalMember.mergeRpcResult(result);
-      expect(merged.bloodType, '');
-      expect(merged.phone, '');
-      expect(merged.cid, '');
-      expect(merged.responsibleName, '');
-      expect(merged.emergencyContact, '');
+      expect(merged.responsiblePersonName, isNull);
+      expect(merged.responsiblePhone, isNull);
+      expect(merged.emergencyPersonName, isNull);
+      expect(merged.emergencyPhone, isNull);
     });
 
-    test('12. responsibleName composto preservado integralmente', () {
-      final result = FillEmptyMemberOptionalFieldsResult(
-        memberId: 'a3d07e60-4e56-4b8c-8c7e-976e1a123456',
-        bloodType: 'A-',
-        phone: '14988887777',
-        racaCor: 'Branca',
-        gender: 'Outro',
-        cid: 'F84.1',
-        responsibleName: 'Carla Silva - 14966665555 - Contato Extra',
-        emergencyContact: 'Tadeu Silva',
-        appliedFields: [],
-        preservedFields: [],
-        changed: true,
-      );
+    test(
+      '12. campos legados existentes são preservados sem alterações do DTO V2',
+      () {
+        final result = FillEmptyMemberOptionalFieldsResult(
+          memberId: 'a3d07e60-4e56-4b8c-8c7e-976e1a123456',
+          bloodType: 'A-',
+          phone: '14988887777',
+          racaCor: 'Branca',
+          gender: 'Outro',
+          cid: 'F84.1',
+          responsiblePersonName: 'Carla Silva',
+          responsiblePhone: '14966665555',
+          emergencyPersonName: 'Tadeu Silva',
+          emergencyPhone: '14944443333',
+          appliedFields: [],
+          preservedFields: [],
+          changed: true,
+        );
 
-      final merged = originalMember.mergeRpcResult(result);
-      expect(
-        merged.responsibleName,
-        'Carla Silva - 14966665555 - Contato Extra',
-      );
-    });
+        final merged = originalMember.mergeRpcResult(result);
+        // Os legados permanecem intactos copiados da instância original
+        expect(merged.responsibleName, 'Pedro da Silva - 14977777777');
+        expect(merged.emergencyContact, 'Maria da Silva - 14988888888');
+      },
+    );
 
-    test('13. emergencyContact composto preservado integralmente', () {
-      final result = FillEmptyMemberOptionalFieldsResult(
-        memberId: 'a3d07e60-4e56-4b8c-8c7e-976e1a123456',
-        bloodType: 'A-',
-        phone: '14988887777',
-        racaCor: 'Branca',
-        gender: 'Outro',
-        cid: 'F84.1',
-        responsibleName: 'Carla Silva',
-        emergencyContact: 'Tadeu Silva - 14944443333 - Contato Extra',
-        appliedFields: [],
-        preservedFields: [],
-        changed: true,
-      );
-
-      final merged = originalMember.mergeRpcResult(result);
-      expect(
-        merged.emergencyContact,
-        'Tadeu Silva - 14944443333 - Contato Extra',
-      );
-    });
-
-    test('14. memberId divergente gera erro', () {
+    test('13. memberId divergente continua gerando erro', () {
       final result = FillEmptyMemberOptionalFieldsResult(
         memberId: 'outro-id-divergente-999',
         bloodType: 'A-',
@@ -313,8 +323,10 @@ void main() {
         racaCor: 'Branca',
         gender: 'Outro',
         cid: 'F84.1',
-        responsibleName: 'Carla Silva',
-        emergencyContact: 'Tadeu Silva',
+        responsiblePersonName: null,
+        responsiblePhone: null,
+        emergencyPersonName: null,
+        emergencyPhone: null,
         appliedFields: [],
         preservedFields: [],
         changed: true,
@@ -326,7 +338,7 @@ void main() {
       );
     });
 
-    test('15. changed false ainda aplica o estado consolidado retornado', () {
+    test('14. changed false aplica o retorno consolidado normalmente', () {
       final result = FillEmptyMemberOptionalFieldsResult(
         memberId: 'a3d07e60-4e56-4b8c-8c7e-976e1a123456',
         bloodType: 'AB+',
@@ -334,8 +346,10 @@ void main() {
         racaCor: 'Amarela',
         gender: 'Não binário',
         cid: 'F84.5',
-        responsibleName: 'Pedro Silva',
-        emergencyContact: 'Paulo Silva',
+        responsiblePersonName: 'Pedro Silva',
+        responsiblePhone: '14911111111',
+        emergencyPersonName: 'Paulo Silva',
+        emergencyPhone: '14922222222',
         appliedFields: [],
         preservedFields: [],
         changed: false,
@@ -348,224 +362,10 @@ void main() {
       expect(merged.racaCor, 'Amarela');
       expect(merged.gender, 'Não binário');
       expect(merged.cid, 'F84.5');
-      expect(merged.responsibleName, 'Pedro Silva');
-      expect(merged.emergencyContact, 'Paulo Silva');
+      expect(merged.responsiblePersonName, 'Pedro Silva');
+      expect(merged.responsiblePhone, '14911111111');
+      expect(merged.emergencyPersonName, 'Paulo Silva');
+      expect(merged.emergencyPhone, '14922222222');
     });
-
-    test(
-      '16. appliedFields e preservedFields não alteram o comportamento da mescla',
-      () {
-        final result = FillEmptyMemberOptionalFieldsResult(
-          memberId: 'a3d07e60-4e56-4b8c-8c7e-976e1a123456',
-          bloodType: 'AB-',
-          phone: '14955554444',
-          racaCor: 'Indígena',
-          gender: 'Feminino',
-          cid: 'F84.9',
-          responsibleName: 'José Silva',
-          emergencyContact: 'Zezinho',
-          appliedFields: ['blood_type'],
-          preservedFields: ['phone', 'cid'],
-          changed: true,
-        );
-
-        final merged = originalMember.mergeRpcResult(result);
-
-        expect(merged.bloodType, 'AB-');
-        expect(merged.phone, '14955554444');
-        expect(merged.racaCor, 'Indígena');
-        expect(merged.gender, 'Feminino');
-        expect(merged.cid, 'F84.9');
-        expect(merged.responsibleName, 'José Silva');
-        expect(merged.emergencyContact, 'Zezinho');
-      },
-    );
-
-    // Testes de preservação dos campos estruturados (B7)
-    test('17. campos estruturados preservados após merge', () {
-      final memberWithStructured = Member(
-        id: 'a3d07e60-4e56-4b8c-8c7e-976e1a123456',
-        userId: 'user-id-123',
-        name: 'Beneficiario Ficticio',
-        cpf: '000.000.000-00',
-        city: 'Bauru',
-        state: 'SP',
-        phone: '14999999999',
-        emergencyContact: 'Contato Legado',
-        responsibleName: 'Resp Legado',
-        dateOfBirth: '2020-01-01',
-        bloodType: 'O+',
-        cid: 'F84.0',
-        documentUrl: 'https://example.com/doc',
-        medicalReportUrl: 'https://example.com/report',
-        status: 'active',
-        createdAt: originalCreatedAt,
-        updatedAt: originalUpdatedAt,
-        responsiblePersonName: 'Responsavel Estruturado Ficticio',
-        responsiblePhone: '14988880000',
-        emergencyPersonName: 'Emergencia Estruturada Ficticia',
-        emergencyPhone: '14977770000',
-      );
-
-      final result = FillEmptyMemberOptionalFieldsResult(
-        memberId: 'a3d07e60-4e56-4b8c-8c7e-976e1a123456',
-        bloodType: 'A-',
-        phone: '14955554444',
-        racaCor: 'Branca',
-        gender: 'Outro',
-        cid: 'F84.1',
-        responsibleName: 'Resp Legado RPC',
-        emergencyContact: 'Emerg Legado RPC',
-        appliedFields: [],
-        preservedFields: [],
-        changed: true,
-      );
-
-      final merged = memberWithStructured.mergeRpcResult(result);
-
-      // Campos estruturados devem permanecer da instância original
-      expect(merged.responsiblePersonName, 'Responsavel Estruturado Ficticio');
-      expect(merged.responsiblePhone, '14988880000');
-      expect(merged.emergencyPersonName, 'Emergencia Estruturada Ficticia');
-      expect(merged.emergencyPhone, '14977770000');
-    });
-
-    test(
-      '18. campos legados retornados pela RPC continuam aplicados após merge com estruturados',
-      () {
-        final memberWithStructured = Member(
-          id: 'a3d07e60-4e56-4b8c-8c7e-976e1a123456',
-          userId: 'user-id-123',
-          name: 'Beneficiario Ficticio',
-          cpf: '000.000.000-00',
-          city: 'Bauru',
-          state: 'SP',
-          phone: '14999999999',
-          emergencyContact: 'Contato Legado Original',
-          responsibleName: 'Resp Legado Original',
-          dateOfBirth: '2020-01-01',
-          bloodType: 'O+',
-          cid: 'F84.0',
-          documentUrl: 'https://example.com/doc',
-          medicalReportUrl: 'https://example.com/report',
-          status: 'active',
-          createdAt: originalCreatedAt,
-          updatedAt: originalUpdatedAt,
-          responsiblePersonName: 'Resp Estruturado',
-          responsiblePhone: '14988880000',
-        );
-
-        final result = FillEmptyMemberOptionalFieldsResult(
-          memberId: 'a3d07e60-4e56-4b8c-8c7e-976e1a123456',
-          bloodType: 'A+',
-          phone: '14911112222',
-          racaCor: null,
-          gender: null,
-          cid: 'F84.0',
-          responsibleName: 'Resp Legado Atualizado pela RPC',
-          emergencyContact: 'Emerg Legado Atualizado pela RPC',
-          appliedFields: ['responsible_name', 'emergency_contact'],
-          preservedFields: [],
-          changed: true,
-        );
-
-        final merged = memberWithStructured.mergeRpcResult(result);
-
-        // Legados vêm da RPC
-        expect(merged.responsibleName, 'Resp Legado Atualizado pela RPC');
-        expect(merged.emergencyContact, 'Emerg Legado Atualizado pela RPC');
-        // Estruturados preservados da instância original
-        expect(merged.responsiblePersonName, 'Resp Estruturado');
-        expect(merged.responsiblePhone, '14988880000');
-      },
-    );
-
-    test('19. campos estruturados null permanecem null após merge', () {
-      // originalMember não tem campos estruturados (ficam null)
-      final result = FillEmptyMemberOptionalFieldsResult(
-        memberId: 'a3d07e60-4e56-4b8c-8c7e-976e1a123456',
-        bloodType: 'A-',
-        phone: '14988887777',
-        racaCor: 'Branca',
-        gender: 'Outro',
-        cid: 'F84.1',
-        responsibleName: 'Carla Silva',
-        emergencyContact: 'Tadeu Silva',
-        appliedFields: [],
-        preservedFields: [],
-        changed: true,
-      );
-
-      final merged = originalMember.mergeRpcResult(result);
-
-      expect(merged.responsiblePersonName, isNull);
-      expect(merged.responsiblePhone, isNull);
-      expect(merged.emergencyPersonName, isNull);
-      expect(merged.emergencyPhone, isNull);
-    });
-
-    test(
-      '20. propriedades sensíveis preservadas com campos estruturados presentes',
-      () {
-        final memberWithAll = Member(
-          id: 'a3d07e60-4e56-4b8c-8c7e-976e1a123456',
-          userId: 'user-id-123',
-          name: 'Beneficiario Ficticio',
-          cpf: '000.000.000-00',
-          city: 'Bauru',
-          state: 'SP',
-          phone: '14999999999',
-          emergencyContact: 'Contato Legado',
-          responsibleName: 'Resp Legado',
-          dateOfBirth: '2020-01-01',
-          bloodType: 'O+',
-          cid: 'F84.0',
-          documentUrl: 'https://example.com/doc',
-          medicalReportUrl: 'https://example.com/report',
-          status: 'active',
-          createdAt: originalCreatedAt,
-          updatedAt: originalUpdatedAt,
-          socialName: 'Nome Social Ficticio',
-          teaRelationType: 'pessoa_tea',
-          responsiblePersonName: 'Resp Estruturado',
-          responsiblePhone: '14988880000',
-          emergencyPersonName: 'Emerg Estruturada',
-          emergencyPhone: '14977770000',
-        );
-
-        final result = FillEmptyMemberOptionalFieldsResult(
-          memberId: 'a3d07e60-4e56-4b8c-8c7e-976e1a123456',
-          bloodType: 'B+',
-          phone: '14900001111',
-          racaCor: 'Parda',
-          gender: 'Masculino',
-          cid: 'F84.0',
-          responsibleName: 'Resp RPC',
-          emergencyContact: 'Emerg RPC',
-          appliedFields: [],
-          preservedFields: [],
-          changed: true,
-        );
-
-        final merged = memberWithAll.mergeRpcResult(result);
-
-        // Sensíveis preservados
-        expect(merged.id, 'a3d07e60-4e56-4b8c-8c7e-976e1a123456');
-        expect(merged.userId, 'user-id-123');
-        expect(merged.cpf, '000.000.000-00');
-        expect(merged.status, 'active');
-        expect(merged.documentUrl, 'https://example.com/doc');
-        expect(merged.medicalReportUrl, 'https://example.com/report');
-        expect(merged.createdAt, originalCreatedAt);
-        expect(merged.updatedAt, originalUpdatedAt);
-        expect(merged.socialName, 'Nome Social Ficticio');
-        expect(merged.teaRelationType, 'pessoa_tea');
-        // Estruturados preservados
-        expect(merged.responsiblePersonName, 'Resp Estruturado');
-        expect(merged.responsiblePhone, '14988880000');
-        expect(merged.emergencyPersonName, 'Emerg Estruturada');
-        expect(merged.emergencyPhone, '14977770000');
-      },
-    );
   });
 }

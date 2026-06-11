@@ -978,7 +978,7 @@ class DatabaseService {
   ) async {
     try {
       final response = await _supabase.rpc(
-        'conectea_fill_empty_member_optional_fields',
+        'conectea_fill_empty_member_optional_fields_v2',
         params: params.toRpcParams(),
       );
 

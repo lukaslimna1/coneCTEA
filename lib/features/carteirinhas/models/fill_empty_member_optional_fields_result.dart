@@ -1,4 +1,4 @@
-/// DTO imutável de resultado da RPC `conectea_fill_empty_member_optional_fields`.
+/// DTO imutável de resultado da RPC `conectea_fill_empty_member_optional_fields_v2`.
 ///
 /// Este DTO representa as alterações consolidadas e salvas na tabela members,
 /// além do mapeamento de quais campos foram aplicados ou preservados.
@@ -9,8 +9,10 @@ class FillEmptyMemberOptionalFieldsResult {
   final String? racaCor;
   final String? gender;
   final String cid;
-  final String responsibleName;
-  final String emergencyContact;
+  final String? responsiblePersonName;
+  final String? responsiblePhone;
+  final String? emergencyPersonName;
+  final String? emergencyPhone;
   final List<String> appliedFields;
   final List<String> preservedFields;
   final bool changed;
@@ -22,8 +24,10 @@ class FillEmptyMemberOptionalFieldsResult {
     required this.racaCor,
     required this.gender,
     required this.cid,
-    required this.responsibleName,
-    required this.emergencyContact,
+    required this.responsiblePersonName,
+    required this.responsiblePhone,
+    required this.emergencyPersonName,
+    required this.emergencyPhone,
     required this.appliedFields,
     required this.preservedFields,
     required this.changed,
@@ -34,18 +38,26 @@ class FillEmptyMemberOptionalFieldsResult {
   /// Executa validações estritas de contrato (lança [FormatException] se
   /// member_id ou changed estiverem ausentes/inválidos) e filtragem defensiva
   /// de arrays contra a allowlist permitida.
-  factory FillEmptyMemberOptionalFieldsResult.fromJson(Map<String, dynamic> json) {
+  factory FillEmptyMemberOptionalFieldsResult.fromJson(
+    Map<String, dynamic> json,
+  ) {
     // 1. Validação estrita do member_id (obrigatório e não vazio)
     final rawMemberId = json['member_id'] ?? json['memberId'];
-    if (rawMemberId == null || rawMemberId is! String || rawMemberId.trim().isEmpty) {
-      throw const FormatException('member_id inválido ou ausente no resultado da RPC.');
+    if (rawMemberId == null ||
+        rawMemberId is! String ||
+        rawMemberId.trim().isEmpty) {
+      throw const FormatException(
+        'member_id inválido ou ausente no resultado da RPC.',
+      );
     }
     final String memberId = rawMemberId.trim();
 
     // 2. Validação estrita do changed (booleano real obrigatório)
     final rawChanged = json['changed'];
     if (rawChanged is! bool) {
-      throw const FormatException('changed inválido ou ausente no resultado da RPC.');
+      throw const FormatException(
+        'changed inválido ou ausente no resultado da RPC.',
+      );
     }
     final bool changed = rawChanged;
 
@@ -61,13 +73,35 @@ class FillEmptyMemberOptionalFieldsResult {
       return str.isEmpty ? null : str;
     }
 
-    final String bloodType = parseString(json['blood_type'] ?? json['bloodType']);
+    // Para os campos estruturados de contatos, a regra é estrita: aceitar null puro sem conversão para string vazia
+    String? parseStrictNullableString(dynamic val) {
+      if (val == null) return null;
+      if (val is! String) return val.toString();
+      return val;
+    }
+
+    final String bloodType = parseString(
+      json['blood_type'] ?? json['bloodType'],
+    );
     final String phone = parseString(json['phone']);
-    final String? racaCor = parseNullableString(json['raca_cor'] ?? json['racaCor']);
+    final String? racaCor = parseNullableString(
+      json['raca_cor'] ?? json['racaCor'],
+    );
     final String? gender = parseNullableString(json['gender']);
     final String cid = parseString(json['cid']);
-    final String responsibleName = parseString(json['responsible_name'] ?? json['responsibleName']);
-    final String emergencyContact = parseString(json['emergency_contact'] ?? json['emergencyContact']);
+
+    final String? responsiblePersonName = parseStrictNullableString(
+      json['responsible_person_name'],
+    );
+    final String? responsiblePhone = parseStrictNullableString(
+      json['responsible_phone'],
+    );
+    final String? emergencyPersonName = parseStrictNullableString(
+      json['emergency_person_name'],
+    );
+    final String? emergencyPhone = parseStrictNullableString(
+      json['emergency_phone'],
+    );
 
     // Allowlist de campos permitidos nos arrays de controle
     const Set<String> allowedFields = {
@@ -76,26 +110,36 @@ class FillEmptyMemberOptionalFieldsResult {
       'raca_cor',
       'gender',
       'cid',
-      'responsible_name',
-      'emergency_contact',
+      'responsible_person_name',
+      'responsible_phone',
+      'emergency_person_name',
+      'emergency_phone',
     };
 
     // Helper defensivo e estrito para arrays
     List<String> parseList(dynamic val) {
       if (val is! List) {
-        throw const FormatException('Formato inválido nos campos de controle da RPC.');
+        throw const FormatException(
+          'Formato inválido nos campos de controle da RPC.',
+        );
       }
       final parsedList = <String>[];
       final seen = <String>{};
       for (final item in val) {
         if (item is! String) {
-          throw const FormatException('Formato inválido nos campos de controle da RPC.');
+          throw const FormatException(
+            'Formato inválido nos campos de controle da RPC.',
+          );
         }
         if (!allowedFields.contains(item)) {
-          throw const FormatException('Formato inválido nos campos de controle da RPC.');
+          throw const FormatException(
+            'Formato inválido nos campos de controle da RPC.',
+          );
         }
         if (seen.contains(item)) {
-          throw const FormatException('Formato inválido nos campos de controle da RPC.');
+          throw const FormatException(
+            'Formato inválido nos campos de controle da RPC.',
+          );
         }
         seen.add(item);
         parsedList.add(item);
@@ -103,14 +147,20 @@ class FillEmptyMemberOptionalFieldsResult {
       return List.unmodifiable(parsedList);
     }
 
-    final List<String> appliedFields = parseList(json['applied_fields'] ?? json['appliedFields']);
-    final List<String> preservedFields = parseList(json['preserved_fields'] ?? json['preservedFields']);
+    final List<String> appliedFields = parseList(
+      json['applied_fields'] ?? json['appliedFields'],
+    );
+    final List<String> preservedFields = parseList(
+      json['preserved_fields'] ?? json['preservedFields'],
+    );
 
     // Verificar interseção entre as duas listas
     final appliedSet = appliedFields.toSet();
     for (final field in preservedFields) {
       if (appliedSet.contains(field)) {
-        throw const FormatException('Formato inválido nos campos de controle da RPC.');
+        throw const FormatException(
+          'Formato inválido nos campos de controle da RPC.',
+        );
       }
     }
 
@@ -121,8 +171,10 @@ class FillEmptyMemberOptionalFieldsResult {
       racaCor: racaCor,
       gender: gender,
       cid: cid,
-      responsibleName: responsibleName,
-      emergencyContact: emergencyContact,
+      responsiblePersonName: responsiblePersonName,
+      responsiblePhone: responsiblePhone,
+      emergencyPersonName: emergencyPersonName,
+      emergencyPhone: emergencyPhone,
       appliedFields: appliedFields,
       preservedFields: preservedFields,
       changed: changed,

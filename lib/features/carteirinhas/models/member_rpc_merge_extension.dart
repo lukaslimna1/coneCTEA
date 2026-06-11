@@ -23,8 +23,10 @@ extension MemberRpcMergeExtension on Member {
       city: city,
       state: state,
       phone: result.phone,
-      emergencyContact: result.emergencyContact,
-      responsibleName: result.responsibleName,
+      emergencyContact:
+          emergencyContact, // Preservado do legado da instância original
+      responsibleName:
+          responsibleName, // Preservado do legado da instância original
       dateOfBirth: dateOfBirth,
       bloodType: result.bloodType,
       cid: result.cid,
@@ -37,10 +39,10 @@ extension MemberRpcMergeExtension on Member {
       racaCor: result.racaCor,
       socialName: socialName,
       teaRelationType: teaRelationType,
-      responsiblePersonName: responsiblePersonName,
-      responsiblePhone: responsiblePhone,
-      emergencyPersonName: emergencyPersonName,
-      emergencyPhone: emergencyPhone,
+      responsiblePersonName: result.responsiblePersonName,
+      responsiblePhone: result.responsiblePhone,
+      emergencyPersonName: result.emergencyPersonName,
+      emergencyPhone: result.emergencyPhone,
     );
   }
 }
