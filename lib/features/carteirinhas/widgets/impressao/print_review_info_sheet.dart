@@ -19,6 +19,8 @@ import 'package:conectea/features/carteirinhas/models/fill_empty_member_optional
 import 'package:conectea/features/carteirinhas/models/member_rpc_merge_extension.dart';
 import 'package:conectea/services/database_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:conectea/features/carteirinhas/utils/print_contacts_helper.dart';
+
 
 /// **PrintReviewInfoSheet**
 /// Diálogo modal bottom sheet que permite ao responsável revisar
@@ -557,31 +559,23 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
                                     _tempCidController.text.trim().isNotEmpty &&
                                     _tempCidController.text.trim().length <= 20;
 
-                                final bool hasNewResponsible = _includeResponsible &&
-                                    widget.member.responsibleName.trim().isEmpty &&
-                                    _tempRespNameController.text.trim().isNotEmpty &&
-                                    _tempRespNameController.text.trim().length <= 100 &&
-                                    (_tempRespPhoneController.text.trim().isEmpty ||
-                                        (_tempRespPhoneController.text.trim().replaceAll(RegExp(r'\D'), '').length >= 10 &&
-                                            _tempRespPhoneController.text.trim().replaceAll(RegExp(r'\D'), '').length <= 11 &&
-                                            !_isRepeatedPhoneDigits(_tempRespPhoneController.text.trim()))) &&
-                                    (_tempRespNameController.text.trim().length +
-                                            (_tempRespPhoneController.text.trim().isNotEmpty
-                                                ? (3 + _tempRespPhoneController.text.trim().length)
-                                                : 0) <= 150);
+                                final rpcRespParams = PrintContactsHelper.buildRpcParams(
+                                  structuredName: widget.member.responsiblePersonName,
+                                  structuredPhone: widget.member.responsiblePhone,
+                                  inputName: _tempRespNameController.text,
+                                  inputPhone: _tempRespPhoneController.text,
+                                  isIncluded: _includeResponsible,
+                                );
+                                final bool hasNewResponsible = rpcRespParams['name'] != null || rpcRespParams['phone'] != null;
 
-                                final bool hasNewEmergency = _includeEmergency &&
-                                    widget.member.emergencyContact.trim().isEmpty &&
-                                    _tempEmergNameController.text.trim().isNotEmpty &&
-                                    _tempEmergNameController.text.trim().length <= 100 &&
-                                    (_tempEmergPhoneController.text.trim().isEmpty ||
-                                        (_tempEmergPhoneController.text.trim().replaceAll(RegExp(r'\D'), '').length >= 10 &&
-                                            _tempEmergPhoneController.text.trim().replaceAll(RegExp(r'\D'), '').length <= 11 &&
-                                            !_isRepeatedPhoneDigits(_tempEmergPhoneController.text.trim()))) &&
-                                    (_tempEmergNameController.text.trim().length +
-                                            (_tempEmergPhoneController.text.trim().isNotEmpty
-                                                ? (3 + _tempEmergPhoneController.text.trim().length)
-                                                : 0) <= 150);
+                                final rpcEmergParams = PrintContactsHelper.buildRpcParams(
+                                  structuredName: widget.member.emergencyPersonName,
+                                  structuredPhone: widget.member.emergencyPhone,
+                                  inputName: _tempEmergNameController.text,
+                                  inputPhone: _tempEmergPhoneController.text,
+                                  isIncluded: _includeEmergency,
+                                );
+                                final bool hasNewEmergency = rpcEmergParams['name'] != null || rpcEmergParams['phone'] != null;
 
                                 final bool hasNewBloodType = _includeBloodType &&
                                     widget.member.bloodType.trim().isEmpty &&
@@ -632,14 +626,10 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
                                       racaCor: hasNewRacaCor ? _tempRacaCor : null,
                                       gender: hasNewGender ? _tempGender : null,
                                       cid: hasNewCid ? _tempCidController.text.trim() : null,
-                                      responsiblePersonName: hasNewResponsible ? _tempRespNameController.text.trim() : null,
-                                      responsiblePhone: hasNewResponsible && _tempRespPhoneController.text.trim().isNotEmpty
-                                          ? _tempRespPhoneController.text.trim()
-                                          : null,
-                                      emergencyPersonName: hasNewEmergency ? _tempEmergNameController.text.trim() : null,
-                                      emergencyPhone: hasNewEmergency && _tempEmergPhoneController.text.trim().isNotEmpty
-                                          ? _tempEmergPhoneController.text.trim()
-                                          : null,
+                                      responsiblePersonName: rpcRespParams['name'],
+                                      responsiblePhone: rpcRespParams['phone'],
+                                      emergencyPersonName: rpcEmergParams['name'],
+                                      emergencyPhone: rpcEmergParams['phone'],
                                     );
 
                                     final result = await dbService.fillEmptyMemberOptionalFields(params);
@@ -927,75 +917,20 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
       isContainer: true,
     );
   }
-
-  bool _isRepeatedPhoneDigits(String phone) {
-    final clean = phone.replaceAll(RegExp(r'\D'), '');
-    if (clean.length != 10 && clean.length != 11) return false;
-    return RegExp(r'^(\d)\1+$').hasMatch(clean);
-  }
-
   String? _validateRespName(String? value) {
-    if (!_includeResponsible || widget.member.responsibleName.trim().isNotEmpty) {
-      return null;
-    }
-    final name = value?.trim() ?? '';
-    if (name.isEmpty) {
-      return 'Informe o nome do responsável.';
-    }
-    if (name.length > 100) {
-      return 'O nome deve ter no máximo 100 caracteres.';
-    }
-    final phone = _tempRespPhoneController.text.trim();
-    final int phoneLen = phone.isNotEmpty ? (3 + phone.length) : 0;
-    if (name.length + phoneLen > 150) {
-      return 'Os dados do responsável estão muito longos.';
-    }
-    return null;
+    return PrintContactsHelper.validateName(value, isIncluded: _includeResponsible, structuredName: widget.member.responsiblePersonName);
   }
 
   String? _validateRespPhone(String? value) {
-    if (!_includeResponsible || widget.member.responsibleName.trim().isNotEmpty) {
-      return null;
-    }
-    final phone = value?.trim() ?? '';
-    if (phone.isEmpty) return null;
-    final clean = phone.replaceAll(RegExp(r'\D'), '');
-    if (clean.length < 10 || clean.length > 11 || _isRepeatedPhoneDigits(clean)) {
-      return 'Informe um telefone válido com DDD.';
-    }
-    return null;
+    return PrintContactsHelper.validatePhone(value, isIncluded: _includeResponsible, structuredPhone: widget.member.responsiblePhone);
   }
 
   String? _validateEmergName(String? value) {
-    if (!_includeEmergency || widget.member.emergencyContact.trim().isNotEmpty) {
-      return null;
-    }
-    final name = value?.trim() ?? '';
-    if (name.isEmpty) {
-      return 'Informe o nome do contato de emergência.';
-    }
-    if (name.length > 100) {
-      return 'O nome deve ter no máximo 100 caracteres.';
-    }
-    final phone = _tempEmergPhoneController.text.trim();
-    final int phoneLen = phone.isNotEmpty ? (3 + phone.length) : 0;
-    if (name.length + phoneLen > 150) {
-      return 'Os dados do contato de emergência estão muito longos.';
-    }
-    return null;
+    return PrintContactsHelper.validateName(value, isIncluded: _includeEmergency, structuredName: widget.member.emergencyPersonName);
   }
 
   String? _validateEmergPhone(String? value) {
-    if (!_includeEmergency || widget.member.emergencyContact.trim().isNotEmpty) {
-      return null;
-    }
-    final phone = value?.trim() ?? '';
-    if (phone.isEmpty) return null;
-    final clean = phone.replaceAll(RegExp(r'\D'), '');
-    if (clean.length < 10 || clean.length > 11 || _isRepeatedPhoneDigits(clean)) {
-      return 'Informe um telefone válido com DDD.';
-    }
-    return null;
+    return PrintContactsHelper.validatePhone(value, isIncluded: _includeEmergency, structuredPhone: widget.member.emergencyPhone);
   }
 
   String? _validateCid(String? value) {
@@ -1035,16 +970,41 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
   Widget _buildResponsiblePreviewArea() {
     if (!_includeResponsible) return const SizedBox.shrink();
 
-    final hasResponsible = widget.member.responsibleName.trim().isNotEmpty;
+    final state = PrintContactsHelper.getUiState(
+      structuredName: widget.member.responsiblePersonName,
+      structuredPhone: widget.member.responsiblePhone,
+      legacyComposed: widget.member.responsibleName,
+    );
 
     return Container(
       margin: const EdgeInsets.only(top: 8.0, bottom: 16.0, left: 4.0, right: 4.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (hasResponsible) ...[
+          if (state.uiState == PrintContactUiState.bothLocked) ...[
             PrintReviewPreviewBox(
-              value: widget.member.responsibleName,
+              value: widget.member.effectiveResponsiblePersonName,
+            ),
+            const SizedBox(height: 8),
+            PrintReviewPreviewBox(
+              value: widget.member.effectiveResponsiblePhone,
+            ),
+          ] else if (state.uiState == PrintContactUiState.nameLockedPhoneEditable) ...[
+            PrintReviewPreviewBox(
+              value: widget.member.effectiveResponsiblePersonName,
+            ),
+            const SizedBox(height: 12),
+            PrintReviewEmptyWarningBox(
+              message: 'Telefone não preenchido.',
+              child: CampoTelefoneResponsavel(
+                controller: _tempRespPhoneController,
+                requiredField: false,
+                validator: _validateRespPhone,
+              ),
+            ),
+          ] else if (state.uiState == PrintContactUiState.legacyLocked) ...[
+            PrintReviewPreviewBox(
+              value: widget.member.responsibleLegacyDisplayValue,
             ),
           ] else ...[
             PrintReviewEmptyWarningBox(

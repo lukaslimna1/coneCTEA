@@ -1209,15 +1209,28 @@ class PrintCardPdfService {
 
     // Responsável Principal
     if (request.options.includeResponsible) {
-      final respName = (request.responsibleNameOverride != null && request.responsibleNameOverride!.trim().isNotEmpty)
-          ? request.responsibleNameOverride!.trim()
-          : request.member.responsibleName.trim();
-      final respPhone = (request.responsiblePhoneOverride != null && request.responsiblePhoneOverride!.trim().isNotEmpty)
-          ? request.responsiblePhoneOverride!.trim()
-          : '';
+      final overrideName = request.responsibleNameOverride?.trim() ?? '';
+      final overridePhone = request.responsiblePhoneOverride?.trim() ?? '';
 
-      if (respName.isNotEmpty) {
-        contatoWidgets.add(_buildBackContactLine('RESP. PRINC.', respName, respPhone));
+      final String respName;
+      if (overrideName.isNotEmpty) {
+        respName = overrideName;
+      } else if (request.member.effectiveResponsiblePersonName.isNotEmpty) {
+        respName = request.member.effectiveResponsiblePersonName;
+      } else {
+        respName = request.member.responsibleLegacyDisplayValue;
+      }
+
+      final String respPhone;
+      if (overridePhone.isNotEmpty) {
+        respPhone = overridePhone;
+      } else {
+        respPhone = request.member.effectiveResponsiblePhone;
+      }
+
+      if (respName.isNotEmpty || respPhone.isNotEmpty) {
+        final displayName = respName.isNotEmpty ? respName : 'RESP. PRINC.';
+        contatoWidgets.add(_buildBackContactLine('RESP. PRINC.', displayName, respPhone));
       }
     }
 
@@ -1230,13 +1243,24 @@ class PrintCardPdfService {
 
     // Contato de Emergência
     if (request.options.includeEmergencyContacts) {
-      final emergName = (request.emergencyNameOverride != null && request.emergencyNameOverride!.trim().isNotEmpty)
-          ? request.emergencyNameOverride!.trim()
-          : '';
+      final overrideName = request.emergencyNameOverride?.trim() ?? '';
+      final overridePhone = request.emergencyPhoneOverride?.trim() ?? '';
 
-      final emergPhone = (request.emergencyPhoneOverride != null && request.emergencyPhoneOverride!.trim().isNotEmpty)
-          ? request.emergencyPhoneOverride!.trim()
-          : request.member.emergencyContact.trim();
+      final String emergName;
+      if (overrideName.isNotEmpty) {
+        emergName = overrideName;
+      } else if (request.member.effectiveEmergencyPersonName.isNotEmpty) {
+        emergName = request.member.effectiveEmergencyPersonName;
+      } else {
+        emergName = request.member.emergencyLegacyDisplayValue;
+      }
+
+      final String emergPhone;
+      if (overridePhone.isNotEmpty) {
+        emergPhone = overridePhone;
+      } else {
+        emergPhone = request.member.effectiveEmergencyPhone;
+      }
 
       if (emergName.isNotEmpty || emergPhone.isNotEmpty) {
         final displayName = emergName.isNotEmpty ? emergName : 'CONTATO DE EMERGÊNCIA';
