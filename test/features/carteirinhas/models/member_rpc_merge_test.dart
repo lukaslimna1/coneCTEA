@@ -16,8 +16,7 @@ void main() {
       city: 'Bauru',
       state: 'SP',
       phone: '14999999999',
-      emergencyContact: 'Maria da Silva - 14988888888',
-      responsibleName: 'Pedro da Silva - 14977777777',
+
       dateOfBirth: '2000-05-15',
       bloodType: 'O+',
       cid: 'F84.0',
@@ -289,31 +288,6 @@ void main() {
       expect(merged.emergencyPhone, isNull);
     });
 
-    test(
-      '12. campos legados existentes são preservados sem alterações do DTO V2',
-      () {
-        final result = FillEmptyMemberOptionalFieldsResult(
-          memberId: 'a3d07e60-4e56-4b8c-8c7e-976e1a123456',
-          bloodType: 'A-',
-          phone: '14988887777',
-          racaCor: 'Branca',
-          gender: 'Outro',
-          cid: 'F84.1',
-          responsiblePersonName: 'Carla Silva',
-          responsiblePhone: '14966665555',
-          emergencyPersonName: 'Tadeu Silva',
-          emergencyPhone: '14944443333',
-          appliedFields: [],
-          preservedFields: [],
-          changed: true,
-        );
-
-        final merged = originalMember.mergeRpcResult(result);
-        // Os legados permanecem intactos copiados da instância original
-        expect(merged.responsibleName, 'Pedro da Silva - 14977777777');
-        expect(merged.emergencyContact, 'Maria da Silva - 14988888888');
-      },
-    );
 
     test('13. memberId divergente continua gerando erro', () {
       final result = FillEmptyMemberOptionalFieldsResult(

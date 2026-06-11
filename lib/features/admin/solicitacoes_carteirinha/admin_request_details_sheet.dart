@@ -994,10 +994,24 @@ class _AdminRequestDetailsSheetState extends State<AdminRequestDetailsSheet> {
                             label: 'Tipo Sanguíneo',
                             value: _member!.bloodType,
                           ),
-                          AdminDetailRow(
-                            label: 'Contato Emergência',
-                            value: _member!.emergencyContact,
-                          ),
+                          if ((_member!.responsiblePersonName?.trim() ?? '').isNotEmpty || (_member!.responsiblePhone?.trim() ?? '').isNotEmpty) ...[
+                            AdminDetailRow(
+                              label: 'Resp. Legal',
+                              value: [
+                                if ((_member!.responsiblePersonName?.trim() ?? '').isNotEmpty) _member!.responsiblePersonName!.trim(),
+                                if ((_member!.responsiblePhone?.trim() ?? '').isNotEmpty) _member!.responsiblePhone!.trim(),
+                              ].join(' - '),
+                            ),
+                          ],
+                          if ((_member!.emergencyPersonName?.trim() ?? '').isNotEmpty || (_member!.emergencyPhone?.trim() ?? '').isNotEmpty) ...[
+                            AdminDetailRow(
+                              label: 'Emergência',
+                              value: [
+                                if ((_member!.emergencyPersonName?.trim() ?? '').isNotEmpty) _member!.emergencyPersonName!.trim(),
+                                if ((_member!.emergencyPhone?.trim() ?? '').isNotEmpty) _member!.emergencyPhone!.trim(),
+                              ].join(' - '),
+                            ),
+                          ],
                         ],
 
                         const SizedBox(height: 24),

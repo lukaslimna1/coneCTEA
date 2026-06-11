@@ -614,8 +614,6 @@ class _AddMemberPageState extends State<AddMemberPage> {
         city: _selectedCity!,
         state: _selectedState!,
         phone: _telefoneController.text,
-        emergencyContact: isEditing ? widget.member!.emergencyContact : '',
-        responsibleName: isEditing ? widget.member!.responsibleName : '',
         dateOfBirth: _nascimentoController.text,
         bloodType: _selectedBloodType ?? '',
         cid: _cidController.text.trim(),

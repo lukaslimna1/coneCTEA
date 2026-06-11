@@ -23,10 +23,6 @@ extension MemberRpcMergeExtension on Member {
       city: city,
       state: state,
       phone: result.phone,
-      emergencyContact:
-          emergencyContact, // Preservado do legado da instância original
-      responsibleName:
-          responsibleName, // Preservado do legado da instância original
       dateOfBirth: dateOfBirth,
       bloodType: result.bloodType,
       cid: result.cid,

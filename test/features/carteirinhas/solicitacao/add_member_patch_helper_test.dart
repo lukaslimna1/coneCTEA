@@ -13,8 +13,7 @@ void main() {
       city: 'Bauru',
       state: 'SP',
       phone: '(14) 99999-9999',
-      emergencyContact: '',
-      responsibleName: '',
+
       emergencyPersonName: 'Emergência Original',
       emergencyPhone: '11999999999',
       responsiblePersonName: 'Responsável Original',

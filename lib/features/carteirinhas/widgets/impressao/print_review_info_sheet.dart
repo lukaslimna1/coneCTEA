@@ -1320,14 +1320,18 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
 
     String? responsibleNameOverride;
     String? responsiblePhoneOverride;
-    if (_includeResponsible && member.responsibleName.trim().isEmpty) {
+    if (_includeResponsible &&
+        (member.responsiblePersonName ?? '').trim().isEmpty &&
+        (member.responsiblePhone ?? '').trim().isEmpty) {
       responsibleNameOverride = _tempRespNameController.text.trim();
       responsiblePhoneOverride = _tempRespPhoneController.text.trim();
     }
 
     String? emergencyNameOverride;
     String? emergencyPhoneOverride;
-    if (_includeEmergency && member.emergencyContact.trim().isEmpty) {
+    if (_includeEmergency &&
+        (member.emergencyPersonName ?? '').trim().isEmpty &&
+        (member.emergencyPhone ?? '').trim().isEmpty) {
       emergencyNameOverride = _tempEmergNameController.text.trim();
       emergencyPhoneOverride = _tempEmergPhoneController.text.trim();
     }

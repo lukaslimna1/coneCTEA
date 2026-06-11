@@ -90,14 +90,11 @@ void main() {
       expect(json['emergency_phone'], '(14) 99999-1111');
     });
 
-    test('8. toJson preserva as duas chaves legadas', () {
-      final member = Member.empty().copyWith(
-        responsibleName: 'Nome Legado',
-        emergencyContact: 'Emerg Legado',
-      );
+    test('8. toJson não exporta chaves legadas', () {
+      final member = Member.empty().copyWith();
       final json = member.toJson();
-      expect(json['responsible_name'], 'Nome Legado');
-      expect(json['emergency_contact'], 'Emerg Legado');
+      expect(json.containsKey('responsible_name'), false);
+      expect(json.containsKey('emergency_contact'), false);
     });
 
 

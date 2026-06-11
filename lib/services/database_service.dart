@@ -353,7 +353,10 @@ class DatabaseService {
           'bloodType': member.bloodType,
           'cid': member.cid,
         },
-        'back_data': {'emergencyContact': member.emergencyContact},
+        'back_data': {
+          'emergencyPersonName': member.emergencyPersonName,
+          'emergencyPhone': member.emergencyPhone,
+        },
         'qr_validation_url': cardNumber,
         'created_at': issuedAtStr,
         'updated_at': issuedAtStr,

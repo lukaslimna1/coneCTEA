@@ -7,8 +7,6 @@ class Member {
   final String city;
   final String state;
   final String phone;
-  final String emergencyContact;
-  final String responsibleName;
   final String
   dateOfBirth; // Alterado de birthDate para dateOfBirth (String para alinhar com o AdminView)
   final String bloodType;
@@ -35,8 +33,6 @@ class Member {
     required this.city,
     required this.state,
     required this.phone,
-    required this.emergencyContact,
-    required this.responsibleName,
     required this.dateOfBirth,
     required this.bloodType,
     required this.cid,
@@ -64,8 +60,6 @@ class Member {
       city: '',
       state: '',
       phone: '',
-      emergencyContact: '',
-      responsibleName: '',
       dateOfBirth: '',
       bloodType: '',
       cid: '',
@@ -98,10 +92,6 @@ class Member {
       city: json['city'] ?? '',
       state: json['state'] ?? '',
       phone: json['phone'] ?? '',
-      emergencyContact:
-          json['emergencyContact'] ?? json['emergency_contact'] ?? '',
-      responsibleName:
-          json['responsibleName'] ?? json['responsible_name'] ?? '',
       dateOfBirth:
           json['dateOfBirth'] ?? json['birth_date'] ?? json['birthDate'] ?? '',
       bloodType: json['bloodType'] ?? json['blood_type'] ?? '',
@@ -144,8 +134,6 @@ class Member {
       'city': city,
       'state': state,
       'phone': phone,
-      'emergency_contact': emergencyContact,
-      'responsible_name': responsibleName,
       'birth_date': dateOfBirth,
       'blood_type': bloodType,
       'cid': cid,
@@ -173,8 +161,6 @@ class Member {
     String? city,
     String? state,
     String? phone,
-    String? emergencyContact,
-    String? responsibleName,
     String? dateOfBirth,
     String? bloodType,
     String? cid,
@@ -200,8 +186,6 @@ class Member {
       city: city ?? this.city,
       state: state ?? this.state,
       phone: phone ?? this.phone,
-      emergencyContact: emergencyContact ?? this.emergencyContact,
-      responsibleName: responsibleName ?? this.responsibleName,
       dateOfBirth: dateOfBirth ?? this.dateOfBirth,
       bloodType: bloodType ?? this.bloodType,
       cid: cid ?? this.cid,
