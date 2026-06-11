@@ -166,30 +166,112 @@ class _PrintSupportProfileSheetState extends State<PrintSupportProfileSheet> {
   }
 
   void _showImagePickerOptions() {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
-      builder: (ctx) => SafeArea(
-        child: Wrap(
-          children: [
-            ListTile(
-              leading: const Icon(PhosphorIconsRegular.camera),
-              title: const Text('Tirar foto'),
-              onTap: () {
-                Navigator.pop(ctx);
-                _pickImage(ImageSource.camera);
-              },
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) {
+        return SafeArea(
+          child: Container(
+            decoration: const BoxDecoration(
+              color: DsCores.surface,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(DsRaios.modal),
+                topRight: Radius.circular(DsRaios.modal),
+              ),
+              border: Border(
+                top: BorderSide(color: DsCores.border, width: 1.5),
+              ),
             ),
-            ListTile(
-              leading: const Icon(PhosphorIconsRegular.image),
-              title: const Text('Escolher da galeria'),
-              onTap: () {
-                Navigator.pop(ctx);
-                _pickImage(ImageSource.gallery);
-              },
+            padding: const EdgeInsets.symmetric(
+              horizontal: DsEspacamentos.lg,
+              vertical: DsEspacamentos.md,
             ),
-          ],
-        ),
-      ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Handle visual
+                Center(
+                  child: Container(
+                    width: 48,
+                    height: 4.5,
+                    margin: const EdgeInsets.only(bottom: DsEspacamentos.md),
+                    decoration: BoxDecoration(
+                      color: DsCores.borderStrong.withValues(alpha: 0.5),
+                      borderRadius: BorderRadius.circular(DsRaios.pill),
+                    ),
+                  ),
+                ),
+
+                // Cabeçalho com moldura de ícone
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    DsMolduraIcone(
+                      icon: PhosphorIconsRegular.image,
+                      accentColor: DsCores.carteirinha.accent,
+                      size: DsTamanhos.iconFrameMd,
+                      subtleGlow: true,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: DsEspacamentos.md),
+
+                // Título
+                Text(
+                  'Adicionar foto',
+                  style: DsTipografia.sectionTitle,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: DsEspacamentos.sm),
+
+                // Subtítulo
+                Text(
+                  'Escolha como deseja adicionar a foto ao Perfil de Apoio.',
+                  style: DsTipografia.cardDescription,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: DsEspacamentos.lg),
+
+                // Ação 1: Câmera
+                DsBotao(
+                  label: 'Tirar foto',
+                  variante: DsBotaoVariante.acao,
+                  token: DsCores.carteirinha,
+                  icon: PhosphorIconsRegular.camera,
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    _pickImage(ImageSource.camera);
+                  },
+                ),
+                const SizedBox(height: DsEspacamentos.md),
+
+                // Ação 2: Galeria
+                DsBotao(
+                  label: 'Escolher da galeria',
+                  variante: DsBotaoVariante.acao,
+                  token: DsCores.carteirinha,
+                  icon: PhosphorIconsRegular.images,
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    _pickImage(ImageSource.gallery);
+                  },
+                ),
+                const SizedBox(height: DsEspacamentos.lg),
+
+                // Cancelar
+                DsBotao(
+                  label: 'Cancelar',
+                  variante: DsBotaoVariante.ghost,
+                  onPressed: () => Navigator.pop(ctx),
+                ),
+                const SizedBox(height: DsEspacamentos.xs),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -396,8 +478,7 @@ class _PrintSupportProfileSheetState extends State<PrintSupportProfileSheet> {
 
     // Captura o caminho anterior antes de construir o draft, para que,
     // se a persistência falhar, o arquivo físico seja preservado.
-    final String? stalePhotoPath =
-        _photoRemovedByUser ? _localPhotoPath : null;
+    final String? stalePhotoPath = _photoRemovedByUser ? _localPhotoPath : null;
 
     final draft = _buildDraftFromCurrentForm();
     bool success = false;
