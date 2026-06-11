@@ -28,6 +28,69 @@ import 'package:conectea/core/campos_cadastrais/campos/campo_genero.dart';
 import 'package:conectea/core/campos_cadastrais/campos/campo_raca_cor.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 
+@visibleForTesting
+class AddMemberPatchHelper {
+  static Map<String, dynamic> buildPatch({
+    required Member original,
+    required String name,
+    required String? socialName,
+    required String cpf,
+    required String city,
+    required String state,
+    required String phone,
+    required String emergencyContact,
+    required String responsibleName,
+    required String dateOfBirth,
+    required String bloodType,
+    required String cid,
+    required String? gender,
+    required String? racaCor,
+    required String? teaRelationType,
+  }) {
+    final fields = <String, dynamic>{};
+
+    if (name.trim() != original.name.trim()) fields['name'] = name.trim();
+
+    final safeSocialName = socialName?.trim().isEmpty == true
+        ? null
+        : socialName?.trim();
+    if (safeSocialName != original.socialName) {
+      fields['social_name'] = safeSocialName;
+    }
+
+    if (cpf != original.cpf) fields['cpf'] = cpf;
+    if (city != original.city) fields['city'] = city;
+    if (state != original.state) fields['state'] = state;
+    if (phone != original.phone) fields['phone'] = phone;
+
+    if (emergencyContact != original.emergencyContact) {
+      fields['emergency_contact'] = emergencyContact;
+    }
+
+    if (responsibleName != original.responsibleName) {
+      fields['responsible_name'] = responsibleName;
+    }
+
+    if (dateOfBirth != original.dateOfBirth) fields['birth_date'] = dateOfBirth;
+
+    final safeBloodType = bloodType.isNotEmpty ? bloodType : '';
+    if (safeBloodType != original.bloodType) {
+      fields['blood_type'] = safeBloodType;
+    }
+
+    if (cid.trim() != original.cid.trim()) fields['cid'] = cid.trim();
+    if (gender != original.gender) fields['gender'] = gender;
+    if (racaCor != original.racaCor) fields['raca_cor'] = racaCor;
+
+    final originalTeaRelationType = original.teaRelationType ?? 'pessoa_tea';
+    if (teaRelationType != originalTeaRelationType) {
+      fields['tea_relation_type'] = teaRelationType;
+    }
+
+    return fields;
+  }
+}
+
 class AddMemberPage extends StatefulWidget {
   final Member? member;
   final CardRequest? request;
@@ -576,11 +639,45 @@ class _AddMemberPageState extends State<AddMemberPage> {
         updatedAt: DateTime.now(),
         gender: _selectedGender,
         racaCor: _selectedRacaCor,
+        responsiblePersonName: isEditing
+            ? widget.member!.responsiblePersonName
+            : null,
+        responsiblePhone: isEditing ? widget.member!.responsiblePhone : null,
+        emergencyPersonName: isEditing
+            ? widget.member!.emergencyPersonName
+            : null,
+        emergencyPhone: isEditing ? widget.member!.emergencyPhone : null,
       );
 
       String generatedProtocol = '';
       if (isEditing) {
-        await _databaseService.updateMember(member);
+        final patchFields = AddMemberPatchHelper.buildPatch(
+          original: widget.member!,
+          name: _nomeController.text,
+          socialName: _socialNameController.text,
+          cpf: _cpfController.text,
+          city: _selectedCity!,
+          state: _selectedState!,
+          phone: _telefoneController.text,
+          emergencyContact: _composeContact(
+            _contatoEmergenciaNomeController.text,
+            _contatoEmergenciaTelefoneController.text,
+          ),
+          responsibleName: _composeContact(
+            _responsavelNomeController.text,
+            _responsavelTelefoneController.text,
+          ),
+          dateOfBirth: _nascimentoController.text,
+          bloodType: _selectedBloodType ?? '',
+          cid: _cidController.text,
+          gender: _selectedGender,
+          racaCor: _selectedRacaCor,
+          teaRelationType: _selectedTeaRelationType,
+        );
+
+        if (patchFields.isNotEmpty) {
+          await _databaseService.updateMemberFields(member.id, patchFields);
+        }
 
         // Retorna o status da solicitação associada para 'waiting_approval' após edição
         final requests = await _databaseService.getCardRequests(userId);

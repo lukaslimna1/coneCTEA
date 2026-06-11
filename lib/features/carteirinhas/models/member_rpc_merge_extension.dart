@@ -37,6 +37,10 @@ extension MemberRpcMergeExtension on Member {
       racaCor: result.racaCor,
       socialName: socialName,
       teaRelationType: teaRelationType,
+      responsiblePersonName: responsiblePersonName,
+      responsiblePhone: responsiblePhone,
+      emergencyPersonName: emergencyPersonName,
+      emergencyPhone: emergencyPhone,
     );
   }
 }

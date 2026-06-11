@@ -139,6 +139,87 @@ class DatabaseService {
     await _supabase.from('members').update(data).eq('id', member.id);
   }
 
+  /// Campos que podem ser atualizados individualmente via [updateMemberFields].
+  static const _allowedMemberFields = <String>{
+    'name',
+    'cpf',
+    'city',
+    'state',
+    'phone',
+    'emergency_contact',
+    'responsible_name',
+    'birth_date',
+    'blood_type',
+    'cid',
+    'gender',
+    'raca_cor',
+    'social_name',
+    'tea_relation_type',
+  };
+
+  /// Campos que nunca devem ser alterados por update parcial.
+  static const _forbiddenMemberFields = <String>{
+    'id',
+    'user_id',
+    'status',
+    'created_at',
+    'updated_at',
+    'document_url',
+    'medical_report_url',
+    'responsible_person_name',
+    'responsible_phone',
+    'emergency_person_name',
+    'emergency_phone',
+  };
+
+  /// Campos que podem receber valor null intencionalmente.
+  static const _nullableMemberFields = <String>{'social_name'};
+
+  @visibleForTesting
+  static void validatePartialUpdateFields(
+    String memberId,
+    Map<String, dynamic> fields,
+  ) {
+    if (memberId.trim().isEmpty) {
+      throw ArgumentError('ID do membro não pode ser vazio.');
+    }
+    if (fields.isEmpty) {
+      throw ArgumentError('Nenhum campo fornecido para atualização.');
+    }
+    for (final entry in fields.entries) {
+      final key = entry.key;
+      final value = entry.value;
+
+      if (_forbiddenMemberFields.contains(key)) {
+        throw ArgumentError('Campo proibido para atualização parcial.');
+      }
+      if (!_allowedMemberFields.contains(key)) {
+        throw ArgumentError('Campo não autorizado para atualização parcial.');
+      }
+      if (value == null && !_nullableMemberFields.contains(key)) {
+        throw ArgumentError('O campo $key não pode receber valor nulo.');
+      }
+    }
+  }
+
+  /// Atualiza apenas os campos especificados de um membro.
+  ///
+  /// Aceita somente campos presentes na allowlist.
+  /// Rejeita Map vazio e campos proibidos.
+  /// Valores null no Map significam limpeza intencional do campo (se permitido).
+  /// Campos omitidos do Map não são alterados no banco.
+  Future<void> updateMemberFields(
+    String memberId,
+    Map<String, dynamic> fields,
+  ) async {
+    validatePartialUpdateFields(memberId, fields);
+    final safeFields = Map<String, dynamic>.from(fields);
+    await _supabase
+        .from('members')
+        .update(safeFields)
+        .eq('id', memberId.trim());
+  }
+
   Future<Member?> getMember(String memberId) async {
     try {
       final data = await _supabase
@@ -922,7 +1003,9 @@ class DatabaseService {
 
       final rawLine = list.first;
       if (rawLine is! Map) {
-        throw Exception('A linha retornada pelo servidor não é um mapa válido.');
+        throw Exception(
+          'A linha retornada pelo servidor não é um mapa válido.',
+        );
       }
 
       final Map<String, dynamic> data = Map<String, dynamic>.from(rawLine);
