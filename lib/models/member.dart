@@ -1,4 +1,3 @@
-import 'package:conectea/core/campos_cadastrais/helpers/legacy_contact_parser.dart';
 
 class Member {
   final String id;
@@ -245,80 +244,4 @@ class Member {
 
   String get teaRelationLabel =>
       isSupportNetwork ? 'Rede de Apoio TEA' : 'Pessoa TEA';
-
-  // Getters estruturados consolidados com fallback
-  String get effectiveResponsiblePersonName =>
-      _getEffectiveName(responsiblePersonName, responsibleName);
-
-  String get effectiveResponsiblePhone =>
-      _getEffectivePhone(responsiblePhone, responsibleName);
-
-  String get effectiveEmergencyPersonName =>
-      _getEffectiveName(emergencyPersonName, emergencyContact);
-
-  String get effectiveEmergencyPhone =>
-      _getEffectivePhone(emergencyPhone, emergencyContact);
-
-  // Getters visuais temporários de compatibilidade
-  String get responsibleLegacyDisplayValue => _getLegacyDisplayValue(
-        responsiblePersonName,
-        responsiblePhone,
-        responsibleName,
-      );
-
-  String get emergencyLegacyDisplayValue => _getLegacyDisplayValue(
-        emergencyPersonName,
-        emergencyPhone,
-        emergencyContact,
-      );
-
-  // Helpers privados de parsing e fallback
-  String _getEffectiveName(String? structuredName, String legacyComposed) {
-    if (structuredName != null && structuredName.trim().isNotEmpty) {
-      return structuredName.trim();
-    }
-    final parts = LegacyContactParser.parse(legacyComposed);
-    if (parts.classification == LegacyContactClassification.complete ||
-        parts.classification == LegacyContactClassification.nameOnly) {
-      return parts.name ?? '';
-    }
-    return '';
-  }
-
-  String _getEffectivePhone(String? structuredPhone, String legacyComposed) {
-    if (structuredPhone != null && structuredPhone.trim().isNotEmpty) {
-      return structuredPhone.trim();
-    }
-    final parts = LegacyContactParser.parse(legacyComposed);
-    if (parts.classification == LegacyContactClassification.complete) {
-      return parts.phone ?? '';
-    }
-    return '';
-  }
-
-  String _getLegacyDisplayValue(
-    String? structuredName,
-    String? structuredPhone,
-    String legacyComposed,
-  ) {
-    final hasStructName =
-        structuredName != null && structuredName.trim().isNotEmpty;
-    final hasStructPhone =
-        structuredPhone != null && structuredPhone.trim().isNotEmpty;
-
-    if (hasStructName || hasStructPhone) {
-      if (hasStructName && hasStructPhone) {
-        return '${structuredName.trim()} - ${structuredPhone.trim()}';
-      } else if (hasStructName) {
-        return structuredName.trim();
-      }
-      return ''; // Telefone sem nome localmente -> Inválido
-    }
-
-    final parts = LegacyContactParser.parse(legacyComposed);
-    if (parts.classification == LegacyContactClassification.empty) {
-      return '';
-    }
-    return parts.rawValue;
-  }
 }

@@ -1215,17 +1215,15 @@ class PrintCardPdfService {
       final String respName;
       if (overrideName.isNotEmpty) {
         respName = overrideName;
-      } else if (request.member.effectiveResponsiblePersonName.isNotEmpty) {
-        respName = request.member.effectiveResponsiblePersonName;
       } else {
-        respName = request.member.responsibleLegacyDisplayValue;
+        respName = request.member.responsiblePersonName ?? '';
       }
 
       final String respPhone;
       if (overridePhone.isNotEmpty) {
         respPhone = overridePhone;
       } else {
-        respPhone = request.member.effectiveResponsiblePhone;
+        respPhone = request.member.responsiblePhone ?? '';
       }
 
       if (respName.isNotEmpty || respPhone.isNotEmpty) {
@@ -1249,17 +1247,15 @@ class PrintCardPdfService {
       final String emergName;
       if (overrideName.isNotEmpty) {
         emergName = overrideName;
-      } else if (request.member.effectiveEmergencyPersonName.isNotEmpty) {
-        emergName = request.member.effectiveEmergencyPersonName;
       } else {
-        emergName = request.member.emergencyLegacyDisplayValue;
+        emergName = request.member.emergencyPersonName ?? '';
       }
 
       final String emergPhone;
       if (overridePhone.isNotEmpty) {
         emergPhone = overridePhone;
       } else {
-        emergPhone = request.member.effectiveEmergencyPhone;
+        emergPhone = request.member.emergencyPhone ?? '';
       }
 
       if (emergName.isNotEmpty || emergPhone.isNotEmpty) {

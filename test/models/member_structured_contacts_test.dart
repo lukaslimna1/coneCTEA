@@ -100,119 +100,7 @@ void main() {
       expect(json['emergency_contact'], 'Emerg Legado');
     });
 
-    test('9. campos estruturados novos prevalecem sobre legado', () {
-      final member = Member.empty().copyWith(
-        responsibleName: 'Responsavel Legado - (14) 99999-1234',
-        responsiblePersonName: 'Responsavel Novo',
-        responsiblePhone: '(14) 99999-4321',
-      );
-      expect(member.effectiveResponsiblePersonName, 'Responsavel Novo');
-      expect(member.effectiveResponsiblePhone, '(14) 99999-4321');
-    });
 
-    test('10. responsible nameOnly legado gera nome efetivo', () {
-      final member = Member.empty().copyWith(
-        responsibleName: 'Responsavel Apenas Nome',
-      );
-      expect(member.effectiveResponsiblePersonName, 'Responsavel Apenas Nome');
-      expect(member.effectiveResponsiblePhone, '');
-    });
-
-    test('11. responsible complete legado gera nome e telefone efetivos', () {
-      final member = Member.empty().copyWith(
-        responsibleName: 'Responsavel Legado - (14) 99999-1234',
-      );
-      expect(member.effectiveResponsiblePersonName, 'Responsavel Legado');
-      expect(member.effectiveResponsiblePhone, '(14) 99999-1234');
-    });
-
-    test('12. responsible ambiguous não gera nome efetivo', () {
-      final member = Member.empty().copyWith(
-        responsibleName: 'Responsavel Legado - Ciclano',
-      );
-      expect(member.effectiveResponsiblePersonName, '');
-      expect(member.effectiveResponsiblePhone, '');
-    });
-
-    test('13. responsible ambiguous não gera telefone efetivo', () {
-      final member = Member.empty().copyWith(
-        responsibleName: 'Responsavel com Numeros 1234',
-      );
-      expect(member.effectiveResponsiblePersonName, '');
-      expect(member.effectiveResponsiblePhone, '');
-    });
-
-    test('14. responsible phoneOnlyLegacy não gera telefone efetivo', () {
-      // Justificativa: phoneOnlyLegacy é inconsistente (telefone sem nome). Pela regra das constraints físicas,
-      // telefone estruturado exige nome estruturado. Não deve ser promovido a telefone efetivo.
-      final member = Member.empty().copyWith(
-        responsibleName: '(14) 99999-1234',
-      );
-      expect(member.effectiveResponsiblePersonName, '');
-      expect(member.effectiveResponsiblePhone, '');
-    });
-
-    test('15. emergency nameOnly legado gera nome efetivo', () {
-      final member = Member.empty().copyWith(
-        emergencyContact: 'Emergencia Apenas Nome',
-      );
-      expect(member.effectiveEmergencyPersonName, 'Emergencia Apenas Nome');
-      expect(member.effectiveEmergencyPhone, '');
-    });
-
-    test('16. emergency complete legado gera nome e telefone efetivos', () {
-      final member = Member.empty().copyWith(
-        emergencyContact: 'Emergencia Legado - (14) 99999-1234',
-      );
-      expect(member.effectiveEmergencyPersonName, 'Emergencia Legado');
-      expect(member.effectiveEmergencyPhone, '(14) 99999-1234');
-    });
-
-    test('17. emergency ambiguous não gera dados efetivos', () {
-      final member = Member.empty().copyWith(
-        emergencyContact: 'Emergencia com Numeros 123',
-      );
-      expect(member.effectiveEmergencyPersonName, '');
-      expect(member.effectiveEmergencyPhone, '');
-    });
-
-    test('18. fallback visual preserva legado ambiguous', () {
-      final member = Member.empty().copyWith(
-        responsibleName: 'Responsavel Legado - Ciclano',
-      );
-      expect(member.responsibleLegacyDisplayValue, 'Responsavel Legado - Ciclano');
-    });
-
-    test('19. fallback visual preserva phoneOnlyLegacy', () {
-      final member = Member.empty().copyWith(
-        emergencyContact: '(14) 99999-1234',
-      );
-      expect(member.emergencyLegacyDisplayValue, '(14) 99999-1234');
-    });
-
-    test('20. fallback visual usa campos estruturados quando presentes', () {
-      final member = Member.empty().copyWith(
-        responsibleName: 'Legado - 14999990000',
-        responsiblePersonName: 'Nome Novo',
-        responsiblePhone: '14999994321',
-      );
-      expect(member.responsibleLegacyDisplayValue, 'Nome Novo - 14999994321');
-    });
-
-    test('21. somente nome estruturado gera display somente com nome', () {
-      final member = Member.empty().copyWith(
-        responsiblePersonName: 'Nome Estruturado Solo',
-      );
-      expect(member.responsibleLegacyDisplayValue, 'Nome Estruturado Solo');
-    });
-
-    test('22. nome e telefone estruturados geram display composto', () {
-      final member = Member.empty().copyWith(
-        emergencyPersonName: 'Nome Emerg',
-        emergencyPhone: '14999995555',
-      );
-      expect(member.emergencyLegacyDisplayValue, 'Nome Emerg - 14999995555');
-    });
 
     test('23. Member.empty inicializa campos novos como null', () {
       final member = Member.empty();
@@ -255,27 +143,6 @@ void main() {
       expect(copied.updatedAt, original.updatedAt);
     });
 
-    test('27. nenhum getter altera o objeto', () {
-      final original = Member.fromJson(baseJson);
-      final originalJsonBefore = original.toJson();
-      
-      // Chamar getters sem atribuição para verificar imutabilidade
-      original.effectiveResponsiblePersonName;
-      original.effectiveResponsiblePhone;
-      original.responsibleLegacyDisplayValue;
-      
-      final originalJsonAfter = original.toJson();
-      expect(originalJsonBefore, originalJsonAfter);
-    });
 
-    test('28. nenhum getter registra dados', () {
-      final original = Member.empty().copyWith(
-        responsibleName: 'Ficticio - 14999990000',
-      );
-      // Chamar os getters apenas para certificar ausência de exceções
-      expect(original.effectiveResponsiblePersonName, 'Ficticio');
-      expect(original.effectiveResponsiblePhone, '14999990000');
-      expect(original.responsibleLegacyDisplayValue, 'Ficticio - 14999990000');
-    });
   });
 }

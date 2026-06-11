@@ -7,40 +7,24 @@ void main() {
       final state = PrintContactsHelper.getUiState(
         structuredName: 'João Silva',
         structuredPhone: '11999999999',
-        legacyComposed: '',
       );
       expect(state.uiState, PrintContactUiState.bothLocked);
-      expect(state.hasLegacyFallback, isFalse);
     });
 
     test('Cenário B: nome estruturado presente + telefone estruturado vazio -> nome travado, tel editável', () {
       final state = PrintContactsHelper.getUiState(
         structuredName: 'João Silva',
         structuredPhone: '',
-        legacyComposed: '',
       );
       expect(state.uiState, PrintContactUiState.nameLockedPhoneEditable);
-      expect(state.hasLegacyFallback, isFalse);
     });
 
-    test('Cenário C: nome e telefone estruturados vazios (sem legado) -> ambos editáveis', () {
+    test('Cenário C: nome e telefone estruturados vazios -> ambos editáveis', () {
       final state = PrintContactsHelper.getUiState(
         structuredName: '',
         structuredPhone: '',
-        legacyComposed: '',
       );
       expect(state.uiState, PrintContactUiState.bothEditable);
-      expect(state.hasLegacyFallback, isFalse);
-    });
-
-    test('Cenário D: estruturados vazios + legado preenchido -> legacyLocked e hasLegacyFallback true', () {
-      final state = PrintContactsHelper.getUiState(
-        structuredName: '',
-        structuredPhone: '',
-        legacyComposed: 'João Silva - 11999999999',
-      );
-      expect(state.uiState, PrintContactUiState.legacyLocked);
-      expect(state.hasLegacyFallback, isTrue);
     });
   });
 

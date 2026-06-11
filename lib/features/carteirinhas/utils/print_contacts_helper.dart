@@ -1,10 +1,9 @@
-enum PrintContactUiState { bothLocked, nameLockedPhoneEditable, bothEditable, legacyLocked }
+enum PrintContactUiState { bothLocked, nameLockedPhoneEditable, bothEditable }
 
 class PrintContactState {
   final PrintContactUiState uiState;
-  final bool hasLegacyFallback;
 
-  PrintContactState({required this.uiState, required this.hasLegacyFallback});
+  PrintContactState({required this.uiState});
 }
 
 class PrintContactsHelper {
@@ -12,32 +11,22 @@ class PrintContactsHelper {
   static PrintContactState getUiState({
     required String? structuredName,
     required String? structuredPhone,
-    required String legacyComposed,
   }) {
     final hasName = structuredName != null && structuredName.trim().isNotEmpty;
     final hasPhone =
         structuredPhone != null && structuredPhone.trim().isNotEmpty;
-    final hasLegacy = legacyComposed.trim().isNotEmpty;
 
     if (hasName && hasPhone) {
       return PrintContactState(
         uiState: PrintContactUiState.bothLocked,
-        hasLegacyFallback: false,
       );
     } else if (hasName && !hasPhone) {
       return PrintContactState(
         uiState: PrintContactUiState.nameLockedPhoneEditable,
-        hasLegacyFallback: false,
-      );
-    } else if (hasLegacy) {
-      return PrintContactState(
-        uiState: PrintContactUiState.legacyLocked,
-        hasLegacyFallback: true,
       );
     } else {
       return PrintContactState(
         uiState: PrintContactUiState.bothEditable,
-        hasLegacyFallback: false,
       );
     }
   }

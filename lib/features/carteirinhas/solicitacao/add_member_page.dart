@@ -196,18 +196,6 @@ class _AddMemberPageState extends State<AddMemberPage> {
   );
 
 
-
-  Map<String, String> _parseContact(String value) {
-    if (value.contains(' - ')) {
-      final parts = value.split(' - ');
-      return {
-        'name': parts[0].trim(),
-        'phone': parts.sublist(1).join(' - ').trim(),
-      };
-    }
-    return {'name': value.trim(), 'phone': ''};
-  }
-
   @override
   void initState() {
     super.initState();
@@ -219,15 +207,11 @@ class _AddMemberPageState extends State<AddMemberPage> {
       _cpfController.text = m.cpf;
       _telefoneController.text = m.phone;
 
-      // Inicializar com estruturado, fallback para legado se vazio
-      final parsedEmerg = _parseContact(m.emergencyContact);
-      _contatoEmergenciaNomeController.text = m.emergencyPersonName ?? parsedEmerg['name'] ?? '';
-      _contatoEmergenciaTelefoneController.text = m.emergencyPhone ?? parsedEmerg['phone'] ?? '';
+      _contatoEmergenciaNomeController.text = m.emergencyPersonName ?? '';
+      _contatoEmergenciaTelefoneController.text = m.emergencyPhone ?? '';
 
-      // Inicializar com estruturado, fallback para legado se vazio
-      final parsedResp = _parseContact(m.responsibleName);
-      _responsavelNomeController.text = m.responsiblePersonName ?? parsedResp['name'] ?? '';
-      _responsavelTelefoneController.text = m.responsiblePhone ?? parsedResp['phone'] ?? '';
+      _responsavelNomeController.text = m.responsiblePersonName ?? '';
+      _responsavelTelefoneController.text = m.responsiblePhone ?? '';
 
       _nascimentoController.text = m.dateOfBirth;
       _cidController.text = m.cid;
@@ -784,24 +768,21 @@ class _AddMemberPageState extends State<AddMemberPage> {
     }
     if (_cpfController.text.trim() != m.cpf.trim()) return true;
     if (_telefoneController.text.trim() != m.phone.trim()) return true;
-
-    final parsedEmerg = _parseContact(m.emergencyContact);
     if (_contatoEmergenciaNomeController.text.trim() !=
-        (m.emergencyPersonName ?? parsedEmerg['name'] ?? '').trim()) {
+        (m.emergencyPersonName ?? '').trim()) {
       return true;
     }
     if (_contatoEmergenciaTelefoneController.text.trim() !=
-        (m.emergencyPhone ?? parsedEmerg['phone'] ?? '').trim()) {
+        (m.emergencyPhone ?? '').trim()) {
       return true;
     }
 
-    final parsedResp = _parseContact(m.responsibleName);
     if (_responsavelNomeController.text.trim() !=
-        (m.responsiblePersonName ?? parsedResp['name'] ?? '').trim()) {
+        (m.responsiblePersonName ?? '').trim()) {
       return true;
     }
     if (_responsavelTelefoneController.text.trim() !=
-        (m.responsiblePhone ?? parsedResp['phone'] ?? '').trim()) {
+        (m.responsiblePhone ?? '').trim()) {
       return true;
     }
 

@@ -973,7 +973,6 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
     final state = PrintContactsHelper.getUiState(
       structuredName: widget.member.responsiblePersonName,
       structuredPhone: widget.member.responsiblePhone,
-      legacyComposed: widget.member.responsibleName,
     );
 
     return Container(
@@ -983,15 +982,15 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
         children: [
           if (state.uiState == PrintContactUiState.bothLocked) ...[
             PrintReviewPreviewBox(
-              value: widget.member.effectiveResponsiblePersonName,
+              value: widget.member.responsiblePersonName ?? '',
             ),
             const SizedBox(height: 8),
             PrintReviewPreviewBox(
-              value: widget.member.effectiveResponsiblePhone,
+              value: widget.member.responsiblePhone ?? '',
             ),
           ] else if (state.uiState == PrintContactUiState.nameLockedPhoneEditable) ...[
             PrintReviewPreviewBox(
-              value: widget.member.effectiveResponsiblePersonName,
+              value: widget.member.responsiblePersonName ?? '',
             ),
             const SizedBox(height: 12),
             PrintReviewEmptyWarningBox(
@@ -1001,10 +1000,6 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
                 requiredField: false,
                 validator: _validateRespPhone,
               ),
-            ),
-          ] else if (state.uiState == PrintContactUiState.legacyLocked) ...[
-            PrintReviewPreviewBox(
-              value: widget.member.responsibleLegacyDisplayValue,
             ),
           ] else ...[
             PrintReviewEmptyWarningBox(
@@ -1082,17 +1077,37 @@ class _PrintReviewInfoSheetState extends State<PrintReviewInfoSheet> {
   Widget _buildEmergencyPreviewArea() {
     if (!_includeEmergency) return const SizedBox.shrink();
 
-    final hasEmergency = widget.member.emergencyContact.trim().isNotEmpty;
+    final state = PrintContactsHelper.getUiState(
+      structuredName: widget.member.emergencyPersonName,
+      structuredPhone: widget.member.emergencyPhone,
+    );
 
     return Container(
       margin: const EdgeInsets.only(top: 8.0, bottom: 16.0, left: 4.0, right: 4.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (hasEmergency) ...[
+          if (state.uiState == PrintContactUiState.bothLocked) ...[
             PrintReviewPreviewBox(
-              value: widget.member.emergencyContact,
+              value: widget.member.emergencyPersonName ?? '',
+            ),
+            const SizedBox(height: 8),
+            PrintReviewPreviewBox(
+              value: widget.member.emergencyPhone ?? '',
               icon: Icons.phone_enabled_rounded,
+            ),
+          ] else if (state.uiState == PrintContactUiState.nameLockedPhoneEditable) ...[
+            PrintReviewPreviewBox(
+              value: widget.member.emergencyPersonName ?? '',
+            ),
+            const SizedBox(height: 12),
+            PrintReviewEmptyWarningBox(
+              message: 'Telefone não preenchido.',
+              child: CampoTelefoneContatoEmergencia(
+                controller: _tempEmergPhoneController,
+                requiredField: false,
+                validator: _validateEmergPhone,
+              ),
             ),
           ] else ...[
             PrintReviewEmptyWarningBox(
