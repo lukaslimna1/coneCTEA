@@ -1,0 +1,180 @@
+g:\Sites\ConeCTEA\lib\core\campos_cadastrais\helpers\legacy_contact_parser.dart:23:class LegacyContactParser {
+g:\Sites\ConeCTEA\lib\core\campos_cadastrais\helpers\legacy_contact_parser.dart:25:LegacyContactParser._();
+g:\Sites\ConeCTEA\lib\features\admin\solicitacoes_carteirinha\admin_request_details_sheet.dart:999:value: _member!.emergencyContact,
+g:\Sites\ConeCTEA\lib\features\carteirinhas\models\member_rpc_merge_extension.dart:26:emergencyContact:
+g:\Sites\ConeCTEA\lib\features\carteirinhas\models\member_rpc_merge_extension.dart:27:emergencyContact, // Preservado do legado da instância original
+g:\Sites\ConeCTEA\lib\features\carteirinhas\models\member_rpc_merge_extension.dart:28:responsibleName:
+g:\Sites\ConeCTEA\lib\features\carteirinhas\models\member_rpc_merge_extension.dart:29:responsibleName, // Preservado do legado da instância original
+g:\Sites\ConeCTEA\lib\features\carteirinhas\models\impressao\print_card_request.dart:55:final String? responsibleNameOverride;
+g:\Sites\ConeCTEA\lib\features\carteirinhas\models\impressao\print_card_request.dart:73:this.responsibleNameOverride,
+g:\Sites\ConeCTEA\lib\features\carteirinhas\services\print_card_pdf_service.dart:1212:final overrideName = request.responsibleNameOverride?.trim() ?? '';
+g:\Sites\ConeCTEA\lib\features\carteirinhas\services\print_card_pdf_service.dart:1221:respName = request.member.responsibleLegacyDisplayValue;
+g:\Sites\ConeCTEA\lib\features\carteirinhas\services\print_card_pdf_service.dart:1255:emergName = request.member.emergencyLegacyDisplayValue;
+g:\Sites\ConeCTEA\lib\features\carteirinhas\services\print_card_preferences_local_service.dart:16:final String? responsibleNameOverride;
+g:\Sites\ConeCTEA\lib\features\carteirinhas\services\print_card_preferences_local_service.dart:32:this.responsibleNameOverride,
+g:\Sites\ConeCTEA\lib\features\carteirinhas\services\print_card_preferences_local_service.dart:70:responsibleNameOverride: json['responsibleNameOverride'] as String?,
+g:\Sites\ConeCTEA\lib\features\carteirinhas\services\print_card_preferences_local_service.dart:89:'responsibleNameOverride': responsibleNameOverride,
+g:\Sites\ConeCTEA\lib\features\carteirinhas\solicitacao\add_member_page.dart:223:final parsedEmerg = _parseContact(m.emergencyContact);
+g:\Sites\ConeCTEA\lib\features\carteirinhas\solicitacao\add_member_page.dart:228:final parsedResp = _parseContact(m.responsibleName);
+g:\Sites\ConeCTEA\lib\features\carteirinhas\solicitacao\add_member_page.dart:633:emergencyContact: isEditing ? widget.member!.emergencyContact : '',
+g:\Sites\ConeCTEA\lib\features\carteirinhas\solicitacao\add_member_page.dart:634:responsibleName: isEditing ? widget.member!.responsibleName : '',
+g:\Sites\ConeCTEA\lib\features\carteirinhas\solicitacao\add_member_page.dart:788:final parsedEmerg = _parseContact(m.emergencyContact);
+g:\Sites\ConeCTEA\lib\features\carteirinhas\solicitacao\add_member_page.dart:798:final parsedResp = _parseContact(m.responsibleName);
+g:\Sites\ConeCTEA\lib\features\carteirinhas\utils\print_contacts_helper.dart:1:enum PrintContactUiState { bothLocked, nameLockedPhoneEditable, bothEditable, legacyLocked }
+g:\Sites\ConeCTEA\lib\features\carteirinhas\utils\print_contacts_helper.dart:34:uiState: PrintContactUiState.legacyLocked,
+g:\Sites\ConeCTEA\lib\features\carteirinhas\widgets\impressao\print_review_info_sheet.dart:159:if (prefs.responsibleNameOverride != null) _tempRespNameController.text = prefs.responsibleNameOverride!;
+g:\Sites\ConeCTEA\lib\features\carteirinhas\widgets\impressao\print_review_info_sheet.dart:703:request.responsibleNameOverride != null ||
+g:\Sites\ConeCTEA\lib\features\carteirinhas\widgets\impressao\print_review_info_sheet.dart:721:responsibleNameOverride: request.responsibleNameOverride,
+g:\Sites\ConeCTEA\lib\features\carteirinhas\widgets\impressao\print_review_info_sheet.dart:976:legacyComposed: widget.member.responsibleName,
+g:\Sites\ConeCTEA\lib\features\carteirinhas\widgets\impressao\print_review_info_sheet.dart:1005:] else if (state.uiState == PrintContactUiState.legacyLocked) ...[
+g:\Sites\ConeCTEA\lib\features\carteirinhas\widgets\impressao\print_review_info_sheet.dart:1007:value: widget.member.responsibleLegacyDisplayValue,
+g:\Sites\ConeCTEA\lib\features\carteirinhas\widgets\impressao\print_review_info_sheet.dart:1085:final hasEmergency = widget.member.emergencyContact.trim().isNotEmpty;
+g:\Sites\ConeCTEA\lib\features\carteirinhas\widgets\impressao\print_review_info_sheet.dart:1094:value: widget.member.emergencyContact,
+g:\Sites\ConeCTEA\lib\features\carteirinhas\widgets\impressao\print_review_info_sheet.dart:1306:String? responsibleNameOverride;
+g:\Sites\ConeCTEA\lib\features\carteirinhas\widgets\impressao\print_review_info_sheet.dart:1308:if (_includeResponsible && member.responsibleName.trim().isEmpty) {
+g:\Sites\ConeCTEA\lib\features\carteirinhas\widgets\impressao\print_review_info_sheet.dart:1309:responsibleNameOverride = _tempRespNameController.text.trim();
+g:\Sites\ConeCTEA\lib\features\carteirinhas\widgets\impressao\print_review_info_sheet.dart:1315:if (_includeEmergency && member.emergencyContact.trim().isEmpty) {
+g:\Sites\ConeCTEA\lib\features\carteirinhas\widgets\impressao\print_review_info_sheet.dart:1347:responsibleNameOverride: responsibleNameOverride?.isNotEmpty == true ? responsibleNameOverride : null,
+g:\Sites\ConeCTEA\lib\models\member.dart:11:final String emergencyContact;
+g:\Sites\ConeCTEA\lib\models\member.dart:12:final String responsibleName;
+g:\Sites\ConeCTEA\lib\models\member.dart:39:required this.emergencyContact,
+g:\Sites\ConeCTEA\lib\models\member.dart:40:required this.responsibleName,
+g:\Sites\ConeCTEA\lib\models\member.dart:68:emergencyContact: '',
+g:\Sites\ConeCTEA\lib\models\member.dart:69:responsibleName: '',
+g:\Sites\ConeCTEA\lib\models\member.dart:102:emergencyContact:
+g:\Sites\ConeCTEA\lib\models\member.dart:103:json['emergencyContact'] ?? json['emergency_contact'] ?? '',
+g:\Sites\ConeCTEA\lib\models\member.dart:104:responsibleName:
+g:\Sites\ConeCTEA\lib\models\member.dart:105:json['responsibleName'] ?? json['responsible_name'] ?? '',
+g:\Sites\ConeCTEA\lib\models\member.dart:148:'emergency_contact': emergencyContact,
+g:\Sites\ConeCTEA\lib\models\member.dart:149:'responsible_name': responsibleName,
+g:\Sites\ConeCTEA\lib\models\member.dart:177:String? emergencyContact,
+g:\Sites\ConeCTEA\lib\models\member.dart:178:String? responsibleName,
+g:\Sites\ConeCTEA\lib\models\member.dart:204:emergencyContact: emergencyContact ?? this.emergencyContact,
+g:\Sites\ConeCTEA\lib\models\member.dart:205:responsibleName: responsibleName ?? this.responsibleName,
+g:\Sites\ConeCTEA\lib\models\member.dart:251:_getEffectiveName(responsiblePersonName, responsibleName);
+g:\Sites\ConeCTEA\lib\models\member.dart:254:_getEffectivePhone(responsiblePhone, responsibleName);
+g:\Sites\ConeCTEA\lib\models\member.dart:257:_getEffectiveName(emergencyPersonName, emergencyContact);
+g:\Sites\ConeCTEA\lib\models\member.dart:260:_getEffectivePhone(emergencyPhone, emergencyContact);
+g:\Sites\ConeCTEA\lib\models\member.dart:263:String get responsibleLegacyDisplayValue => _getLegacyDisplayValue(
+g:\Sites\ConeCTEA\lib\models\member.dart:266:responsibleName,
+g:\Sites\ConeCTEA\lib\models\member.dart:269:String get emergencyLegacyDisplayValue => _getLegacyDisplayValue(
+g:\Sites\ConeCTEA\lib\models\member.dart:272:emergencyContact,
+g:\Sites\ConeCTEA\lib\models\member.dart:280:final parts = LegacyContactParser.parse(legacyComposed);
+g:\Sites\ConeCTEA\lib\models\member.dart:292:final parts = LegacyContactParser.parse(legacyComposed);
+g:\Sites\ConeCTEA\lib\models\member.dart:299:String _getLegacyDisplayValue(
+g:\Sites\ConeCTEA\lib\models\member.dart:318:final parts = LegacyContactParser.parse(legacyComposed);
+g:\Sites\ConeCTEA\lib\services\database_service.dart:171:'responsible_name',
+g:\Sites\ConeCTEA\lib\services\database_service.dart:172:'emergency_contact',
+g:\Sites\ConeCTEA\lib\services\database_service.dart:356:'back_data': {'emergencyContact': member.emergencyContact},
+g:\Sites\ConeCTEA\test\core\campos_cadastrais\helpers\legacy_contact_parser_test.dart:5:group('LegacyContactParser Tests', () {
+g:\Sites\ConeCTEA\test\core\campos_cadastrais\helpers\legacy_contact_parser_test.dart:7:final result = LegacyContactParser.parse(null);
+g:\Sites\ConeCTEA\test\core\campos_cadastrais\helpers\legacy_contact_parser_test.dart:15:final result = LegacyContactParser.parse('');
+g:\Sites\ConeCTEA\test\core\campos_cadastrais\helpers\legacy_contact_parser_test.dart:23:final result = LegacyContactParser.parse('     ');
+g:\Sites\ConeCTEA\test\core\campos_cadastrais\helpers\legacy_contact_parser_test.dart:31:final result = LegacyContactParser.parse('Fulano de Tal');
+g:\Sites\ConeCTEA\test\core\campos_cadastrais\helpers\legacy_contact_parser_test.dart:39:final result = LegacyContactParser.parse('Ana-Maria');
+g:\Sites\ConeCTEA\test\core\campos_cadastrais\helpers\legacy_contact_parser_test.dart:47:final result = LegacyContactParser.parse('Fulano - Ciclano');
+g:\Sites\ConeCTEA\test\core\campos_cadastrais\helpers\legacy_contact_parser_test.dart:55:final result = LegacyContactParser.parse(
+g:\Sites\ConeCTEA\test\core\campos_cadastrais\helpers\legacy_contact_parser_test.dart:65:final result = LegacyContactParser.parse('Fulano de Tal - 1432221111');
+g:\Sites\ConeCTEA\test\core\campos_cadastrais\helpers\legacy_contact_parser_test.dart:73:final result = LegacyContactParser.parse('Fulano de Tal - 14999998888');
+g:\Sites\ConeCTEA\test\core\campos_cadastrais\helpers\legacy_contact_parser_test.dart:83:final result = LegacyContactParser.parse(
+g:\Sites\ConeCTEA\test\core\campos_cadastrais\helpers\legacy_contact_parser_test.dart:94:final result = LegacyContactParser.parse('(14) 99999-8888');
+g:\Sites\ConeCTEA\test\core\campos_cadastrais\helpers\legacy_contact_parser_test.dart:105:final result = LegacyContactParser.parse('99999999999');
+g:\Sites\ConeCTEA\test\core\campos_cadastrais\helpers\legacy_contact_parser_test.dart:113:final result = LegacyContactParser.parse('Lucas123');
+g:\Sites\ConeCTEA\test\core\campos_cadastrais\helpers\legacy_contact_parser_test.dart:121:final result = LegacyContactParser.parse('Fulano - 9999');
+g:\Sites\ConeCTEA\test\core\campos_cadastrais\helpers\legacy_contact_parser_test.dart:129:final result = LegacyContactParser.parse('Fulano - 1499999888877');
+g:\Sites\ConeCTEA\test\core\campos_cadastrais\helpers\legacy_contact_parser_test.dart:137:final result = LegacyContactParser.parse('Fulano - 99999999999');
+g:\Sites\ConeCTEA\test\core\campos_cadastrais\helpers\legacy_contact_parser_test.dart:149:final result = LegacyContactParser.parse(' - (14) 99999-8888');
+g:\Sites\ConeCTEA\test\core\campos_cadastrais\helpers\legacy_contact_parser_test.dart:161:final result = LegacyContactParser.parse(
+g:\Sites\ConeCTEA\test\core\campos_cadastrais\helpers\legacy_contact_parser_test.dart:171:final result = LegacyContactParser.parse(
+g:\Sites\ConeCTEA\test\core\campos_cadastrais\helpers\legacy_contact_parser_test.dart:181:final result = LegacyContactParser.parse(
+g:\Sites\ConeCTEA\test\core\campos_cadastrais\helpers\legacy_contact_parser_test.dart:191:final result = LegacyContactParser.parse('Fulano - ');
+g:\Sites\ConeCTEA\test\features\carteirinhas\models\fill_empty_member_optional_fields_test.dart:195:test('10. allowlist rejeita responsible_name legado', () {
+g:\Sites\ConeCTEA\test\features\carteirinhas\models\fill_empty_member_optional_fields_test.dart:197:..['applied_fields'] = ['responsible_name'];
+g:\Sites\ConeCTEA\test\features\carteirinhas\models\fill_empty_member_optional_fields_test.dart:205:test('11. allowlist rejeita emergency_contact legado', () {
+g:\Sites\ConeCTEA\test\features\carteirinhas\models\fill_empty_member_optional_fields_test.dart:207:..['preserved_fields'] = ['emergency_contact'];
+g:\Sites\ConeCTEA\test\features\carteirinhas\models\member_rpc_merge_test.dart:19:emergencyContact: 'Maria da Silva - 14988888888',
+g:\Sites\ConeCTEA\test\features\carteirinhas\models\member_rpc_merge_test.dart:20:responsibleName: 'Pedro da Silva - 14977777777',
+g:\Sites\ConeCTEA\test\features\carteirinhas\models\member_rpc_merge_test.dart:313:expect(merged.responsibleName, 'Pedro da Silva - 14977777777');
+g:\Sites\ConeCTEA\test\features\carteirinhas\models\member_rpc_merge_test.dart:314:expect(merged.emergencyContact, 'Maria da Silva - 14988888888');
+g:\Sites\ConeCTEA\test\features\carteirinhas\solicitacao\add_member_patch_helper_test.dart:16:emergencyContact: '',
+g:\Sites\ConeCTEA\test\features\carteirinhas\solicitacao\add_member_patch_helper_test.dart:17:responsibleName: '',
+g:\Sites\ConeCTEA\test\features\carteirinhas\solicitacao\add_member_patch_helper_test.dart:106:expect(patch.containsKey('responsible_name'), isFalse);
+g:\Sites\ConeCTEA\test\features\carteirinhas\solicitacao\add_member_patch_helper_test.dart:229:test('9. responsible_name alterado entra corretamente', () {
+g:\Sites\ConeCTEA\test\features\carteirinhas\solicitacao\add_member_patch_helper_test.dart:252:test('10. emergency_contact alterado entra corretamente', () {
+g:\Sites\ConeCTEA\test\features\carteirinhas\solicitacao\add_member_patch_helper_test.dart:318:expect(patch.containsKey('responsible_name'), isFalse);
+g:\Sites\ConeCTEA\test\features\carteirinhas\solicitacao\add_member_patch_helper_test.dart:319:expect(patch.containsKey('emergency_contact'), isFalse);
+g:\Sites\ConeCTEA\test\features\carteirinhas\utils\print_contacts_helper_test.dart:36:test('Cenário D: estruturados vazios + legado preenchido -> legacyLocked e hasLegacyFallback true', () {
+g:\Sites\ConeCTEA\test\features\carteirinhas\utils\print_contacts_helper_test.dart:42:expect(state.uiState, PrintContactUiState.legacyLocked);
+g:\Sites\ConeCTEA\test\models\member_structured_contacts_test.dart:14:'emergency_contact': 'Contato Emergencia Composto - (14) 99999-2222',
+g:\Sites\ConeCTEA\test\models\member_structured_contacts_test.dart:15:'responsible_name': 'Responsavel Composto - (14) 99999-3333',
+g:\Sites\ConeCTEA\test\models\member_structured_contacts_test.dart:95:responsibleName: 'Nome Legado',
+g:\Sites\ConeCTEA\test\models\member_structured_contacts_test.dart:96:emergencyContact: 'Emerg Legado',
+g:\Sites\ConeCTEA\test\models\member_structured_contacts_test.dart:99:expect(json['responsible_name'], 'Nome Legado');
+g:\Sites\ConeCTEA\test\models\member_structured_contacts_test.dart:100:expect(json['emergency_contact'], 'Emerg Legado');
+g:\Sites\ConeCTEA\test\models\member_structured_contacts_test.dart:105:responsibleName: 'Responsavel Legado - (14) 99999-1234',
+g:\Sites\ConeCTEA\test\models\member_structured_contacts_test.dart:115:responsibleName: 'Responsavel Apenas Nome',
+g:\Sites\ConeCTEA\test\models\member_structured_contacts_test.dart:123:responsibleName: 'Responsavel Legado - (14) 99999-1234',
+g:\Sites\ConeCTEA\test\models\member_structured_contacts_test.dart:131:responsibleName: 'Responsavel Legado - Ciclano',
+g:\Sites\ConeCTEA\test\models\member_structured_contacts_test.dart:139:responsibleName: 'Responsavel com Numeros 1234',
+g:\Sites\ConeCTEA\test\models\member_structured_contacts_test.dart:149:responsibleName: '(14) 99999-1234',
+g:\Sites\ConeCTEA\test\models\member_structured_contacts_test.dart:157:emergencyContact: 'Emergencia Apenas Nome',
+g:\Sites\ConeCTEA\test\models\member_structured_contacts_test.dart:165:emergencyContact: 'Emergencia Legado - (14) 99999-1234',
+g:\Sites\ConeCTEA\test\models\member_structured_contacts_test.dart:173:emergencyContact: 'Emergencia com Numeros 123',
+g:\Sites\ConeCTEA\test\models\member_structured_contacts_test.dart:181:responsibleName: 'Responsavel Legado - Ciclano',
+g:\Sites\ConeCTEA\test\models\member_structured_contacts_test.dart:183:expect(member.responsibleLegacyDisplayValue, 'Responsavel Legado - Ciclano');
+g:\Sites\ConeCTEA\test\models\member_structured_contacts_test.dart:188:emergencyContact: '(14) 99999-1234',
+g:\Sites\ConeCTEA\test\models\member_structured_contacts_test.dart:190:expect(member.emergencyLegacyDisplayValue, '(14) 99999-1234');
+g:\Sites\ConeCTEA\test\models\member_structured_contacts_test.dart:195:responsibleName: 'Legado - 14999990000',
+g:\Sites\ConeCTEA\test\models\member_structured_contacts_test.dart:199:expect(member.responsibleLegacyDisplayValue, 'Nome Novo - 14999994321');
+g:\Sites\ConeCTEA\test\models\member_structured_contacts_test.dart:206:expect(member.responsibleLegacyDisplayValue, 'Nome Estruturado Solo');
+g:\Sites\ConeCTEA\test\models\member_structured_contacts_test.dart:214:expect(member.emergencyLegacyDisplayValue, 'Nome Emerg - 14999995555');
+g:\Sites\ConeCTEA\test\models\member_structured_contacts_test.dart:265:original.responsibleLegacyDisplayValue;
+g:\Sites\ConeCTEA\test\models\member_structured_contacts_test.dart:273:responsibleName: 'Ficticio - 14999990000',
+g:\Sites\ConeCTEA\test\models\member_structured_contacts_test.dart:278:expect(original.responsibleLegacyDisplayValue, 'Ficticio - 14999990000');
+g:\Sites\ConeCTEA\test\services\database_service_update_member_fields_test.dart:181:'emergency_contact': 'Contato Ficticio',
+g:\Sites\ConeCTEA\test\services\database_service_update_member_fields_test.dart:182:'responsible_name': 'Responsavel Ficticio',
+g:\Sites\ConeCTEA\supabase/migrations\20260609053306_add_conectea_fill_empty_member_optional_fields.sql:38:responsible_name text,
+g:\Sites\ConeCTEA\supabase/migrations\20260609053306_add_conectea_fill_empty_member_optional_fields.sql:39:emergency_contact text,
+g:\Sites\ConeCTEA\supabase/migrations\20260609053306_add_conectea_fill_empty_member_optional_fields.sql:58:v_new_responsible_name text;
+g:\Sites\ConeCTEA\supabase/migrations\20260609053306_add_conectea_fill_empty_member_optional_fields.sql:59:v_new_emergency_contact text;
+g:\Sites\ConeCTEA\supabase/migrations\20260609053306_add_conectea_fill_empty_member_optional_fields.sql:185:-- 8. Processar Campo: responsible_name (Nome do Responsável Principal)
+g:\Sites\ConeCTEA\supabase/migrations\20260609053306_add_conectea_fill_empty_member_optional_fields.sql:187:IF v_member.responsible_name IS NULL OR btrim(v_member.responsible_name) = '' THEN
+g:\Sites\ConeCTEA\supabase/migrations\20260609053306_add_conectea_fill_empty_member_optional_fields.sql:218:v_new_responsible_name := v_responsible_composed;
+g:\Sites\ConeCTEA\supabase/migrations\20260609053306_add_conectea_fill_empty_member_optional_fields.sql:219:v_applied := array_append(v_applied, 'responsible_name');
+g:\Sites\ConeCTEA\supabase/migrations\20260609053306_add_conectea_fill_empty_member_optional_fields.sql:221:v_new_responsible_name := v_member.responsible_name;
+g:\Sites\ConeCTEA\supabase/migrations\20260609053306_add_conectea_fill_empty_member_optional_fields.sql:224:v_new_responsible_name := v_member.responsible_name;
+g:\Sites\ConeCTEA\supabase/migrations\20260609053306_add_conectea_fill_empty_member_optional_fields.sql:239:IF btrim(v_responsible_composed) != btrim(v_member.responsible_name) THEN
+g:\Sites\ConeCTEA\supabase/migrations\20260609053306_add_conectea_fill_empty_member_optional_fields.sql:240:v_preserved := array_append(v_preserved, 'responsible_name');
+g:\Sites\ConeCTEA\supabase/migrations\20260609053306_add_conectea_fill_empty_member_optional_fields.sql:245:-- 9. Processar Campo: emergency_contact (Contato de Emergência Principal)
+g:\Sites\ConeCTEA\supabase/migrations\20260609053306_add_conectea_fill_empty_member_optional_fields.sql:247:IF v_member.emergency_contact IS NULL OR btrim(v_member.emergency_contact) = '' THEN
+g:\Sites\ConeCTEA\supabase/migrations\20260609053306_add_conectea_fill_empty_member_optional_fields.sql:278:v_new_emergency_contact := v_emergency_composed;
+g:\Sites\ConeCTEA\supabase/migrations\20260609053306_add_conectea_fill_empty_member_optional_fields.sql:279:v_applied := array_append(v_applied, 'emergency_contact');
+g:\Sites\ConeCTEA\supabase/migrations\20260609053306_add_conectea_fill_empty_member_optional_fields.sql:281:v_new_emergency_contact := v_member.emergency_contact;
+g:\Sites\ConeCTEA\supabase/migrations\20260609053306_add_conectea_fill_empty_member_optional_fields.sql:284:v_new_emergency_contact := v_member.emergency_contact;
+g:\Sites\ConeCTEA\supabase/migrations\20260609053306_add_conectea_fill_empty_member_optional_fields.sql:298:IF btrim(v_emergency_composed) != btrim(v_member.emergency_contact) THEN
+g:\Sites\ConeCTEA\supabase/migrations\20260609053306_add_conectea_fill_empty_member_optional_fields.sql:299:v_preserved := array_append(v_preserved, 'emergency_contact');
+g:\Sites\ConeCTEA\supabase/migrations\20260609053306_add_conectea_fill_empty_member_optional_fields.sql:314:responsible_name = v_new_responsible_name,
+g:\Sites\ConeCTEA\supabase/migrations\20260609053306_add_conectea_fill_empty_member_optional_fields.sql:315:emergency_contact = v_new_emergency_contact,
+g:\Sites\ConeCTEA\supabase/migrations\20260609053306_add_conectea_fill_empty_member_optional_fields.sql:324:m.responsible_name,
+g:\Sites\ConeCTEA\supabase/migrations\20260609053306_add_conectea_fill_empty_member_optional_fields.sql:325:m.emergency_contact
+g:\Sites\ConeCTEA\supabase/migrations\20260609053306_add_conectea_fill_empty_member_optional_fields.sql:332:v_new_responsible_name,
+g:\Sites\ConeCTEA\supabase/migrations\20260609053306_add_conectea_fill_empty_member_optional_fields.sql:333:v_new_emergency_contact;
+g:\Sites\ConeCTEA\supabase/migrations\20260609053306_add_conectea_fill_empty_member_optional_fields.sql:341:v_new_responsible_name := v_member.responsible_name;
+g:\Sites\ConeCTEA\supabase/migrations\20260609053306_add_conectea_fill_empty_member_optional_fields.sql:342:v_new_emergency_contact := v_member.emergency_contact;
+g:\Sites\ConeCTEA\supabase/migrations\20260609053306_add_conectea_fill_empty_member_optional_fields.sql:353:v_new_responsible_name,
+g:\Sites\ConeCTEA\supabase/migrations\20260609053306_add_conectea_fill_empty_member_optional_fields.sql:354:v_new_emergency_contact,
+g:\Sites\ConeCTEA\supabase/migrations\20260610163239_add_structured_member_contacts.sql:3:-- As colunas legadas responsible_name e emergency_contact continuam existindo temporariamente para compatibilidade.
+g:\Sites\ConeCTEA\supabase/migrations\20260610163239_add_structured_member_contacts.sql:56:COMMENT ON COLUMN public.members.responsible_person_name IS 'Nome estruturado do responsável principal do membro. A coluna legada responsible_name permanece temporariamente para compatibilidade com versões antigas.';
+g:\Sites\ConeCTEA\supabase/migrations\20260610163239_add_structured_member_contacts.sql:57:COMMENT ON COLUMN public.members.responsible_phone IS 'Telefone estruturado do responsável principal do membro. A coluna legada responsible_name permanece temporariamente para compatibilidade com versões antigas.';
+g:\Sites\ConeCTEA\supabase/migrations\20260610163239_add_structured_member_contacts.sql:58:COMMENT ON COLUMN public.members.emergency_person_name IS 'Nome estruturado do contato de emergência principal do membro. A coluna legada emergency_contact permanece temporariamente para compatibilidade com versões antigas.';
+g:\Sites\ConeCTEA\supabase/migrations\20260610163239_add_structured_member_contacts.sql:59:COMMENT ON COLUMN public.members.emergency_phone IS 'Telefone estruturado do contato de emergência principal do membro. A coluna legada emergency_contact permanece temporariamente para compatibilidade com versões antigas.';
+g:\Sites\ConeCTEA\supabase/migrations\20260611020434_replace_fill_empty_member_optional_fields_structured.sql:56:v_new_responsible_name text;
+g:\Sites\ConeCTEA\supabase/migrations\20260611020434_replace_fill_empty_member_optional_fields_structured.sql:57:v_new_emergency_contact text;
+g:\Sites\ConeCTEA\supabase/migrations\20260611020434_replace_fill_empty_member_optional_fields_structured.sql:216:v_new_responsible_name := v_new_responsible_person_name || ' - ' || v_new_responsible_phone;
+g:\Sites\ConeCTEA\supabase/migrations\20260611020434_replace_fill_empty_member_optional_fields_structured.sql:218:v_new_responsible_name := v_new_responsible_person_name;
+g:\Sites\ConeCTEA\supabase/migrations\20260611020434_replace_fill_empty_member_optional_fields_structured.sql:221:v_new_responsible_name := v_member.responsible_name;
+g:\Sites\ConeCTEA\supabase/migrations\20260611020434_replace_fill_empty_member_optional_fields_structured.sql:267:v_new_emergency_contact := v_new_emergency_person_name || ' - ' || v_new_emergency_phone;
+g:\Sites\ConeCTEA\supabase/migrations\20260611020434_replace_fill_empty_member_optional_fields_structured.sql:269:v_new_emergency_contact := v_new_emergency_person_name;
+g:\Sites\ConeCTEA\supabase/migrations\20260611020434_replace_fill_empty_member_optional_fields_structured.sql:272:v_new_emergency_contact := v_member.emergency_contact;
+g:\Sites\ConeCTEA\supabase/migrations\20260611020434_replace_fill_empty_member_optional_fields_structured.sql:290:responsible_name = v_new_responsible_name,
+g:\Sites\ConeCTEA\supabase/migrations\20260611020434_replace_fill_empty_member_optional_fields_structured.sql:291:emergency_contact = v_new_emergency_contact,
