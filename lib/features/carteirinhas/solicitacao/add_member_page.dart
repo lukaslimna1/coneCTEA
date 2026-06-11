@@ -38,8 +38,10 @@ class AddMemberPatchHelper {
     required String city,
     required String state,
     required String phone,
-    required String emergencyContact,
-    required String responsibleName,
+    required String? responsiblePersonName,
+    required String? responsiblePhone,
+    required String? emergencyPersonName,
+    required String? emergencyPhone,
     required String dateOfBirth,
     required String bloodType,
     required String cid,
@@ -63,12 +65,17 @@ class AddMemberPatchHelper {
     if (state != original.state) fields['state'] = state;
     if (phone != original.phone) fields['phone'] = phone;
 
-    if (emergencyContact != original.emergencyContact) {
-      fields['emergency_contact'] = emergencyContact;
+    if (responsiblePersonName != original.responsiblePersonName) {
+      fields['responsible_person_name'] = responsiblePersonName;
     }
-
-    if (responsibleName != original.responsibleName) {
-      fields['responsible_name'] = responsibleName;
+    if (responsiblePhone != original.responsiblePhone) {
+      fields['responsible_phone'] = responsiblePhone;
+    }
+    if (emergencyPersonName != original.emergencyPersonName) {
+      fields['emergency_person_name'] = emergencyPersonName;
+    }
+    if (emergencyPhone != original.emergencyPhone) {
+      fields['emergency_phone'] = emergencyPhone;
     }
 
     if (dateOfBirth != original.dateOfBirth) fields['birth_date'] = dateOfBirth;
@@ -123,6 +130,9 @@ class _AddMemberPageState extends State<AddMemberPage> {
   final _responsavelTelefoneController = TextEditingController();
   final _nascimentoController = TextEditingController();
   final _cidController = TextEditingController();
+
+  final _responsavelNomeFocusNode = FocusNode();
+  final _contatoEmergenciaNomeFocusNode = FocusNode();
 
   String? _selectedBloodType;
   String? _selectedState;
@@ -185,18 +195,7 @@ class _AddMemberPageState extends State<AddMemberPage> {
     filter: {"#": RegExp(r'[0-9]')},
   );
 
-  String _composeContact(String name, String phone) {
-    final cleanName = name.trim();
-    final cleanPhone = phone.trim();
-    if (cleanName.isNotEmpty && cleanPhone.isNotEmpty) {
-      return '$cleanName - $cleanPhone';
-    } else if (cleanName.isNotEmpty) {
-      return cleanName;
-    } else if (cleanPhone.isNotEmpty) {
-      return cleanPhone;
-    }
-    return '';
-  }
+
 
   Map<String, String> _parseContact(String value) {
     if (value.contains(' - ')) {
@@ -220,15 +219,15 @@ class _AddMemberPageState extends State<AddMemberPage> {
       _cpfController.text = m.cpf;
       _telefoneController.text = m.phone;
 
-      // Parse do contato de emergência legado
+      // Inicializar com estruturado, fallback para legado se vazio
       final parsedEmerg = _parseContact(m.emergencyContact);
-      _contatoEmergenciaNomeController.text = parsedEmerg['name'] ?? '';
-      _contatoEmergenciaTelefoneController.text = parsedEmerg['phone'] ?? '';
+      _contatoEmergenciaNomeController.text = m.emergencyPersonName ?? parsedEmerg['name'] ?? '';
+      _contatoEmergenciaTelefoneController.text = m.emergencyPhone ?? parsedEmerg['phone'] ?? '';
 
-      // Parse do responsável legado
+      // Inicializar com estruturado, fallback para legado se vazio
       final parsedResp = _parseContact(m.responsibleName);
-      _responsavelNomeController.text = parsedResp['name'] ?? '';
-      _responsavelTelefoneController.text = parsedResp['phone'] ?? '';
+      _responsavelNomeController.text = m.responsiblePersonName ?? parsedResp['name'] ?? '';
+      _responsavelTelefoneController.text = m.responsiblePhone ?? parsedResp['phone'] ?? '';
 
       _nascimentoController.text = m.dateOfBirth;
       _cidController.text = m.cid;
@@ -376,6 +375,8 @@ class _AddMemberPageState extends State<AddMemberPage> {
     _responsavelTelefoneController.dispose();
     _nascimentoController.dispose();
     _cidController.dispose();
+    _responsavelNomeFocusNode.dispose();
+    _contatoEmergenciaNomeFocusNode.dispose();
     super.dispose();
   }
 
@@ -494,7 +495,6 @@ class _AddMemberPageState extends State<AddMemberPage> {
       );
       return;
     }
-    if (!_formKey.currentState!.validate()) return;
     if (_selectedState == null || _selectedCity == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -546,6 +546,16 @@ class _AddMemberPageState extends State<AddMemberPage> {
       }
     }
 
+
+    // Validação de contatos: telefone não pode existir sem nome
+    if (_responsavelTelefoneController.text.trim().isNotEmpty && _responsavelNomeController.text.trim().isEmpty) {
+      _showErrorSnackBar('O telefone do responsável não pode ser preenchido sem o nome.');
+      return;
+    }
+    if (_contatoEmergenciaTelefoneController.text.trim().isNotEmpty && _contatoEmergenciaNomeController.text.trim().isEmpty) {
+      _showErrorSnackBar('O telefone de emergência não pode ser preenchido sem o nome.');
+      return;
+    }
     if (_isLoading) return;
 
     // Verifica CPF duplicado ANTES do modal de confirmação
@@ -620,14 +630,8 @@ class _AddMemberPageState extends State<AddMemberPage> {
         city: _selectedCity!,
         state: _selectedState!,
         phone: _telefoneController.text,
-        emergencyContact: _composeContact(
-          _contatoEmergenciaNomeController.text,
-          _contatoEmergenciaTelefoneController.text,
-        ),
-        responsibleName: _composeContact(
-          _responsavelNomeController.text,
-          _responsavelTelefoneController.text,
-        ),
+        emergencyContact: isEditing ? widget.member!.emergencyContact : '',
+        responsibleName: isEditing ? widget.member!.responsibleName : '',
         dateOfBirth: _nascimentoController.text,
         bloodType: _selectedBloodType ?? '',
         cid: _cidController.text.trim(),
@@ -639,14 +643,10 @@ class _AddMemberPageState extends State<AddMemberPage> {
         updatedAt: DateTime.now(),
         gender: _selectedGender,
         racaCor: _selectedRacaCor,
-        responsiblePersonName: isEditing
-            ? widget.member!.responsiblePersonName
-            : null,
-        responsiblePhone: isEditing ? widget.member!.responsiblePhone : null,
-        emergencyPersonName: isEditing
-            ? widget.member!.emergencyPersonName
-            : null,
-        emergencyPhone: isEditing ? widget.member!.emergencyPhone : null,
+        responsiblePersonName: _responsavelNomeController.text.trim().isNotEmpty ? _responsavelNomeController.text.trim() : null,
+        responsiblePhone: _responsavelTelefoneController.text.trim().isNotEmpty ? _responsavelTelefoneController.text.trim() : null,
+        emergencyPersonName: _contatoEmergenciaNomeController.text.trim().isNotEmpty ? _contatoEmergenciaNomeController.text.trim() : null,
+        emergencyPhone: _contatoEmergenciaTelefoneController.text.trim().isNotEmpty ? _contatoEmergenciaTelefoneController.text.trim() : null,
       );
 
       String generatedProtocol = '';
@@ -659,14 +659,10 @@ class _AddMemberPageState extends State<AddMemberPage> {
           city: _selectedCity!,
           state: _selectedState!,
           phone: _telefoneController.text,
-          emergencyContact: _composeContact(
-            _contatoEmergenciaNomeController.text,
-            _contatoEmergenciaTelefoneController.text,
-          ),
-          responsibleName: _composeContact(
-            _responsavelNomeController.text,
-            _responsavelTelefoneController.text,
-          ),
+          responsiblePersonName: _responsavelNomeController.text.trim().isNotEmpty ? _responsavelNomeController.text.trim() : null,
+          responsiblePhone: _responsavelTelefoneController.text.trim().isNotEmpty ? _responsavelTelefoneController.text.trim() : null,
+          emergencyPersonName: _contatoEmergenciaNomeController.text.trim().isNotEmpty ? _contatoEmergenciaNomeController.text.trim() : null,
+          emergencyPhone: _contatoEmergenciaTelefoneController.text.trim().isNotEmpty ? _contatoEmergenciaTelefoneController.text.trim() : null,
           dateOfBirth: _nascimentoController.text,
           bloodType: _selectedBloodType ?? '',
           cid: _cidController.text,
@@ -791,21 +787,21 @@ class _AddMemberPageState extends State<AddMemberPage> {
 
     final parsedEmerg = _parseContact(m.emergencyContact);
     if (_contatoEmergenciaNomeController.text.trim() !=
-        (parsedEmerg['name'] ?? '').trim()) {
+        (m.emergencyPersonName ?? parsedEmerg['name'] ?? '').trim()) {
       return true;
     }
     if (_contatoEmergenciaTelefoneController.text.trim() !=
-        (parsedEmerg['phone'] ?? '').trim()) {
+        (m.emergencyPhone ?? parsedEmerg['phone'] ?? '').trim()) {
       return true;
     }
 
     final parsedResp = _parseContact(m.responsibleName);
     if (_responsavelNomeController.text.trim() !=
-        (parsedResp['name'] ?? '').trim()) {
+        (m.responsiblePersonName ?? parsedResp['name'] ?? '').trim()) {
       return true;
     }
     if (_responsavelTelefoneController.text.trim() !=
-        (parsedResp['phone'] ?? '').trim()) {
+        (m.responsiblePhone ?? parsedResp['phone'] ?? '').trim()) {
       return true;
     }
 
@@ -1445,9 +1441,16 @@ class _AddMemberPageState extends State<AddMemberPage> {
                                 RequestInputField(
                                   label: 'Nome do Responsável (Opcional)',
                                   controller: _responsavelNomeController,
+                                  focusNode: _responsavelNomeFocusNode,
                                   hint: 'Digite o nome do responsável',
                                   icon: PhosphorIconsRegular.users,
                                   enabled: _isFieldEnabled('Responsável'),
+                                  validator: (value) {
+                                    if (_responsavelTelefoneController.text.trim().isNotEmpty && (value == null || value.trim().isEmpty)) {
+                                      return 'Informe o nome do responsável para usar este telefone.';
+                                    }
+                                    return null;
+                                  },
                                 ),
                                 const SizedBox(height: 20),
 
@@ -1480,11 +1483,18 @@ class _AddMemberPageState extends State<AddMemberPage> {
                                   label:
                                       'Nome do Contato de Emergência (Opcional)',
                                   controller: _contatoEmergenciaNomeController,
+                                  focusNode: _contatoEmergenciaNomeFocusNode,
                                   hint: 'Digite o nome do contato',
                                   icon: PhosphorIconsRegular.firstAid,
                                   enabled: _isFieldEnabled(
                                     'Contato de Emergência',
                                   ),
+                                  validator: (value) {
+                                    if (_contatoEmergenciaTelefoneController.text.trim().isNotEmpty && (value == null || value.trim().isEmpty)) {
+                                      return 'Informe o nome do contato para usar este telefone.';
+                                    }
+                                    return null;
+                                  },
                                 ),
                                 const SizedBox(height: 20),
 

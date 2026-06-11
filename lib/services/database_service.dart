@@ -146,8 +146,10 @@ class DatabaseService {
     'city',
     'state',
     'phone',
-    'emergency_contact',
-    'responsible_name',
+    'responsible_person_name',
+    'responsible_phone',
+    'emergency_person_name',
+    'emergency_phone',
     'birth_date',
     'blood_type',
     'cid',
@@ -166,10 +168,8 @@ class DatabaseService {
     'updated_at',
     'document_url',
     'medical_report_url',
-    'responsible_person_name',
-    'responsible_phone',
-    'emergency_person_name',
-    'emergency_phone',
+    'responsible_name',
+    'emergency_contact',
   };
 
   /// Campos que podem receber valor null intencionalmente.

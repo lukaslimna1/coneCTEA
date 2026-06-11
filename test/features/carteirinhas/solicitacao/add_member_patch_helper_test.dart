@@ -13,8 +13,12 @@ void main() {
       city: 'Bauru',
       state: 'SP',
       phone: '(14) 99999-9999',
-      emergencyContact: 'Emergência Original',
-      responsibleName: 'Responsável Original',
+      emergencyContact: '',
+      responsibleName: '',
+      emergencyPersonName: 'Emergência Original',
+      emergencyPhone: '11999999999',
+      responsiblePersonName: 'Responsável Original',
+      responsiblePhone: '11888888888',
       dateOfBirth: '01/01/2000',
       bloodType: 'O+',
       cid: 'F84.0',
@@ -26,7 +30,6 @@ void main() {
       updatedAt: DateTime.now(),
       documentUrl: 'doc',
       medicalReportUrl: 'med',
-      responsiblePersonName: 'Nome Estruturado',
     );
 
     test('1. nenhum campo alterado retorna Map vazio', () {
@@ -38,8 +41,10 @@ void main() {
         city: 'Bauru',
         state: 'SP',
         phone: '(14) 99999-9999',
-        emergencyContact: 'Emergência Original',
-        responsibleName: 'Responsável Original',
+        emergencyPersonName: 'Emergência Original',
+        emergencyPhone: '11999999999',
+        responsiblePersonName: 'Responsável Original',
+        responsiblePhone: '11888888888',
         dateOfBirth: '01/01/2000',
         bloodType: 'O+',
         cid: 'F84.0',
@@ -59,8 +64,10 @@ void main() {
         city: 'Agudos',
         state: 'SP',
         phone: '(14) 99999-9999',
-        emergencyContact: 'Emergência Original',
-        responsibleName: 'Responsável Original',
+        emergencyPersonName: 'Emergência Original',
+        emergencyPhone: '11999999999',
+        responsiblePersonName: 'Responsável Original',
+        responsiblePhone: '11888888888',
         dateOfBirth: '01/01/2000',
         bloodType: 'O+',
         cid: 'F84.0',
@@ -85,8 +92,10 @@ void main() {
           city: 'Bauru',
           state: 'SP',
           phone: '(14) 99999-9999',
-          emergencyContact: 'Emergência Original',
-          responsibleName: 'Responsável Original',
+          emergencyPersonName: 'Emergência Original',
+        emergencyPhone: '11999999999',
+        responsiblePersonName: 'Responsável Original',
+        responsiblePhone: '11888888888',
           dateOfBirth: '01/01/2000',
           bloodType: 'O+',
           cid: 'F84.0',
@@ -94,7 +103,7 @@ void main() {
           racaCor: 'Branca',
           teaRelationType: 'pessoa_tea',
         );
-        expect(patch.containsKey('responsible_person_name'), isFalse);
+        expect(patch.containsKey('responsible_name'), isFalse);
       },
     );
 
@@ -107,8 +116,10 @@ void main() {
         city: 'Bauru',
         state: 'SP',
         phone: '(14) 99999-9999',
-        emergencyContact: 'Emergência Original',
-        responsibleName: 'Responsável Original',
+        emergencyPersonName: 'Emergência Original',
+        emergencyPhone: '11999999999',
+        responsiblePersonName: 'Responsável Original',
+        responsiblePhone: '11888888888',
         dateOfBirth: '01/01/2000',
         bloodType: 'O+',
         cid: 'F84.0',
@@ -129,8 +140,10 @@ void main() {
         city: 'Bauru',
         state: 'SP',
         phone: '(14) 99999-9999',
-        emergencyContact: 'Emergência Original',
-        responsibleName: 'Responsável Original',
+        emergencyPersonName: 'Emergência Original',
+        emergencyPhone: '11999999999',
+        responsiblePersonName: 'Responsável Original',
+        responsiblePhone: '11888888888',
         dateOfBirth: '01/01/2000',
         bloodType: 'O+',
         cid: 'F84.0',
@@ -150,8 +163,10 @@ void main() {
         city: 'Bauru',
         state: 'SP',
         phone: '(14) 99999-9999',
-        emergencyContact: 'Emergência Original',
-        responsibleName: 'Responsável Original',
+        emergencyPersonName: 'Emergência Original',
+        emergencyPhone: '11999999999',
+        responsiblePersonName: 'Responsável Original',
+        responsiblePhone: '11888888888',
         dateOfBirth: '01/01/2000',
         bloodType: 'O+',
         cid: 'F84.0',
@@ -171,8 +186,10 @@ void main() {
         city: 'Bauru',
         state: 'SP',
         phone: '(14) 99999-9999',
-        emergencyContact: 'Emergência Original',
-        responsibleName: 'Responsável Original',
+        emergencyPersonName: 'Emergência Original',
+        emergencyPhone: '11999999999',
+        responsiblePersonName: 'Responsável Original',
+        responsiblePhone: '11888888888',
         dateOfBirth: '01/01/2000',
         bloodType: 'O+',
         cid: 'F84.0',
@@ -195,8 +212,10 @@ void main() {
         city: 'Bauru',
         state: 'SP',
         phone: '(14) 99999-9999',
-        emergencyContact: 'Emergência Original',
-        responsibleName: 'Responsável Original',
+        emergencyPersonName: 'Emergência Original',
+        emergencyPhone: '11999999999',
+        responsiblePersonName: 'Responsável Original',
+        responsiblePhone: '11888888888',
         dateOfBirth: '01/01/2000',
         bloodType: 'O+',
         cid: 'F84.0',
@@ -216,8 +235,10 @@ void main() {
         city: 'Bauru',
         state: 'SP',
         phone: '(14) 99999-9999',
-        emergencyContact: 'Emergência Original',
-        responsibleName: 'Responsável Novo',
+        emergencyPersonName: 'Emergência Original',
+        emergencyPhone: '11999999999',
+        responsiblePersonName: 'Responsável Novo',
+        responsiblePhone: '11888888888',
         dateOfBirth: '01/01/2000',
         bloodType: 'O+',
         cid: 'F84.0',
@@ -225,7 +246,7 @@ void main() {
         racaCor: 'Branca',
         teaRelationType: 'pessoa_tea',
       );
-      expect(patch, {'responsible_name': 'Responsável Novo'});
+      expect(patch, {'responsible_person_name': 'Responsável Novo'});
     });
 
     test('10. emergency_contact alterado entra corretamente', () {
@@ -237,8 +258,10 @@ void main() {
         city: 'Bauru',
         state: 'SP',
         phone: '(14) 99999-9999',
-        emergencyContact: 'Emergência Nova',
-        responsibleName: 'Responsável Original',
+        emergencyPersonName: 'Emergência Nova',
+        emergencyPhone: '11999999999',
+        responsiblePersonName: 'Responsável Original',
+        responsiblePhone: '11888888888',
         dateOfBirth: '01/01/2000',
         bloodType: 'O+',
         cid: 'F84.0',
@@ -246,7 +269,7 @@ void main() {
         racaCor: 'Branca',
         teaRelationType: 'pessoa_tea',
       );
-      expect(patch, {'emergency_contact': 'Emergência Nova'});
+      expect(patch, {'emergency_person_name': 'Emergência Nova'});
     });
 
     test('11. updated_at nunca entra', () {
@@ -258,8 +281,10 @@ void main() {
         city: 'Bauru',
         state: 'SP',
         phone: '(14) 99999-9999',
-        emergencyContact: 'Emergência Original',
-        responsibleName: 'Responsável Original',
+        emergencyPersonName: 'Emergência Original',
+        emergencyPhone: '11999999999',
+        responsiblePersonName: 'Responsável Original',
+        responsiblePhone: '11888888888',
         dateOfBirth: '01/01/2000',
         bloodType: 'O+',
         cid: 'F84.0',
@@ -270,7 +295,7 @@ void main() {
       expect(patch.containsKey('updated_at'), isFalse);
     });
 
-    test('12. campos estruturados nunca entram', () {
+    test('12. campos legados nunca entram', () {
       final patch = AddMemberPatchHelper.buildPatch(
         original: original,
         name: 'Nome Novo',
@@ -279,8 +304,10 @@ void main() {
         city: 'Bauru',
         state: 'SP',
         phone: '(14) 99999-9999',
-        emergencyContact: 'Emergência Original',
-        responsibleName: 'Responsável Original',
+        emergencyPersonName: 'Emergência Original',
+        emergencyPhone: '11999999999',
+        responsiblePersonName: 'Responsável Original',
+        responsiblePhone: '11888888888',
         dateOfBirth: '01/01/2000',
         bloodType: 'O+',
         cid: 'F84.0',
@@ -288,8 +315,8 @@ void main() {
         racaCor: 'Branca',
         teaRelationType: 'pessoa_tea',
       );
-      expect(patch.containsKey('responsible_person_name'), isFalse);
-      expect(patch.containsKey('emergency_person_name'), isFalse);
+      expect(patch.containsKey('responsible_name'), isFalse);
+      expect(patch.containsKey('emergency_contact'), isFalse);
     });
 
     test('13. status e URLs nunca entram', () {
@@ -301,8 +328,10 @@ void main() {
         city: 'Bauru',
         state: 'SP',
         phone: '(14) 99999-9999',
-        emergencyContact: 'Emergência Original',
-        responsibleName: 'Responsável Original',
+        emergencyPersonName: 'Emergência Original',
+        emergencyPhone: '11999999999',
+        responsiblePersonName: 'Responsável Original',
+        responsiblePhone: '11888888888',
         dateOfBirth: '01/01/2000',
         bloodType: 'O+',
         cid: 'F84.0',
@@ -323,8 +352,10 @@ void main() {
         city: 'Bauru',
         state: 'SP',
         phone: '(14) 99999-9999',
-        emergencyContact: 'Emergência Original',
-        responsibleName: 'Responsável Original',
+        emergencyPersonName: 'Emergência Original',
+        emergencyPhone: '11999999999',
+        responsiblePersonName: 'Responsável Original',
+        responsiblePhone: '11888888888',
         dateOfBirth: '01/01/2000',
         bloodType: 'O+',
         cid: 'F84.0',
@@ -347,8 +378,10 @@ void main() {
         city: 'Pederneiras',
         state: 'SP',
         phone: '(14) 99999-9999',
-        emergencyContact: 'Emergência Original',
-        responsibleName: 'Responsável Original',
+        emergencyPersonName: 'Emergência Original',
+        emergencyPhone: '11999999999',
+        responsiblePersonName: 'Responsável Original',
+        responsiblePhone: '11888888888',
         dateOfBirth: '01/01/2000',
         bloodType: 'A-',
         cid: 'F84.0',
