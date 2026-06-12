@@ -321,7 +321,9 @@ class _MyDataViewState extends State<MyDataView> {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const EditMyDataView()),
+              MaterialPageRoute(
+                builder: (context) => EditMyDataView(user: user),
+              ),
             );
           },
           variante: DsBotaoVariante.acao,
