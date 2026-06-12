@@ -12,7 +12,6 @@ import 'package:conectea/models/digital_card.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 import 'package:conectea/features/conta/perfil/legado/edit_profile_view.dart';
-import 'package:conectea/features/conta/seguranca/security_view.dart';
 import 'package:conectea/features/conta/institucional/about_conectea_view.dart';
 import 'package:conectea/features/conta/institucional/family_tea_view.dart';
 import 'package:conectea/features/participar/projects_actions_view.dart';
@@ -31,8 +30,16 @@ import 'package:conectea/features/home/widgets/acesso_rapido/home_quick_access_s
 class HomeView extends StatefulWidget {
   final AppUser? user;
   final Function(int) onNavigate;
+  final VoidCallback onOpenSecurity;
+  final VoidCallback onOpenSupport;
 
-  const HomeView({super.key, this.user, required this.onNavigate});
+  const HomeView({
+    super.key,
+    this.user,
+    required this.onNavigate,
+    required this.onOpenSecurity,
+    required this.onOpenSupport,
+  });
 
   @override
   State<HomeView> createState() => _HomeViewState();
@@ -411,7 +418,8 @@ class _HomeViewState extends State<HomeView> {
                     const SizedBox(height: 40),
                     HomeQuickAccessSection(
                       onRequestCard: _handleRequestCard,
-                      onSupportTap: _handleSupportTap,
+                      onSupportTap: widget.onOpenSupport,
+                      onSecurityTap: widget.onOpenSecurity,
                     ),
 
                     const SizedBox(height: 24),
@@ -425,12 +433,7 @@ class _HomeViewState extends State<HomeView> {
                           builder: (context) => const AboutConecteaView(),
                         ),
                       ),
-                      onSecurityTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const SecurityView(),
-                        ),
-                      ),
+                      onSecurityTap: widget.onOpenSecurity,
                       onFamilyTeaTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(

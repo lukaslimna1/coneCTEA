@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
-import 'package:conectea/features/conta/perfil/widgets/my_data_logged_header.dart';
+
 import 'package:conectea/features/conta/privacidade/terms_of_use_content.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -132,10 +132,6 @@ class _TermsOfUseViewState extends State<TermsOfUseView> {
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
       body: AppBackground(
-        child: Column(
-          children: [
-            const MyDataLoggedHeader(),
-            Expanded(
               child: Stack(
                 children: [
                   // Área Central Rolável
@@ -193,9 +189,6 @@ class _TermsOfUseViewState extends State<TermsOfUseView> {
                 ],
               ),
             ),
-          ],
-        ),
-      ),
     );
   }
 

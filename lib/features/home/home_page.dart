@@ -11,10 +11,13 @@ import 'home_view.dart';
 import '../carteirinhas/cards_view.dart';
 import '../notificacoes/notifications_view.dart';
 import '../conta/account_view.dart';
+import '../conta/seguranca/security_view.dart';
+import '../conta/suporte/support_view.dart';
 import '../admin/admin_view.dart';
 import '../clube/partners_supporters_view.dart';
 import '../participar/projects_actions_view.dart';
 import '../../core/design_system_v2/design_system_v2.dart';
+import 'app_navigation_guard_controller.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -24,6 +27,10 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
+  final _accountNavigatorKey = GlobalKey<NavigatorState>();
+  final _navigationGuardController = AppNavigationGuardController();
+  late final NavigatorObserver _accountRouteObserver;
+  bool _hasAccountSubRoutes = false;
   int _currentIndex = 0;
   final AuthService _authService = AuthService();
   final DatabaseService _databaseService = DatabaseService();
@@ -34,6 +41,15 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _accountRouteObserver = _AccountRouteObserver(
+      onRouteChanged: (canPop) {
+        if (mounted && _hasAccountSubRoutes != canPop) {
+          setState(() {
+            _hasAccountSubRoutes = canPop;
+          });
+        }
+      },
+    );
     _loadData();
   }
 
@@ -102,74 +118,188 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      extendBodyBehindAppBar: true,
-      extendBody: true,
-      appBar: DsAppTopHeader(
-        userName: _user?.name,
-        userPhotoUrl: null, // Add if available
-        notificationCount: 0,
-        hasUnreadNotifications: _hasUnreadNotifications,
-        paletteSeed: _user?.id,
-        onNotificationTap: () => setState(() => _currentIndex = 3),
-        onAvatarTap: () => setState(() => _currentIndex = 4),
-        onLogoTap: () => setState(() => _currentIndex = 0),
-      ),
-      body: AppBackground(
-        child: Padding(
-          padding: const EdgeInsets.only(bottom: 90),
-          child: _getCurrentPage(),
+    final bool isAccountTabActive = _currentIndex == 4;
+    final bool canPopAccountTab =
+        isAccountTabActive &&
+        (_accountNavigatorKey.currentState?.canPop() ?? false);
+
+    return AppNavigationGuardScope(
+      controller: _navigationGuardController,
+      child: PopScope(
+        canPop: !canPopAccountTab,
+        onPopInvokedWithResult: (didPop, result) async {
+          if (didPop) return;
+          if (canPopAccountTab) {
+            _accountNavigatorKey.currentState?.pop();
+          }
+        },
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          extendBodyBehindAppBar: true,
+          extendBody: true,
+          appBar: DsAppTopHeader(
+            userName: _user?.name,
+            userPhotoUrl: null, // Add if available
+            notificationCount: 0,
+            hasUnreadNotifications: _hasUnreadNotifications,
+            paletteSeed: _user?.id,
+            onNotificationTap: () => _handleDirectPageIndexChange(3),
+            onAvatarTap: () => _handleDirectPageIndexChange(4),
+            onLogoTap: () => _handleDirectPageIndexChange(0),
+          ),
+          body: AppBackground(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 90),
+              child: _getCurrentPage(),
+            ),
+          ),
+          bottomNavigationBar: DsBottomNavBar(
+            key: const ValueKey('default_navbar'),
+            currentIndex: _getNavIndex(),
+            onTap: _handleTabChange,
+            items: _buildNavbarItems(),
+          ),
         ),
       ),
-      bottomNavigationBar: DsBottomNavBar(
-        currentIndex: _getNavIndex(),
-        onTap: (index) {
-          final newIndex = _getPageIndex(index);
-          setState(() => _currentIndex = newIndex);
-          _refreshUnreadNotificationsIndicator();
+    );
+  }
+
+  List<DsBottomNavItem> _buildNavbarItems() {
+    return [
+      DsBottomNavItem(
+        activeIcon: PhosphorIcons.house(PhosphorIconsStyle.fill),
+        inactiveIcon: PhosphorIcons.house(),
+        label: 'Início',
+        token: DsCores.comunicacao,
+      ),
+      DsBottomNavItem(
+        activeIcon: PhosphorIcons.identificationCard(PhosphorIconsStyle.fill),
+        inactiveIcon: PhosphorIcons.identificationCard(),
+        label: 'Carteirinha',
+        token: DsCores.carteirinha,
+      ),
+      DsBottomNavItem(
+        activeIcon: PhosphorIcons.handshake(PhosphorIconsStyle.fill),
+        inactiveIcon: PhosphorIcons.handshake(),
+        label: 'Clube',
+        token: DsCores.suporte,
+      ),
+      DsBottomNavItem(
+        activeIcon: PhosphorIcons.sparkle(PhosphorIconsStyle.fill),
+        inactiveIcon: PhosphorIcons.sparkle(),
+        label: 'Participar',
+        token: DsCores.solicitacao,
+      ),
+      DsBottomNavItem(
+        activeIcon: PhosphorIcons.user(PhosphorIconsStyle.fill),
+        inactiveIcon: PhosphorIcons.user(),
+        label: 'Conta',
+        token: DsCores.conta,
+      ),
+      if (_user?.role.isAdmin ?? false)
+        DsBottomNavItem(
+          activeIcon: PhosphorIcons.bank(PhosphorIconsStyle.fill),
+          inactiveIcon: PhosphorIcons.bank(),
+          label: 'Gestão',
+          token: DsCores.admin,
+        ),
+    ];
+  }
+
+  Future<void> _handleTabChange(int index) async {
+    final newIndex = _getPageIndex(index);
+    final canNavigate = await _navigationGuardController.canNavigateAway();
+    if (!canNavigate) return;
+
+    if (newIndex == 4 && _currentIndex == 4) {
+      if (_accountNavigatorKey.currentState != null) {
+        _accountNavigatorKey.currentState!.popUntil((route) => route.isFirst);
+      }
+    } else {
+      if (_currentIndex == 4 && _accountNavigatorKey.currentState != null) {
+        _accountNavigatorKey.currentState!.popUntil((route) => route.isFirst);
+      }
+      setState(() {
+        _currentIndex = newIndex;
+      });
+    }
+    _refreshUnreadNotificationsIndicator();
+  }
+
+  Future<void> _handleDirectPageIndexChange(int newIndex) async {
+    final canNavigate = await _navigationGuardController.canNavigateAway();
+    if (!canNavigate) return;
+
+    if (newIndex == 4 && _currentIndex == 4) {
+      if (_accountNavigatorKey.currentState != null) {
+        _accountNavigatorKey.currentState!.popUntil((route) => route.isFirst);
+      }
+    } else {
+      if (_currentIndex == 4 && _accountNavigatorKey.currentState != null) {
+        _accountNavigatorKey.currentState!.popUntil((route) => route.isFirst);
+      }
+      setState(() {
+        _currentIndex = newIndex;
+      });
+    }
+    _refreshUnreadNotificationsIndicator();
+  }
+
+  Future<void> _handleOpenSecurity() async {
+    final canNavigate = await _navigationGuardController.canNavigateAway();
+    if (!canNavigate) return;
+
+    setState(() {
+      _currentIndex = 4; // Aba Conta
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_accountNavigatorKey.currentState != null) {
+        _accountNavigatorKey.currentState!.popUntil((route) => route.isFirst);
+        _accountNavigatorKey.currentState!.push(
+          MaterialPageRoute(
+            builder: (context) => const SecurityView(),
+          ),
+        );
+      }
+    });
+  }
+
+  Future<void> _handleOpenSupport() async {
+    final canNavigate = await _navigationGuardController.canNavigateAway();
+    if (!canNavigate) return;
+
+    setState(() {
+      _currentIndex = 4; // Aba Conta
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_accountNavigatorKey.currentState != null) {
+        _accountNavigatorKey.currentState!.popUntil((route) => route.isFirst);
+        _accountNavigatorKey.currentState!.push(
+          MaterialPageRoute(
+            builder: (context) => const SupportView(),
+          ),
+        );
+      }
+    });
+  }
+
+  Widget _buildAccountTab() {
+    final double topSafeArea = MediaQuery.paddingOf(context).top;
+    final double topInset = _hasAccountSubRoutes ? (topSafeArea + 70.0) : 0.0;
+
+    return Padding(
+      padding: EdgeInsets.only(top: topInset),
+      child: Navigator(
+        key: _accountNavigatorKey,
+        observers: [_accountRouteObserver],
+        onGenerateRoute: (settings) {
+          return MaterialPageRoute(
+            settings: settings,
+            builder: (context) => AccountView(user: _user),
+          );
         },
-        items: [
-          DsBottomNavItem(
-            activeIcon: PhosphorIcons.house(PhosphorIconsStyle.fill),
-            inactiveIcon: PhosphorIcons.house(),
-            label: 'Início',
-            token: DsCores.comunicacao,
-          ),
-          DsBottomNavItem(
-            activeIcon: PhosphorIcons.identificationCard(
-              PhosphorIconsStyle.fill,
-            ),
-            inactiveIcon: PhosphorIcons.identificationCard(),
-            label: 'Carteirinha',
-            token: DsCores.carteirinha,
-          ),
-          DsBottomNavItem(
-            activeIcon: PhosphorIcons.handshake(PhosphorIconsStyle.fill),
-            inactiveIcon: PhosphorIcons.handshake(),
-            label: 'Clube',
-            token: DsCores.suporte,
-          ),
-          DsBottomNavItem(
-            activeIcon: PhosphorIcons.sparkle(PhosphorIconsStyle.fill),
-            inactiveIcon: PhosphorIcons.sparkle(),
-            label: 'Participar',
-            token: DsCores.solicitacao,
-          ),
-          DsBottomNavItem(
-            activeIcon: PhosphorIcons.user(PhosphorIconsStyle.fill),
-            inactiveIcon: PhosphorIcons.user(),
-            label: 'Conta',
-            token: DsCores.conta,
-          ),
-          if (_user?.role.isAdmin ?? false)
-            DsBottomNavItem(
-              activeIcon: PhosphorIcons.bank(PhosphorIconsStyle.fill),
-              inactiveIcon: PhosphorIcons.bank(),
-              label: 'Gestão',
-              token: DsCores.admin,
-            ),
-        ],
       ),
     );
   }
@@ -180,6 +310,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         return HomeView(
           user: _user,
           onNavigate: (index) => setState(() => _currentIndex = index),
+          onOpenSecurity: _handleOpenSecurity,
+          onOpenSupport: _handleOpenSupport,
         );
       case 1:
         return const CardsView();
@@ -196,7 +328,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           },
         );
       case 4:
-        return AccountView(user: _user);
+        return _buildAccountTab();
       case 5:
         return const AdminView();
       case 6:
@@ -205,6 +337,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         return HomeView(
           user: _user,
           onNavigate: (index) => setState(() => _currentIndex = index),
+          onOpenSecurity: _handleOpenSecurity,
+          onOpenSupport: _handleOpenSupport,
         );
     }
   }
@@ -231,5 +365,40 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     if (navIndex == 4) return 4; // Conta
     if (navIndex == 5 && isAdmin) return 5; // Gestão
     return 0;
+  }
+}
+
+class _AccountRouteObserver extends NavigatorObserver {
+  final Function(bool) onRouteChanged;
+
+  _AccountRouteObserver({required this.onRouteChanged});
+
+  void _checkRoute() {
+    final canPop = navigator?.canPop() ?? false;
+    onRouteChanged(canPop);
+  }
+
+  @override
+  void didPush(Route route, Route? previousRoute) {
+    super.didPush(route, previousRoute);
+    _checkRoute();
+  }
+
+  @override
+  void didPop(Route route, Route? previousRoute) {
+    super.didPop(route, previousRoute);
+    _checkRoute();
+  }
+
+  @override
+  void didRemove(Route route, Route? previousRoute) {
+    super.didRemove(route, previousRoute);
+    _checkRoute();
+  }
+
+  @override
+  void didReplace({Route? newRoute, Route? oldRoute}) {
+    super.didReplace(newRoute: newRoute, oldRoute: oldRoute);
+    _checkRoute();
   }
 }

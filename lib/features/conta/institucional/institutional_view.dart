@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
-import 'package:conectea/features/conta/perfil/widgets/my_data_logged_header.dart';
 import 'package:conectea/features/conta/institucional/about_conectea_view.dart';
 import 'package:conectea/features/conta/institucional/family_tea_view.dart';
 import 'package:conectea/features/conta/suporte/support_view.dart';
@@ -22,11 +21,10 @@ class InstitutionalView extends StatelessWidget {
       body: AppBackground(
         child: Column(
           children: [
-            const MyDataLoggedHeader(),
             Expanded(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(24, 20, 24, 120),
+                padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

@@ -3,7 +3,6 @@ import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 import 'package:conectea/features/conta/perfil/edit_my_data_view.dart';
 import 'package:conectea/features/conta/perfil/dependentes/dependents_view.dart';
-import 'package:conectea/features/conta/perfil/widgets/my_data_logged_header.dart';
 import 'package:conectea/core/campos_cadastrais/campos_cadastrais.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:conectea/services/auth_service.dart';
@@ -96,11 +95,10 @@ class _MyDataViewState extends State<MyDataView> {
       body: AppBackground(
         child: Column(
           children: [
-            const MyDataLoggedHeader(),
             Expanded(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(24, 20, 24, 120),
+                padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -319,8 +317,7 @@ class _MyDataViewState extends State<MyDataView> {
         DsBotao(
           label: 'Editar meus dados',
           onPressed: () {
-            Navigator.push(
-              context,
+            Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (context) => EditMyDataView(user: user),
               ),

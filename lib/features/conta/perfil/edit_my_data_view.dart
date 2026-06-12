@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 import 'package:conectea/core/campos_cadastrais/campos_cadastrais.dart';
-import 'package:conectea/features/conta/perfil/widgets/my_data_logged_header.dart';
 import 'package:conectea/models/app_user.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import '../../home/app_navigation_guard_controller.dart';
 
 class CampoModificado {
   final String label;
@@ -32,6 +32,7 @@ class _EditMyDataViewState extends State<EditMyDataView> {
   // Controle de saída unificada e proteção de PopScope
   bool _discardConfirmed = false;
   bool _isDiscardDialogOpen = false;
+  AppNavigationGuardController? _navigationGuardController;
 
   late final TextEditingController _nomeCompletoController;
   late final TextEditingController _nomeSocialController;
@@ -112,7 +113,19 @@ class _EditMyDataViewState extends State<EditMyDataView> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_navigationGuardController == null) {
+      _navigationGuardController = AppNavigationGuardScope.of(context);
+      _navigationGuardController!.registerGuard(_confirmDiscardGuard);
+    }
+  }
+
+  @override
   void dispose() {
+    if (_navigationGuardController != null) {
+      _navigationGuardController!.unregisterGuard(_confirmDiscardGuard);
+    }
     _nomeCompletoController.removeListener(_onFieldChanged);
     _nomeSocialController.removeListener(_onFieldChanged);
     _dataNascimentoController.removeListener(_onFieldChanged);
@@ -379,15 +392,11 @@ class _EditMyDataViewState extends State<EditMyDataView> {
     return result ?? false;
   }
 
-  Future<void> _requestExit() async {
+  Future<bool> _confirmDiscardGuard() async {
     if (!_hasChanges() || _discardConfirmed) {
-      if (mounted) {
-        Navigator.pop(context);
-      }
-      return;
+      return true;
     }
-
-    if (_isDiscardDialogOpen) return;
+    if (_isDiscardDialogOpen) return false;
 
     _isDiscardDialogOpen = true;
     final descartar = await _showDiscardConfirmDialog();
@@ -397,6 +406,14 @@ class _EditMyDataViewState extends State<EditMyDataView> {
       setState(() {
         _discardConfirmed = true;
       });
+      return true;
+    }
+    return false;
+  }
+
+  Future<void> _requestExit() async {
+    final canExit = await _confirmDiscardGuard();
+    if (canExit && mounted) {
       Navigator.pop(context);
     }
   }
@@ -637,11 +654,10 @@ class _EditMyDataViewState extends State<EditMyDataView> {
         body: AppBackground(
           child: Column(
             children: [
-              const MyDataLoggedHeader(),
               Expanded(
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(24, 20, 24, 120),
+                  padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
                   child: Form(
                     key: _formKey,
                     child: Column(
