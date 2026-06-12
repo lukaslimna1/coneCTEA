@@ -6,9 +6,87 @@ import 'package:conectea/features/conta/perfil/dependentes/dependents_view.dart'
 import 'package:conectea/features/conta/perfil/widgets/my_data_logged_header.dart';
 import 'package:conectea/core/campos_cadastrais/campos_cadastrais.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:conectea/services/auth_service.dart';
+import 'package:conectea/services/database_service.dart';
+import 'package:conectea/models/app_user.dart';
 
-class MyDataView extends StatelessWidget {
+class MyDataView extends StatefulWidget {
   const MyDataView({super.key});
+
+  @override
+  State<MyDataView> createState() => _MyDataViewState();
+}
+
+class _MyDataViewState extends State<MyDataView> {
+  Future<AppUser?>? _profileFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  void _loadProfile() {
+    final userId = AuthService().currentUser?.id;
+    if (userId != null) {
+      _profileFuture = DatabaseService().getUserProfile(userId);
+    } else {
+      _profileFuture = Future.value(null);
+    }
+  }
+
+  void _retryLoadProfile() {
+    setState(() {
+      _loadProfile();
+    });
+  }
+
+  String _displayValue(String? value) {
+    if (value == null || value.trim().isEmpty) return 'Não informado';
+    return value.trim();
+  }
+
+  String _maskCpf(String cpf) {
+    final clean = cpf.replaceAll(RegExp(r'[^0-9]'), '');
+    if (clean.length == 11) {
+      return '${clean.substring(0, 3)}.***.***-${clean.substring(9, 11)}';
+    }
+    return '***.***.***-**';
+  }
+
+  String _maskEmail(String email) {
+    final trimmed = email.trim();
+    if (trimmed.isEmpty || !trimmed.contains('@')) {
+      return '***@***.***';
+    }
+    final parts = trimmed.split('@');
+    final local = parts[0];
+    final domain = parts[1];
+
+    if (local.length <= 1) {
+      return '$local***@$domain';
+    } else if (local.length == 2) {
+      return '${local[0]}***${local[1]}@$domain';
+    } else {
+      return '${local[0]}***${local[local.length - 1]}@$domain';
+    }
+  }
+
+  String _formatDateOfBirth(String? dateStr) {
+    if (dateStr == null || dateStr.trim().isEmpty) return 'Não informado';
+
+    // Se estiver no formato YYYY-MM-DD
+    final regExp = RegExp(r'^(\d{4})-(\d{2})-(\d{2})$');
+    final match = regExp.firstMatch(dateStr.trim());
+    if (match != null) {
+      final year = match.group(1);
+      final month = match.group(2);
+      final day = match.group(3);
+      return '$day/$month/$year';
+    }
+
+    return dateStr.trim();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,107 +120,33 @@ class MyDataView extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 32),
+                    FutureBuilder<AppUser?>(
+                      future: _profileFuture,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 40),
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                color: DsCores.textSecondary,
+                              ),
+                            ),
+                          );
+                        }
 
-                    _buildSectionTitle(
-                      'Meus dados cadastrados',
-                      PhosphorIconsRegular.identificationCard,
-                    ),
-                    const SizedBox(height: 16),
-                    _buildReadOnlyCard([
-                      _buildDataRow('Nome completo', 'Nome cadastrado'),
-                      _buildDataRow('Nome social', 'Não informado'),
-                      _buildDataRow('Data de nascimento', '00/00/0000'),
-                      _buildDataRow('Telefone', '(00) 00000-0000'),
-                      _buildDataRow('Estado', 'SP'),
-                      _buildDataRow('Cidade', 'Bauru'),
-                      _buildDataRow('Gênero', 'Prefiro não informar'),
-                      _buildDataRow(
-                        'Raça / Cor',
-                        'Prefiro não informar',
-                        isLast: true,
-                      ),
-                    ]),
+                        if (snapshot.hasError) {
+                          return _buildErrorState();
+                        }
 
-                    const SizedBox(height: 32),
+                        final user = snapshot.data;
+                        if (user == null) {
+                          return _buildNotFoundState();
+                        }
 
-                    _buildSectionTitle(
-                      'Dados protegidos',
-                      PhosphorIconsRegular.shieldCheck,
-                      color: DsCores.dadosProtegidos,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Esses dados ajudam a proteger sua conta e evitar alterações indevidas. Para corrigir, envie uma solicitação para análise da equipe.',
-                      style: DsTipografia.bodySmall.copyWith(
-                        color: DsCores.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    _buildReadOnlyCard([
-                      const CampoCpfProtegido(),
-                      const SizedBox(height: 12),
-                      Divider(
-                        color: Colors.white.withValues(alpha: 0.1),
-                        height: 1,
-                      ),
-                      const CampoEmailProtegido(),
-                    ], borderColor: DsCores.dadosProtegidos.border),
-                    const SizedBox(height: 12),
-                    Text(
-                      'Use esta opção se CPF ou e-mail estiverem incorretos.',
-                      style: DsTipografia.bodySmall.copyWith(
-                        color: DsCores.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    DsBotao(
-                      label: 'Solicitar revisão de dados protegidos',
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Fluxo visual em construção.'),
-                          ),
-                        );
+                        return _buildSuccessState(user);
                       },
-                      variante: DsBotaoVariante.acao,
-                      token: DsCores.correcao,
-                      icon: PhosphorIconsRegular.paperPlaneRight,
                     ),
-
-                    const SizedBox(height: 32),
-
-                    _buildSectionTitle('Ações', PhosphorIconsRegular.lightning),
-                    const SizedBox(height: 16),
-                    DsBotao(
-                      label: 'Editar meus dados',
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const EditMyDataView(),
-                          ),
-                        );
-                      },
-                      variante: DsBotaoVariante.acao,
-                      token: DsCores.conta,
-                      icon: PhosphorIconsRegular.pencilSimple,
-                    ),
-
-                    const SizedBox(height: 40),
-
-                    _buildSectionTitle(
-                      'Dependentes',
-                      PhosphorIconsRegular.users,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Os dependentes vinculados à sua conta aparecerão aqui.',
-                      style: DsTipografia.bodySmall.copyWith(
-                        color: DsCores.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    _buildDependentCard(context),
                   ],
                 ),
               ),
@@ -150,6 +154,192 @@ class MyDataView extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildErrorState() {
+    return DsCard(
+      padding: const EdgeInsets.all(24),
+      borderColor: DsCores.alerta.border,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            PhosphorIconsRegular.warningCircle,
+            color: DsCores.alerta.accent,
+            size: 40,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Ops! Não conseguimos carregar seus dados',
+            style: DsTipografia.cardTitle.copyWith(color: DsCores.textPrimary),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Ocorreu um problema ao conectar com o servidor. Verifique sua conexão e tente novamente.',
+            style: DsTipografia.bodySmall.copyWith(
+              color: DsCores.textSecondary,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 20),
+          DsBotao(
+            label: 'Tentar novamente',
+            onPressed: _retryLoadProfile,
+            variante: DsBotaoVariante.acao,
+            token: DsCores.alerta,
+            icon: PhosphorIconsRegular.arrowClockwise,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNotFoundState() {
+    return DsCard(
+      padding: const EdgeInsets.all(24),
+      borderColor: DsCores.perigo.border,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            PhosphorIconsRegular.userFocus,
+            color: DsCores.perigo.accent,
+            size: 40,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Perfil não localizado',
+            style: DsTipografia.cardTitle.copyWith(color: DsCores.textPrimary),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Seus dados cadastrais não foram encontrados no sistema. Entre em contato com o suporte da Família TEA Bauru para regularizar sua conta.',
+            style: DsTipografia.bodySmall.copyWith(
+              color: DsCores.textSecondary,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 20),
+          DsBotao(
+            label: 'Falar com o Suporte',
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Fluxo de suporte oficial em desenvolvimento.'),
+                ),
+              );
+            },
+            variante: DsBotaoVariante.acao,
+            token: DsCores.suporte,
+            icon: PhosphorIconsRegular.whatsappLogo,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSuccessState(AppUser user) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle(
+          'Meus dados cadastrados',
+          PhosphorIconsRegular.identificationCard,
+        ),
+        const SizedBox(height: 16),
+        _buildReadOnlyCard([
+          _buildDataRow('Nome completo', _displayValue(user.name)),
+          _buildDataRow('Nome social', _displayValue(user.socialName)),
+          _buildDataRow(
+            'Data de nascimento',
+            _formatDateOfBirth(user.dateOfBirth),
+          ),
+          _buildDataRow('Telefone', _displayValue(user.phone)),
+          _buildDataRow('Estado', _displayValue(user.state)),
+          _buildDataRow('Cidade', _displayValue(user.city)),
+          _buildDataRow('Gênero', _displayValue(user.gender)),
+          _buildDataRow('Raça / Cor', _displayValue(user.race)),
+          _buildDataRow(
+            'Instituição / Origem',
+            _displayValue(user.institution),
+            isLast: true,
+          ),
+        ]),
+
+        const SizedBox(height: 32),
+
+        _buildSectionTitle(
+          'Dados protegidos',
+          PhosphorIconsRegular.shieldCheck,
+          color: DsCores.dadosProtegidos,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Esses dados ajudam a proteger sua conta e evitar alterações indevidas. Para corrigir, envie uma solicitação para análise da equipe.',
+          style: DsTipografia.bodySmall.copyWith(color: DsCores.textSecondary),
+        ),
+        const SizedBox(height: 16),
+        _buildReadOnlyCard([
+          CampoCpfProtegido(
+            valorVisivel: _maskCpf(user.cpf),
+            valorOculto: '***.***.***-**',
+          ),
+          const SizedBox(height: 12),
+          Divider(color: Colors.white.withValues(alpha: 0.1), height: 1),
+          CampoEmailProtegido(
+            valorVisivel: _maskEmail(user.email),
+            valorOculto: '***@***.***',
+          ),
+        ], borderColor: DsCores.dadosProtegidos.border),
+        const SizedBox(height: 12),
+        Text(
+          'Use esta opção se CPF ou e-mail estiverem incorretos.',
+          style: DsTipografia.bodySmall.copyWith(color: DsCores.textSecondary),
+        ),
+        const SizedBox(height: 12),
+        DsBotao(
+          label: 'Solicitar revisão de dados protegidos',
+          onPressed: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Fluxo visual em construção.')),
+            );
+          },
+          variante: DsBotaoVariante.acao,
+          token: DsCores.correcao,
+          icon: PhosphorIconsRegular.paperPlaneRight,
+        ),
+
+        const SizedBox(height: 32),
+
+        _buildSectionTitle('Ações', PhosphorIconsRegular.lightning),
+        const SizedBox(height: 16),
+        DsBotao(
+          label: 'Editar meus dados',
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const EditMyDataView()),
+            );
+          },
+          variante: DsBotaoVariante.acao,
+          token: DsCores.conta,
+          icon: PhosphorIconsRegular.pencilSimple,
+        ),
+
+        const SizedBox(height: 40),
+
+        _buildSectionTitle('Dependentes', PhosphorIconsRegular.users),
+        const SizedBox(height: 8),
+        Text(
+          'Os dependentes vinculados à sua conta aparecerão aqui.',
+          style: DsTipografia.bodySmall.copyWith(color: DsCores.textSecondary),
+        ),
+        const SizedBox(height: 16),
+        _buildDependentCard(context),
+      ],
     );
   }
 

@@ -122,7 +122,7 @@ class GoogleDriveService {
       };
 
       debugPrint(
-        '[$platform] Iniciando upload: $fileName (${bytes.length} bytes)',
+        '[$platform] Iniciando upload de arquivo — tamanho: ${bytes.length} bytes',
       );
 
       // Faz a chamada ao GAS tratando redirects
