@@ -8,6 +8,7 @@ import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 /// sob a estética premium Night Blue / Dark Glass.
 class DsAppTopHeader extends StatelessWidget implements PreferredSizeWidget {
   final String? userName;
+  final String? userInitials;
   final String? userPhotoUrl;
   final int notificationCount;
   final bool hasUnreadNotifications;
@@ -19,6 +20,7 @@ class DsAppTopHeader extends StatelessWidget implements PreferredSizeWidget {
   const DsAppTopHeader({
     super.key,
     this.userName,
+    this.userInitials,
     this.userPhotoUrl,
     this.notificationCount = 0,
     this.hasUnreadNotifications = false,
@@ -35,11 +37,7 @@ class DsAppTopHeader extends StatelessWidget implements PreferredSizeWidget {
         gradient: LinearGradient(
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
-          colors: [
-            Color(0xFF061226),
-            Color(0xFF071A33),
-            Color(0xFF081F3D),
-          ],
+          colors: [Color(0xFF061226), Color(0xFF071A33), Color(0xFF081F3D)],
         ),
         border: Border(
           bottom: BorderSide(
@@ -71,7 +69,7 @@ class DsAppTopHeader extends StatelessWidget implements PreferredSizeWidget {
                 children: [
                   // Botão de Notificações com Badge
                   _buildNotificationButton(),
-                  
+
                   const SizedBox(width: 12),
 
                   // Avatar Circular da DS V2
@@ -121,12 +119,18 @@ class DsAppTopHeader extends StatelessWidget implements PreferredSizeWidget {
                 height: 10,
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [Color(0xFFF43F5E), Color(0xFFE11D48)], // Ruby / Rose Premium
+                    colors: [
+                      Color(0xFFF43F5E),
+                      Color(0xFFE11D48),
+                    ], // Ruby / Rose Premium
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFF020617), width: 1.5),
+                  border: Border.all(
+                    color: const Color(0xFF020617),
+                    width: 1.5,
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: const Color(0xFFE11D48).withValues(alpha: 0.3),
@@ -145,18 +149,21 @@ class DsAppTopHeader extends StatelessWidget implements PreferredSizeWidget {
             child: IgnorePointer(
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                constraints: const BoxConstraints(
-                  minWidth: 16,
-                  minHeight: 16,
-                ),
+                constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [Color(0xFFF43F5E), Color(0xFFE11D48)], // Ruby / Rose Premium
+                    colors: [
+                      Color(0xFFF43F5E),
+                      Color(0xFFE11D48),
+                    ], // Ruby / Rose Premium
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: const Color(0xFF020617), width: 1.5),
+                  border: Border.all(
+                    color: const Color(0xFF020617),
+                    width: 1.5,
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: const Color(0xFFE11D48).withValues(alpha: 0.3),
@@ -167,7 +174,9 @@ class DsAppTopHeader extends StatelessWidget implements PreferredSizeWidget {
                 ),
                 child: Center(
                   child: Text(
-                    notificationCount > 99 ? '99+' : notificationCount.toString(),
+                    notificationCount > 99
+                        ? '99+'
+                        : notificationCount.toString(),
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 8.5,
@@ -184,10 +193,15 @@ class DsAppTopHeader extends StatelessWidget implements PreferredSizeWidget {
   }
 
   Widget _buildAvatar() {
+    final resolvedInitials =
+        (userInitials != null && userInitials!.trim().isNotEmpty)
+        ? userInitials!.trim()
+        : _getInitials(userName);
+
     return _DsScaleFeedback(
       onTap: onAvatarTap,
       child: DsAvatar(
-        initials: _getInitials(userName),
+        initials: resolvedInitials,
         size: 38,
         imageUrl: userPhotoUrl,
         paletteSeed: paletteSeed,
@@ -215,10 +229,7 @@ class _DsScaleFeedback extends StatefulWidget {
   final Widget child;
   final VoidCallback? onTap;
 
-  const _DsScaleFeedback({
-    required this.child,
-    this.onTap,
-  });
+  const _DsScaleFeedback({required this.child, this.onTap});
 
   @override
   State<_DsScaleFeedback> createState() => _DsScaleFeedbackState();

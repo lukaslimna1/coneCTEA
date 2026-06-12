@@ -116,6 +116,17 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     }
   }
 
+  String get _displayUserName {
+    if (_user != null) {
+      final socialName = _user!.socialName?.trim();
+      if (socialName != null && socialName.isNotEmpty) {
+        return socialName;
+      }
+      return _user!.name.trim().isNotEmpty ? _user!.name.trim() : 'Usuário';
+    }
+    return 'Usuário';
+  }
+
   @override
   Widget build(BuildContext context) {
     final bool isAccountTabActive = _currentIndex == 4;
@@ -138,7 +149,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           extendBodyBehindAppBar: true,
           extendBody: true,
           appBar: DsAppTopHeader(
-            userName: _user?.name,
+            userName: _displayUserName,
+            userInitials: _user?.initials,
             userPhotoUrl: null, // Add if available
             notificationCount: 0,
             hasUnreadNotifications: _hasUnreadNotifications,

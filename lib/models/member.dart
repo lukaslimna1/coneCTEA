@@ -1,4 +1,3 @@
-
 class Member {
   final String id;
   final String userId;
@@ -207,7 +206,7 @@ class Member {
   }
 
   String get initials {
-    final trimmedName = name.trim();
+    final trimmedName = displayName.trim();
     if (trimmedName.isEmpty) return 'U';
     final parts = trimmedName.split(RegExp(r'\s+'));
     if (parts.length > 1) {
