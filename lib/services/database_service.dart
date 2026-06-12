@@ -90,6 +90,91 @@ class DatabaseService {
     }
   }
 
+  /// Atualiza os campos cadastrais comuns permitidos do próprio perfil do titular.
+  ///
+  /// A identidade do usuário (UUID) é obtida de forma segura no servidor via auth.uid().
+  /// A sincronização com a tabela de membros e carteirinhas do titular ocorre server-side.
+  Future<Map<String, dynamic>> updateOwnProfile({
+    required Map<String, dynamic> changes,
+  }) async {
+    const allowedFields = <String>{
+      'name',
+      'social_name',
+      'date_of_birth',
+      'phone',
+      'state',
+      'city',
+      'gender',
+      'race',
+      'institution',
+    };
+
+    if (changes.isEmpty) {
+      throw ArgumentError('O conjunto de alterações não pode estar vazio.');
+    }
+
+    final safeChanges = <String, dynamic>{};
+
+    for (final entry in changes.entries) {
+      final key = entry.key;
+      final value = entry.value;
+
+      if (!allowedFields.contains(key)) {
+        throw ArgumentError('Campo não autorizado para alteração: $key');
+      }
+
+      if (value is String) {
+        safeChanges[key] = value.trim();
+      } else {
+        safeChanges[key] = value;
+      }
+    }
+
+    final response = await _supabase.rpc(
+      'conectea_update_own_profile_v1',
+      params: {'p_changes': safeChanges},
+    );
+
+    if (response == null) {
+      throw Exception('A resposta do servidor foi nula.');
+    }
+
+    final List<dynamic> list;
+    if (response is List) {
+      list = response;
+    } else {
+      throw Exception('A resposta do servidor possui formato inesperado.');
+    }
+
+    if (list.isEmpty) {
+      throw Exception('Nenhum dado retornado do servidor.');
+    }
+
+    if (list.length != 1) {
+      throw Exception('Número inesperado de linhas retornadas do servidor.');
+    }
+
+    final rawLine = list.first;
+    if (rawLine is! Map) {
+      throw Exception('A linha retornada pelo servidor não é um mapa válido.');
+    }
+
+    final data = Map<String, dynamic>.from(rawLine);
+
+    return <String, dynamic>{
+      'name': data['out_name'],
+      'social_name': data['out_social_name'],
+      'date_of_birth': data['out_date_of_birth'],
+      'phone': data['out_phone'],
+      'state': data['out_state'],
+      'city': data['out_city'],
+      'gender': data['out_gender'],
+      'race': data['out_race'],
+      'institution': data['out_institution'],
+      'updated_at': data['out_updated_at'],
+    };
+  }
+
   Future<bool> isMemberCpfRegistered(String cpf, {String? memberId}) async {
     try {
       final response = await _supabase.rpc(
