@@ -15,8 +15,9 @@ import 'package:conectea/features/conta/suporte/support_view.dart';
 
 class AccountView extends StatelessWidget {
   final AppUser? user;
+  final ValueChanged<AppUser> onProfileUpdated;
 
-  const AccountView({super.key, this.user});
+  const AccountView({super.key, this.user, required this.onProfileUpdated});
 
   @override
   Widget build(BuildContext context) {
@@ -87,14 +88,28 @@ class AccountView extends StatelessWidget {
   }
 
   Widget _buildProfileHeader(AppUser? user) {
-    final displayName = user?.name.isNotEmpty == true
-        ? user!.name
-        : (user?.email ?? 'Usuário');
+    final String displayName;
+    final String initials;
+
+    if (user != null) {
+      final socialName = user.socialName?.trim();
+      if (socialName != null && socialName.isNotEmpty) {
+        displayName = socialName;
+      } else {
+        displayName = user.name.trim().isNotEmpty
+            ? user.name.trim()
+            : 'Usuário';
+      }
+      initials = user.initials;
+    } else {
+      displayName = 'Usuário';
+      initials = '??';
+    }
 
     return Column(
       children: [
         ConecteaAvatar(
-          initials: user?.initials ?? '??',
+          initials: initials,
           size: 100,
           role: user?.role.name,
           paletteSeed: user?.id,
@@ -128,7 +143,10 @@ class AccountView extends StatelessWidget {
           layout: DsCardHubLayout.horizontal,
           onTap: () => Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const MyDataView()),
+            MaterialPageRoute(
+              builder: (context) =>
+                  MyDataView(onProfileUpdated: onProfileUpdated),
+            ),
           ),
         ),
         const SizedBox(height: 12),

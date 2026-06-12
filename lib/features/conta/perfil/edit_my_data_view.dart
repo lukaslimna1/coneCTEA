@@ -5,6 +5,8 @@ import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 import 'package:conectea/core/campos_cadastrais/campos_cadastrais.dart';
 import 'package:conectea/models/app_user.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:conectea/services/database_service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../home/app_navigation_guard_controller.dart';
 
 class CampoModificado {
@@ -32,6 +34,9 @@ class _EditMyDataViewState extends State<EditMyDataView> {
   // Controle de saída unificada e proteção de PopScope
   bool _discardConfirmed = false;
   bool _isDiscardDialogOpen = false;
+  bool _isSaving = false;
+  bool _saveCompleted = false;
+  String? _dialogError;
   AppNavigationGuardController? _navigationGuardController;
 
   late final TextEditingController _nomeCompletoController;
@@ -393,6 +398,8 @@ class _EditMyDataViewState extends State<EditMyDataView> {
   }
 
   Future<bool> _confirmDiscardGuard() async {
+    if (_isSaving) return false;
+    if (_saveCompleted) return true;
     if (!_hasChanges() || _discardConfirmed) {
       return true;
     }
@@ -425,15 +432,16 @@ class _EditMyDataViewState extends State<EditMyDataView> {
     }
   }
 
-  void _showReviewDialog() {
-    showDialog(
+  Future<void> _showReviewDialog() async {
+    final updatedUser = await showDialog<AppUser>(
       context: context,
+      barrierDismissible: false,
       barrierColor: Colors.black.withValues(alpha: 0.8),
-      builder: (context) {
+      builder: (dialogContext) {
         return BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: StatefulBuilder(
-            builder: (context, setDialogState) {
+            builder: (dialogContext, setDialogState) {
               final modified = _getModifiedFields();
               final temDadosImportantes = modified.any(
                 (m) =>
@@ -441,190 +449,231 @@ class _EditMyDataViewState extends State<EditMyDataView> {
                     m.label == 'Data de nascimento',
               );
 
-              return Dialog(
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                insetPadding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 40,
-                ),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 400),
-                  child: DsCard(
-                    padding: EdgeInsets.zero,
-                    radius: 24,
-                    borderColor: DsCores.conta.border,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Header
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                DsCores.conta.accent.withValues(alpha: 0.1),
-                                DsCores.conta.accent.withValues(alpha: 0.0),
-                              ],
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                            ),
-                            borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(24),
-                            ),
-                          ),
-                          child: Column(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: DsCores.conta.softBackground,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: DsCores.conta.border,
-                                  ),
-                                ),
-                                child: Icon(
-                                  PhosphorIconsRegular.fileText,
-                                  color: DsCores.conta.accent,
-                                  size: 24,
-                                ),
+              return PopScope(
+                canPop: !_isSaving,
+                onPopInvokedWithResult: (didPop, result) async {
+                  if (didPop) return;
+                },
+                child: Dialog(
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  insetPadding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 40,
+                  ),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 400),
+                    child: DsCard(
+                      padding: EdgeInsets.zero,
+                      radius: 24,
+                      borderColor: DsCores.conta.border,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Header
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  DsCores.conta.accent.withValues(alpha: 0.1),
+                                  DsCores.conta.accent.withValues(alpha: 0.0),
+                                ],
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
                               ),
-                              const SizedBox(height: 12),
-                              Text(
-                                'Confirmar alterações',
-                                style: DsTipografia.cardTitle.copyWith(
-                                  color: DsCores.textPrimary,
-                                  fontSize: 18,
-                                ),
+                              borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(24),
                               ),
-                            ],
-                          ),
-                        ),
-
-                        // Corpo
-                        Flexible(
-                          child: SingleChildScrollView(
-                            physics: const BouncingScrollPhysics(),
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            ),
                             child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
                               children: [
-                                Text(
-                                  'Resumo das mudanças:',
-                                  style: DsTipografia.bodySmall.copyWith(
-                                    color: DsCores.textSecondary,
-                                    fontWeight: FontWeight.bold,
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: DsCores.conta.softBackground,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: DsCores.conta.border,
+                                    ),
+                                  ),
+                                  child: Icon(
+                                    PhosphorIconsRegular.fileText,
+                                    color: DsCores.conta.accent,
+                                    size: 24,
                                   ),
                                 ),
                                 const SizedBox(height: 12),
-                                ...modified.map(
-                                  (mod) => Padding(
-                                    padding: const EdgeInsets.only(bottom: 8),
-                                    child: Text(
-                                      '• ${mod.label}: ${mod.valorAnterior} → ${mod.novoValor}',
-                                      style: DsTipografia.bodySmall.copyWith(
-                                        color: DsCores.textPrimary,
-                                      ),
-                                    ),
+                                Text(
+                                  'Confirmar alterações',
+                                  style: DsTipografia.cardTitle.copyWith(
+                                    color: DsCores.textPrimary,
+                                    fontSize: 18,
                                   ),
                                 ),
-                                if (temDadosImportantes) ...[
-                                  const SizedBox(height: 16),
-                                  Container(
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      color: DsCores.alerta.softBackground,
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                        color: DsCores.alerta.border,
-                                      ),
-                                    ),
-                                    child: Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Icon(
-                                          PhosphorIconsRegular.warning,
-                                          color: DsCores.alerta.accent,
-                                          size: 16,
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Expanded(
-                                          child: Text(
-                                            'Esta alteração modifica dados importantes de identificação da conta. Revise com atenção antes de confirmar.',
-                                            style: DsTipografia.bodySmall
-                                                .copyWith(
-                                                  color: DsCores.textPrimary,
-                                                  fontSize: 11,
-                                                ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                                const SizedBox(height: 20),
-                                DsCheckbox(
-                                  value: _confirmacaoRevisao,
-                                  onChanged: (val) {
-                                    setDialogState(() {
-                                      _confirmacaoRevisao = val ?? false;
-                                    });
-                                  },
-                                  label: Text(
-                                    'Confirmo que revisei os dados acima e desejo aplicar estas alterações.',
-                                    style: DsTipografia.bodySmall.copyWith(
-                                      color: DsCores.textPrimary,
-                                      fontSize: 11,
-                                    ),
-                                  ),
-                                  token: DsCores.conta,
-                                ),
-                                const SizedBox(height: 16),
                               ],
                             ),
                           ),
-                        ),
 
-                        // Botoes
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                          child: Column(
-                            children: [
-                              DsBotao(
-                                label: 'Confirmar e salvar',
-                                onPressed: _confirmacaoRevisao
-                                    ? () {
-                                        Navigator.pop(context);
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          const SnackBar(
-                                            content: Text(
-                                              'Confirmação concluída. O salvamento será conectado na próxima etapa.',
+                          // Corpo
+                          Flexible(
+                            child: SingleChildScrollView(
+                              physics: const BouncingScrollPhysics(),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Resumo das mudanças:',
+                                    style: DsTipografia.bodySmall.copyWith(
+                                      color: DsCores.textSecondary,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  ...modified.map(
+                                    (mod) => Padding(
+                                      padding: const EdgeInsets.only(bottom: 8),
+                                      child: Text(
+                                        '• ${mod.label}: ${mod.valorAnterior} → ${mod.novoValor}',
+                                        style: DsTipografia.bodySmall.copyWith(
+                                          color: DsCores.textPrimary,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  if (temDadosImportantes) ...[
+                                    const SizedBox(height: 16),
+                                    Container(
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: DsCores.alerta.softBackground,
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: DsCores.alerta.border,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Icon(
+                                            PhosphorIconsRegular.warning,
+                                            color: DsCores.alerta.accent,
+                                            size: 16,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(
+                                              'Esta alteração modifica dados importantes de identificação da conta. Revise com atenção antes de confirmar.',
+                                              style: DsTipografia.bodySmall
+                                                  .copyWith(
+                                                    color: DsCores.textPrimary,
+                                                    fontSize: 11,
+                                                  ),
                                             ),
                                           ),
-                                        );
-                                      }
-                                    : null,
-                                variante: DsBotaoVariante.acao,
-                                token: DsCores.conta,
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                  const SizedBox(height: 20),
+                                  DsCheckbox(
+                                    value: _confirmacaoRevisao,
+                                    onChanged: _isSaving
+                                        ? null
+                                        : (val) {
+                                            setDialogState(() {
+                                              _confirmacaoRevisao =
+                                                  val ?? false;
+                                            });
+                                          },
+                                    label: Text(
+                                      'Confirmo que revisei os dados acima e desejo aplicar estas alterações.',
+                                      style: DsTipografia.bodySmall.copyWith(
+                                        color: DsCores.textPrimary,
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                    token: DsCores.conta,
+                                  ),
+                                  if (_dialogError != null) ...[
+                                    const SizedBox(height: 16),
+                                    Container(
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: DsCores.perigo.softBackground,
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: DsCores.perigo.border,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Icon(
+                                            PhosphorIconsRegular.warningCircle,
+                                            color: DsCores.perigo.accent,
+                                            size: 16,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(
+                                              _dialogError!,
+                                              style: DsTipografia.bodySmall
+                                                  .copyWith(
+                                                    color: DsCores.textPrimary,
+                                                    fontSize: 11,
+                                                  ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                  const SizedBox(height: 16),
+                                ],
                               ),
-                              const SizedBox(height: 8),
-                              DsBotao(
-                                label: 'Cancelar',
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                },
-                                variante: DsBotaoVariante.ghost,
-                              ),
-                            ],
+                            ),
                           ),
-                        ),
-                      ],
+
+                          // Botoes
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                            child: Column(
+                              children: [
+                                DsBotao(
+                                  label: 'Confirmar e salvar',
+                                  isLoading: _isSaving,
+                                  onPressed: _confirmacaoRevisao && !_isSaving
+                                      ? () => _saveChanges(
+                                          dialogContext: dialogContext,
+                                          dialogSetState: setDialogState,
+                                        )
+                                      : null,
+                                  variante: DsBotaoVariante.acao,
+                                  token: DsCores.conta,
+                                ),
+                                const SizedBox(height: 8),
+                                DsBotao(
+                                  label: 'Cancelar',
+                                  onPressed: _isSaving
+                                      ? null
+                                      : () {
+                                          Navigator.pop(dialogContext);
+                                        },
+                                  variante: DsBotaoVariante.ghost,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -633,19 +682,211 @@ class _EditMyDataViewState extends State<EditMyDataView> {
           ),
         );
       },
-    ).then((_) {
+    );
+
+    if (updatedUser != null && mounted) {
+      Navigator.pop(context, updatedUser);
+    } else if (mounted) {
       setState(() {
         _confirmacaoRevisao = false;
+        _dialogError = null;
       });
+    }
+  }
+
+  Map<String, dynamic> _buildUpdatePayload() {
+    final payload = <String, dynamic>{};
+
+    // Nome completo
+    final curNome = _nomeCompletoController.text.trim();
+    if (curNome != _origNomeCompleto) {
+      payload['name'] = curNome;
+    }
+
+    // Nome social (se removido, enviar null)
+    final curSocial = _nomeSocialController.text.trim();
+    if (curSocial != _origNomeSocial) {
+      payload['social_name'] = curSocial.isEmpty ? null : curSocial;
+    }
+
+    // Data de nascimento
+    final curNascimento = _dataNascimentoController.text.trim();
+    if (curNascimento != _origDataNascimento) {
+      payload['date_of_birth'] = curNascimento;
+    }
+
+    // Telefone
+    final cleanCurPhone = _telefoneController.text.replaceAll(
+      RegExp(r'[^0-9]'),
+      '',
+    );
+    final cleanOrigPhone = _origTelefone.replaceAll(RegExp(r'[^0-9]'), '');
+    if (cleanCurPhone != cleanOrigPhone) {
+      payload['phone'] = _telefoneController.text.trim();
+    }
+
+    // Estado
+    if ((_estado ?? '') != (_origEstado ?? '')) {
+      payload['state'] = _estado;
+    }
+
+    // Cidade
+    if ((_cidade ?? '') != (_origCidade ?? '')) {
+      payload['city'] = _cidade;
+    }
+
+    // Gênero
+    if ((_genero ?? '') != (_origGenero ?? '')) {
+      payload['gender'] = _genero;
+    }
+
+    // Raça / Cor
+    if ((_racaCor ?? '') != (_origRacaCor ?? '')) {
+      payload['race'] = _racaCor;
+    }
+
+    // Instituição / Origem
+    final curIndicacao = _indicacaoInstituicao ?? 'Não';
+    final origIndicacao = _origIndicacaoInstituicao ?? 'Não';
+    final curNomeInst = curIndicacao == 'Sim'
+        ? _nomeInstituicaoController.text.trim()
+        : '';
+    final origNomeInst = origIndicacao == 'Sim' ? _origNomeInstituicao : '';
+
+    if (curIndicacao != origIndicacao || curNomeInst != origNomeInst) {
+      payload['institution'] = curIndicacao == 'Sim' ? curNomeInst : null;
+    }
+
+    return payload;
+  }
+
+  Future<void> _saveChanges({
+    required BuildContext dialogContext,
+    required StateSetter dialogSetState,
+  }) async {
+    if (_isSaving) return;
+
+    final payload = _buildUpdatePayload();
+    if (payload.isEmpty) {
+      dialogSetState(() {
+        _dialogError = 'Nenhuma alteração foi realizada.';
+      });
+      return;
+    }
+
+    setState(() {
+      _isSaving = true;
+      _dialogError = null;
     });
+    dialogSetState(() {});
+
+    try {
+      final response = await DatabaseService().updateOwnProfile(
+        changes: payload,
+      );
+
+      if (!mounted || !dialogContext.mounted) return;
+
+      DateTime? parsedUpdatedAt;
+      final rawUpdatedAt = response['updated_at'];
+      if (rawUpdatedAt != null) {
+        if (rawUpdatedAt is DateTime) {
+          parsedUpdatedAt = rawUpdatedAt;
+        } else if (rawUpdatedAt is String) {
+          parsedUpdatedAt = DateTime.tryParse(rawUpdatedAt);
+        }
+      }
+      final finalUpdatedAt = parsedUpdatedAt ?? widget.user.updatedAt;
+
+      final updatedUser = widget.user.copyWith(
+        name: response['name'] ?? widget.user.name,
+        socialName: response['social_name'] as String? ?? '',
+        dateOfBirth: response['date_of_birth'] ?? widget.user.dateOfBirth,
+        phone: response['phone'] ?? widget.user.phone,
+        state: response['state'] ?? widget.user.state,
+        city: response['city'] ?? widget.user.city,
+        gender: response['gender'] as String? ?? '',
+        race: response['race'] as String? ?? '',
+        institution: response['institution'] as String? ?? '',
+        updatedAt: finalUpdatedAt,
+      );
+
+      setState(() {
+        _saveCompleted = true;
+        _isSaving = false;
+      });
+
+      // Fecha somente o diálogo de revisão passando o usuário atualizado
+      Navigator.of(dialogContext).pop(updatedUser);
+    } catch (e) {
+      if (!dialogContext.mounted) return;
+
+      setState(() {
+        _isSaving = false;
+      });
+      dialogSetState(() {
+        _dialogError = _friendlySaveError(e);
+      });
+    }
+  }
+
+  String _friendlySaveError(Object error) {
+    if (error is PostgrestException) {
+      final msg = error.message.toLowerCase();
+      if (msg.contains('nome completo é obrigatório') ||
+          msg.contains('nome completo deve conter')) {
+        return 'Confira o nome completo informado.';
+      }
+      if (msg.contains('estado é obrigatório') ||
+          msg.contains('cidade é obrigatória') ||
+          msg.contains('estado deve conter') ||
+          msg.contains('cidade deve conter')) {
+        return 'Confira o estado e a cidade informados.';
+      }
+      if (msg.contains('telefone inválido') ||
+          msg.contains('o telefone é obrigatório')) {
+        return 'Confira o telefone e informe o DDD.';
+      }
+      if (msg.contains('data de nascimento inválida')) {
+        return 'Confira a data de nascimento informada.';
+      }
+      if (msg.contains('menor de 18 anos') ||
+          msg.contains('cadastro próprio é permitido apenas para maiores')) {
+        return 'A conta principal deve permanecer vinculada a uma pessoa com 18 anos ou mais.';
+      }
+      if (msg.contains('perfil não encontrado')) {
+        return 'Não foi possível localizar seu perfil. Entre em contato com o suporte.';
+      }
+      if (msg.contains('inconsistência cadastral') ||
+          msg.contains('múltiplos membros')) {
+        return 'Não foi possível atualizar os dados por uma inconsistência cadastral. Entre em contato com o suporte.';
+      }
+      if (msg.contains('payload de alterações inválido') ||
+          msg.contains('campos não autorizados') ||
+          msg.contains('acesso negado')) {
+        return 'Não foi possível validar as alterações. Revise os dados e tente novamente.';
+      }
+    }
+
+    final errorStr = error.toString().toLowerCase();
+    if (errorStr.contains('socketexception') ||
+        errorStr.contains('timeout') ||
+        errorStr.contains('failed host lookup') ||
+        errorStr.contains('network_error')) {
+      return 'Não foi possível conectar ao servidor. Verifique sua internet e tente novamente.';
+    }
+
+    return 'Não foi possível salvar as alterações agora. Tente novamente mais tarde.';
   }
 
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: !_hasChanges() || _discardConfirmed,
+      canPop:
+          !_isSaving && (!_hasChanges() || _discardConfirmed || _saveCompleted),
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
+        if (_isSaving) return;
         await _requestExit();
       },
       child: Scaffold(
@@ -663,7 +904,9 @@ class _EditMyDataViewState extends State<EditMyDataView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        DsBotaoVoltar(onPressed: _requestExit),
+                        DsBotaoVoltar(
+                          onPressed: _isSaving ? null : _requestExit,
+                        ),
                         const SizedBox(height: 24),
                         Text(
                           'Editar meus dados',
@@ -787,7 +1030,7 @@ class _EditMyDataViewState extends State<EditMyDataView> {
                           label: _hasChanges()
                               ? 'Revisar alterações'
                               : 'Salvar alterações',
-                          onPressed: _hasChanges()
+                          onPressed: _hasChanges() && !_isSaving
                               ? _handleRevisarAlteracoes
                               : null,
                           variante: DsBotaoVariante.acao,
@@ -796,7 +1039,7 @@ class _EditMyDataViewState extends State<EditMyDataView> {
                         const SizedBox(height: 12),
                         DsBotao(
                           label: 'Cancelar',
-                          onPressed: _requestExit,
+                          onPressed: _isSaving ? null : _requestExit,
                           variante: DsBotaoVariante.ghost,
                         ),
                       ],

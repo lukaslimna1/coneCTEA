@@ -257,9 +257,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       if (_accountNavigatorKey.currentState != null) {
         _accountNavigatorKey.currentState!.popUntil((route) => route.isFirst);
         _accountNavigatorKey.currentState!.push(
-          MaterialPageRoute(
-            builder: (context) => const SecurityView(),
-          ),
+          MaterialPageRoute(builder: (context) => const SecurityView()),
         );
       }
     });
@@ -277,12 +275,18 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       if (_accountNavigatorKey.currentState != null) {
         _accountNavigatorKey.currentState!.popUntil((route) => route.isFirst);
         _accountNavigatorKey.currentState!.push(
-          MaterialPageRoute(
-            builder: (context) => const SupportView(),
-          ),
+          MaterialPageRoute(builder: (context) => const SupportView()),
         );
       }
     });
+  }
+
+  void _handleProfileUpdated(AppUser updatedUser) {
+    if (mounted) {
+      setState(() {
+        _user = updatedUser;
+      });
+    }
   }
 
   Widget _buildAccountTab() {
@@ -297,7 +301,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         onGenerateRoute: (settings) {
           return MaterialPageRoute(
             settings: settings,
-            builder: (context) => AccountView(user: _user),
+            builder: (context) => AccountView(
+              user: _user,
+              onProfileUpdated: _handleProfileUpdated,
+            ),
           );
         },
       ),

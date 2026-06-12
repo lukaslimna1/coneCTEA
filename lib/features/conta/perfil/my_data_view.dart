@@ -10,7 +10,9 @@ import 'package:conectea/services/database_service.dart';
 import 'package:conectea/models/app_user.dart';
 
 class MyDataView extends StatefulWidget {
-  const MyDataView({super.key});
+  final ValueChanged<AppUser> onProfileUpdated;
+
+  const MyDataView({super.key, required this.onProfileUpdated});
 
   @override
   State<MyDataView> createState() => _MyDataViewState();
@@ -316,12 +318,22 @@ class _MyDataViewState extends State<MyDataView> {
         const SizedBox(height: 16),
         DsBotao(
           label: 'Editar meus dados',
-          onPressed: () {
-            Navigator.of(context).push(
+          onPressed: () async {
+            final updatedUser = await Navigator.of(context).push<AppUser>(
               MaterialPageRoute(
                 builder: (context) => EditMyDataView(user: user),
               ),
             );
+            if (updatedUser != null && mounted) {
+              setState(() {
+                _profileFuture = Future<AppUser?>.value(updatedUser);
+              });
+              widget.onProfileUpdated(updatedUser);
+              ScaffoldMessenger.of(context).clearSnackBars();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Dados atualizados com sucesso.')),
+              );
+            }
           },
           variante: DsBotaoVariante.acao,
           token: DsCores.conta,
