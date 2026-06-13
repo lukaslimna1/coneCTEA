@@ -7,6 +7,7 @@ import 'package:conectea/models/digital_card.dart';
 import 'package:conectea/models/notification_item.dart';
 import 'package:conectea/features/carteirinhas/models/fill_empty_member_optional_fields_params.dart';
 import 'package:conectea/features/carteirinhas/models/fill_empty_member_optional_fields_result.dart';
+import 'package:conectea/models/account_change_request.dart';
 
 class DatabaseService {
   final _supabase = Supabase.instance.client;
@@ -1106,5 +1107,94 @@ class DatabaseService {
     } catch (_) {
       rethrow;
     }
+  }
+
+  // --- Alterações de Conta ---
+
+  /// Lista de forma paginada e segura as solicitações de alteração de conta do titular logado.
+  Future<List<AccountChangeRequest>> listMyAccountChanges({
+    int limit = 10,
+    int offset = 0,
+  }) async {
+    // Validação defensiva no Dart
+    if (limit < 1 || limit > 20) {
+      throw ArgumentError('O limite de listagem deve estar entre 1 e 20.');
+    }
+    if (offset < 0) {
+      throw ArgumentError('O offset de listagem não pode ser negativo.');
+    }
+
+    final response = await _supabase.rpc(
+      'conectea_list_my_account_changes_v1',
+      params: {'p_limit': limit, 'p_offset': offset},
+    );
+
+    if (response == null) {
+      return const <AccountChangeRequest>[];
+    }
+
+    if (response is! List) {
+      throw const FormatException(
+        'Formato de resposta inesperado do servidor.',
+      );
+    }
+
+    final parsedList = <AccountChangeRequest>[];
+    for (final item in response) {
+      if (item is! Map) {
+        throw const FormatException(
+          'Elemento de resposta inválido retornado pelo servidor.',
+        );
+      }
+      final rawMap = Map<String, dynamic>.from(item);
+      parsedList.add(AccountChangeRequest.fromJson(rawMap));
+    }
+
+    return parsedList;
+  }
+
+  /// Obtém detalhes de um protocolo de alteração de conta específico do titular logado.
+  Future<AccountChangeRequest?> getMyAccountChange({
+    required String requestId,
+  }) async {
+    final cleanId = requestId.trim();
+    if (cleanId.isEmpty) {
+      throw ArgumentError('O ID da requisição não pode ser vazio.');
+    }
+
+    final response = await _supabase.rpc(
+      'conectea_get_my_account_change_v1',
+      params: {'p_request_id': cleanId},
+    );
+
+    if (response == null) {
+      return null;
+    }
+
+    if (response is! List) {
+      throw const FormatException(
+        'Formato de resposta inesperado do servidor.',
+      );
+    }
+
+    if (response.isEmpty) {
+      return null;
+    }
+
+    if (response.length > 1) {
+      throw const FormatException(
+        'Mais de um registro retornado pelo servidor.',
+      );
+    }
+
+    final firstItem = response.first;
+    if (firstItem is! Map) {
+      throw const FormatException(
+        'Formato de registro inválido retornado pelo servidor.',
+      );
+    }
+
+    final rawMap = Map<String, dynamic>.from(firstItem);
+    return AccountChangeRequest.fromJson(rawMap);
   }
 }
