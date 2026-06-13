@@ -8,6 +8,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:conectea/services/auth_service.dart';
 import 'package:conectea/services/database_service.dart';
 import 'package:conectea/models/app_user.dart';
+import 'package:conectea/features/conta/perfil/alteracoes_conta/account_changes_view.dart';
 
 class MyDataView extends StatefulWidget {
   final ValueChanged<AppUser> onProfileUpdated;
@@ -310,6 +311,50 @@ class _MyDataViewState extends State<MyDataView> {
           variante: DsBotaoVariante.acao,
           token: DsCores.correcao,
           icon: PhosphorIconsRegular.paperPlaneRight,
+        ),
+
+        const SizedBox(height: 32),
+
+        DsCard(
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const AccountChangesView()),
+            );
+          },
+          borderColor: DsCores.correcao.border,
+          child: Row(
+            children: [
+              DsMolduraIcone(
+                icon: PhosphorIconsRegular.clipboardText,
+                accentColor: DsCores.correcao.accent,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Minhas alterações de conta',
+                      style: DsTipografia.cardTitle.copyWith(
+                        color: DsCores.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Acompanhe mudanças de e-mail e CPF.',
+                      style: DsTipografia.bodySmall.copyWith(
+                        color: DsCores.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                PhosphorIconsRegular.caretRight,
+                color: DsCores.textPrimary,
+              ),
+            ],
+          ),
         ),
 
         const SizedBox(height: 32),
