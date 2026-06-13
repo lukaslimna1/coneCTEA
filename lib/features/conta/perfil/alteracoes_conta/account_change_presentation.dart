@@ -40,7 +40,7 @@ class AccountChangePresentation {
       case AccountChangeStatus.completed:
         return 'Alteração concluída';
       case AccountChangeStatus.applicationFailed:
-        return 'Ação necessária';
+        return 'Alteração não concluída';
       case AccountChangeStatus.waitingProof:
         return 'Aguardando documento';
       case AccountChangeStatus.underReview:
@@ -51,6 +51,30 @@ class AccountChangePresentation {
         return 'Solicitação não aprovada';
       case AccountChangeStatus.cancelledByHolder:
         return 'Cancelada por você';
+      case AccountChangeStatus.unknown:
+        return 'Status em atualização';
+    }
+  }
+
+  /// Título explicativo para o status da alteração.
+  String get statusTitle {
+    switch (request.status) {
+      case AccountChangeStatus.applying:
+        return 'Aplicando alteração';
+      case AccountChangeStatus.completed:
+        return 'Alteração concluída';
+      case AccountChangeStatus.applicationFailed:
+        return 'Não foi possível concluir a alteração';
+      case AccountChangeStatus.waitingProof:
+        return 'Aguardando documentação';
+      case AccountChangeStatus.underReview:
+        return 'Solicitação em análise';
+      case AccountChangeStatus.waitingHolderConfirmation:
+        return 'Confirmação pendente';
+      case AccountChangeStatus.rejectedByAdmin:
+        return 'Solicitação recusada';
+      case AccountChangeStatus.cancelledByHolder:
+        return 'Solicitação cancelada';
       case AccountChangeStatus.unknown:
         return 'Status em atualização';
     }
@@ -125,6 +149,30 @@ class AccountChangePresentation {
         return DsCores.manutencao;
       case AccountChangeStatus.unknown:
         return DsCores.fallback;
+    }
+  }
+
+  /// Descrição curta para cada status da alteração.
+  String get statusDescription {
+    switch (request.status) {
+      case AccountChangeStatus.applying:
+        return 'Estamos aplicando a alteração solicitada.';
+      case AccountChangeStatus.completed:
+        return 'A alteração foi concluída.';
+      case AccountChangeStatus.applicationFailed:
+        return 'Seus dados atuais continuam ativos e esta solicitação foi preservada.';
+      case AccountChangeStatus.waitingProof:
+        return 'A solicitação está aguardando uma etapa documental.';
+      case AccountChangeStatus.underReview:
+        return 'A solicitação está sendo analisada.';
+      case AccountChangeStatus.waitingHolderConfirmation:
+        return 'A alteração aguarda sua confirmação final.';
+      case AccountChangeStatus.rejectedByAdmin:
+        return 'A solicitação não foi aprovada.';
+      case AccountChangeStatus.cancelledByHolder:
+        return 'A solicitação foi cancelada por você.';
+      case AccountChangeStatus.unknown:
+        return 'O status está sendo atualizado.';
     }
   }
 }

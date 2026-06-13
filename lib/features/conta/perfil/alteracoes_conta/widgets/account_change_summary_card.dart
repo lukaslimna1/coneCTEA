@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 import 'package:conectea/core/utils/conectea_date_time_helper.dart';
 import 'package:conectea/features/conta/perfil/alteracoes_conta/account_change_presentation.dart';
@@ -6,8 +7,13 @@ import 'package:conectea/models/account_change_request.dart';
 
 class AccountChangeSummaryCard extends StatelessWidget {
   final AccountChangeRequest request;
+  final VoidCallback onTap;
 
-  const AccountChangeSummaryCard({super.key, required this.request});
+  const AccountChangeSummaryCard({
+    super.key,
+    required this.request,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -17,122 +23,102 @@ class AccountChangeSummaryCard extends StatelessWidget {
       request.createdAt,
     );
 
-    return DsCard(
-      borderColor: visualToken.border,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 1. Badge de Status (comunicando por texto, ícone e cor semântica)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: visualToken.softBackground,
-              borderRadius: BorderRadius.circular(DsRaios.xs),
-              border: Border.all(color: visualToken.border),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
+    return Semantics(
+      label:
+          'Solicitação de alteração de ${presentation.typeLabel}. Status: ${presentation.statusLabel}. Toque para abrir detalhes.',
+      button: true,
+      onTap: onTap,
+      child: DsCard(
+        onTap: onTap,
+        showTopAccent: true,
+        accentColor: visualToken.accent,
+        borderColor: visualToken.border.withValues(alpha: 0.15),
+        padding: const EdgeInsets.all(DsEspacamentos.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 1. Linha superior: Pill de Status + Chevron discreto
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Icon(
-                  presentation.statusIcon,
-                  size: 12,
-                  color: visualToken.accent,
+                DsSelo.fromCorVisual(
+                  label: presentation.statusLabel,
+                  token: visualToken,
+                  icon: presentation.statusIcon,
+                  compact: true,
                 ),
-                const SizedBox(width: 6),
-                Flexible(
-                  child: Text(
-                    presentation.statusLabel.toUpperCase(),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: DsTipografia.label.copyWith(
-                      color: visualToken.accent,
-                      fontSize: 9,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.5,
-                    ),
+                Icon(
+                  PhosphorIconsRegular.caretRight,
+                  color: DsCores.textMuted,
+                  size: 16,
+                ),
+              ],
+            ),
+            const SizedBox(height: DsEspacamentos.md),
+
+            // 2. Tipo da Alteração (Moldura + Título forte)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                DsMolduraIcone(
+                  icon: presentation.typeIcon,
+                  accentColor: visualToken.accent,
+                  size: DsTamanhos.iconFrameSm,
+                  iconSize: DsTamanhos.iconSm,
+                ),
+                const SizedBox(width: DsEspacamentos.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Alteração de ${presentation.typeLabel}',
+                        style: DsTipografia.cardTitle,
+                      ),
+                      const SizedBox(height: DsEspacamentos.xxs),
+                      // Usar Wrap ou Column para responsividade
+                      Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          Text('Novo valor: ', style: DsTipografia.caption),
+                          Text(
+                            request.newValueMasked,
+                            style: DsTipografia.bodySmall.copyWith(
+                              color: DsCores.textPrimary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 16),
+            const SizedBox(height: DsEspacamentos.md),
 
-          // 2. Tipo da Alteração
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              DsMolduraIcone(
-                icon: presentation.typeIcon,
-                accentColor: visualToken.accent,
-                size: 40,
-                iconSize: 20,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Alteração de ${presentation.typeLabel}',
-                      style: DsTipografia.cardTitle.copyWith(
-                        color: DsCores.textPrimary,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    // Usar Wrap ou Column para o valor mascarado não estourar em 360dp
-                    Wrap(
-                      children: [
-                        Text(
-                          'Novo valor: ',
-                          style: DsTipografia.bodySmall.copyWith(
-                            color: DsCores.textSecondary,
-                          ),
-                        ),
-                        Text(
-                          request.newValueMasked,
-                          style: DsTipografia.bodySmall.copyWith(
-                            color: DsCores.textPrimary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
+            // 3. Divisor sutil
+            Divider(color: Colors.white.withValues(alpha: 0.06), height: 1),
+            const SizedBox(height: DsEspacamentos.sm),
 
-          // 3. Divisor sutil
-          Divider(color: Colors.white.withValues(alpha: 0.08), height: 1),
-          const SizedBox(height: 12),
-
-          // 4. Rodapé do Card (Protocolo e Data)
-          // Usado Wrap para total responsividade caso a fonte esteja muito ampliada
-          Wrap(
-            spacing: 16,
-            runSpacing: 6,
-            alignment: WrapAlignment.spaceBetween,
-            children: [
-              Text(
-                'Protocolo: ${request.protocolNumber}',
-                style: DsTipografia.bodySmall.copyWith(
-                  color: DsCores.textMuted,
-                  fontWeight: FontWeight.w600,
+            // 4. Rodapé (Protocolo e Data)
+            Wrap(
+              spacing: DsEspacamentos.md,
+              runSpacing: DsEspacamentos.xs,
+              alignment: WrapAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Protocolo: ${request.protocolNumber}',
+                  style: DsTipografia.caption,
                 ),
-              ),
-              Text(
-                'Solicitado em $dateFormatted',
-                style: DsTipografia.bodySmall.copyWith(
-                  color: DsCores.textMuted,
-                  fontWeight: FontWeight.w600,
+                Text(
+                  'Solicitado em $dateFormatted',
+                  style: DsTipografia.caption,
                 ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
