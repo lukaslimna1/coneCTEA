@@ -582,5 +582,63 @@ void main() {
         );
       }
     });
+
+    test(
+      '29. Rótulos e texto de encerramento formatados corretamente para cada status terminal',
+      () {
+        final closedDate = DateTime.parse(
+          '2026-06-13T12:00:00Z',
+        ); // fuso projeto subtrai 3 horas -> 09:00 (13/06/2026)
+
+        final completedReq = createExtendedMockRequest(
+          status: AccountChangeStatus.completed,
+          type: AccountChangeType.cpf,
+          closedAt: closedDate,
+        );
+        final completedPres = AccountChangePresentation(completedReq);
+        expect(completedPres.closedAtLabel, 'Concluída em');
+        expect(completedPres.closedAtText, 'Concluída em 13/06/2026');
+
+        final rejectedReq = createExtendedMockRequest(
+          status: AccountChangeStatus.rejectedByAdmin,
+          type: AccountChangeType.cpf,
+          closedAt: closedDate,
+        );
+        final rejectedPres = AccountChangePresentation(rejectedReq);
+        expect(rejectedPres.closedAtLabel, 'Encerrada em');
+        expect(rejectedPres.closedAtText, 'Encerrada em 13/06/2026');
+
+        final cancelledReq = createExtendedMockRequest(
+          status: AccountChangeStatus.cancelledByHolder,
+          type: AccountChangeType.cpf,
+          closedAt: closedDate,
+        );
+        final cancelledPres = AccountChangePresentation(cancelledReq);
+        expect(cancelledPres.closedAtLabel, 'Encerrada em');
+        expect(cancelledPres.closedAtText, 'Encerrada em 13/06/2026');
+
+        final expiredReq = createExtendedMockRequest(
+          status: AccountChangeStatus.expired,
+          type: AccountChangeType.cpf,
+          closedAt: closedDate,
+        );
+        final expiredPres = AccountChangePresentation(expiredReq);
+        expect(expiredPres.closedAtLabel, 'Encerrada em');
+        expect(expiredPres.closedAtText, 'Encerrada em 13/06/2026');
+      },
+    );
+
+    test('30. Rótulos e texto de encerramento nulos em status ativos', () {
+      final closedDate = DateTime.now();
+
+      final activeReq = createExtendedMockRequest(
+        status: AccountChangeStatus.underReview,
+        type: AccountChangeType.cpf,
+        closedAt: closedDate,
+      );
+      final activePres = AccountChangePresentation(activeReq);
+      expect(activePres.closedAtLabel, isNull);
+      expect(activePres.closedAtText, isNull);
+    });
   });
 }

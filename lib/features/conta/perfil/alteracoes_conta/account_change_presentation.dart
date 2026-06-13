@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:conectea/core/design_system_v2/tokens/ds_cores.dart';
+import 'package:conectea/core/utils/conectea_date_time_helper.dart';
 import 'package:conectea/models/account_change_request.dart';
 
 class AccountChangePresentation {
@@ -285,5 +286,31 @@ class AccountChangePresentation {
             request.status == AccountChangeStatus.rejectedByAdmin ||
             request.status == AccountChangeStatus.cancelledByHolder ||
             request.status == AccountChangeStatus.expired);
+  }
+
+  /// Retorna o rótulo contextual do encerramento com base no status, ou null se não for um status terminal.
+  String? get closedAtLabel {
+    if (!canShowClosedAt) return null;
+    switch (request.status) {
+      case AccountChangeStatus.completed:
+        return 'Concluída em';
+      case AccountChangeStatus.rejectedByAdmin:
+      case AccountChangeStatus.cancelledByHolder:
+      case AccountChangeStatus.expired:
+        return 'Encerrada em';
+      default:
+        return null;
+    }
+  }
+
+  /// Retorna a data de encerramento formatada de forma contextual, ou null se não puder ser exibida.
+  String? get closedAtText {
+    if (!canShowClosedAt || request.closedAt == null) return null;
+    final label = closedAtLabel;
+    if (label == null) return null;
+    final formattedDate = ConecteaDateTimeHelper.formatProjectDateShort(
+      request.closedAt!,
+    );
+    return '$label $formattedDate';
   }
 }
