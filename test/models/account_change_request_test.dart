@@ -92,12 +92,14 @@ void main() {
         'applying': AccountChangeStatus.applying,
         'completed': AccountChangeStatus.completed,
         'application_failed': AccountChangeStatus.applicationFailed,
-        'waiting_proof': AccountChangeStatus.waitingProof,
+        'waiting_document_replacement':
+            AccountChangeStatus.waitingDocumentReplacement,
         'under_review': AccountChangeStatus.underReview,
         'waiting_holder_confirmation':
             AccountChangeStatus.waitingHolderConfirmation,
         'rejected_by_admin': AccountChangeStatus.rejectedByAdmin,
         'cancelled_by_holder': AccountChangeStatus.cancelledByHolder,
+        'expired': AccountChangeStatus.expired,
       };
 
       for (final entry in statuses.entries) {
@@ -359,6 +361,27 @@ void main() {
       expect(AccountChangeType.cpf.dbValue, 'cpf');
       expect(AccountChangeStatus.applying.dbValue, 'applying');
       expect(AccountChangeStatus.completed.dbValue, 'completed');
+      expect(
+        AccountChangeStatus.waitingDocumentReplacement.dbValue,
+        'waiting_document_replacement',
+      );
+      expect(AccountChangeStatus.expired.dbValue, 'expired');
+    });
+
+    test('26. waiting_proof e waitingproof obsoletos mapeiam para unknown', () {
+      final json1 = Map<String, dynamic>.from(validBaseJson)
+        ..['status'] = 'waiting_proof';
+      final json2 = Map<String, dynamic>.from(validBaseJson)
+        ..['status'] = 'waitingproof';
+
+      expect(
+        AccountChangeRequest.fromJson(json1).status,
+        AccountChangeStatus.unknown,
+      );
+      expect(
+        AccountChangeRequest.fromJson(json2).status,
+        AccountChangeStatus.unknown,
+      );
     });
   });
 }

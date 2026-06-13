@@ -36,23 +36,25 @@ class AccountChangePresentation {
   String get statusLabel {
     switch (request.status) {
       case AccountChangeStatus.applying:
-        return 'Aplicando alteração';
+        return 'ALTERAÇÃO EM ANDAMENTO';
       case AccountChangeStatus.completed:
-        return 'Alteração concluída';
+        return 'ALTERAÇÃO CONCLUÍDA';
       case AccountChangeStatus.applicationFailed:
-        return 'Alteração não concluída';
-      case AccountChangeStatus.waitingProof:
-        return 'Aguardando documento';
+        return 'ALTERAÇÃO NÃO CONCLUÍDA';
+      case AccountChangeStatus.waitingDocumentReplacement:
+        return 'NOVO DOCUMENTO NECESSÁRIO';
       case AccountChangeStatus.underReview:
-        return 'Em análise';
+        return 'EM ANÁLISE';
       case AccountChangeStatus.waitingHolderConfirmation:
-        return 'Aguardando sua confirmação';
+        return 'CONFIRMAÇÃO PENDENTE';
       case AccountChangeStatus.rejectedByAdmin:
-        return 'Solicitação não aprovada';
+        return 'NÃO APROVADA';
       case AccountChangeStatus.cancelledByHolder:
-        return 'Cancelada por você';
+        return 'ENCERRADA POR VOCÊ';
+      case AccountChangeStatus.expired:
+        return 'PRAZO ENCERRADO';
       case AccountChangeStatus.unknown:
-        return 'Status em atualização';
+        return 'STATUS EM ATUALIZAÇÃO';
     }
   }
 
@@ -60,21 +62,31 @@ class AccountChangePresentation {
   String get statusTitle {
     switch (request.status) {
       case AccountChangeStatus.applying:
-        return 'Aplicando alteração';
+        return request.type == AccountChangeType.email
+            ? 'Atualizando e-mail'
+            : 'Atualizando CPF';
       case AccountChangeStatus.completed:
-        return 'Alteração concluída';
+        return request.type == AccountChangeType.email
+            ? 'E-mail atualizado'
+            : 'CPF atualizado';
       case AccountChangeStatus.applicationFailed:
-        return 'Não foi possível concluir a alteração';
-      case AccountChangeStatus.waitingProof:
-        return 'Aguardando documentação';
+        return request.type == AccountChangeType.email
+            ? 'Não foi possível atualizar o e-mail'
+            : 'Não foi possível atualizar o CPF';
+      case AccountChangeStatus.waitingDocumentReplacement:
+        return 'Envie outro documento';
       case AccountChangeStatus.underReview:
         return 'Solicitação em análise';
       case AccountChangeStatus.waitingHolderConfirmation:
-        return 'Confirmação pendente';
+        return request.type == AccountChangeType.email
+            ? 'Revise o novo e-mail'
+            : 'Revise o novo CPF';
       case AccountChangeStatus.rejectedByAdmin:
-        return 'Solicitação recusada';
+        return 'Solicitação não aprovada';
       case AccountChangeStatus.cancelledByHolder:
-        return 'Solicitação cancelada';
+        return 'Solicitação encerrada';
+      case AccountChangeStatus.expired:
+        return 'Solicitação expirada';
       case AccountChangeStatus.unknown:
         return 'Status em atualização';
     }
@@ -89,8 +101,8 @@ class AccountChangePresentation {
         return PhosphorIconsRegular.checkCircle;
       case AccountChangeStatus.applicationFailed:
         return PhosphorIconsRegular.warningOctagon;
-      case AccountChangeStatus.waitingProof:
-        return PhosphorIconsRegular.fileText;
+      case AccountChangeStatus.waitingDocumentReplacement:
+        return PhosphorIconsRegular.fileArrowUp;
       case AccountChangeStatus.underReview:
         return PhosphorIconsRegular.magnifyingGlass;
       case AccountChangeStatus.waitingHolderConfirmation:
@@ -99,6 +111,8 @@ class AccountChangePresentation {
         return PhosphorIconsRegular.xCircle;
       case AccountChangeStatus.cancelledByHolder:
         return PhosphorIconsRegular.minusCircle;
+      case AccountChangeStatus.expired:
+        return PhosphorIconsRegular.clockCountdown;
       case AccountChangeStatus.unknown:
         return PhosphorIconsRegular.clock;
     }
@@ -108,7 +122,7 @@ class AccountChangePresentation {
   bool get isOngoing {
     switch (request.status) {
       case AccountChangeStatus.applying:
-      case AccountChangeStatus.waitingProof:
+      case AccountChangeStatus.waitingDocumentReplacement:
       case AccountChangeStatus.underReview:
       case AccountChangeStatus.waitingHolderConfirmation:
       case AccountChangeStatus.applicationFailed:
@@ -117,20 +131,12 @@ class AccountChangePresentation {
       case AccountChangeStatus.completed:
       case AccountChangeStatus.rejectedByAdmin:
       case AccountChangeStatus.cancelledByHolder:
+      case AccountChangeStatus.expired:
         return false;
     }
   }
 
   /// Resolve o token de cor visual correspondente ao status da alteração.
-  ///
-  /// Cores e intenções visuais pré-existentes na DS V2:
-  /// - completed: sucesso (verde)
-  /// - rejectedByAdmin/applicationFailed: perigo (vermelho)
-  /// - waitingProof/waitingHolderConfirmation: alerta (laranja)
-  /// - applying: solicitacao (azul claro)
-  /// - underReview: comunicacao (ciano)
-  /// - cancelledByHolder: manutencao (cinza/neutro)
-  /// - unknown: fallback (cinza)
   DsCorVisual get visualToken {
     switch (request.status) {
       case AccountChangeStatus.completed:
@@ -138,14 +144,16 @@ class AccountChangePresentation {
       case AccountChangeStatus.rejectedByAdmin:
       case AccountChangeStatus.applicationFailed:
         return DsCores.perigo;
-      case AccountChangeStatus.waitingProof:
       case AccountChangeStatus.waitingHolderConfirmation:
         return DsCores.alerta;
+      case AccountChangeStatus.waitingDocumentReplacement:
+        return DsCores.correcao;
       case AccountChangeStatus.applying:
         return DsCores.solicitacao;
       case AccountChangeStatus.underReview:
         return DsCores.comunicacao;
       case AccountChangeStatus.cancelledByHolder:
+      case AccountChangeStatus.expired:
         return DsCores.manutencao;
       case AccountChangeStatus.unknown:
         return DsCores.fallback;
@@ -156,21 +164,23 @@ class AccountChangePresentation {
   String get statusDescription {
     switch (request.status) {
       case AccountChangeStatus.applying:
-        return 'Estamos aplicando a alteração solicitada.';
+        return 'A alteração confirmada está sendo concluída.';
       case AccountChangeStatus.completed:
-        return 'A alteração foi concluída.';
+        return 'A alteração foi concluída com sucesso.';
       case AccountChangeStatus.applicationFailed:
         return 'Seus dados atuais continuam ativos e esta solicitação foi preservada.';
-      case AccountChangeStatus.waitingProof:
-        return 'A solicitação está aguardando uma etapa documental.';
+      case AccountChangeStatus.waitingDocumentReplacement:
+        return 'A equipe solicitou um novo documento para continuar a análise da alteração do CPF.';
       case AccountChangeStatus.underReview:
-        return 'A solicitação está sendo analisada.';
+        return 'A equipe está analisando os dados e o documento enviados para a alteração do CPF.';
       case AccountChangeStatus.waitingHolderConfirmation:
-        return 'A alteração aguarda sua confirmação final.';
+        return 'Confira os dados antes de concluir a alteração.';
       case AccountChangeStatus.rejectedByAdmin:
-        return 'A solicitação não foi aprovada.';
+        return 'A equipe não pôde aprovar a alteração com os dados enviados.';
       case AccountChangeStatus.cancelledByHolder:
-        return 'A solicitação foi cancelada por você.';
+        return 'A alteração não foi realizada e seus dados anteriores continuam ativos.';
+      case AccountChangeStatus.expired:
+        return 'O prazo para concluir esta etapa terminou e a alteração não foi realizada.';
       case AccountChangeStatus.unknown:
         return 'O status está sendo atualizado.';
     }

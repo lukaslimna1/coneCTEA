@@ -17,11 +17,12 @@ enum AccountChangeStatus {
   applying,
   completed,
   applicationFailed,
-  waitingProof,
+  waitingDocumentReplacement,
   underReview,
   waitingHolderConfirmation,
   rejectedByAdmin,
   cancelledByHolder,
+  expired,
   unknown,
 }
 
@@ -34,8 +35,8 @@ extension AccountChangeStatusExtension on AccountChangeStatus {
         return 'completed';
       case AccountChangeStatus.applicationFailed:
         return 'application_failed';
-      case AccountChangeStatus.waitingProof:
-        return 'waiting_proof';
+      case AccountChangeStatus.waitingDocumentReplacement:
+        return 'waiting_document_replacement';
       case AccountChangeStatus.underReview:
         return 'under_review';
       case AccountChangeStatus.waitingHolderConfirmation:
@@ -44,6 +45,8 @@ extension AccountChangeStatusExtension on AccountChangeStatus {
         return 'rejected_by_admin';
       case AccountChangeStatus.cancelledByHolder:
         return 'cancelled_by_holder';
+      case AccountChangeStatus.expired:
+        return 'expired';
       case AccountChangeStatus.unknown:
         return null;
     }
@@ -196,10 +199,6 @@ class AccountChangeRequest {
       case 'applicationfailed':
         status = AccountChangeStatus.applicationFailed;
         break;
-      case 'waiting_proof':
-      case 'waitingproof':
-        status = AccountChangeStatus.waitingProof;
-        break;
       case 'under_review':
       case 'underreview':
         status = AccountChangeStatus.underReview;
@@ -215,6 +214,13 @@ class AccountChangeRequest {
       case 'cancelled_by_holder':
       case 'cancelledbyholder':
         status = AccountChangeStatus.cancelledByHolder;
+        break;
+      case 'waiting_document_replacement':
+      case 'waitingdocumentreplacement':
+        status = AccountChangeStatus.waitingDocumentReplacement;
+        break;
+      case 'expired':
+        status = AccountChangeStatus.expired;
         break;
       default:
         status = AccountChangeStatus.unknown;
