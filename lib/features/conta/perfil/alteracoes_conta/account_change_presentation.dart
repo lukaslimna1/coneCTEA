@@ -185,4 +185,105 @@ class AccountChangePresentation {
         return 'O status está sendo atualizado.';
     }
   }
+
+  /// Formata um objeto AccountChangeCivilDate no formato DD/MM/AAAA.
+  static String formatCivilDate(AccountChangeCivilDate date) {
+    final d = date.day.toString().padLeft(2, '0');
+    final m = date.month.toString().padLeft(2, '0');
+    final y = date.year.toString().padLeft(4, '0');
+    return '$d/$m/$y';
+  }
+
+  /// Retorna true apenas quando holderDeadlineDueDate não for nulo
+  /// e o status for waitingDocumentReplacement ou waitingHolderConfirmation.
+  bool get canShowHolderDeadline {
+    return request.holderDeadlineDueDate != null &&
+        (request.status == AccountChangeStatus.waitingDocumentReplacement ||
+            request.status == AccountChangeStatus.waitingHolderConfirmation);
+  }
+
+  /// Retorna o texto formatado do prazo do titular, ou nulo se não puder ser exibido.
+  String? get holderDeadlineText {
+    if (!canShowHolderDeadline) return null;
+    final dateStr = formatCivilDate(request.holderDeadlineDueDate!);
+    return 'Prazo para sua ação: até $dateStr.';
+  }
+
+  /// Retorna true apenas quando o status for cancelledByHolder ou expired
+  /// e o resolutionReason não for unknown.
+  bool get canShowResolutionReason {
+    return (request.status == AccountChangeStatus.cancelledByHolder ||
+            request.status == AccountChangeStatus.expired) &&
+        request.resolutionReason != AccountChangeResolutionReason.unknown;
+  }
+
+  /// Retorna o texto humanizado para o motivo de resolução, ou nulo se não puder ser exibido.
+  String? get resolutionReasonText {
+    if (!canShowResolutionReason) return null;
+    switch (request.resolutionReason) {
+      case AccountChangeResolutionReason.cancelledDuringReview:
+        return 'Você encerrou a solicitação enquanto ela estava em análise.';
+      case AccountChangeResolutionReason.cancelledWhileWaitingDocument:
+        return 'Você encerrou a solicitação enquanto aguardávamos o novo documento.';
+      case AccountChangeResolutionReason.declinedFinalConfirmation:
+        return 'Você decidiu não concluir a alteração.';
+      case AccountChangeResolutionReason.documentReplacementDeadline:
+        return 'O prazo para enviar um novo documento terminou.';
+      case AccountChangeResolutionReason.holderConfirmationDeadline:
+        return 'O prazo para confirmar a alteração terminou.';
+      case AccountChangeResolutionReason.unknown:
+        return null;
+    }
+  }
+
+  /// Retorna true apenas quando o status for waitingDocumentReplacement ou rejectedByAdmin
+  /// e existir pelo menos publicAdminReasonCode != unknown ou publicAdminFeedback não nulo.
+  bool get canShowPublicAdminGuidance {
+    final hasInfo =
+        request.publicAdminReasonCode !=
+            AccountChangePublicAdminReasonCode.unknown ||
+        request.publicAdminFeedback != null;
+    return (request.status == AccountChangeStatus.waitingDocumentReplacement ||
+            request.status == AccountChangeStatus.rejectedByAdmin) &&
+        hasInfo;
+  }
+
+  /// Retorna a orientação humanizada para o código administrativo público, ou nula se desconhecido/não exibível.
+  String? get publicAdminReasonText {
+    if (!canShowPublicAdminGuidance) return null;
+    switch (request.publicAdminReasonCode) {
+      case AccountChangePublicAdminReasonCode.documentNotAccepted:
+        return 'O documento enviado não pôde ser aceito.';
+      case AccountChangePublicAdminReasonCode.unreadableDocument:
+        return 'Não foi possível ler o documento enviado.';
+      case AccountChangePublicAdminReasonCode.cpfNotVisible:
+        return 'O CPF não está visível no documento.';
+      case AccountChangePublicAdminReasonCode.nameMismatch:
+        return 'O nome no documento não confere com os dados cadastrados.';
+      case AccountChangePublicAdminReasonCode.birthDateMismatch:
+        return 'A data de nascimento no documento não confere com os dados cadastrados.';
+      case AccountChangePublicAdminReasonCode.cpfMismatch:
+        return 'O CPF no documento não confere com a alteração solicitada.';
+      case AccountChangePublicAdminReasonCode.other:
+        return 'Precisamos de um ajuste no documento para continuar.';
+      case AccountChangePublicAdminReasonCode.unknown:
+        return null;
+    }
+  }
+
+  /// Retorna o feedback administrativo textual seguro destinado ao titular, ou nulo se não exibível.
+  String? get publicAdminFeedbackText {
+    if (!canShowPublicAdminGuidance) return null;
+    return request.publicAdminFeedback;
+  }
+
+  /// Retorna true apenas se closedAt não for nulo e o status for terminal
+  /// (completed, rejectedByAdmin, cancelledByHolder, expired).
+  bool get canShowClosedAt {
+    return request.closedAt != null &&
+        (request.status == AccountChangeStatus.completed ||
+            request.status == AccountChangeStatus.rejectedByAdmin ||
+            request.status == AccountChangeStatus.cancelledByHolder ||
+            request.status == AccountChangeStatus.expired);
+  }
 }
