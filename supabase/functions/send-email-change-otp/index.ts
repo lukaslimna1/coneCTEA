@@ -10,6 +10,8 @@ import {
   createCorrelationId
 } from "./signing.ts";
 
+declare const Deno: any;
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -328,6 +330,6 @@ export async function handler(req: Request): Promise<Response> {
   }
 }
 
-if (import.meta.main) {
+if ((import.meta as any).main) {
   serve(handler);
 }
