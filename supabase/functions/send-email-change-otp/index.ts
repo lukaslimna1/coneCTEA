@@ -177,8 +177,8 @@ export async function handler(req: Request): Promise<Response> {
       correlation_id: correlationId
     };
 
-    const bodyString = JSON.stringify(gasPayload);
-    const bodySha256 = await sha256Hex(bodyString);
+    const canonicalPayload = canonicalizeObject(gasPayload);
+    const bodySha256 = await sha256Hex(canonicalPayload);
     const timestamp = new Date().toISOString();
     const kid = Deno.env.get("CONECTEA_EDGE_GAS_SIGNING_KID") ?? "kid_default";
 
@@ -195,16 +195,25 @@ export async function handler(req: Request): Promise<Response> {
     const signingKey = await loadHmacKeyFromBase64UrlEnv("CONECTEA_EDGE_GAS_SIGNING_KEY");
     const signature = await signHmacSha256Hex({ key: signingKey, baseString });
 
-    // 12. Fazer requisição síncrona HTTP ao GAS com timeout de 20s
+    const envelope = {
+      meta: {
+        signature_version: "1",
+        signature_kid: kid,
+        signature_timestamp: timestamp,
+        logical_path: "email-change/send-otp/v1",
+        payload_sha256: bodySha256,
+        signature: signature,
+        correlation_id: correlationId
+      },
+      payload: gasPayload
+    };
+
+    const envelopeString = JSON.stringify(envelope);
+
+    // 12. Fazer requisição síncrona HTTP ao GAS com envelope e headers mínimos
     const gasUrl = Deno.env.get("CONECTEA_GAS_URL") ?? "";
     const headers = {
-      "Content-Type": "application/json",
-      "X-Conectea-Signature-Version": "1",
-      "X-Conectea-Signature-KID": kid,
-      "X-Conectea-Signature-Timestamp": timestamp,
-      "X-Conectea-Body-SHA256": bodySha256,
-      "X-Conectea-Signature": signature,
-      "X-Conectea-Correlation-ID": correlationId
+      "Content-Type": "application/json"
     };
 
     const abortController = new AbortController();
@@ -215,7 +224,7 @@ export async function handler(req: Request): Promise<Response> {
       gasResponse = await fetch(gasUrl, {
         method: "POST",
         headers: headers,
-        body: bodyString,
+        body: envelopeString,
         signal: abortController.signal
       });
     } catch (_fetchErr) {
@@ -328,6 +337,27 @@ export async function handler(req: Request): Promise<Response> {
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
+}
+
+export function canonicalizeObject(obj: any): string {
+  if (obj === null || typeof obj !== "object") {
+    return JSON.stringify(obj);
+  }
+  if (Array.isArray(obj)) {
+    const parts: string[] = [];
+    for (let i = 0; i < obj.length; i++) {
+      parts.push(canonicalizeObject(obj[i]));
+    }
+    return "[" + parts.join(",") + "]";
+  }
+  const keys = Object.keys(obj).sort();
+  const parts: string[] = [];
+  for (let i = 0; i < keys.length; i++) {
+    const key = keys[i];
+    const val = obj[key];
+    parts.push(JSON.stringify(key) + ":" + canonicalizeObject(val));
+  }
+  return "{" + parts.join(",") + "}";
 }
 
 if ((import.meta as any).main) {

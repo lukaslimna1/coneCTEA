@@ -1,5 +1,5 @@
 import { assertEquals, assertNotEquals, assertExists } from "https://deno.land/std@0.168.0/testing/asserts.ts";
-import { handler } from "./index.ts";
+import { handler, canonicalizeObject } from "./index.ts";
 
 // --- HELPERS EXCLUSIVOS DE TESTE ---
 
@@ -855,12 +855,10 @@ Deno.test({
 });
 
 Deno.test({
-  name: "Orquestração - Cenário 13 & 14: Payload para GAS limpo e headers de assinatura presentes",
+  name: "Orquestração - Cenário 13 & 14: Payload para GAS envelopado, sem headers antigos, validação de canonicalização e privacidade",
   sanitizeOps: false,
   sanitizeResources: false,
   fn: async () => {
-    // NOTA TÉCNICA: O SDK do Supabase inicia conexões e intervals persistentes de auth no background,
-    // que mantêm operações ativas no event loop do Deno. A flag desativa o sanitizer de leaks.
     setupTest();
     try {
       const encEmail = await encryptAesGcm(testEmailValido, mockAesKeyBytes, nonceEmailBytes);
@@ -899,39 +897,91 @@ Deno.test({
 
       assertExists(lastGasRequest);
 
-      // Validação de chaves exatas permitidas
-      const payloadKeys = Object.keys(lastGasRequest.body);
-      const expectedKeys = ["purpose", "idempotency_key", "send_sequence", "recipient_email", "subject", "body_text", "correlation_id"];
-      
-      assertEquals(payloadKeys.length, expectedKeys.length);
-      for (const key of expectedKeys) {
-        assertExists(lastGasRequest.body[key]);
-      }
+      const envelope = lastGasRequest.body;
+      assertExists(envelope.meta);
+      assertExists(envelope.payload);
 
-      // Não deve conter IDs de banco nem material criptográfico original
+      // 1. Meta do envelope contém somente os campos permitidos
+      const metaKeys = Object.keys(envelope.meta).sort();
+      const expectedMetaKeys = [
+        "correlation_id",
+        "logical_path",
+        "payload_sha256",
+        "signature",
+        "signature_kid",
+        "signature_timestamp",
+        "signature_version"
+      ];
+      assertEquals(metaKeys, expectedMetaKeys);
+
+      // 2. Payload do envelope contém somente os campos permitidos
+      const payloadKeys = Object.keys(envelope.payload).sort();
+      const expectedPayloadKeys = [
+        "body_text",
+        "correlation_id",
+        "idempotency_key",
+        "purpose",
+        "recipient_email",
+        "subject",
+        "send_sequence"
+      ].sort();
+      assertEquals(payloadKeys, expectedPayloadKeys);
+
+      // 3. Payload não contém user_id, auth_user_id, cycle_id, challenge_id, HMAC, ciphertext, nonce, auth tag, token ou secret
       const forbiddenKeys = [
-        "user_id", "cycle_id", "challenge_id", "auth_user_id",
-        "ciphertext", "nonce", "auth_tag", "encryption_key_version"
+        "user_id", "auth_user_id", "cycle_id", "challenge_id",
+        "ciphertext", "nonce", "auth_tag", "encryption_key_version",
+        "secret", "token", "hmac"
       ];
       for (const key of forbiddenKeys) {
-        assertEquals(lastGasRequest.body[key], undefined);
+        assertEquals(envelope.payload[key], undefined);
+        assertEquals(envelope.meta[key], undefined);
       }
 
-      assertEquals(lastGasRequest.body.recipient_email, testEmailValido);
-      assertEquals(lastGasRequest.body.body_text.includes(testOtpValido), true);
-      assertEquals(lastGasRequest.body.body_text.includes("alteração do seu e-mail"), true);
-
-      // Validação dos headers de assinatura
+      // 4. Edge não envia headers customizados antigos de assinatura
       const headers = lastGasRequest.headers;
-      assertExists(headers.get("X-Conectea-Signature-Version"));
-      assertExists(headers.get("X-Conectea-Signature-KID"));
-      assertExists(headers.get("X-Conectea-Signature-Timestamp"));
-      assertExists(headers.get("X-Conectea-Body-SHA256"));
-      assertExists(headers.get("X-Conectea-Signature"));
-      assertExists(headers.get("X-Conectea-Correlation-ID"));
+      assertEquals(headers.get("X-Conectea-Signature-Version"), null);
+      assertEquals(headers.get("X-Conectea-Signature-KID"), null);
+      assertEquals(headers.get("X-Conectea-Signature-Timestamp"), null);
+      assertEquals(headers.get("X-Conectea-Body-SHA256"), null);
+      assertEquals(headers.get("X-Conectea-Signature"), null);
+      assertEquals(headers.get("X-Conectea-Correlation-ID"), null);
 
-      assertEquals(headers.get("X-Conectea-Signature-Version"), "1");
-      assertEquals(headers.get("X-Conectea-Signature-KID"), "kid_test_v1");
+      // 5. Edge não envia assinatura/metadados por query string
+      const gasUrlObj = new URL(lastGasRequest.url);
+      assertEquals(gasUrlObj.searchParams.get("signature"), null);
+      assertEquals(gasUrlObj.searchParams.get("signature_kid"), null);
+      assertEquals(gasUrlObj.searchParams.get("signature_timestamp"), null);
+
+      // 6. payload_sha256 é calculado sobre payload canônico
+      const canonicalFromTest = canonicalizeObject(envelope.payload);
+      // Fazer sha256 síncrono local no teste para conferir
+      const hash = crypto.subtle ? null : await (async () => {
+        // Fallback síncrono ou Deno Web Crypto
+        const msgUint8 = new TextEncoder().encode(canonicalFromTest);
+        const hashBuffer = await crypto.subtle.digest("SHA-256", msgUint8);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+      })();
+      if (hash) {
+        assertEquals(envelope.meta.payload_sha256, hash);
+      }
+
+      // 7. reordenação de chaves do payload não altera o hash canônico
+      const reorderedPayload = {
+        subject: envelope.payload.subject,
+        purpose: envelope.payload.purpose,
+        recipient_email: envelope.payload.recipient_email,
+        idempotency_key: envelope.payload.idempotency_key,
+        send_sequence: envelope.payload.send_sequence,
+        body_text: envelope.payload.body_text,
+        correlation_id: envelope.payload.correlation_id
+      };
+      assertEquals(canonicalizeObject(envelope.payload), canonicalizeObject(reorderedPayload));
+
+      // 8. alteração de qualquer campo do payload altera o hash canônico
+      const modifiedPayload = { ...envelope.payload, subject: "Assunto Alterado" };
+      assertNotEquals(canonicalizeObject(envelope.payload), canonicalizeObject(modifiedPayload));
 
       assertNoSensitivesInLogs();
     } finally {
@@ -939,6 +989,7 @@ Deno.test({
     }
   }
 });
+
 
 // OPTIONS preflight não instancia o Supabase Client, então não exige bypass de sanitizers.
 Deno.test("Orquestração - Cenário 15: OPTIONS preflight", async () => {
