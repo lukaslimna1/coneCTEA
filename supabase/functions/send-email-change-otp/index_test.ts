@@ -1,5 +1,6 @@
 import { assertEquals, assertNotEquals, assertExists } from "https://deno.land/std@0.168.0/testing/asserts.ts";
-import { handler, canonicalizeObject } from "./index.ts";
+import { handler } from "./index.ts";
+import { canonicalizeObject } from "./delivery.ts";
 
 // --- HELPERS EXCLUSIVOS DE TESTE ---
 
