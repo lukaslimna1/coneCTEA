@@ -279,30 +279,26 @@ class _MyDataViewState extends State<MyDataView> {
         ),
         const SizedBox(height: 8),
         Text(
-          'Esses dados ajudam a proteger sua conta e evitar alterações indevidas. Para corrigir, envie uma solicitação para análise da equipe.',
+          'Alguns dados da conta têm regras diferentes de alteração. O CPF precisa de revisão da equipe. O e-mail pode ser alterado com código de segurança.',
           style: DsTipografia.bodySmall.copyWith(color: DsCores.textSecondary),
         ),
         const SizedBox(height: 16),
+
+        // Bloco do CPF (Fluxo Administrativo)
         _buildReadOnlyCard([
           CampoCpfProtegido(
             valorVisivel: _maskCpf(user.cpf),
             valorOculto: '***.***.***-**',
           ),
-          const SizedBox(height: 12),
-          Divider(color: Colors.white.withValues(alpha: 0.1), height: 1),
-          CampoEmailProtegido(
-            valorVisivel: _maskEmail(user.email),
-            valorOculto: '***@***.***',
-          ),
         ], borderColor: DsCores.dadosProtegidos.border),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         Text(
-          'Use esta opção se CPF ou e-mail estiverem incorretos.',
+          'Use esta opção se o CPF estiver incorreto. A equipe fará a análise.',
           style: DsTipografia.bodySmall.copyWith(color: DsCores.textSecondary),
         ),
         const SizedBox(height: 12),
         DsBotao(
-          label: 'Solicitar revisão de dados protegidos',
+          label: 'Solicitar revisão de CPF',
           onPressed: () {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Fluxo visual em construção.')),
@@ -311,6 +307,37 @@ class _MyDataViewState extends State<MyDataView> {
           variante: DsBotaoVariante.acao,
           token: DsCores.correcao,
           icon: PhosphorIconsRegular.paperPlaneRight,
+        ),
+
+        const SizedBox(height: 24),
+
+        // Bloco do E-mail (Fluxo Automático OTP)
+        _buildReadOnlyCard([
+          CampoEmailProtegido(
+            valorVisivel: _maskEmail(user.email),
+            valorOculto: '***@***.***',
+          ),
+        ], borderColor: DsCores.dadosProtegidos.border),
+        const SizedBox(height: 8),
+        Text(
+          'Você receberá um código no novo e-mail para confirmar a alteração.',
+          style: DsTipografia.bodySmall.copyWith(color: DsCores.textSecondary),
+        ),
+        const SizedBox(height: 12),
+        DsBotao(
+          label: 'Alterar e-mail',
+          onPressed: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Fluxo de alteração de e-mail será aberto na próxima etapa.',
+                ),
+              ),
+            );
+          },
+          variante: DsBotaoVariante.acao,
+          token: DsCores.conta,
+          icon: PhosphorIconsRegular.pencilSimple,
         ),
 
         const SizedBox(height: 32),
@@ -341,7 +368,7 @@ class _MyDataViewState extends State<MyDataView> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Acompanhe mudanças de e-mail e CPF.',
+                      'Acompanhe revisões de CPF e alterações de e-mail.',
                       style: DsTipografia.bodySmall.copyWith(
                         color: DsCores.textSecondary,
                       ),
