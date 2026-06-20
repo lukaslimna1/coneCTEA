@@ -15,6 +15,15 @@ globalThis.PropertiesService = {
   })
 };
 
+globalThis.MailApp = {
+  getRemainingDailyQuota: () => 100,
+  sendEmail: (data) => {
+    if (typeof globalThis.fakeSendEmail === 'function') {
+      globalThis.fakeSendEmail(data);
+    }
+  }
+};
+
 let isLocked = false;
 globalThis.LockService = {
   getScriptLock: () => ({
@@ -66,10 +75,31 @@ globalThis.Utilities = {
     return new Int8Array(buf);
   },
 
-  computeHmacSignature: (algorithm, value, keyBytes) => {
+  newBlob: (data) => {
+    return {
+      getBytes: () => {
+        if (typeof data === "string") {
+          return new Int8Array(Buffer.from(data, "utf8"));
+        }
+        return new Int8Array(data);
+      }
+    };
+  },
+
+  computeHmacSignature: (algorithm, valueBytes, keyBytes) => {
     const keyBuf = Buffer.from(keyBytes);
+    const valueBuf = Buffer.from(valueBytes);
     const hmac = crypto.createHmac("sha256", keyBuf);
-    hmac.update(value, "utf8");
+    hmac.update(valueBuf);
+    const buf = hmac.digest();
+    return new Int8Array(buf);
+  },
+
+  computeHmacSha256Signature: (value, keyBytes) => {
+    const keyBuf = Buffer.from(keyBytes);
+    const valueBuf = typeof value === "string" ? Buffer.from(value, "utf8") : Buffer.from(value);
+    const hmac = crypto.createHmac("sha256", keyBuf);
+    hmac.update(valueBuf);
     const buf = hmac.digest();
     return new Int8Array(buf);
   }
@@ -572,4 +602,529 @@ Deno.test("GAS - Teste 18: logs não expõem dados sensíveis", () => {
   } finally {
     restoreConsole();
   }
+});
+
+Deno.test("GAS - Teste 19: doGet e doPost em modo diagnóstico seguro retornam o handler correto", () => {
+  setupEnv();
+  // Teste doGet diagnóstico
+  const eventGet = { parameter: { diagnostic: "true" } };
+  const resGet = doGet(eventGet);
+  const resGetObj = JSON.parse(resGet.content);
+  assertEquals(resGetObj.status, "invalid_request");
+  assertEquals(resGetObj.handler, "doGet");
+
+  // Teste doPost diagnóstico vazio
+  const eventPost = { parameter: { diagnostic: "true" }, postData: null };
+  const resPost = doPost(eventPost);
+  const resPostObj = JSON.parse(resPost.content);
+  assertEquals(resPostObj.status, "invalid_request");
+  assertEquals(resPostObj.handler, "doPost");
+});
+
+Deno.test("GAS - Teste 20: dry_run assinado não envia e-mail e retorna status e quota restante", () => {
+  setupEnv();
+  const payload = {
+    purpose: "email_change",
+    idempotency_key: "idemp_test_20",
+    send_sequence: 1,
+    recipient_email: "destinatario-sintetico@conectea.org",
+    subject: "Assunto",
+    body_text: "Código: 987654",
+    dry_run: true
+  };
+  const env = makeEnvelope({ payload });
+  const event = { postData: { contents: JSON.stringify(env) } };
+
+  const res = doPost(event);
+  const resObj = JSON.parse(res.content);
+  assertEquals(resObj.status, "dry_run_validated");
+  assertEquals(resObj.quota_remaining, 100);
+  assertEquals(lastSentEmail, null); // MailApp não foi chamado
+});
+
+Deno.test("GAS - Teste 21: dry_run sem assinatura válida é rejeitado", () => {
+  setupEnv();
+  const payload = {
+    purpose: "email_change",
+    idempotency_key: "idemp_test_21",
+    send_sequence: 1,
+    recipient_email: "destinatario-sintetico@conectea.org",
+    subject: "Assunto",
+    body_text: "Código: 987654",
+    dry_run: true
+  };
+  const env = makeEnvelope({ payload });
+  env.meta.signature = "assinatura_invalida";
+  const event = { postData: { contents: JSON.stringify(env) } };
+
+  const res = doPost(event);
+  const resObj = JSON.parse(res.content);
+  assertEquals(resObj.status, "invalid_signature");
+  assertEquals(resObj.quota_remaining, undefined);
+});
+
+Deno.test("GAS - Teste 22: logs do GAS em falha de HMAC não contêm assinatura calculada ou recebida", () => {
+  setupEnv();
+  setupConsoleInterceptor();
+  try {
+    const payload = {
+      purpose: "email_change",
+      idempotency_key: "idemp_test_22",
+      send_sequence: 1,
+      recipient_email: "destinatario-sintetico@conectea.org",
+      subject: "Assunto",
+      body_text: "Código: 987654"
+    };
+    const env = makeEnvelope({ payload });
+    env.meta.signature = "f8a7e6d5c4b3a291"; // assinatura incorreta
+    const event = { postData: { contents: JSON.stringify(env) } };
+
+    doPost(event);
+
+    // Validar que nenhum log contém a assinatura enviada ("f8a7e6d5c4b3a291") ou dados internos
+    for (const logLine of interceptedLogs) {
+      assertEquals(logLine.includes("f8a7e6d5c4b3a291"), false);
+      assertEquals(logLine.includes("calculado="), false);
+      assertEquals(logLine.includes("recebido="), false);
+    }
+  } finally {
+    restoreConsole();
+  }
+});
+
+Deno.test("GAS - Teste 23: logs do GAS em falha de KID ou body hash não expõem KID ou body hash esperado/recebido", () => {
+  setupEnv();
+  setupConsoleInterceptor();
+  try {
+    const payload = {
+      purpose: "email_change",
+      idempotency_key: "idemp_test_23",
+      send_sequence: 1,
+      recipient_email: "destinatario-sintetico@conectea.org",
+      subject: "Assunto",
+      body_text: "Código: 987654"
+    };
+    const env = makeEnvelope({ payload, kid: "kid_incorreto_sintetico" });
+    const event = { postData: { contents: JSON.stringify(env) } };
+
+    doPost(event);
+
+    // Validar que nenhum log contém o kid incorreto ("kid_incorreto_sintetico") nem hashes esperados
+    for (const logLine of interceptedLogs) {
+      assertEquals(logLine.includes("kid_incorreto_sintetico"), false);
+      assertEquals(logLine.includes("esperado="), false);
+      assertEquals(logLine.includes("recebido="), false);
+    }
+  } finally {
+    restoreConsole();
+  }
+});
+
+Deno.test("GAS - Teste 24: catch externo de doPost preserva correlation_id extraído e não retorna unknown", () => {
+  setupEnv();
+  const originalGetProperties = globalThis.PropertiesService.getScriptProperties;
+  try {
+    // Forçar erro na obtenção de propriedades para simular falha geral após extração do correlation_id
+    globalThis.PropertiesService.getScriptProperties = () => {
+      throw new Error("Erro simulado no properties service");
+    };
+
+    const payload = {
+      purpose: "email_change",
+      idempotency_key: "idemp_test_24",
+      send_sequence: 1,
+      recipient_email: "destinatario-sintetico@conectea.org",
+      subject: "Assunto",
+      body_text: "Código: 987654"
+    };
+    const env = makeEnvelope({ payload, corrId: "corr_teste_24" });
+    const event = { postData: { contents: JSON.stringify(env) } };
+
+    const res = doPost(event);
+    const resObj = JSON.parse(res.content);
+
+    assertEquals(resObj.status, "temporary_failure");
+    assertEquals(resObj.correlation_id, "corr_teste_24"); // correlation_id preservado!
+  } finally {
+    globalThis.PropertiesService.getScriptProperties = originalGetProperties;
+  }
+});
+
+Deno.test("GAS - Teste 25: logs do catch geral não vazam chaves ou dados confidenciais", () => {
+  setupEnv();
+  setupConsoleInterceptor();
+  const originalGetProperties = globalThis.PropertiesService.getScriptProperties;
+  try {
+    globalThis.PropertiesService.getScriptProperties = () => {
+      throw new Error("Erro simulado no properties service");
+    };
+
+    const payload = {
+      purpose: "email_change",
+      idempotency_key: "idemp_test_25",
+      send_sequence: 1,
+      recipient_email: "destinatario-sintetico@conectea.org",
+      subject: "Assunto",
+      body_text: "Código: 987654"
+    };
+    const env = makeEnvelope({ payload, corrId: "corr_teste_25" });
+    const event = { postData: { contents: JSON.stringify(env) } };
+
+    doPost(event);
+
+    // Validar que os logs de erro geral não contêm dados criptográficos brutas reais
+    for (const logLine of interceptedLogs) {
+      if (logLine.includes("Categoria: execution_general_failure")) {
+        assertEquals(logLine.includes("Error"), true);
+        assertEquals(logLine.includes(env.meta.signature), false);
+        assertEquals(logLine.includes(env.meta.payload_sha256), false);
+        assertEquals(logLine.includes(testSigningKeyBase64Url), false);
+        assertEquals(logLine.includes(payload.recipient_email), false);
+      }
+    }
+  } finally {
+    globalThis.PropertiesService.getScriptProperties = originalGetProperties;
+    restoreConsole();
+  }
+});
+
+Deno.test("GAS - Teste 26: failure_stage exposto apenas após validação do HMAC", () => {
+  setupEnv();
+
+  // 1. Cenário de erro ANTES do HMAC (ex: erro ao ler propriedades)
+  const originalGetProperties = globalThis.PropertiesService.getScriptProperties;
+  try {
+    globalThis.PropertiesService.getScriptProperties = () => {
+      throw new Error("Erro simulado antes do HMAC");
+    };
+
+    const payload = {
+      purpose: "email_change",
+      idempotency_key: "idemp_test_26_1",
+      send_sequence: 1,
+      recipient_email: "destinatario-sintetico@conectea.org",
+      subject: "Assunto",
+      body_text: "Código: 987654"
+    };
+    const env = makeEnvelope({ payload, corrId: "corr_teste_26_1" });
+    const event = { postData: { contents: JSON.stringify(env) } };
+
+    const res = doPost(event);
+    const resObj = JSON.parse(res.content);
+
+    assertEquals(resObj.status, "temporary_failure");
+    assertEquals(resObj.correlation_id, "corr_teste_26_1");
+    assertEquals(resObj.failure_stage, undefined); // Oculto antes da validação do HMAC
+  } finally {
+    globalThis.PropertiesService.getScriptProperties = originalGetProperties;
+  }
+
+  // 2. Cenário de erro APÓS o HMAC (ex: erro no MailApp ao processar dry_run assinado válido)
+  const originalQuota = globalThis.MailApp.getRemainingDailyQuota;
+  try {
+    globalThis.MailApp.getRemainingDailyQuota = () => {
+      throw new Error("Erro simulado no MailApp");
+    };
+
+    const payload = {
+      purpose: "email_change",
+      idempotency_key: "idemp_test_26_2",
+      send_sequence: 1,
+      recipient_email: "destinatario-sintetico@conectea.org",
+      subject: "Assunto",
+      body_text: "Código: 987654",
+      dry_run: true
+    };
+    const env = makeEnvelope({ payload, corrId: "corr_teste_26_2" });
+    const event = { postData: { contents: JSON.stringify(env) } };
+
+    const res = doPost(event);
+    const resObj = JSON.parse(res.content);
+
+    assertEquals(resObj.status, "temporary_failure");
+    assertEquals(resObj.correlation_id, "corr_teste_26_2");
+    assertEquals(resObj.failure_stage, "dry_run_quota_check"); // Exposto após a validação do HMAC!
+  } finally {
+    globalThis.MailApp.getRemainingDailyQuota = originalQuota;
+  }
+});
+
+Deno.test("GAS - Teste 27: debug desativado por padrão quando CONECTEA_GAS_DRY_RUN_DEBUG_ENABLED não é 'true'", () => {
+  setupEnv();
+  // mockProperties["CONECTEA_GAS_DRY_RUN_DEBUG_ENABLED"] = undefined
+  const payload = {
+    purpose: "email_change",
+    idempotency_key: "idemp_test_27",
+    send_sequence: 1,
+    recipient_email: "destinatario-sintetico@conectea.org",
+    subject: "Assunto",
+    body_text: "Código: 987654",
+    dry_run: true,
+    debug_diagnostics: true
+  };
+  const env = makeEnvelope({ payload });
+  const event = { postData: { contents: JSON.stringify(env) } };
+  const res = doPost(event);
+  const resObj = JSON.parse(res.content);
+  // Deve retornar o comportamento de dry_run normal (sem campos de debug detalhados)
+  assertEquals(resObj.status, "dry_run_validated");
+  assertEquals(resObj.debug, undefined);
+  assertEquals(resObj.timestamp_present, undefined);
+});
+
+Deno.test("GAS - Teste 28: debug não aparece se payload.debug_diagnostics não for true", () => {
+  setupEnv();
+  mockProperties["CONECTEA_GAS_DRY_RUN_DEBUG_ENABLED"] = "true";
+  const payload = {
+    purpose: "email_change",
+    idempotency_key: "idemp_test_28",
+    send_sequence: 1,
+    recipient_email: "destinatario-sintetico@conectea.org",
+    subject: "Assunto",
+    body_text: "Código: 987654",
+    dry_run: true,
+    debug_diagnostics: false
+  };
+  const env = makeEnvelope({ payload });
+  const event = { postData: { contents: JSON.stringify(env) } };
+  const res = doPost(event);
+  const resObj = JSON.parse(res.content);
+  assertEquals(resObj.status, "dry_run_validated");
+  assertEquals(resObj.debug, undefined);
+});
+
+Deno.test("GAS - Teste 29: debug não aparece se dry_run não for true", () => {
+  setupEnv();
+  mockProperties["CONECTEA_GAS_DRY_RUN_DEBUG_ENABLED"] = "true";
+  const payload = {
+    purpose: "email_change",
+    idempotency_key: "idemp_test_29",
+    send_sequence: 1,
+    recipient_email: "destinatario-sintetico@conectea.org",
+    subject: "Assunto",
+    body_text: "Código: 987654",
+    dry_run: false,
+    debug_diagnostics: true
+  };
+  const env = makeEnvelope({ payload });
+  const event = { postData: { contents: JSON.stringify(env) } };
+  const res = doPost(event);
+  const resObj = JSON.parse(res.content);
+  assertEquals(resObj.status, "sent"); // Envio real de OTP bem sucedido
+  assertEquals(resObj.debug, undefined);
+});
+
+Deno.test("GAS - Teste 30: debug não aparece antes de HMAC válido", () => {
+  setupEnv();
+  mockProperties["CONECTEA_GAS_DRY_RUN_DEBUG_ENABLED"] = "true";
+  const payload = {
+    purpose: "email_change",
+    idempotency_key: "idemp_test_30",
+    send_sequence: 1,
+    recipient_email: "destinatario-sintetico@conectea.org",
+    subject: "Assunto",
+    body_text: "Código: 987654",
+    dry_run: true,
+    debug_diagnostics: true
+  };
+  const env = makeEnvelope({ payload });
+  env.meta.signature = "assinatura_errada";
+  const event = { postData: { contents: JSON.stringify(env) } };
+  const res = doPost(event);
+  const resObj = JSON.parse(res.content);
+  assertEquals(resObj.status, "invalid_signature");
+  assertEquals(resObj.debug, undefined);
+});
+
+Deno.test("GAS - Teste 31: debug aparece após HMAC válido, dry_run true, debug_diagnostics true e Script Property ativa", () => {
+  setupEnv();
+  mockProperties["CONECTEA_GAS_DRY_RUN_DEBUG_ENABLED"] = "true";
+  const payload = {
+    purpose: "email_change",
+    idempotency_key: "idemp_test_31",
+    send_sequence: 1,
+    recipient_email: "destinatario-sintetico@conectea.org",
+    subject: "Assunto",
+    body_text: "Código: 987654",
+    dry_run: true,
+    debug_diagnostics: true
+  };
+  const env = makeEnvelope({ payload });
+  const event = { postData: { contents: JSON.stringify(env) } };
+  const res = doPost(event);
+  const resObj = JSON.parse(res.content);
+  assertEquals(resObj.status, "dry_run_validated");
+  assertEquals(resObj.debug, true);
+  assertEquals(resObj.timestamp_present, true);
+  assertEquals(resObj.timestamp_valid, true);
+  assertEquals(resObj.kid_present, true);
+  assertEquals(resObj.kid_matches, true);
+  assertEquals(resObj.key_present, true);
+  assertEquals(resObj.key_length_ok, true);
+  assertEquals(resObj.key_base64url_shape_ok, true);
+  assertEquals(resObj.key_decode_ok, true);
+  assertEquals(resObj.payload_hash_matches, true);
+  assertEquals(resObj.signature_matches, true);
+  assertEquals(resObj.required_fields_ok, true);
+  assertEquals(resObj.email_shape_ok, true);
+  assertEquals(resObj.quota_check_reached, true);
+  assertEquals(resObj.quota_check_ok, true);
+});
+
+Deno.test("GAS - Teste 32: resposta debug contém apenas booleans/enums permitidos e não expõe confidenciais", () => {
+  setupEnv();
+  mockProperties["CONECTEA_GAS_DRY_RUN_DEBUG_ENABLED"] = "true";
+  const payload = {
+    purpose: "email_change",
+    idempotency_key: "idemp_test_32",
+    send_sequence: 1,
+    recipient_email: "destinatario-sintetico@conectea.org",
+    subject: "Assunto",
+    body_text: "Código: 987654",
+    dry_run: true,
+    debug_diagnostics: true
+  };
+  const env = makeEnvelope({ payload });
+  const event = { postData: { contents: JSON.stringify(env) } };
+  const res = doPost(event);
+  const resObj = JSON.parse(res.content);
+
+  const allowedKeys = [
+    "status",
+    "correlation_id",
+    "debug",
+    "safe_stage",
+    "timestamp_present",
+    "timestamp_valid",
+    "kid_present",
+    "kid_matches",
+    "key_present",
+    "key_length_ok",
+    "key_base64url_shape_ok",
+    "key_decode_ok",
+    "payload_hash_matches",
+    "signature_matches",
+    "required_fields_ok",
+    "email_shape_ok",
+    "quota_check_reached",
+    "quota_check_ok"
+  ].sort();
+
+  const returnedKeys = Object.keys(resObj).sort();
+  assertEquals(returnedKeys, allowedKeys);
+
+  // Certificar de que dados confidenciais não estão expostos
+  assertEquals(resObj.signing_key, undefined);
+  assertEquals(resObj.signature, undefined);
+  assertEquals(resObj.hash, undefined);
+  assertEquals(resObj.payload, undefined);
+  assertEquals(resObj.envelope, undefined);
+  assertEquals(resObj.email, undefined);
+  assertEquals(resObj.otp, undefined);
+  assertEquals(resObj.subject, undefined);
+  assertEquals(resObj.body, undefined);
+  assertEquals(resObj.kid, undefined);
+});
+
+Deno.test("GAS - Teste 33: logs de dry_run debug não vazam chaves ou dados confidenciais", () => {
+  setupEnv();
+  mockProperties["CONECTEA_GAS_DRY_RUN_DEBUG_ENABLED"] = "true";
+  setupConsoleInterceptor();
+  try {
+    const payload = {
+      purpose: "email_change",
+      idempotency_key: "idemp_test_33",
+      send_sequence: 1,
+      recipient_email: "destinatario-sintetico@conectea.org",
+      subject: "Assunto",
+      body_text: "Código: 987654",
+      dry_run: true,
+      debug_diagnostics: true
+    };
+    const env = makeEnvelope({ payload });
+    const event = { postData: { contents: JSON.stringify(env) } };
+    doPost(event);
+
+    // Verificar que nenhum log contém informações sensíveis do payload ou chaves
+    assertNoSensitivesInLogs();
+    for (const logLine of interceptedLogs) {
+      assertEquals(logLine.includes(testSigningKeyBase64Url), false);
+      assertEquals(logLine.includes(env.meta.signature), false);
+      assertEquals(logLine.includes("987654"), false);
+    }
+  } finally {
+    restoreConsole();
+  }
+});
+
+Deno.test("GAS - Teste 34: dry_run debug não chama MailApp.sendEmail nem grava tombstone", () => {
+  setupEnv();
+  mockProperties["CONECTEA_GAS_DRY_RUN_DEBUG_ENABLED"] = "true";
+  const payload = {
+    purpose: "email_change",
+    idempotency_key: "idemp_test_34",
+    send_sequence: 1,
+    recipient_email: "destinatario-sintetico@conectea.org",
+    subject: "Assunto",
+    body_text: "Código: 987654",
+    dry_run: true,
+    debug_diagnostics: true
+  };
+  const env = makeEnvelope({ payload });
+  const event = { postData: { contents: JSON.stringify(env) } };
+  doPost(event);
+
+  assertEquals(lastSentEmail, null); // MailApp.sendEmail não chamado
+
+  // Tombstone não deve ter sido gravado
+  const stateKey = 'tombstone:email_change:idemp_test_34';
+  assertEquals(mockProperties[stateKey], undefined);
+});
+
+Deno.test("GAS - Teste 35: fluxo normal sem debug continua igual", () => {
+  setupEnv();
+  // Sem habilitar debug na Script Property, envio normal de OTP
+  const payload = {
+    purpose: "email_change",
+    idempotency_key: "idemp_test_35",
+    send_sequence: 1,
+    recipient_email: "destinatario-sintetico@conectea.org",
+    subject: "Assunto",
+    body_text: "Código: 987654",
+    dry_run: false
+  };
+  const env = makeEnvelope({ payload });
+  const event = { postData: { contents: JSON.stringify(env) } };
+  const res = doPost(event);
+  const resObj = JSON.parse(res.content);
+
+  assertEquals(resObj.status, "sent");
+  assertExists(lastSentEmail);
+
+  // Tombstone gravado como sent
+  const stateKey = 'tombstone:email_change:idemp_test_35';
+  assertEquals(mockProperties[stateKey], "sent");
+});
+
+Deno.test("GAS - Teste 36: payload com campos proibidos continua rejeitado", () => {
+  setupEnv();
+  mockProperties["CONECTEA_GAS_DRY_RUN_DEBUG_ENABLED"] = "true";
+  const payload = {
+    purpose: "email_change",
+    idempotency_key: "idemp_test_36",
+    send_sequence: 1,
+    recipient_email: "destinatario-sintetico@conectea.org",
+    subject: "Assunto",
+    body_text: "Código: 987654",
+    user_id: "user-uuid-123", // Campo proibido
+    dry_run: true,
+    debug_diagnostics: true
+  };
+  const env = makeEnvelope({ payload });
+  const event = { postData: { contents: JSON.stringify(env) } };
+  const res = doPost(event);
+  const resObj = JSON.parse(res.content);
+
+  assertEquals(resObj.status, "invalid_request");
+  assertEquals(resObj.debug, undefined); // Não deve retornar debug
 });

@@ -1,5 +1,5 @@
 import { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { decryptAesGcmSeparatedTag } from "./crypto.ts";
+import { decryptAesGcmSeparatedTag, decodeBase64UrlStrict } from "./crypto.ts";
 import {
   sha256Hex,
   buildSignatureBase,
@@ -27,7 +27,91 @@ export async function sendExistingEmailChangeOtp(params: DeliveryParams): Promis
   const { supabaseAdmin, authUserId, cycleId, challengeId, correlationId } = params;
 
   try {
-    // 7. Invocar claim do envio do OTP no banco
+    // 1. Validação Preflight de Configurações Críticas
+    const gasUrl = Deno.env.get("CONECTEA_GAS_URL");
+    const kid = Deno.env.get("CONECTEA_EDGE_GAS_SIGNING_KID");
+    const signingKeyBase64Url = Deno.env.get("CONECTEA_EDGE_GAS_SIGNING_KEY");
+    const idempotencySecretKeyBase64Url = Deno.env.get("CONECTEA_IDEMPOTENCY_SECRET_KEY");
+
+    if (!gasUrl || !gasUrl.trim()) {
+      console.error(`[Correlation ID: ${correlationId}] Falha Preflight: CONECTEA_GAS_URL ausente.`);
+      return {
+        httpStatus: 200,
+        body: { error: "preflight_failed_gas_url" }
+      };
+    }
+    try {
+      const parsedUrl = new URL(gasUrl);
+      if (parsedUrl.protocol !== "https:") {
+        throw new Error("Protocol must be https");
+      }
+      const allowedHostnames = ["script.google.com", "script.googleusercontent.com"];
+      if (!allowedHostnames.includes(parsedUrl.hostname) && !parsedUrl.hostname.endsWith(".google.com") && !parsedUrl.hostname.endsWith(".googleusercontent.com")) {
+        throw new Error("Invalid hostname");
+      }
+    } catch (_urlErr) {
+      console.error(`[Correlation ID: ${correlationId}] Falha Preflight: CONECTEA_GAS_URL malformada ou insegura.`);
+      return {
+        httpStatus: 200,
+        body: { error: "preflight_failed_gas_url_invalid" }
+      };
+    }
+
+    if (!kid || !kid.trim()) {
+      console.error(`[Correlation ID: ${correlationId}] Falha Preflight: CONECTEA_EDGE_GAS_SIGNING_KID ausente.`);
+      return {
+        httpStatus: 200,
+        body: { error: "preflight_failed_kid" }
+      };
+    }
+
+    if (!signingKeyBase64Url || !signingKeyBase64Url.trim()) {
+      console.error(`[Correlation ID: ${correlationId}] Falha Preflight: CONECTEA_EDGE_GAS_SIGNING_KEY ausente.`);
+      return {
+        httpStatus: 200,
+        body: { error: "preflight_failed_signing_key" }
+      };
+    }
+    try {
+      if (signingKeyBase64Url.includes("+") || signingKeyBase64Url.includes("/") || signingKeyBase64Url.includes("=")) {
+        throw new Error("Invalid characters");
+      }
+      const decodedKey = decodeBase64UrlStrict(signingKeyBase64Url);
+      if (decodedKey.length < 32) {
+        throw new Error("Key is too short");
+      }
+    } catch (_err) {
+      console.error(`[Correlation ID: ${correlationId}] Falha Preflight: CONECTEA_EDGE_GAS_SIGNING_KEY invalida (nao base64url ou menor que 32 bytes).`);
+      return {
+        httpStatus: 200,
+        body: { error: "preflight_failed_signing_key_invalid" }
+      };
+    }
+
+    if (!idempotencySecretKeyBase64Url || !idempotencySecretKeyBase64Url.trim()) {
+      console.error(`[Correlation ID: ${correlationId}] Falha Preflight: CONECTEA_IDEMPOTENCY_SECRET_KEY ausente.`);
+      return {
+        httpStatus: 200,
+        body: { error: "preflight_failed_idempotency_key" }
+      };
+    }
+    try {
+      if (idempotencySecretKeyBase64Url.includes("+") || idempotencySecretKeyBase64Url.includes("/") || idempotencySecretKeyBase64Url.includes("=")) {
+        throw new Error("Invalid characters");
+      }
+      const decodedKey = decodeBase64UrlStrict(idempotencySecretKeyBase64Url);
+      if (decodedKey.length < 32) {
+        throw new Error("Key is too short");
+      }
+    } catch (_err) {
+      console.error(`[Correlation ID: ${correlationId}] Falha Preflight: CONECTEA_IDEMPOTENCY_SECRET_KEY invalida (nao base64url ou menor que 32 bytes).`);
+      return {
+        httpStatus: 200,
+        body: { error: "preflight_failed_idempotency_key_invalid" }
+      };
+    }
+
+    // 7. Invocar claim do envio do OTP no banco (Apenas após preflight bem sucedido)
     const { data: claimData, error: claimError } = await supabaseAdmin.rpc(
       "conectea_claim_email_change_challenge_delivery_v1",
       {
@@ -105,7 +189,6 @@ export async function sendExistingEmailChangeOtp(params: DeliveryParams): Promis
     const canonicalPayload = canonicalizeObject(gasPayload);
     const bodySha256 = await sha256Hex(canonicalPayload);
     const timestamp = new Date().toISOString();
-    const kid = Deno.env.get("CONECTEA_EDGE_GAS_SIGNING_KID") ?? "kid_default";
 
     // 11. Computar assinatura simétrica HMAC-SHA256
     const baseString = buildSignatureBase({
@@ -136,7 +219,6 @@ export async function sendExistingEmailChangeOtp(params: DeliveryParams): Promis
     const envelopeString = JSON.stringify(envelope);
 
     // 12. Fazer requisição síncrona HTTP ao GAS com envelope e headers mínimos
-    const gasUrl = Deno.env.get("CONECTEA_GAS_URL") ?? "";
     const headers = {
       "Content-Type": "application/json"
     };
@@ -163,14 +245,52 @@ export async function sendExistingEmailChangeOtp(params: DeliveryParams): Promis
     }
 
     if (!gasResponse.ok) {
-      console.warn(`[Correlation ID: ${correlationId}] GAS respondeu com status HTTP inválido: ${gasResponse.status}`);
+      const bodyText = await gasResponse.text().catch(() => "");
+      console.warn(`[Correlation ID: ${correlationId}] GAS respondeu com status HTTP inválido: ${gasResponse.status}. Redirected: ${gasResponse.redirected}. Length: ${bodyText.length}`);
       return {
         httpStatus: 200,
-        body: { claimed: true, status: "failed_temporary", error: "gas_http_failure" }
+        body: {
+          claimed: true,
+          status: "failed_temporary",
+          error: "gas_http_failure",
+          http_status: gasResponse.status,
+          redirected: gasResponse.redirected
+        }
       };
     }
 
-    const gasResult = await gasResponse.json();
+    const contentType = gasResponse.headers.get("content-type") ?? "";
+    if (!contentType.includes("application/json")) {
+      const bodyText = await gasResponse.text().catch(() => "");
+      const isHtml = bodyText.trim().toLowerCase().startsWith("<!doctype html>") || bodyText.trim().toLowerCase().startsWith("<html");
+      console.warn(`[Correlation ID: ${correlationId}] GAS respondeu com content-type nao JSON (${contentType}). Redirected: ${gasResponse.redirected}. Corpo HTML: ${isHtml}`);
+      return {
+        httpStatus: 200,
+        body: {
+          claimed: true,
+          status: "failed_temporary",
+          error: "gas_response_not_json",
+          redirected: gasResponse.redirected,
+          is_html: isHtml
+        }
+      };
+    }
+
+    let gasResult: any;
+    try {
+      gasResult = await gasResponse.json();
+    } catch (_parseErr) {
+      console.warn(`[Correlation ID: ${correlationId}] Falha de parse JSON na resposta do GAS. Redirected: ${gasResponse.redirected}`);
+      return {
+        httpStatus: 200,
+        body: {
+          claimed: true,
+          status: "failed_temporary",
+          error: "gas_response_invalid_json",
+          redirected: gasResponse.redirected
+        }
+      };
+    }
     const rawGasStatus = gasResult?.status;
     const fencingToken = claimData.delivery_attempts;
 
@@ -188,20 +308,30 @@ export async function sendExistingEmailChangeOtp(params: DeliveryParams): Promis
     const isKnown = typeof rawGasStatus === "string" && whitelist.includes(rawGasStatus);
 
     if (!isKnown) {
-      console.warn(`[Correlation ID: ${correlationId}] GAS respondeu com status desconhecido. Sem consolidação.`);
+      console.warn(`[Correlation ID: ${correlationId}] GAS respondeu com status desconhecido. Redirected: ${gasResponse.redirected}. Sem consolidação.`);
       return {
         httpStatus: 200,
-        body: { claimed: true, status: "failed_temporary", error: "gas_unknown_status" }
+        body: {
+          claimed: true,
+          status: "failed_temporary",
+          error: "gas_unknown_status",
+          redirected: gasResponse.redirected
+        }
       };
     }
 
     const gasStatus = rawGasStatus;
 
     if (gasStatus === "invalid_signature" || gasStatus === "invalid_request") {
-      console.warn(`[Correlation ID: ${correlationId}] GAS recusou a requisição (${gasStatus}). Sem consolidação.`);
+      console.warn(`[Correlation ID: ${correlationId}] GAS recusou a requisição (${gasStatus}). Redirected: ${gasResponse.redirected}. Sem consolidação.`);
       return {
         httpStatus: 200,
-        body: { claimed: true, status: "failed_temporary", error: `gas_${gasStatus}` }
+        body: {
+          claimed: true,
+          status: "failed_temporary",
+          error: `gas_${gasStatus}`,
+          redirected: gasResponse.redirected
+        }
       };
     }
 

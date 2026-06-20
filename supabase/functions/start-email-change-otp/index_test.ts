@@ -1125,3 +1125,95 @@ Deno.test({
   }
 });
 
+// Cenário 26: Teste garantindo que start-email-change-otp não chama signOut global após signInWithPassword.
+Deno.test({
+  name: "Handler - Cenário 26: reautenticação bem-sucedida não chama signOut global",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  fn: async () => {
+    setupEnv();
+    setupFetchMock();
+    resetMocks();
+    mockStartAttemptResponse = {
+      status: 200,
+      body: { result: "created", attempt_id: "attempt-uuid-123", should_authenticate: true }
+    };
+    mockSignInResponse = {
+      status: 200,
+      body: getMockTokenResponse("98765432-1111-2222-3333-abcdefabcdef")
+    };
+    mockFinalizeSuccessResponse = {
+      status: 200,
+      body: {
+        result: "finalized_success",
+        cycle_id: "cycle-uuid-123",
+        challenge_id: "challenge-uuid-456",
+        should_send: false
+      }
+    };
+
+    const req = new Request("https://localhost/start-email-change-otp", {
+      method: "POST",
+      headers: { "Authorization": mockAuthHeader },
+      body: JSON.stringify({ current_password: "senha-valida", new_email: "test@example.test" })
+    });
+    const res = await handler(req);
+    assertEquals(res.status, 200);
+
+    // Deve ter chamado signInWithPassword (/auth/v1/token)
+    const calledSignIn = lastFetchRequests.some(r => r.url.includes("/auth/v1/token"));
+    assertEquals(calledSignIn, true);
+
+    // Não deve chamar signOut (/auth/v1/logout)
+    const calledSignOut = lastFetchRequests.some(r => r.url.includes("/auth/v1/logout"));
+    assertEquals(calledSignOut, false);
+
+    restoreFetchMock();
+    cleanEnv();
+  }
+});
+
+// Cenário 27: Teste garantindo que o fluxo de reautenticação bem-sucedida continua chamando finalize success.
+Deno.test({
+  name: "Handler - Cenário 27: fluxo de reautenticação bem-sucedida continua chamando finalize success",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  fn: async () => {
+    setupEnv();
+    setupFetchMock();
+    resetMocks();
+    mockStartAttemptResponse = {
+      status: 200,
+      body: { result: "created", attempt_id: "attempt-uuid-123", should_authenticate: true }
+    };
+    mockSignInResponse = {
+      status: 200,
+      body: getMockTokenResponse("98765432-1111-2222-3333-abcdefabcdef")
+    };
+    mockFinalizeSuccessResponse = {
+      status: 200,
+      body: {
+        result: "finalized_success",
+        cycle_id: "cycle-uuid-123",
+        challenge_id: "challenge-uuid-456",
+        should_send: false
+      }
+    };
+
+    const req = new Request("https://localhost/start-email-change-otp", {
+      method: "POST",
+      headers: { "Authorization": mockAuthHeader },
+      body: JSON.stringify({ current_password: "senha-valida", new_email: "test@example.test" })
+    });
+    const res = await handler(req);
+    assertEquals(res.status, 200);
+
+    // Deve ter chamado a RPC conectea_finalize_email_change_reauth_success_v1
+    const successRpcReq = lastFetchRequests.find(r => r.url.includes("conectea_finalize_email_change_reauth_success_v1"));
+    assertExists(successRpcReq);
+    assertEquals(successRpcReq.body.p_attempt_id, "attempt-uuid-123");
+
+    restoreFetchMock();
+    cleanEnv();
+  }
+});

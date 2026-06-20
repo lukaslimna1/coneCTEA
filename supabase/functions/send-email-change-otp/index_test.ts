@@ -1268,3 +1268,504 @@ Deno.test({
     }
   }
 });
+
+Deno.test({
+  name: "Orquestração - Cenário 20: URL do GAS malformada falha antes do claim",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  fn: async () => {
+    setupTest();
+    Deno.env.set("CONECTEA_GAS_URL", "not-a-valid-url");
+    try {
+      const req = new Request("https://example.supabase.co/functions/v1/send-email-change-otp", {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer token-valido",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          cycle_id: "cycle-uuid-sintetico-123",
+          challenge_id: "challenge-uuid-sintetico-456"
+        })
+      });
+
+      const res = await handler(req);
+      assertEquals(res.status, 200);
+      const body = await res.json();
+      assertEquals(body.error, "preflight_failed_gas_url_invalid");
+
+      // Validar que NÃO chamou RPC de claim
+      const claimCall = lastRpcCalls.find(c => c.name === "conectea_claim_email_change_challenge_delivery_v1");
+      assertEquals(claimCall, undefined);
+    } finally {
+      cleanupTest();
+    }
+  }
+});
+
+Deno.test({
+  name: "Orquestração - Cenário 21: URL do GAS sem HTTPS falha antes do claim",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  fn: async () => {
+    setupTest();
+    Deno.env.set("CONECTEA_GAS_URL", "http://script.google.com/macros/s/mock/exec");
+    try {
+      const req = new Request("https://example.supabase.co/functions/v1/send-email-change-otp", {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer token-valido",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          cycle_id: "cycle-uuid-sintetico-123",
+          challenge_id: "challenge-uuid-sintetico-456"
+        })
+      });
+
+      const res = await handler(req);
+      assertEquals(res.status, 200);
+      const body = await res.json();
+      assertEquals(body.error, "preflight_failed_gas_url_invalid");
+
+      // Validar que NÃO chamou RPC de claim
+      const claimCall = lastRpcCalls.find(c => c.name === "conectea_claim_email_change_challenge_delivery_v1");
+      assertEquals(claimCall, undefined);
+    } finally {
+      cleanupTest();
+    }
+  }
+});
+
+Deno.test({
+  name: "Orquestração - Cenário 22: signing key curta falha antes do claim",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  fn: async () => {
+    setupTest();
+    // Chave menor que 32 bytes (24 bytes) em base64url
+    Deno.env.set("CONECTEA_EDGE_GAS_SIGNING_KEY", "YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4");
+    try {
+      const req = new Request("https://example.supabase.co/functions/v1/send-email-change-otp", {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer token-valido",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          cycle_id: "cycle-uuid-sintetico-123",
+          challenge_id: "challenge-uuid-sintetico-456"
+        })
+      });
+
+      const res = await handler(req);
+      assertEquals(res.status, 200);
+      const body = await res.json();
+      assertEquals(body.error, "preflight_failed_signing_key_invalid");
+
+      const claimCall = lastRpcCalls.find(c => c.name === "conectea_claim_email_change_challenge_delivery_v1");
+      assertEquals(claimCall, undefined);
+    } finally {
+      cleanupTest();
+    }
+  }
+});
+
+Deno.test({
+  name: "Orquestração - Cenário 23: signing key contendo + ou / falha antes do claim",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  fn: async () => {
+    setupTest();
+    // Chave contendo caracteres não permitidos em base64url estrito (+ ou /)
+    Deno.env.set("CONECTEA_EDGE_GAS_SIGNING_KEY", "YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXphYmMwMTIrLw==");
+    try {
+      const req = new Request("https://example.supabase.co/functions/v1/send-email-change-otp", {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer token-valido",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          cycle_id: "cycle-uuid-sintetico-123",
+          challenge_id: "challenge-uuid-sintetico-456"
+        })
+      });
+
+      const res = await handler(req);
+      assertEquals(res.status, 200);
+      const body = await res.json();
+      assertEquals(body.error, "preflight_failed_signing_key_invalid");
+
+      const claimCall = lastRpcCalls.find(c => c.name === "conectea_claim_email_change_challenge_delivery_v1");
+      assertEquals(claimCall, undefined);
+    } finally {
+      cleanupTest();
+    }
+  }
+});
+
+Deno.test({
+  name: "Orquestração - Cenário 24: KID ausente falha antes do claim",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  fn: async () => {
+    setupTest();
+    Deno.env.delete("CONECTEA_EDGE_GAS_SIGNING_KID");
+    try {
+      const req = new Request("https://example.supabase.co/functions/v1/send-email-change-otp", {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer token-valido",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          cycle_id: "cycle-uuid-sintetico-123",
+          challenge_id: "challenge-uuid-sintetico-456"
+        })
+      });
+
+      const res = await handler(req);
+      assertEquals(res.status, 200);
+      const body = await res.json();
+      assertEquals(body.error, "preflight_failed_kid");
+
+      const claimCall = lastRpcCalls.find(c => c.name === "conectea_claim_email_change_challenge_delivery_v1");
+      assertEquals(claimCall, undefined);
+    } finally {
+      cleanupTest();
+    }
+  }
+});
+
+Deno.test({
+  name: "Orquestração - Cenário 25: Idempotency key ausente falha antes do claim",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  fn: async () => {
+    setupTest();
+    Deno.env.delete("CONECTEA_IDEMPOTENCY_SECRET_KEY");
+    try {
+      const req = new Request("https://example.supabase.co/functions/v1/send-email-change-otp", {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer token-valido",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          cycle_id: "cycle-uuid-sintetico-123",
+          challenge_id: "challenge-uuid-sintetico-456"
+        })
+      });
+
+      const res = await handler(req);
+      assertEquals(res.status, 200);
+      const body = await res.json();
+      assertEquals(body.error, "preflight_failed_idempotency_key");
+
+      const claimCall = lastRpcCalls.find(c => c.name === "conectea_claim_email_change_challenge_delivery_v1");
+      assertEquals(claimCall, undefined);
+    } finally {
+      cleanupTest();
+    }
+  }
+});
+
+Deno.test({
+  name: "Orquestração - Cenário 26: Idempotency key curta falha antes do claim",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  fn: async () => {
+    setupTest();
+    Deno.env.set("CONECTEA_IDEMPOTENCY_SECRET_KEY", "YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4"); // 24 bytes
+    try {
+      const req = new Request("https://example.supabase.co/functions/v1/send-email-change-otp", {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer token-valido",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          cycle_id: "cycle-uuid-sintetico-123",
+          challenge_id: "challenge-uuid-sintetico-456"
+        })
+      });
+
+      const res = await handler(req);
+      assertEquals(res.status, 200);
+      const body = await res.json();
+      assertEquals(body.error, "preflight_failed_idempotency_key_invalid");
+
+      const claimCall = lastRpcCalls.find(c => c.name === "conectea_claim_email_change_challenge_delivery_v1");
+      assertEquals(claimCall, undefined);
+    } finally {
+      cleanupTest();
+    }
+  }
+});
+
+Deno.test({
+  name: "Orquestração - Cenário 27: Resposta HTML do GAS é categorizada sem crash",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  fn: async () => {
+    setupTest();
+    try {
+      const encEmail = await encryptAesGcm(testEmailValido, mockAesKeyBytes, nonceEmailBytes);
+      const encOtp = await encryptAesGcm(testOtpValido, mockAesKeyBytes, nonceOtpBytes);
+
+      mockClaimResponse = {
+        status: 200,
+        body: {
+          claimed: true,
+          destination_ciphertext: encEmail.ciphertext,
+          destination_nonce: encEmail.nonce,
+          destination_auth_tag: encEmail.authTag,
+          destination_encryption_key_version: 1,
+          code_ciphertext: encOtp.ciphertext,
+          code_nonce: encOtp.nonce,
+          code_auth_tag: encOtp.authTag,
+          code_encryption_key_version: 1,
+          send_sequence: 1,
+          delivery_attempts: 5
+        }
+      };
+
+      const originalFetchImpl = globalThis.fetch;
+      globalThis.fetch = async (input, init) => {
+        const urlStr = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+        if (urlStr.includes("script.google.com")) {
+          return new Response("<html><body>Login Page</body></html>", {
+            status: 200,
+            headers: { "Content-Type": "text/html" }
+          });
+        }
+        return originalFetchImpl(input, init);
+      };
+
+      const req = new Request("https://example.supabase.co/functions/v1/send-email-change-otp", {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer token-valido",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          cycle_id: "cycle-uuid-sintetico-123",
+          challenge_id: "challenge-uuid-sintetico-456"
+        })
+      });
+
+      const res = await handler(req);
+      assertEquals(res.status, 200);
+      const body = await res.json();
+      assertEquals(body.claimed, true);
+      assertEquals(body.status, "failed_temporary");
+      assertEquals(body.error, "gas_response_not_json");
+      assertEquals(body.is_html, true);
+      assertEquals(body.redirected, false);
+
+      globalThis.fetch = originalFetchImpl;
+    } finally {
+      cleanupTest();
+    }
+  }
+});
+
+Deno.test({
+  name: "Orquestração - Cenário 28: JSON inválido do GAS é categorizado sem crash",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  fn: async () => {
+    setupTest();
+    try {
+      const encEmail = await encryptAesGcm(testEmailValido, mockAesKeyBytes, nonceEmailBytes);
+      const encOtp = await encryptAesGcm(testOtpValido, mockAesKeyBytes, nonceOtpBytes);
+
+      mockClaimResponse = {
+        status: 200,
+        body: {
+          claimed: true,
+          destination_ciphertext: encEmail.ciphertext,
+          destination_nonce: encEmail.nonce,
+          destination_auth_tag: encEmail.authTag,
+          destination_encryption_key_version: 1,
+          code_ciphertext: encOtp.ciphertext,
+          code_nonce: encOtp.nonce,
+          code_auth_tag: encOtp.authTag,
+          code_encryption_key_version: 1,
+          send_sequence: 1,
+          delivery_attempts: 5
+        }
+      };
+
+      const originalFetchImpl = globalThis.fetch;
+      globalThis.fetch = async (input, init) => {
+        const urlStr = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+        if (urlStr.includes("script.google.com")) {
+          return new Response("{malformed_json: true", {
+            status: 200,
+            headers: { "Content-Type": "application/json" }
+          });
+        }
+        return originalFetchImpl(input, init);
+      };
+
+      const req = new Request("https://example.supabase.co/functions/v1/send-email-change-otp", {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer token-valido",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          cycle_id: "cycle-uuid-sintetico-123",
+          challenge_id: "challenge-uuid-sintetico-456"
+        })
+      });
+
+      const res = await handler(req);
+      assertEquals(res.status, 200);
+      const body = await res.json();
+      assertEquals(body.claimed, true);
+      assertEquals(body.status, "failed_temporary");
+      assertEquals(body.error, "gas_response_invalid_json");
+
+      globalThis.fetch = originalFetchImpl;
+    } finally {
+      cleanupTest();
+    }
+  }
+});
+
+Deno.test({
+  name: "Orquestração - Cenário 29: HTTP status não-OK é categorizado",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  fn: async () => {
+    setupTest();
+    try {
+      const encEmail = await encryptAesGcm(testEmailValido, mockAesKeyBytes, nonceEmailBytes);
+      const encOtp = await encryptAesGcm(testOtpValido, mockAesKeyBytes, nonceOtpBytes);
+
+      mockClaimResponse = {
+        status: 200,
+        body: {
+          claimed: true,
+          destination_ciphertext: encEmail.ciphertext,
+          destination_nonce: encEmail.nonce,
+          destination_auth_tag: encEmail.authTag,
+          destination_encryption_key_version: 1,
+          code_ciphertext: encOtp.ciphertext,
+          code_nonce: encOtp.nonce,
+          code_auth_tag: encOtp.authTag,
+          code_encryption_key_version: 1,
+          send_sequence: 1,
+          delivery_attempts: 5
+        }
+      };
+
+      const originalFetchImpl = globalThis.fetch;
+      globalThis.fetch = async (input, init) => {
+        const urlStr = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+        if (urlStr.includes("script.google.com")) {
+          return new Response("Internal Server Error", {
+            status: 500,
+            headers: { "Content-Type": "text/plain" }
+          });
+        }
+        return originalFetchImpl(input, init);
+      };
+
+      const req = new Request("https://example.supabase.co/functions/v1/send-email-change-otp", {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer token-valido",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          cycle_id: "cycle-uuid-sintetico-123",
+          challenge_id: "challenge-uuid-sintetico-456"
+        })
+      });
+
+      const res = await handler(req);
+      assertEquals(res.status, 200);
+      const body = await res.json();
+      assertEquals(body.claimed, true);
+      assertEquals(body.status, "failed_temporary");
+      assertEquals(body.error, "gas_http_failure");
+      assertEquals(body.http_status, 500);
+
+      globalThis.fetch = originalFetchImpl;
+    } finally {
+      cleanupTest();
+    }
+  }
+});
+
+Deno.test({
+  name: "Orquestração - Cenário 30: Redirect do GAS com invalid_request repassa redirected: true",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  fn: async () => {
+    setupTest();
+    try {
+      const encEmail = await encryptAesGcm(testEmailValido, mockAesKeyBytes, nonceEmailBytes);
+      const encOtp = await encryptAesGcm(testOtpValido, mockAesKeyBytes, nonceOtpBytes);
+
+      mockClaimResponse = {
+        status: 200,
+        body: {
+          claimed: true,
+          destination_ciphertext: encEmail.ciphertext,
+          destination_nonce: encEmail.nonce,
+          destination_auth_tag: encEmail.authTag,
+          destination_encryption_key_version: 1,
+          code_ciphertext: encOtp.ciphertext,
+          code_nonce: encOtp.nonce,
+          code_auth_tag: encOtp.authTag,
+          code_encryption_key_version: 1,
+          send_sequence: 1,
+          delivery_attempts: 5
+        }
+      };
+
+      const originalFetchImpl = globalThis.fetch;
+      globalThis.fetch = async (input, init) => {
+        const urlStr = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+        if (urlStr.includes("script.google.com")) {
+          const mockResponse = new Response(JSON.stringify({ status: "invalid_request" }), {
+            status: 200,
+            headers: { "Content-Type": "application/json" }
+          });
+          Object.defineProperty(mockResponse, "redirected", { value: true });
+          return mockResponse;
+        }
+        return originalFetchImpl(input, init);
+      };
+
+      const req = new Request("https://example.supabase.co/functions/v1/send-email-change-otp", {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer token-valido",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          cycle_id: "cycle-uuid-sintetico-123",
+          challenge_id: "challenge-uuid-sintetico-456"
+        })
+      });
+
+      const res = await handler(req);
+      assertEquals(res.status, 200);
+      const body = await res.json();
+      assertEquals(body.claimed, true);
+      assertEquals(body.status, "failed_temporary");
+      assertEquals(body.error, "gas_invalid_request");
+      assertEquals(body.redirected, true);
+
+      globalThis.fetch = originalFetchImpl;
+    } finally {
+      cleanupTest();
+    }
+  }
+});

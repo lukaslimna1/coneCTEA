@@ -293,14 +293,7 @@ export async function handler(req: Request): Promise<Response> {
       password: current_password
     });
 
-    // Best effort sign out
-    if (signInData?.session) {
-      try {
-        await authClient.auth.signOut();
-      } catch (_err) {
-        // Ignorado em modo best-effort
-      }
-    }
+
 
     if (!signInError && signInData?.user && signInData.user.id !== authUserId) {
       await supabaseAdmin.rpc("conectea_finalize_email_change_reauth_failure_v1", {
