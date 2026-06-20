@@ -63,7 +63,7 @@ export async function loadAesGcmKey(version: number): Promise<CryptoKey> {
   try {
     return await crypto.subtle.importKey(
       "raw",
-      keyBytes,
+      keyBytes as any,
       { name: "AES-GCM" },
       false,
       ["decrypt"]
@@ -120,11 +120,11 @@ export async function decryptAesGcmSeparatedTag(params: DecryptParams): Promise<
     const decryptedBuffer = await crypto.subtle.decrypt(
       {
         name: "AES-GCM",
-        iv: nonceBytes,
+        iv: nonceBytes as any,
         tagLength: 128,
       },
       key,
-      encryptedBuffer
+      encryptedBuffer as any
     );
 
     return new TextDecoder().decode(decryptedBuffer);

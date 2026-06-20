@@ -20,7 +20,7 @@ async function encryptAesGcm(
 ): Promise<{ ciphertext: string; authTag: string; nonce: string }> {
   const key = await crypto.subtle.importKey(
     "raw",
-    keyBytes,
+    keyBytes as any,
     { name: "AES-GCM" },
     false,
     ["encrypt"]
@@ -30,11 +30,11 @@ async function encryptAesGcm(
   const encryptedBuffer = await crypto.subtle.encrypt(
     {
       name: "AES-GCM",
-      iv: nonceBytes,
+      iv: nonceBytes as any,
       tagLength: 128,
     },
     key,
-    plainTextBytes
+    plainTextBytes as any
   );
 
   const totalBytes = new Uint8Array(encryptedBuffer);

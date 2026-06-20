@@ -24,7 +24,7 @@ export async function sha256Hex(input: string | Uint8Array): Promise<string> {
     throw new Error("invalid_input_for_sha256");
   }
   const bytes = typeof input === "string" ? new TextEncoder().encode(input) : input;
-  const hashBuffer = await crypto.subtle.digest("SHA-256", bytes);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", bytes as any);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
 }
@@ -85,7 +85,7 @@ export async function loadHmacKeyFromBase64UrlEnv(envName: string): Promise<Cryp
   try {
     return await crypto.subtle.importKey(
       "raw",
-      keyBytes,
+      keyBytes as any,
       { name: "HMAC", hash: "SHA-256" },
       false,
       ["sign"]
