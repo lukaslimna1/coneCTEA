@@ -1,5 +1,7 @@
 import { decodeBase64UrlStrict } from "./crypto.ts";
 
+declare const Deno: any;
+
 /**
  * ConeCTEA — helpers locais de Assinatura, Idempotência e Correlação Edge → GAS
  */
@@ -142,4 +144,19 @@ export function createCorrelationId(): string {
   const bytes = new Uint8Array(16);
   crypto.getRandomValues(bytes);
   return `corr_${encodeBase64Url(bytes)}`;
+}
+
+/**
+ * Serializa um objeto JSON determinística e canonicamente, com chaves ordenadas.
+ */
+export function canonicalizeObject(obj: any): string {
+  if (obj === null || typeof obj !== "object") {
+    return JSON.stringify(obj);
+  }
+  if (Array.isArray(obj)) {
+    return `[${obj.map(canonicalizeObject).join(",")}]`;
+  }
+  const keys = Object.keys(obj).sort();
+  const parts = keys.map(k => `"${k}":${canonicalizeObject(obj[k])}`);
+  return `{${parts.join(",")}}`;
 }

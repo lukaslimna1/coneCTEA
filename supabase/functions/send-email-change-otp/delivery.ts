@@ -29,6 +29,7 @@ function buildEmailChangeOtpEmailTemplate(otp: string): { subject: string; bodyT
     <tr>
       <td align="center">
         <table width="100%" max-width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+
           <!-- Cabeçalho -->
           <tr>
             <td style="background-color: #1a237e; padding: 24px; text-align: center;">
@@ -59,8 +60,22 @@ function buildEmailChangeOtpEmailTemplate(otp: string): { subject: string; bodyT
           <!-- Rodapé Institucional -->
           <tr>
             <td style="background-color: #f9fafb; padding: 24px; text-align: center; border-top: 1px solid #eeeeee;">
-              <p style="margin: 0 0 4px 0; font-size: 14px; font-weight: bold; color: #333333;">ConeCTEA</p>
-              <p style="margin: 0 0 4px 0; font-size: 13px; color: #555555;">Família TEA Bauru</p>
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 16px;">
+                <tr>
+                  <td align="center">
+                    <table cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td align="right" valign="middle" style="padding-right: 12px;">
+                          <img src="https://jyxpofhoohxdqmkdgwtu.supabase.co/storage/v1/object/public/assets/conectea_logo.png" alt="ConeCTEA" width="140" style="display: block; max-width: 100%; height: auto; border: 0; outline: none; text-decoration: none;">
+                        </td>
+                        <td align="left" valign="middle" style="padding-left: 12px;">
+                          <img src="https://jyxpofhoohxdqmkdgwtu.supabase.co/storage/v1/object/public/assets/Famillia%20Tea%20Bauru%20-%20Logo.png" alt="Família TEA Bauru" width="105" style="display: block; max-width: 100%; height: auto; border: 0; outline: none; text-decoration: none;">
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
               <p style="margin: 0 0 24px 0; font-size: 12px; color: #888888;">Carteirinha comunitária e rede de apoio</p>
 
               <p style="margin: 0; font-size: 11px; color: #999999; line-height: 1.5; text-align: justify;">
