@@ -24,6 +24,7 @@ export 'componentes/ds_avatar.dart';
 export 'componentes/ds_bottom_nav_bar.dart';
 export 'componentes/ds_app_top_header.dart';
 export 'componentes/ds_status_dialog.dart';
+export 'componentes/ds_dialog.dart';
 
 // Padrões
 export 'padroes/ds_card_hub.dart';

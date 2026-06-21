@@ -122,6 +122,38 @@ class AuthService {
     }
   }
 
+  /// Cancela o ciclo ativo de alteração de e-mail
+  Future<Map<String, dynamic>> cancelEmailChange() async {
+    try {
+      final response = await _supabase.rpc(
+        'conectea_cancel_email_change_v1',
+      );
+
+      final data = response as Map<String, dynamic>?;
+      if (data != null && data['status'] == 'success') {
+        return {'status': 'success'};
+      } else if (data != null && data['status'] == 'no_active_cycle') {
+        return {'status': 'success'}; // Se não tem ciclo, já está cancelado/limpo
+      } else {
+        return {
+          'status': 'error',
+          'error': 'unknown_error',
+        };
+      }
+    } catch (e) {
+      if (e is PostgrestException) {
+        return {
+          'status': 'error',
+          'error': e.message,
+        };
+      }
+      return {
+        'status': 'error',
+        'error': e.toString(),
+      };
+    }
+  }
+
   /// Consulta o ciclo ativo de alteração de e-mail do próprio usuário.
   Future<Map<String, dynamic>> getActiveEmailChangeCycle() async {
     try {

@@ -1,4 +1,4 @@
-import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
@@ -26,6 +26,7 @@ class _EmailChangeFlowState extends State<EmailChangeFlow> {
   bool _isResume = false;
   bool _destinationKnown = true;
   bool _isLoadingCycle = true;
+  int _formNonce = 0;
 
   
   AppNavigationGuardController? _navigationGuardController;
@@ -139,87 +140,31 @@ class _EmailChangeFlowState extends State<EmailChangeFlow> {
     final isStep2 = _currentStep == 2;
     
     final title = isStep2 
-        ? 'Alteração de e-mail em andamento'
+        ? 'Continuar mais tarde?'
         : 'Sair da alteração de e-mail?';
         
     final description = isStep2
-        ? 'Você já recebeu um código de segurança. Digite o código para concluir a alteração. O cancelamento real será conectado na próxima etapa.'
+        ? 'O código continua válido por 15 minutos. Você pode sair agora e voltar para concluir enquanto ele ainda estiver válido.'
         : 'As informações digitadas serão perdidas.';
 
-    final result = await showDialog<bool>(
+    final result = await DsDialog.show<bool>(
       context: context,
-      barrierColor: Colors.black.withValues(alpha: 0.8),
-      builder: (context) {
-        return BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Dialog(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            insetPadding: const EdgeInsets.symmetric(horizontal: 28),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 360),
-              child: DsCard(
-                padding: EdgeInsets.zero,
-                radius: 20,
-                borderColor: DsCores.alerta.border,
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        PhosphorIconsRegular.warningCircle,
-                        color: DsCores.alerta.accent,
-                        size: 40,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        title,
-                        style: DsTipografia.cardTitle.copyWith(
-                          color: DsCores.textPrimary,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        description,
-                        style: DsTipografia.bodySmall.copyWith(
-                          color: DsCores.textSecondary,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 24),
-                      Row(
-                        children: [
-                          if (!isStep2) ...[
-                            Expanded(
-                              child: DsBotao(
-                                label: 'Sair',
-                                onPressed: () => Navigator.pop(context, true),
-                                variante: DsBotaoVariante.ghost,
-                                token: DsCores.alerta,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                          ],
-                          Expanded(
-                            child: DsBotao(
-                              label: 'Continuar',
-                              onPressed: () => Navigator.pop(context, false),
-                              variante: DsBotaoVariante.acao,
-                              token: DsCores.conta,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-      },
+      title: title,
+      description: description,
+      icon: PhosphorIconsRegular.warningCircle,
+      token: DsCores.alerta,
+      secondaryAction: DsDialogAction(
+        label: isStep2 ? 'Depois' : 'Sair',
+        value: true,
+        variante: isStep2 ? DsBotaoVariante.acao : DsBotaoVariante.ghost,
+        token: DsCores.alerta,
+      ),
+      primaryAction: DsDialogAction(
+        label: 'Continuar',
+        value: false,
+        variante: DsBotaoVariante.acao,
+        token: DsCores.sucesso,
+      ),
     );
     return result ?? false;
   }
@@ -296,6 +241,15 @@ class _EmailChangeFlowState extends State<EmailChangeFlow> {
   void _onBackToForm() {
     setState(() {
       _currentStep = 1;
+      _newEmail = '';
+      _currentPassword = '';
+      _emailMasked = '';
+      _cooldownSeconds = 60;
+      _validitySeconds = 15 * 60;
+      _isResume = false;
+      _destinationKnown = true;
+      _formHasChanges = false;
+      _formNonce++;
     });
   }
 
@@ -376,7 +330,7 @@ class _EmailChangeFlowState extends State<EmailChangeFlow> {
     switch (_currentStep) {
       case 1:
         return EmailChangeFormSection(
-          key: const ValueKey('form_section'),
+          key: ValueKey('form_section_$_formNonce'),
           initialEmail: _newEmail,
           initialPassword: _currentPassword,
           onCodeSent: _onCodeSent,

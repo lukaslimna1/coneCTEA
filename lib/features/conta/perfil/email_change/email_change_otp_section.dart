@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -115,8 +115,12 @@ class _EmailChangeOtpSectionState extends State<EmailChangeOtpSection> {
     if (_isLoading) return;
     if (!_validateOtp()) return;
 
-    final confirmed = await _showDeParaModal();
-    if (confirmed != true) return;
+    final resultAction = await _showDeParaModal();
+    if (resultAction == 'cancel') {
+      await _executeRealCancel();
+      return;
+    }
+    if (resultAction != 'confirm') return;
 
     if (!mounted) return;
     setState(() {
@@ -186,7 +190,7 @@ class _EmailChangeOtpSectionState extends State<EmailChangeOtpSection> {
     }
   }
 
-  Future<bool> _showDeParaModal() async {
+  Future<String?> _showDeParaModal() async {
     final isIdenticalMasked = widget.isResume && widget.emailMasked == widget.newEmail;
     
     final title = widget.destinationKnown && !isIdenticalMasked
@@ -201,142 +205,86 @@ class _EmailChangeOtpSectionState extends State<EmailChangeOtpSection> {
 
     final confirmLabel = (widget.destinationKnown && !isIdenticalMasked) ? 'Confirmar' : 'Confirmar código';
 
-    final confirmed = await showDialog<bool>(
+    final confirmed = await DsDialog.show<String>(
       context: context,
-      barrierColor: Colors.black.withValues(alpha: 0.8),
-      builder: (context) {
-        return BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Dialog(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            insetPadding: const EdgeInsets.symmetric(horizontal: 24),
-            child: DsCard(
-              padding: const EdgeInsets.all(24),
-              borderColor: DsCores.sucesso.border,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(PhosphorIconsRegular.swap, color: DsCores.sucesso.accent, size: 40),
-                  const SizedBox(height: 16),
-                  Text(title, style: DsTipografia.cardTitle, textAlign: TextAlign.center),
-                  const SizedBox(height: 8),
-                  Text(
-                    description,
-                    style: DsTipografia.bodySmall.copyWith(color: DsCores.textSecondary),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    children: [
-                      Expanded(child: DsBotao(label: 'Voltar', onPressed: () => Navigator.pop(context, false), variante: DsBotaoVariante.ghost)),
-                      const SizedBox(width: 12),
-                      Expanded(child: DsBotao(label: confirmLabel, onPressed: () => Navigator.pop(context, true), variante: DsBotaoVariante.acao, token: DsCores.sucesso)),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
+      title: title,
+      description: description,
+      icon: PhosphorIconsRegular.swap,
+      token: DsCores.seguranca,
+      secondaryAction: const DsDialogAction(
+        label: 'Cancelar',
+        value: 'cancel',
+        variante: DsBotaoVariante.perigo,
+      ),
+      primaryAction: DsDialogAction(
+        label: confirmLabel,
+        value: 'confirm',
+        variante: DsBotaoVariante.acao,
+        token: DsCores.sucesso,
+      ),
     );
 
-    return confirmed ?? false;
+    return confirmed;
   }
 
-  Future<void> _showCancelModal() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      barrierColor: Colors.black.withValues(alpha: 0.8),
-      builder: (context) {
-        return BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Dialog(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            insetPadding: const EdgeInsets.symmetric(horizontal: 24),
-            child: DsCard(
-              padding: const EdgeInsets.all(24),
-              borderColor: DsCores.alerta.border,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(PhosphorIconsRegular.warningCircle, color: DsCores.alerta.accent, size: 40),
-                  const SizedBox(height: 16),
-                  Text('Cancelar alteração de e-mail?', style: DsTipografia.cardTitle, textAlign: TextAlign.center),
-                  const SizedBox(height: 8),
-                  Text(
-                    'O cancelamento real ainda não está conectado. Para evitar perda do código, continue nesta tela e use o código recebido.',
-                    style: DsTipografia.bodySmall.copyWith(color: DsCores.textSecondary),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: DsBotao(
-                          label: 'Continuar aqui',
-                          onPressed: () => Navigator.pop(context, false),
-                          variante: DsBotaoVariante.acao,
-                          token: DsCores.conta,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
+  Future<void> _executeRealCancel() async {
+    setState(() {
+      _isLoading = true;
+      _clearErrors();
+    });
 
-    if (confirmed == true && mounted) {
+    final result = await AuthService().cancelEmailChange();
+
+    if (!mounted) return;
+
+    if (result['status'] == 'success') {
+      widget.onBackToForm();
+    } else {
       setState(() {
-        _generalError = 'Cancelamento real será conectado na próxima etapa.';
+        _isLoading = false;
+        _generalError = 'Não foi possível cancelar a alteração agora. Tente novamente.';
       });
     }
   }
 
-  Future<void> _showResendModal() async {
-    final confirmed = await showDialog<bool>(
+  Future<void> _showCancelModal() async {
+    final confirmed = await DsDialog.show<bool>(
       context: context,
-      barrierColor: Colors.black.withValues(alpha: 0.8),
-      builder: (context) {
-        return BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Dialog(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            insetPadding: const EdgeInsets.symmetric(horizontal: 24),
-            child: DsCard(
-              padding: const EdgeInsets.all(24),
-              borderColor: DsCores.conta.border,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(PhosphorIconsRegular.paperPlaneRight, color: DsCores.conta.accent, size: 40),
-                  const SizedBox(height: 16),
-                  Text('Reenviar código?', style: DsTipografia.cardTitle, textAlign: TextAlign.center),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Reenvio real ainda não está conectado. Continue pelo código enviado anteriormente ou aguarde a etapa de cancelamento.',
-                    style: DsTipografia.bodySmall.copyWith(color: DsCores.textSecondary),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    children: [
-                      Expanded(child: DsBotao(label: 'Voltar', onPressed: () => Navigator.pop(context, false), variante: DsBotaoVariante.ghost)),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
+      title: 'Cancelar alteração de e-mail?',
+      description: 'O código enviado deixará de valer e você precisará começar de novo se quiser alterar o e-mail.',
+      icon: PhosphorIconsRegular.warningCircle,
+      token: DsCores.perigo,
+      secondaryAction: const DsDialogAction(
+        label: 'Continuar',
+        value: false,
+        variante: DsBotaoVariante.acao,
+        token: DsCores.sucesso,
+      ),
+      primaryAction: const DsDialogAction(
+        label: 'Cancelar',
+        value: true,
+        variante: DsBotaoVariante.perigo,
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      await _executeRealCancel();
+    }
+  }
+
+  Future<void> _showResendModal() async {
+    final confirmed = await DsDialog.show<bool>(
+      context: context,
+      title: 'Reenviar código?',
+      description: 'Reenvio real ainda não está conectado. Continue pelo código enviado anteriormente ou aguarde a etapa de cancelamento.',
+      icon: PhosphorIconsRegular.paperPlaneRight,
+      token: DsCores.manutencao,
+      primaryAction: const DsDialogAction(
+        label: 'Voltar',
+        value: false,
+        variante: DsBotaoVariante.acao,
+        token: DsCores.conta,
+      ),
     );
 
     if (confirmed == true && mounted) {
@@ -536,9 +484,9 @@ class _EmailChangeOtpSectionState extends State<EmailChangeOtpSection> {
           ),
           const SizedBox(height: 12),
           DsBotao(
-            label: 'Cancelar alteração',
+            label: 'Cancelar',
             onPressed: _isLoading ? null : _showCancelModal,
-            variante: DsBotaoVariante.ghost,
+            variante: DsBotaoVariante.perigo,
           ),
         ],
       ),
