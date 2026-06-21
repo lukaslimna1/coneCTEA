@@ -28,6 +28,7 @@ class DsDialog<T> extends StatelessWidget {
   final DsCorVisual token;
   final DsDialogAction<T> primaryAction;
   final DsDialogAction<T>? secondaryAction;
+  final bool forceVerticalActions;
 
   const DsDialog({
     super.key,
@@ -37,6 +38,7 @@ class DsDialog<T> extends StatelessWidget {
     required this.primaryAction,
     this.secondaryAction,
     this.icon,
+    this.forceVerticalActions = false,
   });
 
   static Future<T?> show<T>({
@@ -48,6 +50,7 @@ class DsDialog<T> extends StatelessWidget {
     DsDialogAction<T>? secondaryAction,
     IconData? icon,
     bool barrierDismissible = true,
+    bool forceVerticalActions = false,
   }) {
     return showDialog<T>(
       context: context,
@@ -69,6 +72,7 @@ class DsDialog<T> extends StatelessWidget {
                 icon: icon,
                 primaryAction: primaryAction,
                 secondaryAction: secondaryAction,
+                forceVerticalActions: forceVerticalActions,
               ),
             ),
           ),
@@ -107,8 +111,8 @@ class DsDialog<T> extends StatelessWidget {
           const SizedBox(height: 24),
           LayoutBuilder(
             builder: (context, constraints) {
-              if (constraints.maxWidth < 280 && secondaryAction != null) {
-                // Empilhar botões verticalmente em telas muito pequenas
+              if ((forceVerticalActions || constraints.maxWidth < 280) && secondaryAction != null) {
+                // Empilhar botões verticalmente em telas muito pequenas ou forçado
                 return Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [

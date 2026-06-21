@@ -16,6 +16,8 @@ import 'package:conectea/features/conta/institucional/about_conectea_view.dart';
 import 'package:conectea/features/conta/institucional/family_tea_view.dart';
 import 'package:conectea/features/participar/projects_actions_view.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
+import 'package:conectea/core/design_system_v2/design_system_v2.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:conectea/features/home/widgets/banners/home_banners_section.dart';
 import 'package:conectea/features/home/widgets/novidades/home_services_section.dart';
@@ -32,6 +34,7 @@ class HomeView extends StatefulWidget {
   final Function(int) onNavigate;
   final VoidCallback onOpenSecurity;
   final VoidCallback onOpenSupport;
+  final VoidCallback onOpenEmailChangeFlow;
 
   const HomeView({
     super.key,
@@ -39,6 +42,7 @@ class HomeView extends StatefulWidget {
     required this.onNavigate,
     required this.onOpenSecurity,
     required this.onOpenSupport,
+    required this.onOpenEmailChangeFlow,
   });
 
   @override
@@ -57,6 +61,9 @@ class _HomeViewState extends State<HomeView> {
   Stream<List<Member>>? _membersStream;
   Stream<List<CardRequest>>? _cardRequestsStream;
   Stream<List<DigitalCard>>? _digitalCardsStream;
+
+  bool _emailChangeReminderChecked = false;
+  bool _emailChangeReminderDialogOpen = false;
 
   Member? _getSelectedMember(List<Member> members) {
     if (members.isEmpty) return null;
@@ -124,6 +131,17 @@ class _HomeViewState extends State<HomeView> {
         _membersStream = _databaseService.membersStream(userId);
         _cardRequestsStream = _databaseService.cardRequestsStream(userId);
         _digitalCardsStream = _databaseService.digitalCardsStream(userId);
+
+        if (!_emailChangeReminderChecked) {
+          _emailChangeReminderChecked = true;
+          final cycle = await _databaseService.getActiveEmailChangeCycle();
+          if (cycle != null && mounted && !_emailChangeReminderDialogOpen) {
+            _emailChangeReminderDialogOpen = true;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _showEmailChangeReminderModal(cycle);
+            });
+          }
+        }
 
         if (mounted) {
           setState(() {
@@ -270,6 +288,42 @@ class _HomeViewState extends State<HomeView> {
     }
   }
 
+  void _showEmailChangeReminderModal(Map<String, dynamic> cycle) {
+    if (!mounted) return;
+
+    final destinationMasked = cycle['destination_masked'] ?? '';
+    final message = destinationMasked.isNotEmpty
+        ? 'Você tem uma alteração de e-mail para $destinationMasked aguardando confirmação. Confirme o código enviado para o novo e-mail ou cancele a solicitação se não quiser continuar.'
+        : 'Você tem uma alteração de e-mail aguardando confirmação. Confirme o código enviado para o novo e-mail ou cancele a solicitação se não quiser continuar.';
+
+    DsDialog.show<bool>(
+      context: context,
+      title: 'Alteração de e-mail pendente',
+      description: message,
+      icon: PhosphorIconsRegular.shieldCheck,
+      token: DsCores.seguranca,
+      barrierDismissible: false,
+      forceVerticalActions: true,
+      primaryAction: DsDialogAction(
+        label: 'Ver solicitação',
+        value: true,
+        variante: DsBotaoVariante.acao,
+      ),
+      secondaryAction: const DsDialogAction(
+        label: 'Depois',
+        value: false,
+        variante: DsBotaoVariante.ghost,
+      ),
+    ).then((result) {
+      if (!mounted) return;
+      _emailChangeReminderDialogOpen = false;
+
+      if (result == true) {
+        widget.onOpenEmailChangeFlow();
+      }
+    });
+  }
+
   String get _displayName {
     if (_user != null) {
       final displayUserName =
@@ -340,6 +394,7 @@ class _HomeViewState extends State<HomeView> {
                       role: _user?.role,
                       onQrTap: () => context.push('/qr-scanner'),
                     ),
+
                     const SizedBox(height: 28),
 
                     // Bloco Dinâmico Reativo

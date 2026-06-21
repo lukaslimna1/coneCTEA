@@ -269,7 +269,7 @@ class _EmailChangeFlowState extends State<EmailChangeFlow> {
             children: [
               // Barra superior de navegacao
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: const EdgeInsets.symmetric(horizontal: DsEspacamentos.lg, vertical: DsEspacamentos.sm),
                 child: Row(
                   children: [
                     DsBotaoVoltar(
@@ -283,7 +283,7 @@ class _EmailChangeFlowState extends State<EmailChangeFlow> {
             Expanded(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
+                padding: const EdgeInsets.fromLTRB(DsEspacamentos.lg, DsEspacamentos.sm, DsEspacamentos.lg, DsEspacamentos.xl),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

@@ -13,6 +13,7 @@ import '../notificacoes/notifications_view.dart';
 import '../conta/account_view.dart';
 import '../conta/seguranca/security_view.dart';
 import '../conta/suporte/support_view.dart';
+import '../conta/perfil/email_change/email_change_flow.dart';
 import '../admin/admin_view.dart';
 import '../clube/partners_supporters_view.dart';
 import '../participar/projects_actions_view.dart';
@@ -293,6 +294,24 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     });
   }
 
+  Future<void> _handleOpenEmailChangeFlow() async {
+    final canNavigate = await _navigationGuardController.canNavigateAway();
+    if (!canNavigate) return;
+
+    setState(() {
+      _currentIndex = 4; // Aba Conta
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_accountNavigatorKey.currentState != null) {
+        _accountNavigatorKey.currentState!.popUntil((route) => route.isFirst);
+        _accountNavigatorKey.currentState!.push(
+          MaterialPageRoute(builder: (context) => const EmailChangeFlow()),
+        );
+      }
+    });
+  }
+
   void _handleProfileUpdated(AppUser updatedUser) {
     if (mounted) {
       setState(() {
@@ -331,7 +350,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           onNavigate: (index) => setState(() => _currentIndex = index),
           onOpenSecurity: _handleOpenSecurity,
           onOpenSupport: _handleOpenSupport,
-        );
+          onOpenEmailChangeFlow: _handleOpenEmailChangeFlow,
+          );
       case 1:
         return const CardsView();
       case 2:
@@ -358,7 +378,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           onNavigate: (index) => setState(() => _currentIndex = index),
           onOpenSecurity: _handleOpenSecurity,
           onOpenSupport: _handleOpenSupport,
-        );
+          onOpenEmailChangeFlow: _handleOpenEmailChangeFlow,
+          );
     }
   }
 

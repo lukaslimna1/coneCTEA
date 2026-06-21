@@ -1197,4 +1197,30 @@ class DatabaseService {
     final rawMap = Map<String, dynamic>.from(firstItem);
     return AccountChangeRequest.fromJson(rawMap);
   }
+
+  /// Consulta o ciclo ativo de alteração de e-mail usando RPC segura.
+  Future<Map<String, dynamic>?> getActiveEmailChangeCycle() async {
+    try {
+      final response = await _supabase.rpc(
+        'conectea_get_active_email_change_cycle_v1',
+      );
+
+      if (response == null) return null;
+
+      if (response is Map) {
+        final data = Map<String, dynamic>.from(response);
+        if (data['has_active_cycle'] == true && data['destination_email_masked'] != null) {
+          return {
+            'destination_masked': data['destination_email_masked'],
+            'expires_at': data['otp_expires_at'],
+          };
+        }
+      }
+
+      return null;
+    } catch (e) {
+      // Falha silenciosa para evitar travar o app na Home
+      return null;
+    }
+  }
 }
