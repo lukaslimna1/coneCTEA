@@ -5,10 +5,79 @@ import {
   buildSignatureBase,
   loadHmacKeyFromBase64UrlEnv,
   signHmacSha256Hex,
-  createGasIdempotencyKey
+  createGasIdempotencyKey,
+  canonicalizeObject
 } from "./signing.ts";
 
 declare const Deno: any;
+
+function buildEmailChangeOtpEmailTemplate(otp: string): { subject: string; bodyText: string; bodyHtml: string } {
+  const subject = "Confirmação de alteração de e-mail — ConeCTEA";
+
+  const bodyText = `Olá!\n\nRecebemos uma solicitação para alterar o e-mail da sua conta no ConeCTEA.\n\nUse o código abaixo para confirmar essa alteração:\n\n${otp}\n\nEste código expira em 15 minutos.\n\n---\nConeCTEA\nFamília TEA Bauru\nCarteirinha comunitária e rede de apoio\n\nAviso:\nEste e-mail foi enviado automaticamente para confirmar uma solicitação de alteração de e-mail. Se você não fez essa solicitação, ignore esta mensagem. Nenhuma alteração será feita sem a confirmação do código.`;
+
+  const bodyHtml = `
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confirmação de alteração de e-mail</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f6f9; font-family: Arial, sans-serif; color: #333333;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f4f6f9; padding: 20px 0;">
+    <tr>
+      <td align="center">
+        <table width="100%" max-width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+          <!-- Cabeçalho -->
+          <tr>
+            <td style="background-color: #1a237e; padding: 24px; text-align: center;">
+              <h1 style="color: #ffffff; margin: 0; font-size: 20px; font-weight: normal;">ConeCTEA</h1>
+            </td>
+          </tr>
+          <!-- Corpo -->
+          <tr>
+            <td style="padding: 32px 24px;">
+              <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.5;">Olá!</p>
+              <p style="margin: 0 0 24px 0; font-size: 16px; line-height: 1.5;">Recebemos uma solicitação para alterar o e-mail da sua conta no ConeCTEA.</p>
+              <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.5;">Use o código abaixo para confirmar essa alteração:</p>
+
+              <!-- Container do Código -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td align="center" style="padding: 24px 0;">
+                    <div style="background-color: #f0f4f8; border: 1px solid #dce4ec; border-radius: 6px; padding: 16px 32px; display: inline-block;">
+                      <span style="font-family: 'Courier New', Courier, monospace; font-size: 32px; font-weight: bold; letter-spacing: 4px; color: #1a237e;">${otp}</span>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin: 0 0 0 0; font-size: 14px; color: #666666; text-align: center;">Este código expira em 15 minutos.</p>
+            </td>
+          </tr>
+          <!-- Rodapé Institucional -->
+          <tr>
+            <td style="background-color: #f9fafb; padding: 24px; text-align: center; border-top: 1px solid #eeeeee;">
+              <p style="margin: 0 0 4px 0; font-size: 14px; font-weight: bold; color: #333333;">ConeCTEA</p>
+              <p style="margin: 0 0 4px 0; font-size: 13px; color: #555555;">Família TEA Bauru</p>
+              <p style="margin: 0 0 24px 0; font-size: 12px; color: #888888;">Carteirinha comunitária e rede de apoio</p>
+
+              <p style="margin: 0; font-size: 11px; color: #999999; line-height: 1.5; text-align: justify;">
+                <strong>Aviso:</strong> Este e-mail foi enviado automaticamente para confirmar uma solicitação de alteração de e-mail. Se você não fez essa solicitação, ignore esta mensagem. Nenhuma alteração será feita sem a confirmação do código.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `.trim();
+
+  return { subject, bodyText, bodyHtml };
+}
 
 export interface DeliveryParams {
   supabaseAdmin: SupabaseClient;
@@ -164,8 +233,7 @@ export async function sendExistingEmailChangeOtp(params: DeliveryParams): Promis
     }
 
     // 9. Montar assunto, corpo do e-mail e obter chave de idempotência opaca
-    const subject = "Confirmação de Alteração de E-mail — ConeCTEA";
-    const bodyText = `Olá!\n\nVocê solicitou a alteração do seu e-mail no aplicativo ConeCTEA.\nCódigo de Confirmação: ${decryptedOtp}\n\nEste código expira em 15 minutos.\nSe você não solicitou essa alteração, ignore este e-mail.`;
+    const { subject, bodyText, bodyHtml } = buildEmailChangeOtpEmailTemplate(decryptedOtp);
 
     const idempotencySecretKey = await loadHmacKeyFromBase64UrlEnv("CONECTEA_IDEMPOTENCY_SECRET_KEY");
     const idempotencyKey = await createGasIdempotencyKey({
@@ -183,6 +251,7 @@ export async function sendExistingEmailChangeOtp(params: DeliveryParams): Promis
       recipient_email: decryptedEmail,
       subject: subject,
       body_text: bodyText,
+      body_html: bodyHtml,
       correlation_id: correlationId
     };
 
