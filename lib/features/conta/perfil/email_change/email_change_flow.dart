@@ -39,7 +39,7 @@ class _EmailChangeFlowState extends State<EmailChangeFlow> {
     _checkActiveCycle();
   }
 
-  Future<void> _checkActiveCycle() async {
+  Future<void> _checkActiveCycle({String? typedEmail}) async {
     final result = await AuthService().getActiveEmailChangeCycle();
     if (!mounted) return;
 
@@ -87,13 +87,13 @@ class _EmailChangeFlowState extends State<EmailChangeFlow> {
           : '';
 
       setState(() {
-        _newEmail = masked ?? '';
+        _newEmail = (typedEmail != null && typedEmail.isNotEmpty) ? typedEmail : (masked ?? '');
         _emailMasked = currentMasked;
         _currentPassword = '';
         _cooldownSeconds = cooldownSeconds;
         _validitySeconds = validitySeconds;
         _isResume = true;
-        _destinationKnown = destinationKnown;
+        _destinationKnown = (typedEmail != null && typedEmail.isNotEmpty) ? true : destinationKnown;
         _currentStep = 2;
         _isLoadingCycle = false;
       });
@@ -216,11 +216,11 @@ class _EmailChangeFlowState extends State<EmailChangeFlow> {
     });
   }
 
-  void _onCheckActiveCycleRequested() {
+  void _onCheckActiveCycleRequested(String? typedEmail) {
     setState(() {
       _isLoadingCycle = true;
     });
-    _checkActiveCycle();
+    _checkActiveCycle(typedEmail: typedEmail);
   }
 
   void _onFormChanged(bool hasChanges) {

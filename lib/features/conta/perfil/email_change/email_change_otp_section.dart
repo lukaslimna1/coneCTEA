@@ -272,27 +272,115 @@ class _EmailChangeOtpSectionState extends State<EmailChangeOtpSection> {
     }
   }
 
+  Future<void> _executeRealResend() async {
+    setState(() {
+      _isLoading = true;
+      _clearErrors();
+    });
+
+    final result = await AuthService().resendEmailChangeOtp();
+
+    if (!mounted) return;
+
+    if (result['status'] == 'success') {
+      final availableAtIso = result['resend_available_at'] as String?;
+      int newCooldown = 60;
+      if (availableAtIso != null) {
+        final availableAt = DateTime.tryParse(availableAtIso)?.toLocal();
+        if (availableAt != null) {
+          newCooldown = availableAt.difference(DateTime.now()).inSeconds;
+          if (newCooldown < 0) newCooldown = 0;
+        }
+      }
+
+      final expiresAtIso = result['expires_at'] as String?;
+      int newValidity = 15 * 60;
+      if (expiresAtIso != null) {
+        final expiresAt = DateTime.tryParse(expiresAtIso)?.toLocal();
+        if (expiresAt != null) {
+          newValidity = expiresAt.difference(DateTime.now()).inSeconds;
+          if (newValidity < 0) newValidity = 0;
+        }
+      }
+
+      setState(() {
+        _isLoading = false;
+        _remainingSeconds = newCooldown;
+        _validitySeconds = newValidity;
+        _generalError = 'Um novo código foi enviado. Verifique seu e-mail.';
+      });
+      _startCooldownTimer();
+      // Update send_sequence logic can be placed here if used by the UI in the future
+      return;
+    }
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    final error = result['error']?.toString();
+    if (error == 'cooldown_active') {
+      final availableAtIso = result['resend_available_at'] as String?;
+      int newCooldown = 60;
+      if (availableAtIso != null) {
+        final availableAt = DateTime.tryParse(availableAtIso)?.toLocal();
+        if (availableAt != null) {
+          newCooldown = availableAt.difference(DateTime.now()).inSeconds;
+          if (newCooldown < 0) newCooldown = 0;
+        }
+      }
+      setState(() {
+        _remainingSeconds = newCooldown;
+        _generalError = 'Aguarde antes de solicitar um novo reenvio.';
+      });
+      _startCooldownTimer();
+    } else if (error == 'max_resends_reached') {
+      setState(() {
+        _generalError = 'Limite de reenvios atingido. Aguarde ou comece a alteração novamente se necessário.';
+        _remainingSeconds = -1; // disable resend button
+      });
+    } else if (error == 'no_active_cycle' || error == 'expired_cycle') {
+      setState(() {
+        _generalError = 'Não há uma alteração de e-mail ativa para reenviar o código.';
+      });
+    } else if (error == 'send_failed') {
+      setState(() {
+        _generalError = 'Ocorreu um erro ao enviar o e-mail. Tente novamente em alguns minutos.';
+      });
+    } else {
+      setState(() {
+        _generalError = 'Não foi possível reenviar o código agora. Tente novamente.';
+      });
+    }
+  }
+
   Future<void> _showResendModal() async {
+    if (_remainingSeconds > 0 || _isLoading) return;
+
     final confirmed = await DsDialog.show<bool>(
       context: context,
       title: 'Reenviar código?',
-      description: 'Reenvio real ainda não está conectado. Continue pelo código enviado anteriormente ou aguarde a etapa de cancelamento.',
+      description: 'Vamos enviar um novo código para o e-mail informado. O código anterior deixará de funcionar.',
       icon: PhosphorIconsRegular.paperPlaneRight,
-      token: DsCores.manutencao,
-      primaryAction: const DsDialogAction(
+      token: DsCores.seguranca,
+      secondaryAction: const DsDialogAction(
         label: 'Voltar',
         value: false,
+        variante: DsBotaoVariante.secundario,
+      ),
+      primaryAction: const DsDialogAction(
+        label: 'Reenviar',
+        value: true,
         variante: DsBotaoVariante.acao,
-        token: DsCores.conta,
+        token: DsCores.seguranca,
       ),
     );
 
     if (confirmed == true && mounted) {
-      setState(() {
-        _generalError = 'Reenvio será conectado na próxima etapa.';
-      });
+      await _executeRealResend();
     }
   }
+
 
   String _formatDuration(int seconds) {
     final m = seconds ~/ 60;

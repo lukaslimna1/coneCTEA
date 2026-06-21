@@ -338,7 +338,7 @@ export async function sendExistingEmailChangeOtp(params: DeliveryParams): Promis
     // 13. Mapeamento de consolidação conforme regras
     if (gasStatus === "sent" || gasStatus === "already_sent") {
       // Chamar RPC mark_sent no banco
-      const { error: markErr } = await supabaseAdmin.rpc(
+      const { data: markData, error: markErr } = await supabaseAdmin.rpc(
         "conectea_mark_email_change_challenge_sent_v1",
         {
           p_user_id: authUserId,
@@ -352,7 +352,12 @@ export async function sendExistingEmailChangeOtp(params: DeliveryParams): Promis
       }
       return {
         httpStatus: 200,
-        body: { claimed: true, status: "sent" }
+        body: {
+          claimed: true,
+          status: "sent",
+          expires_at: markData?.expires_at,
+          resend_available_at: markData?.resend_available_at
+        }
       };
     }
 

@@ -92,6 +92,32 @@ class AuthService {
     }
   }
 
+  /// Reenvia o OTP de alteração de e-mail (novo código)
+  Future<Map<String, dynamic>> resendEmailChangeOtp() async {
+    try {
+      final response = await _supabase.functions.invoke(
+        'resend-email-change-otp',
+        body: {},
+      );
+
+      final data = response.data;
+      if (data is Map) {
+        return Map<String, dynamic>.from(data);
+      }
+      return {'error': 'internal_error'};
+    } catch (e) {
+      if (e is FunctionException) {
+        try {
+          final details = e.details;
+          if (details is Map) {
+            return Map<String, dynamic>.from(details);
+          }
+        } catch (_) {}
+      }
+      return {'error': 'connection_error'};
+    }
+  }
+
   /// Confirma a alteração de e-mail por OTP.
   Future<Map<String, dynamic>> confirmEmailChangeOtp({
     required String otp,

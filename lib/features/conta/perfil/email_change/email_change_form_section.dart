@@ -16,7 +16,7 @@ class EmailChangeFormSection extends StatefulWidget {
   }) onCodeSent;
   
   final void Function(bool hasChanges)? onFormChanged;
-  final VoidCallback? onCheckActiveCycleRequested;
+  final void Function(String? typedEmail)? onCheckActiveCycleRequested;
 
   const EmailChangeFormSection({
     super.key,
@@ -194,7 +194,7 @@ class _EmailChangeFormSectionState extends State<EmailChangeFormSection> {
         break;
       case 'flow_already_exists':
         if (widget.onCheckActiveCycleRequested != null) {
-          widget.onCheckActiveCycleRequested!();
+          widget.onCheckActiveCycleRequested!(_emailController.text.trim());
         } else {
           widget.onCodeSent(
             newEmail: '',
