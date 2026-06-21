@@ -116,6 +116,7 @@ let mockMarkResponse: { status: number; body: any } = {
   status: 200,
   body: {}
 };
+let mockCleanupResponse: { status: number; body: any; error?: any } = { status: 200, body: {} };
 
 function setupFetchMock() {
   lastFetchRequests = [];
@@ -143,6 +144,13 @@ function setupFetchMock() {
     // 2. Auth signIn
     if (url.includes("/auth/v1/token")) {
       return new Response(JSON.stringify(mockSignInResponse.body), { status: mockSignInResponse.status, headers: jsonHeaders });
+    }
+    // 2b. RPC Cleanup
+    if (url.includes("conectea_cleanup_expired_email_change_cycles_v1")) {
+      if (mockCleanupResponse.error) {
+        return new Response(JSON.stringify({ error: mockCleanupResponse.error }), { status: mockCleanupResponse.status, headers: jsonHeaders });
+      }
+      return new Response(JSON.stringify(mockCleanupResponse.body), { status: mockCleanupResponse.status, headers: jsonHeaders });
     }
     // 3. RPC Start Attempt
     if (url.includes("conectea_start_email_change_reauth_attempt_v1")) {
@@ -263,6 +271,7 @@ function resetMocks() {
   mockClaimResponse = { status: 200, body: null };
   mockGasResponse = { status: 200, body: { status: "sent" } };
   mockMarkResponse = { status: 200, body: {} };
+  mockCleanupResponse = { status: 200, body: {} };
 }
 
 // --- SUÍTE DE TESTES COM SANITIZATION DESATIVADA OPERACIONALMENTE ---
@@ -688,14 +697,24 @@ Deno.test({
     const body = await res.json();
     assertEquals(body.status, "otp_send_started");
     assertEquals(body.email_masked, "te***@ex***.test");
- 
+
     const successRpcReq = lastFetchRequests.find(r => r.url.includes("conectea_finalize_email_change_reauth_success_v1"));
     assertExists(successRpcReq);
-    
+
     assertEquals(successRpcReq.body.p_destination_email_normalized, "test@example.test");
     assertExists(successRpcReq.body.p_destination_hmac);
-    assertExists(successRpcReq.body.p_destination_ciphertext);
+    assertEquals(typeof successRpcReq.body.p_destination_hmac, "string");
+    assertMatch(successRpcReq.body.p_destination_hmac, /^[0-9a-f]{64}$/i);
+
+    assertExists(successRpcReq.body.p_session_hmac);
+    assertEquals(typeof successRpcReq.body.p_session_hmac, "string");
+    assertMatch(successRpcReq.body.p_session_hmac, /^[0-9a-f]{64}$/i);
+
     assertExists(successRpcReq.body.p_code_hmac);
+    assertEquals(typeof successRpcReq.body.p_code_hmac, "string");
+    assertMatch(successRpcReq.body.p_code_hmac, /^[0-9a-f]{64}$/i);
+
+    assertExists(successRpcReq.body.p_destination_ciphertext);
     assertExists(successRpcReq.body.p_code_ciphertext);
 
     restoreFetchMock();
@@ -919,7 +938,7 @@ Deno.test({
         should_send: true
       }
     };
-    
+
     globalThis.fetch = async (input: string | Request | URL, init?: RequestInit): Promise<Response> => {
       const url = typeof input === "string" ? input : (input as any).url || (input as any).toString();
       const jsonHeaders = { "Content-Type": "application/json" };
@@ -989,8 +1008,8 @@ Deno.test({
     assertEquals(res.status, 200);
     const body = await res.json();
     assertEquals(body.error, "temporarily_unavailable");
-    
-    const hasSensitiveData = errorLogs.some(log => 
+
+    const hasSensitiveData = errorLogs.some(log =>
       log.includes("senha-ultra-secreta-12345") ||
       log.includes("sensivel@example.test") ||
       log.includes(mockJwtToken)
@@ -1212,6 +1231,119 @@ Deno.test({
     const successRpcReq = lastFetchRequests.find(r => r.url.includes("conectea_finalize_email_change_reauth_success_v1"));
     assertExists(successRpcReq);
     assertEquals(successRpcReq.body.p_attempt_id, "attempt-uuid-123");
+
+    restoreFetchMock();
+    cleanEnv();
+  }
+});
+
+// Cenário 28: client_idempotency_key válido é aceito e repassado para RPC
+Deno.test({
+  name: "Handler - Cenário 28: client_idempotency_key válido é aceito",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  fn: async () => {
+    setupEnv();
+    setupFetchMock();
+    resetMocks();
+
+    const req = new Request("https://localhost/start-email-change-otp", {
+      method: "POST",
+      headers: { "Authorization": mockAuthHeader },
+      body: JSON.stringify({ current_password: "123", new_email: "test@example.test", client_idempotency_key: "12345678-1234-4321-8765-123456789012" })
+    });
+    const res = await handler(req);
+
+    const startRpcReq = lastFetchRequests.find(r => r.url.includes("conectea_start_email_change_reauth_attempt_v1"));
+    if (!startRpcReq) { console.error("RES", res.status, await res.clone().json()); }
+    assertExists(startRpcReq);
+    assertEquals(startRpcReq.body.p_idempotency_key, "12345678-1234-4321-8765-123456789012");
+
+    restoreFetchMock();
+    cleanEnv();
+  }
+});
+
+// Cenário 29: client_idempotency_key inválido retorna invalid_request
+Deno.test({
+  name: "Handler - Cenário 29: client_idempotency_key inválido retorna invalid_request",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  fn: async () => {
+    setupEnv();
+    setupFetchMock();
+    resetMocks();
+
+    const req = new Request("https://localhost/start-email-change-otp", {
+      method: "POST",
+      headers: { "Authorization": mockAuthHeader },
+      body: JSON.stringify({ current_password: "123", new_email: "test@example.test", client_idempotency_key: "not-a-uuid" })
+    });
+    const res = await handler(req);
+    assertEquals(res.status, 400);
+    const body = await res.json();
+    assertEquals(body.error, "invalid_request");
+
+    restoreFetchMock();
+    cleanEnv();
+  }
+});
+
+// Cenário 30: ausência de client_idempotency_key usa fallback seguro
+Deno.test({
+  name: "Handler - Cenário 30: ausência de client_idempotency_key usa fallback seguro",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  fn: async () => {
+    setupEnv();
+    setupFetchMock();
+    resetMocks();
+
+    const req = new Request("https://localhost/start-email-change-otp", {
+      method: "POST",
+      headers: { "Authorization": mockAuthHeader },
+      body: JSON.stringify({ current_password: "123", new_email: "test@example.test" })
+    });
+    await handler(req);
+
+    const startRpcReq = lastFetchRequests.find(r => r.url.includes("conectea_start_email_change_reauth_attempt_v1"));
+    assertExists(startRpcReq);
+    assertExists(startRpcReq.body.p_idempotency_key);
+    assertMatch(startRpcReq.body.p_idempotency_key, /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+
+    restoreFetchMock();
+    cleanEnv();
+  }
+});
+
+// 31. erro na cleanup para a execução e não chama RPC start
+Deno.test({
+  name: "Handler - Cenário 31: erro na cleanup para a execução e não chama RPC start",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  fn: async () => {
+    setupEnv();
+    setupFetchMock();
+    resetMocks();
+
+    mockCleanupResponse = {
+      status: 500,
+      body: {},
+      error: { message: "Simulated cleanup error", code: "P0001" }
+    };
+
+    const req = new Request("https://localhost/start-email-change-otp", {
+      method: "POST",
+      headers: { "Authorization": mockAuthHeader },
+      body: JSON.stringify({ current_password: "senha-valida", new_email: "test@example.test" })
+    });
+    const res = await handler(req);
+    assertEquals(res.status, 200);
+    const body = await res.json();
+    assertEquals(body.error, "temporarily_unavailable");
+
+    const calledStart = lastFetchRequests.some(r => r.url.includes("conectea_start_email_change_reauth_attempt_v1"));
+    assertEquals(calledStart, false);
 
     restoreFetchMock();
     cleanEnv();

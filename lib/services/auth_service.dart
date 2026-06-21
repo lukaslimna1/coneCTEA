@@ -1,6 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:flutter/foundation.dart';
+import 'package:uuid/uuid.dart';
 
 class AuthService {
   final SupabaseClient _supabase = Supabase.instance.client;
@@ -56,5 +57,94 @@ class AuthService {
       email,
       redirectTo: 'io.supabase.conectea://login-callback',
     );
+  }
+
+  /// Inicia a solicitação de alteração de e-mail por OTP.
+  Future<Map<String, dynamic>> startEmailChangeOtp({
+    required String newEmail,
+    required String currentPassword,
+  }) async {
+    try {
+      final response = await _supabase.functions.invoke(
+        'start-email-change-otp',
+        body: {
+          'new_email': newEmail.trim(),
+          'current_password': currentPassword,
+          'client_idempotency_key': const Uuid().v4(),
+        },
+      );
+
+      final data = response.data;
+      if (data is Map) {
+        return Map<String, dynamic>.from(data);
+      }
+      return {'error': 'internal_error'};
+    } catch (e) {
+      if (e is FunctionException) {
+        try {
+          final details = e.details;
+          if (details is Map) {
+            return Map<String, dynamic>.from(details);
+          }
+        } catch (_) {}
+      }
+      return {'error': 'connection_error'};
+    }
+  }
+
+  /// Confirma a alteração de e-mail por OTP.
+  Future<Map<String, dynamic>> confirmEmailChangeOtp({
+    required String otp,
+  }) async {
+    try {
+      final response = await _supabase.functions.invoke(
+        'confirm-email-change-otp',
+        body: {
+          'otp': otp.trim(),
+        },
+      );
+
+      final data = response.data;
+      if (data is Map) {
+        return Map<String, dynamic>.from(data);
+      }
+      return {'error': 'internal_error'};
+    } catch (e) {
+      if (e is FunctionException) {
+        try {
+          final details = e.details;
+          if (details is Map) {
+            return Map<String, dynamic>.from(details);
+          }
+        } catch (_) {}
+      }
+      return {'error': 'connection_error'};
+    }
+  }
+
+  /// Consulta o ciclo ativo de alteração de e-mail do próprio usuário.
+  Future<Map<String, dynamic>> getActiveEmailChangeCycle() async {
+    try {
+      final response = await _supabase.functions.invoke(
+        'get-active-email-change-cycle',
+        body: {},
+      );
+
+      final data = response.data;
+      if (data is Map) {
+        return Map<String, dynamic>.from(data);
+      }
+      return {'error': 'internal_error'};
+    } catch (e) {
+      if (e is FunctionException) {
+        try {
+          final details = e.details;
+          if (details is Map) {
+            return Map<String, dynamic>.from(details);
+          }
+        } catch (_) {}
+      }
+      return {'error': 'connection_error'};
+    }
   }
 }

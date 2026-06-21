@@ -35,28 +35,6 @@ function getSessionIdFromJwt(authHeader: string): string {
   return sessionId;
 }
 
-/**
- * Computa uma chave de idempotência determinística no formato UUID v4 a partir de dados estáveis da requisição.
- */
-async function createDeterministicIdempotencyKey(params: {
-  userId: string;
-  sessionId: string;
-  newEmail: string;
-  secretKeyBase64Url: string;
-}): Promise<string> {
-  const rawHmac = await generateHmacSha256({
-    secretKeyBase64Url: params.secretKeyBase64Url,
-    domainPrefix: "conectea:email_change:idempotency_uuid:v1:",
-    message: `${params.userId}:${params.sessionId}:${params.newEmail}`
-  });
-  const hex = rawHmac.substring(0, 32);
-  const part1 = hex.substring(0, 8);
-  const part2 = hex.substring(8, 12);
-  const part3 = "4" + hex.substring(13, 16); // versão 4
-  const part4 = "8" + hex.substring(17, 20); // variante RFC4122
-  const part5 = hex.substring(20, 32);
-  return `${part1}-${part2}-${part3}-${part4}-${part5}`;
-}
 
 export async function handler(req: Request): Promise<Response> {
   // 1. CORS Preflight
@@ -140,18 +118,18 @@ export async function handler(req: Request): Promise<Response> {
       }
     }
 
-    // Apenas "current_password" e "new_email" devem estar no body
-    const allowedKeys = ["current_password", "new_email"];
+    // Apenas "current_password", "new_email" e "client_idempotency_key" (opcional) devem estar no body
+    const allowedKeys = ["current_password", "new_email", "client_idempotency_key"];
     const bodyKeys = Object.keys(body);
     const hasInvalidKeys = bodyKeys.some(k => !allowedKeys.includes(k));
-    if (hasInvalidKeys || bodyKeys.length !== 2) {
+    if (hasInvalidKeys || bodyKeys.length < 2 || bodyKeys.length > 3) {
       return new Response(
         JSON.stringify({ error: "invalid_request" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const { current_password, new_email } = body;
+    const { current_password, new_email, client_idempotency_key } = body;
     if (
       typeof current_password !== "string" ||
       current_password.trim() === "" ||
@@ -161,6 +139,15 @@ export async function handler(req: Request): Promise<Response> {
         JSON.stringify({ error: "invalid_request" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    }
+
+    if (client_idempotency_key !== undefined) {
+      if (typeof client_idempotency_key !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(client_idempotency_key)) {
+        return new Response(
+          JSON.stringify({ error: "invalid_request" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
     }
 
     // 5. Normalizar o novo e-mail
@@ -179,28 +166,25 @@ export async function handler(req: Request): Promise<Response> {
 
     // 6. Computar HMAC da sessão e chave de idempotência determinística
     const sessionHmacKey = Deno.env.get("CONECTEA_SESSION_HMAC_KEY_V1");
-    const idempotencySecretKey = Deno.env.get("CONECTEA_IDEMPOTENCY_SECRET_KEY");
 
-    if (!sessionHmacKey || !idempotencySecretKey) {
-      console.error(`[Correlation ID: ${correlationId}] Chaves HMAC ausentes no ambiente.`);
+    if (!sessionHmacKey) {
+      console.error(`[Correlation ID: ${correlationId}] Chave HMAC ausente no ambiente.`);
       return new Response(
         JSON.stringify({ error: "configuration_error" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const sessionHmac = await generateHmacSha256({
+    const sessionHmacStr = await generateHmacSha256({
       secretKeyBase64Url: sessionHmacKey,
       domainPrefix: "conectea:email_change:reauth_session:v1:",
       message: sessionId
     });
 
-    const idempotencyKey = await createDeterministicIdempotencyKey({
-      userId: authUserId,
-      sessionId,
-      newEmail: normalizedEmail,
-      secretKeyBase64Url: idempotencySecretKey
-    });
+    let idempotencyKey = client_idempotency_key;
+    if (!idempotencyKey) {
+      idempotencyKey = crypto.randomUUID();
+    }
 
     // Instanciar Supabase Admin com a service role
     const supabaseServiceRole = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -214,13 +198,26 @@ export async function handler(req: Request): Promise<Response> {
 
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRole);
 
+    const { error: cleanupError } = await supabaseAdmin.rpc(
+      "conectea_cleanup_expired_email_change_cycles_v1",
+      { p_user_id: authUserId }
+    );
+
+    if (cleanupError) {
+      console.error(`[Correlation ID: ${correlationId}] Falha na limpeza de ciclos expirados: codigo genérico`);
+      return new Response(
+        JSON.stringify({ error: "temporarily_unavailable" }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // 7. Chamar RPC conectea_start_email_change_reauth_attempt_v1
     const { data: startData, error: startError } = await supabaseAdmin.rpc(
       "conectea_start_email_change_reauth_attempt_v1",
       {
         p_user_id: authUserId,
         p_session_id: sessionId,
-        p_session_hmac: sessionHmac,
+        p_session_hmac: sessionHmacStr,
         p_session_hmac_key_version: 1,
         p_idempotency_key: idempotencyKey
       }
@@ -300,7 +297,7 @@ export async function handler(req: Request): Promise<Response> {
         p_attempt_id: attemptId,
         p_user_id: authUserId,
         p_session_id: sessionId,
-        p_session_hmac: sessionHmac,
+        p_session_hmac: sessionHmacStr,
         p_session_hmac_key_version: 1,
         p_result: "technical_failure",
         p_failed_technical_code_private: "auth_internal_error"
@@ -324,7 +321,7 @@ export async function handler(req: Request): Promise<Response> {
           p_attempt_id: attemptId,
           p_user_id: authUserId,
           p_session_id: sessionId,
-          p_session_hmac: sessionHmac,
+          p_session_hmac: sessionHmacStr,
           p_session_hmac_key_version: 1,
           p_result: "invalid_credentials",
           p_failed_technical_code_private: null
@@ -340,7 +337,7 @@ export async function handler(req: Request): Promise<Response> {
           p_attempt_id: attemptId,
           p_user_id: authUserId,
           p_session_id: sessionId,
-          p_session_hmac: sessionHmac,
+          p_session_hmac: sessionHmacStr,
           p_session_hmac_key_version: 1,
           p_result: "technical_failure",
           p_failed_technical_code_private: "auth_unavailable"
@@ -368,13 +365,13 @@ export async function handler(req: Request): Promise<Response> {
       );
     }
 
-    const destinationHmac = await generateHmacSha256({
+    const destinationHmacStr = await generateHmacSha256({
       secretKeyBase64Url: destinationHmacKey,
       domainPrefix: "conectea:email_change:destination:v1:",
       message: normalizedEmail
     });
 
-    const codeHmac = await generateHmacSha256({
+    const codeHmacStr = await generateHmacSha256({
       secretKeyBase64Url: codeHmacKey,
       domainPrefix: "conectea:email_change:code:v1:",
       message: otp
@@ -399,11 +396,11 @@ export async function handler(req: Request): Promise<Response> {
         p_attempt_id: attemptId,
         p_user_id: authUserId,
         p_session_id: sessionId,
-        p_session_hmac: sessionHmac,
+        p_session_hmac: sessionHmacStr,
         p_session_hmac_key_version: 1,
 
         p_destination_email_normalized: normalizedEmail,
-        p_destination_hmac: destinationHmac,
+        p_destination_hmac: destinationHmacStr,
         p_destination_hmac_key_version: 1,
         p_destination_masked: emailMasked,
         p_destination_ciphertext: destEnc.ciphertext,
@@ -412,7 +409,7 @@ export async function handler(req: Request): Promise<Response> {
         p_destination_encryption_algorithm: "aes-256-gcm",
         p_destination_encryption_key_version: 1,
 
-        p_code_hmac: codeHmac,
+        p_code_hmac: codeHmacStr,
         p_code_hmac_key_version: 1,
         p_code_ciphertext: otpEnc.ciphertext,
         p_code_nonce: otpEnc.nonce,
@@ -449,6 +446,20 @@ export async function handler(req: Request): Promise<Response> {
     if (finalizeResult === "destination_same_as_current") {
       return new Response(
         JSON.stringify({ error: "destination_same_as_current" }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (
+      finalizeResult === "attempt_mismatch" ||
+      finalizeResult === "account_data_conflict" ||
+      finalizeResult === "attempt_expired" ||
+      finalizeResult === "attempt_already_finalized" ||
+      finalizeResult === "session_invalid" ||
+      finalizeResult === "invalid_request"
+    ) {
+      return new Response(
+        JSON.stringify({ error: finalizeResult }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -507,8 +518,8 @@ export async function handler(req: Request): Promise<Response> {
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
 
-  } catch (_err) {
-    console.error(`[Correlation ID: ${correlationId}] Erro interno no Handler.`);
+  } catch (err) {
+    console.error(`[Correlation ID: ${correlationId}] Erro interno no Handler`);
     return new Response(
       JSON.stringify({ error: "internal_server_error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }

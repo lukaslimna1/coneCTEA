@@ -3,6 +3,7 @@ import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 import 'package:conectea/features/conta/perfil/edit_my_data_view.dart';
 import 'package:conectea/features/conta/perfil/dependentes/dependents_view.dart';
+import 'package:conectea/features/conta/perfil/email_change/email_change_flow.dart';
 import 'package:conectea/core/campos_cadastrais/campos_cadastrais.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:conectea/services/auth_service.dart';
@@ -54,6 +55,14 @@ class _MyDataViewState extends State<MyDataView> {
       return '${clean.substring(0, 3)}.***.***-${clean.substring(9, 11)}';
     }
     return '***.***.***-**';
+  }
+
+  String _formatCpf(String cpf) {
+    final clean = cpf.replaceAll(RegExp(r'[^0-9]'), '');
+    if (clean.length == 11) {
+      return '${clean.substring(0, 3)}.${clean.substring(3, 6)}.${clean.substring(6, 9)}-${clean.substring(9, 11)}';
+    }
+    return cpf;
   }
 
   String _maskEmail(String email) {
@@ -287,8 +296,8 @@ class _MyDataViewState extends State<MyDataView> {
         // Bloco do CPF (Fluxo Administrativo)
         _buildReadOnlyCard([
           CampoCpfProtegido(
-            valorVisivel: _maskCpf(user.cpf),
-            valorOculto: '***.***.***-**',
+            valorVisivel: _formatCpf(user.cpf),
+            valorOculto: _maskCpf(user.cpf),
           ),
         ], borderColor: DsCores.dadosProtegidos.border),
         const SizedBox(height: 8),
@@ -314,8 +323,8 @@ class _MyDataViewState extends State<MyDataView> {
         // Bloco do E-mail (Fluxo Automático OTP)
         _buildReadOnlyCard([
           CampoEmailProtegido(
-            valorVisivel: _maskEmail(user.email),
-            valorOculto: '***@***.***',
+            valorVisivel: user.email,
+            valorOculto: _maskEmail(user.email),
           ),
         ], borderColor: DsCores.dadosProtegidos.border),
         const SizedBox(height: 8),
@@ -326,14 +335,15 @@ class _MyDataViewState extends State<MyDataView> {
         const SizedBox(height: 12),
         DsBotao(
           label: 'Alterar e-mail',
-          onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                  'Fluxo de alteração de e-mail será aberto na próxima etapa.',
-                ),
+          onPressed: () async {
+            final result = await Navigator.of(context).push<bool>(
+              MaterialPageRoute(
+                builder: (_) => const EmailChangeFlow(),
               ),
             );
+            if (result == true && mounted) {
+              _retryLoadProfile();
+            }
           },
           variante: DsBotaoVariante.acao,
           token: DsCores.conta,
