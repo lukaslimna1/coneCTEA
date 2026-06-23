@@ -310,9 +310,11 @@ class _MyDataViewState extends State<MyDataView> {
         DsBotao(
           label: 'Solicitar revisão de CPF',
           onPressed: () {
-            Navigator.of(
-              context,
-            ).push(MaterialPageRoute(builder: (_) => const CpfChangeFlow()));
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => CpfChangeFlow(currentCpf: _formatCpf(user.cpf)),
+              ),
+            );
           },
           variante: DsBotaoVariante.acao,
           token: DsCores.correcao,

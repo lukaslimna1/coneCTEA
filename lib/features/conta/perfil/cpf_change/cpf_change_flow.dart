@@ -9,7 +9,9 @@ import 'package:conectea/services/google_drive_service.dart';
 import 'package:conectea/services/database_service.dart';
 
 class CpfChangeFlow extends StatefulWidget {
-  const CpfChangeFlow({super.key});
+  final String currentCpf;
+
+  const CpfChangeFlow({super.key, required this.currentCpf});
 
   @override
   State<CpfChangeFlow> createState() => _CpfChangeFlowState();
@@ -32,6 +34,14 @@ class _CpfChangeFlowState extends State<CpfChangeFlow> {
   bool _isSuccess = false;
   bool _isSubmitting = false;
   String? _uploadedDriveUrl;
+  bool _showCurrentCpf = false;
+
+  String _getCurrentCpfDisplay() {
+    if (_showCurrentCpf) {
+      return widget.currentCpf;
+    }
+    return '•••.•••.•••-••';
+  }
 
   @override
   void initState() {
@@ -394,6 +404,64 @@ class _CpfChangeFlowState extends State<CpfChangeFlow> {
     return '${mb.toStringAsFixed(1)} MB';
   }
 
+  Widget _buildStepHeader({
+    required String title,
+    required String subtitle,
+    required DsCorVisual colorToken,
+    required IconData icon,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            color: colorToken.softBackground,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: colorToken.border, width: 1),
+          ),
+          child: Center(child: Icon(icon, size: 24, color: colorToken.accent)),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                title,
+                style: DsTipografia.sectionTitle.copyWith(
+                  color: DsCores.textPrimary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              if (subtitle.isNotEmpty) ...[
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: DsTipografia.caption.copyWith(
+                    color: DsCores.textMuted,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDivider() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 20),
+      child: Container(
+        height: 1,
+        color: DsCores.inputBorder.withValues(alpha: 0.3),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -406,265 +474,357 @@ class _CpfChangeFlowState extends State<CpfChangeFlow> {
         backgroundColor: Colors.transparent,
         extendBodyBehindAppBar: true,
         body: AppBackground(
-          child: SafeArea(
-            child: Column(
-              children: [
-                // Barra superior de navegação
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: DsEspacamentos.lg,
-                    vertical: DsEspacamentos.sm,
-                  ),
-                  child: Row(
-                    children: [DsBotaoVoltar(onPressed: _requestExit)],
-                  ),
+          child: Column(
+            children: [
+              // Barra superior de navegação — Mais compacta
+              Padding(
+                padding: const EdgeInsets.only(
+                  left: DsEspacamentos.lg,
+                  right: DsEspacamentos.lg,
+                  top: DsEspacamentos.xs,
+                  bottom: DsEspacamentos.xs,
                 ),
-                Expanded(
-                  child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.fromLTRB(
-                      DsEspacamentos.lg,
-                      DsEspacamentos.sm,
-                      DsEspacamentos.lg,
-                      DsEspacamentos.xl,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Solicitar revisão de CPF',
-                          style: DsTipografia.pageTitle.copyWith(
-                            color: DsCores.textPrimary,
-                          ),
+                child: Row(children: [DsBotaoVoltar(onPressed: _requestExit)]),
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(
+                    DsEspacamentos.lg,
+                    DsEspacamentos.xs,
+                    DsEspacamentos.lg,
+                    DsEspacamentos.xl,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Solicitar revisão de CPF',
+                        style: DsTipografia.pageTitle.copyWith(
+                          color: DsCores.textPrimary,
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Use este formulário apenas se o CPF cadastrado na sua conta principal estiver incorreto. A solicitação será analisada pela equipe administrativa.',
-                          style: DsTipografia.body.copyWith(
-                            color: DsCores.textSecondary,
-                            height: 1.4,
-                          ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Confira o CPF atual e envie o documento para análise.',
+                        style: DsTipografia.body.copyWith(
+                          color: DsCores.textSecondary,
+                          height: 1.4,
                         ),
-                        const SizedBox(height: 16),
-                        // Card Informativo (Aviso Importante)
-                        DsCard(
-                          padding: const EdgeInsets.all(16),
-                          borderColor: DsCores.alerta.border.withValues(
-                            alpha: 0.3,
-                          ),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Icon(
-                                PhosphorIconsRegular.info,
-                                color: DsCores.alerta.accent,
-                                size: 20,
+                      ),
+                      const SizedBox(height: 24),
+
+                      // =======================================================
+                      // ETAPA 1: DADOS DO CPF
+                      // =======================================================
+                      _buildStepHeader(
+                        title: 'Dados do CPF',
+                        subtitle: 'Confira o atual e informe o correto.',
+                        colorToken: DsCores.correcao,
+                        icon: PhosphorIconsRegular.identificationCard,
+                      ),
+                      const SizedBox(height: 16),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 4),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                              'CPF atual: ',
+                              style: DsTipografia.bodySmall.copyWith(
+                                color: DsCores.textMuted,
                               ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  'A carteirinha do ConeCTEA é comunitária e não substitui documentos oficiais.',
-                                  style: DsTipografia.bodySmall.copyWith(
-                                    color: DsCores.textPrimary,
-                                    fontWeight: FontWeight.w600,
-                                    height: 1.4,
-                                  ),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.03),
+                                borderRadius: BorderRadius.circular(
+                                  DsRaios.pill,
+                                ),
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.05),
                                 ),
                               ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        DsCard(
-                          padding: const EdgeInsets.all(24),
-                          borderColor: DsCores.correcao.border,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Campo 1: Novo CPF
-                              DsInput(
-                                label: 'Novo CPF',
-                                controller: _cpfController,
-                                focusNode: _cpfFocusNode,
-                                hint: '000.000.000-00',
-                                icon: PhosphorIconsRegular.identificationCard,
-                                keyboardType: TextInputType.number,
-                                textInputAction: TextInputAction.next,
-                                errorText: _cpfError,
-                                inputFormatters: [
-                                  FormatadoresCadastrais.obterMascaraCpf(),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    PhosphorIconsRegular.shieldCheck,
+                                    color: DsCores.dadosProtegidos.accent
+                                        .withValues(alpha: 0.5),
+                                    size: 12,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    _getCurrentCpfDisplay(),
+                                    style: DsTipografia.bodySmall.copyWith(
+                                      color: DsCores.textSecondary,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
                                 ],
                               ),
-                              const SizedBox(height: 20),
-                              // Campo 2: Seleção de Documento
-                              Focus(
-                                focusNode: _fileFocusNode,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Documento de comprovação',
-                                      style: DsTipografia.inputLabel.copyWith(
-                                        color: DsCores.textPrimary,
-                                      ),
+                            ),
+                            const SizedBox(width: 6),
+                            IconButton(
+                              constraints: const BoxConstraints(),
+                              padding: const EdgeInsets.all(6),
+                              icon: Icon(
+                                _showCurrentCpf
+                                    ? PhosphorIconsRegular.eyeSlash
+                                    : PhosphorIconsRegular.eye,
+                                color: DsCores.textMuted,
+                                size: 16,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _showCurrentCpf = !_showCurrentCpf;
+                                });
+                              },
+                              tooltip: _showCurrentCpf
+                                  ? 'Ocultar CPF'
+                                  : 'Mostrar CPF',
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      DsInput(
+                        label: 'Novo CPF',
+                        controller: _cpfController,
+                        focusNode: _cpfFocusNode,
+                        hint: '000.000.000-00',
+                        icon: PhosphorIconsRegular.identificationCard,
+                        keyboardType: TextInputType.number,
+                        textInputAction: TextInputAction.next,
+                        errorText: _cpfError,
+                        inputFormatters: [
+                          FormatadoresCadastrais.obterMascaraCpf(),
+                        ],
+                      ),
+                      _buildDivider(),
+
+                      // =======================================================
+                      // ETAPA 2: DOCUMENTO
+                      // =======================================================
+                      _buildStepHeader(
+                        title: 'Documento',
+                        subtitle: 'Anexe uma comprovação com seus dados.',
+                        colorToken: DsCores.solicitacao,
+                        icon: PhosphorIconsRegular.fileArrowUp,
+                      ),
+                      const SizedBox(height: 16),
+                      Focus(
+                        focusNode: _fileFocusNode,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4,
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Documento com CPF, nome completo e data de nascimento.',
+                                    style: DsTipografia.bodySmall.copyWith(
+                                      color: DsCores.textSecondary,
+                                      height: 1.4,
                                     ),
-                                    const SizedBox(height: DsEspacamentos.sm),
-                                    if (_selectedFile == null)
-                                      InkWell(
-                                        onTap: _pickFile,
-                                        borderRadius: BorderRadius.circular(
-                                          DsRaios.input,
-                                        ),
-                                        child: DsCard(
-                                          padding: const EdgeInsets.symmetric(
-                                            vertical: 24,
-                                            horizontal: 16,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'CNH, CIN, RG, CPF ou equivalente.',
+                                    style: DsTipografia.caption.copyWith(
+                                      color: DsCores.textMuted,
+                                      height: 1.3,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            if (_selectedFile == null)
+                              InkWell(
+                                onTap: _pickFile,
+                                borderRadius: BorderRadius.circular(
+                                  DsRaios.input,
+                                ),
+                                child: DsCard(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 10,
+                                    horizontal: 12,
+                                  ),
+                                  borderColor: _fileError != null
+                                      ? DsCores.perigo.accent
+                                      : DsCores.inputBorder,
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(6),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withValues(
+                                            alpha: 0.03,
                                           ),
-                                          borderColor: _fileError != null
-                                              ? DsCores.perigo.accent
-                                              : DsCores.inputBorder,
-                                          child: Center(
-                                            child: Column(
-                                              children: [
-                                                Icon(
-                                                  PhosphorIconsRegular
-                                                      .fileArrowUp,
-                                                  color: DsCores.inputIcon,
-                                                  size: 32,
-                                                ),
-                                                const SizedBox(height: 12),
-                                                Text(
-                                                  'Anexar documento de identificação',
-                                                  style: DsTipografia.body
-                                                      .copyWith(
-                                                        color:
-                                                            DsCores.textPrimary,
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                      ),
-                                                  textAlign: TextAlign.center,
-                                                ),
-                                                const SizedBox(height: 4),
-                                                Text(
-                                                  'Formatos aceitos: PDF, JPG, JPEG, PNG (máx. 5MB)',
-                                                  style: DsTipografia.caption
-                                                      .copyWith(
-                                                        color:
-                                                            DsCores.textMuted,
-                                                      ),
-                                                  textAlign: TextAlign.center,
-                                                ),
-                                              ],
-                                            ),
-                                          ),
+                                          shape: BoxShape.circle,
                                         ),
-                                      )
-                                    else
-                                      DsCard(
-                                        padding: const EdgeInsets.all(16),
-                                        borderColor: DsCores.inputBorder,
-                                        child: Row(
+                                        child: Icon(
+                                          PhosphorIconsRegular.fileArrowUp,
+                                          color: DsCores.solicitacao.accent,
+                                          size: 20,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            Icon(
-                                              _selectedFile!.extension == 'pdf'
-                                                  ? PhosphorIconsRegular.filePdf
-                                                  : PhosphorIconsRegular.image,
-                                              color: DsCores.sucesso.accent,
-                                              size: 32,
-                                            ),
-                                            const SizedBox(width: 16),
-                                            Expanded(
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    _selectedFile!.name,
-                                                    style: DsTipografia.body
-                                                        .copyWith(
-                                                          color: DsCores
-                                                              .textPrimary,
-                                                          fontWeight:
-                                                              FontWeight.w600,
-                                                        ),
-                                                    maxLines: 1,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
+                                            Text(
+                                              'Anexar documento',
+                                              style: DsTipografia.bodySmall
+                                                  .copyWith(
+                                                    color: DsCores.textPrimary,
+                                                    fontWeight: FontWeight.w600,
                                                   ),
-                                                  const SizedBox(height: 2),
-                                                  Text(
-                                                    _formatFileSize(
-                                                      _selectedFile!.size,
-                                                    ),
-                                                    style: DsTipografia.caption
-                                                        .copyWith(
-                                                          color: DsCores
-                                                              .textSecondary,
-                                                        ),
-                                                  ),
-                                                ],
-                                              ),
                                             ),
-                                            IconButton(
-                                              icon: Icon(
-                                                PhosphorIconsRegular.trash,
-                                                color: DsCores.perigo.accent,
-                                              ),
-                                              onPressed: _removeFile,
+                                            const SizedBox(height: 2),
+                                            Text(
+                                              'PDF, JPG, JPEG ou PNG até 5MB',
+                                              style: DsTipografia.caption
+                                                  .copyWith(
+                                                    color: DsCores.textMuted,
+                                                  ),
                                             ),
                                           ],
                                         ),
                                       ),
-                                    if (_fileError != null) ...[
-                                      const SizedBox(height: 6),
-                                      Padding(
-                                        padding: const EdgeInsets.only(left: 4),
-                                        child: Text(
-                                          _fileError!,
-                                          style: DsTipografia.caption.copyWith(
-                                            color: DsCores.perigo.accent,
-                                            fontWeight: FontWeight.w700,
-                                          ),
-                                        ),
-                                      ),
                                     ],
+                                  ),
+                                ),
+                              )
+                            else
+                              DsCard(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 10,
+                                  horizontal: 12,
+                                ),
+                                borderColor: DsCores.inputBorder,
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      _selectedFile!.extension == 'pdf'
+                                          ? PhosphorIconsRegular.filePdf
+                                          : PhosphorIconsRegular.image,
+                                      color: DsCores.sucesso.accent,
+                                      size: 20,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            _selectedFile!.name,
+                                            style: DsTipografia.bodySmall
+                                                .copyWith(
+                                                  color: DsCores.textPrimary,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            _formatFileSize(
+                                              _selectedFile!.size,
+                                            ),
+                                            style: DsTipografia.caption
+                                                .copyWith(
+                                                  color: DsCores.textSecondary,
+                                                ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    IconButton(
+                                      constraints: const BoxConstraints(),
+                                      padding: EdgeInsets.zero,
+                                      icon: Icon(
+                                        PhosphorIconsRegular.trash,
+                                        color: DsCores.perigo.accent,
+                                        size: 20,
+                                      ),
+                                      onPressed: _removeFile,
+                                    ),
                                   ],
                                 ),
                               ),
-                              const SizedBox(height: 20),
-                              // Campo 3: Justificativa
-                              DsInput(
-                                label: 'Justificativa (Opcional)',
-                                controller: _justificationController,
-                                focusNode: _justificationFocusNode,
-                                hint:
-                                    'Descreva resumidamente o motivo da alteração...',
-                                icon: PhosphorIconsRegular.chatText,
-                                keyboardType: TextInputType.multiline,
-                                textInputAction: TextInputAction.newline,
-                                maxLines: 5,
-                                errorText: _justificationError,
-                              ),
-                              const SizedBox(height: 32),
-                              // CTA Principal
-                              DsBotao(
-                                label: _isSubmitting
-                                    ? 'Enviando...'
-                                    : 'Revisar solicitação',
-                                onPressed: _isSubmitting ? null : _handleSubmit,
-                                variante: DsBotaoVariante.acao,
-                                token: DsCores.correcao,
-                                icon: PhosphorIconsRegular.paperPlaneRight,
+                            if (_fileError != null) ...[
+                              const SizedBox(height: 6),
+                              Padding(
+                                padding: const EdgeInsets.only(left: 4),
+                                child: Text(
+                                  _fileError!,
+                                  style: DsTipografia.caption.copyWith(
+                                    color: DsCores.perigo.accent,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
                               ),
                             ],
-                          ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                      _buildDivider(),
+
+                      // =======================================================
+                      // ETAPA 3: JUSTIFICATIVA
+                      // =======================================================
+                      _buildStepHeader(
+                        title: 'Justificativa (Opcional)',
+                        subtitle: 'Use se quiser explicar o motivo.',
+                        colorToken: DsCores.conta,
+                        icon: PhosphorIconsRegular.chatText,
+                      ),
+                      const SizedBox(height: 16),
+                      DsInput(
+                        label: 'Motivo da correção',
+                        controller: _justificationController,
+                        focusNode: _justificationFocusNode,
+                        hint: 'Descreva resumidamente o motivo da alteração...',
+                        icon: PhosphorIconsRegular.chatText,
+                        keyboardType: TextInputType.multiline,
+                        textInputAction: TextInputAction.newline,
+                        maxLines: 3,
+                        errorText: _justificationError,
+                      ),
+                      const SizedBox(height: 32),
+                      // CTA Principal
+                      DsBotao(
+                        label: _isSubmitting
+                            ? 'Enviando...'
+                            : 'Revisar solicitação',
+                        onPressed: _isSubmitting ? null : _handleSubmit,
+                        variante: DsBotaoVariante.acao,
+                        token: DsCores.correcao,
+                        icon: PhosphorIconsRegular.paperPlaneRight,
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
