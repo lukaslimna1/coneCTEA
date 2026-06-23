@@ -1209,7 +1209,8 @@ class DatabaseService {
 
       if (response is Map) {
         final data = Map<String, dynamic>.from(response);
-        if (data['has_active_cycle'] == true && data['destination_email_masked'] != null) {
+        if (data['has_active_cycle'] == true &&
+            data['destination_email_masked'] != null) {
           return {
             'destination_masked': data['destination_email_masked'],
             'expires_at': data['otp_expires_at'],
@@ -1221,6 +1222,90 @@ class DatabaseService {
     } catch (e) {
       // Falha silenciosa para evitar travar o app na Home
       return null;
+    }
+  }
+
+  String _sanitizeCpfChangeError(Object? value) {
+    final error = value?.toString();
+    switch (error) {
+      case 'active_request_exists':
+      case 'invalid_request':
+      case 'temporarily_unavailable':
+      case 'unavailable':
+        return error!;
+      default:
+        return 'temporarily_unavailable';
+    }
+  }
+
+  /// Solicita a alteração do CPF do titular da conta principal enviando o novo CPF
+  /// e o ID do documento de comprovação que foi enviado para o Google Drive.
+  Future<Map<String, dynamic>> createCpfChangeRequest({
+    required String newCpf,
+    required String fileId,
+    String? justification,
+  }) async {
+    try {
+      final cleanCpf = newCpf.replaceAll(RegExp(r'[^0-9]'), '');
+
+      final response = await _supabase.functions.invoke(
+        'create-cpf-change-request',
+        body: {
+          'new_cpf': cleanCpf,
+          'file_id': fileId,
+          'justification': justification?.trim() ?? '',
+        },
+      );
+
+      final data = response.data;
+      if (data is Map) {
+        final success = data['success'] == true;
+        if (success) {
+          return {
+            'success': true,
+            'request_id': data['request_id'],
+            'protocol_number': data['protocol_number'],
+          };
+        } else {
+          final errorRaw = data['error'] ?? data['message'];
+          final shouldCleanup = data['should_cleanup_upload'] is bool
+              ? data['should_cleanup_upload'] as bool
+              : true;
+          return {
+            'success': false,
+            'error': _sanitizeCpfChangeError(errorRaw),
+            'should_cleanup_upload': shouldCleanup,
+          };
+        }
+      }
+
+      return {
+        'success': false,
+        'error': 'temporarily_unavailable',
+        'should_cleanup_upload': true,
+      };
+    } catch (e) {
+      if (e is FunctionException) {
+        try {
+          final details = e.details;
+          if (details is Map) {
+            final errorRaw = details['error'] ?? details['message'];
+            final shouldCleanup = details['should_cleanup_upload'] is bool
+                ? details['should_cleanup_upload'] as bool
+                : true;
+            return {
+              'success': false,
+              'error': _sanitizeCpfChangeError(errorRaw),
+              'should_cleanup_upload': shouldCleanup,
+            };
+          }
+        } catch (_) {}
+      }
+      return {
+        'success': false,
+        'error': 'temporarily_unavailable',
+        'should_cleanup_upload': true,
+      };
     }
   }
 }

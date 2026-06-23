@@ -10,6 +10,7 @@ import 'package:conectea/services/auth_service.dart';
 import 'package:conectea/services/database_service.dart';
 import 'package:conectea/models/app_user.dart';
 import 'package:conectea/features/conta/perfil/alteracoes_conta/account_changes_view.dart';
+import 'package:conectea/features/conta/perfil/cpf_change/cpf_change_flow.dart';
 
 class MyDataView extends StatefulWidget {
   final ValueChanged<AppUser> onProfileUpdated;
@@ -309,9 +310,9 @@ class _MyDataViewState extends State<MyDataView> {
         DsBotao(
           label: 'Solicitar revisão de CPF',
           onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Fluxo visual em construção.')),
-            );
+            Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const CpfChangeFlow()));
           },
           variante: DsBotaoVariante.acao,
           token: DsCores.correcao,
@@ -337,9 +338,7 @@ class _MyDataViewState extends State<MyDataView> {
           label: 'Alterar e-mail',
           onPressed: () async {
             final result = await Navigator.of(context).push<bool>(
-              MaterialPageRoute(
-                builder: (_) => const EmailChangeFlow(),
-              ),
+              MaterialPageRoute(builder: (_) => const EmailChangeFlow()),
             );
             if (result == true && mounted) {
               _retryLoadProfile();

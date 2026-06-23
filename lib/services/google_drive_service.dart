@@ -169,23 +169,30 @@ class GoogleDriveService {
     }
   }
 
+  /// Extrai o ID do arquivo a partir de uma URL do Google Drive.
+  /// Suporta os formatos /d/FILE_ID e id=FILE_ID.
+  String? extractFileId(String fileUrl) {
+    // Tentar formato /d/ID/ ou /d/ID
+    final RegExp regExpD = RegExp(r'/d/([a-zA-Z0-9_-]+)');
+    final matchD = regExpD.firstMatch(fileUrl);
+    if (matchD != null) {
+      return matchD.group(1);
+    }
+
+    // Tentar formato id=ID
+    final RegExp regExpId = RegExp(r'id=([a-zA-Z0-9_-]+)');
+    final matchId = regExpId.firstMatch(fileUrl);
+    if (matchId != null) {
+      return matchId.group(1);
+    }
+
+    return null;
+  }
+
   Future<bool> deleteFile(String fileUrl) async {
     final platform = kIsWeb ? 'Web' : 'Mobile';
     try {
-      String? fileId;
-      // Tentar formato /d/ID/ ou /d/ID
-      final RegExp regExpD = RegExp(r'/d/([a-zA-Z0-9_-]+)');
-      final matchD = regExpD.firstMatch(fileUrl);
-      if (matchD != null) {
-        fileId = matchD.group(1);
-      } else {
-        // Tentar formato id=ID
-        final RegExp regExpId = RegExp(r'id=([a-zA-Z0-9_-]+)');
-        final matchId = regExpId.firstMatch(fileUrl);
-        if (matchId != null) {
-          fileId = matchId.group(1);
-        }
-      }
+      final fileId = extractFileId(fileUrl);
 
       if (fileId == null || fileId.isEmpty) {
         debugPrint(

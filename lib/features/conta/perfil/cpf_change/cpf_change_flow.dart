@@ -5,6 +5,8 @@ import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/campos_cadastrais/campos_cadastrais.dart';
 import 'package:conectea/features/home/app_navigation_guard_controller.dart';
+import 'package:conectea/services/google_drive_service.dart';
+import 'package:conectea/services/database_service.dart';
 
 class CpfChangeFlow extends StatefulWidget {
   const CpfChangeFlow({super.key});
@@ -28,6 +30,8 @@ class _CpfChangeFlowState extends State<CpfChangeFlow> {
   AppNavigationGuardController? _navigationGuardController;
   bool _isDiscardDialogOpen = false;
   bool _isSuccess = false;
+  bool _isSubmitting = false;
+  String? _uploadedDriveUrl;
 
   @override
   void initState() {
@@ -77,6 +81,7 @@ class _CpfChangeFlowState extends State<CpfChangeFlow> {
   }
 
   Future<bool> _confirmDiscardGuard() async {
+    if (_isSubmitting) return false;
     if (_isSuccess) return true;
     if (!_hasChanges()) return true;
     if (_isDiscardDialogOpen) return false;
@@ -103,7 +108,31 @@ class _CpfChangeFlowState extends State<CpfChangeFlow> {
       ),
     );
     _isDiscardDialogOpen = false;
-    return result ?? false;
+
+    final shouldDiscard = result ?? false;
+    if (shouldDiscard && _uploadedDriveUrl != null) {
+      final deleted = await GoogleDriveService().deleteFile(_uploadedDriveUrl!);
+      if (!deleted && mounted) {
+        await DsDialog.show<void>(
+          context: context,
+          title: 'Erro ao descartar',
+          description:
+              'Não foi possível remover o documento carregado. Por segurança, tente novamente.',
+          icon: PhosphorIconsRegular.warningCircle,
+          token: DsCores.alerta,
+          primaryAction: const DsDialogAction(
+            label: 'Entendido',
+            value: null,
+            variante: DsBotaoVariante.acao,
+            token: DsCores.sucesso,
+          ),
+        );
+        return false;
+      }
+      _uploadedDriveUrl = null;
+    }
+
+    return shouldDiscard;
   }
 
   Future<void> _requestExit() async {
@@ -206,27 +235,154 @@ class _CpfChangeFlowState extends State<CpfChangeFlow> {
   }
 
   Future<void> _handleSubmit() async {
+    if (_isSubmitting) return;
     if (!_validateForm()) return;
 
-    setState(() => _isSuccess = true);
+    setState(() {
+      _isSubmitting = true;
+    });
 
-    await DsDialog.show<void>(
-      context: context,
-      title: 'Formulário validado',
-      description:
-          'A próxima etapa técnica vai conectar o envio seguro da solicitação para análise da equipe.',
-      icon: PhosphorIconsRegular.checkCircle,
-      token: DsCores.sucesso,
-      primaryAction: const DsDialogAction(
-        label: 'Entendido',
-        value: null,
-        variante: DsBotaoVariante.acao,
-        token: DsCores.sucesso,
-      ),
+    final ext = _selectedFile!.extension?.toLowerCase() ?? 'pdf';
+    final fileName =
+        'cpf_revisao_${DateTime.now().millisecondsSinceEpoch}.$ext';
+
+    final driveUrl = await GoogleDriveService().uploadFile(
+      file: _selectedFile!,
+      fileName: fileName,
     );
 
-    if (mounted) {
-      Navigator.pop(context);
+    if (driveUrl == null || driveUrl.isEmpty) {
+      setState(() {
+        _isSubmitting = false;
+      });
+      if (mounted) {
+        await DsDialog.show<void>(
+          context: context,
+          title: 'Erro de envio',
+          description:
+              'Não foi possível enviar o documento. Verifique sua conexão e tente novamente.',
+          icon: PhosphorIconsRegular.warningCircle,
+          token: DsCores.alerta,
+          primaryAction: const DsDialogAction(
+            label: 'Entendido',
+            value: null,
+            variante: DsBotaoVariante.acao,
+            token: DsCores.sucesso,
+          ),
+        );
+      }
+      return;
+    }
+
+    _uploadedDriveUrl = driveUrl;
+
+    final fileId = GoogleDriveService().extractFileId(driveUrl);
+    if (fileId == null || fileId.isEmpty) {
+      await GoogleDriveService().deleteFile(driveUrl);
+      setState(() {
+        _uploadedDriveUrl = null;
+        _isSubmitting = false;
+      });
+      if (mounted) {
+        await DsDialog.show<void>(
+          context: context,
+          title: 'Erro no documento',
+          description:
+              'Não foi possível preparar o documento enviado. Tente novamente.',
+          icon: PhosphorIconsRegular.warningCircle,
+          token: DsCores.alerta,
+          primaryAction: const DsDialogAction(
+            label: 'Entendido',
+            value: null,
+            variante: DsBotaoVariante.acao,
+            token: DsCores.sucesso,
+          ),
+        );
+      }
+      return;
+    }
+
+    final result = await DatabaseService().createCpfChangeRequest(
+      newCpf: _cpfController.text,
+      fileId: fileId,
+      justification: _justificationController.text.trim(),
+    );
+
+    if (result['success'] == true) {
+      setState(() {
+        _isSuccess = true;
+        _isSubmitting = false;
+        _uploadedDriveUrl = null;
+        _selectedFile = null;
+      });
+
+      final protocol = result['protocol_number'] ?? '';
+      final description = protocol.isNotEmpty
+          ? 'Sua solicitação de revisão de CPF foi enviada para análise da equipe administrativa.\n\nProtocolo: $protocol'
+          : 'Sua solicitação de revisão de CPF foi enviada para análise da equipe administrativa.';
+
+      if (mounted) {
+        await DsDialog.show<void>(
+          context: context,
+          title: 'Solicitação enviada',
+          description: description,
+          icon: PhosphorIconsRegular.checkCircle,
+          token: DsCores.sucesso,
+          primaryAction: const DsDialogAction(
+            label: 'Entendido',
+            value: null,
+            variante: DsBotaoVariante.acao,
+            token: DsCores.sucesso,
+          ),
+        );
+        if (mounted) {
+          Navigator.pop(context);
+        }
+      }
+    } else {
+      final cleanedUp = await GoogleDriveService().deleteFile(driveUrl);
+      if (cleanedUp) {
+        setState(() {
+          _uploadedDriveUrl = null;
+        });
+      }
+      setState(() {
+        _isSubmitting = false;
+      });
+
+      final errorKey = result['error'] ?? '';
+      String errorMsg =
+          'Não foi possível concluir a solicitação agora. Tente novamente em alguns instantes.';
+
+      if (errorKey == 'active_request_exists') {
+        errorMsg =
+            'Já existe uma solicitação de alteração de CPF em andamento. Acompanhe o andamento em Minhas alterações de conta.';
+      } else if (errorKey == 'invalid_request') {
+        errorMsg =
+            'Não foi possível validar os dados enviados. Revise as informações e tente novamente.';
+      } else if (errorKey == 'temporarily_unavailable' ||
+          errorKey == 'unavailable') {
+        errorMsg =
+            'Não foi possível concluir a solicitação agora. Tente novamente em alguns instantes.';
+      }
+
+      if (mounted) {
+        await DsDialog.show<void>(
+          context: context,
+          title: 'Não foi possível enviar',
+          description: cleanedUp
+              ? '$errorMsg\n\nO documento enviado foi removido com segurança.'
+              : '$errorMsg\n\nPor segurança, tente novamente mais tarde ou procure o suporte.',
+          icon: PhosphorIconsRegular.warningCircle,
+          token: DsCores.alerta,
+          primaryAction: const DsDialogAction(
+            label: 'Entendido',
+            value: null,
+            variante: DsBotaoVariante.acao,
+            token: DsCores.sucesso,
+          ),
+        );
+      }
     }
   }
 
@@ -241,7 +397,7 @@ class _CpfChangeFlowState extends State<CpfChangeFlow> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: _isSuccess,
+      canPop: _isSuccess && !_isSubmitting,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
         await _requestExit();
@@ -492,8 +648,10 @@ class _CpfChangeFlowState extends State<CpfChangeFlow> {
                               const SizedBox(height: 32),
                               // CTA Principal
                               DsBotao(
-                                label: 'Revisar solicitação',
-                                onPressed: _handleSubmit,
+                                label: _isSubmitting
+                                    ? 'Enviando...'
+                                    : 'Revisar solicitação',
+                                onPressed: _isSubmitting ? null : _handleSubmit,
                                 variante: DsBotaoVariante.acao,
                                 token: DsCores.correcao,
                                 icon: PhosphorIconsRegular.paperPlaneRight,
