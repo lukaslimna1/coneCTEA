@@ -233,13 +233,11 @@ export async function handler(req: Request): Promise<Response> {
       );
     }
 
-    // Instancia o cliente apontando para o schema 'private'
-    const supabaseAdminPrivate = createClient(supabaseUrl, supabaseServiceRole, {
-      db: { schema: "private" }
-    });
+    // Instancia o cliente admin padrão apontando para o schema público 'public'
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRole);
 
-    // 9. Executar a RPC no schema private
-    const { data: rpcData, error: rpcError } = await supabaseAdminPrivate.rpc(
+    // 9. Executar a RPC wrapper no schema public
+    const { data: rpcData, error: rpcError } = await supabaseAdmin.rpc(
       "conectea_create_cpf_change_request_v1",
       {
         p_user_id: authUserId,
