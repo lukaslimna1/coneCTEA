@@ -23,6 +23,7 @@ enum AccountChangeStatus {
   rejectedByAdmin,
   cancelledByHolder,
   expired,
+  waitingCpfCorrection,
   unknown,
 }
 
@@ -47,6 +48,8 @@ extension AccountChangeStatusExtension on AccountChangeStatus {
         return 'cancelled_by_holder';
       case AccountChangeStatus.expired:
         return 'expired';
+      case AccountChangeStatus.waitingCpfCorrection:
+        return 'waiting_cpf_correction';
       case AccountChangeStatus.unknown:
         return null;
     }
@@ -403,6 +406,10 @@ class AccountChangeRequest {
         break;
       case 'expired':
         status = AccountChangeStatus.expired;
+        break;
+      case 'waiting_cpf_correction':
+      case 'waitingcpfcorrection':
+        status = AccountChangeStatus.waitingCpfCorrection;
         break;
       default:
         status = AccountChangeStatus.unknown;

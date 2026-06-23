@@ -54,6 +54,8 @@ class AccountChangePresentation {
         return 'ENCERRADA POR VOCÊ';
       case AccountChangeStatus.expired:
         return 'PRAZO ENCERRADO';
+      case AccountChangeStatus.waitingCpfCorrection:
+        return 'CORREÇÃO DE CPF SOLICITADA';
       case AccountChangeStatus.unknown:
         return 'STATUS EM ATUALIZAÇÃO';
     }
@@ -88,6 +90,8 @@ class AccountChangePresentation {
         return 'Solicitação encerrada';
       case AccountChangeStatus.expired:
         return 'Solicitação expirada';
+      case AccountChangeStatus.waitingCpfCorrection:
+        return 'Revise o CPF e o documento';
       case AccountChangeStatus.unknown:
         return 'Status em atualização';
     }
@@ -114,6 +118,8 @@ class AccountChangePresentation {
         return PhosphorIconsRegular.minusCircle;
       case AccountChangeStatus.expired:
         return PhosphorIconsRegular.clockCountdown;
+      case AccountChangeStatus.waitingCpfCorrection:
+        return PhosphorIconsRegular.warningOctagon;
       case AccountChangeStatus.unknown:
         return PhosphorIconsRegular.clock;
     }
@@ -127,6 +133,7 @@ class AccountChangePresentation {
       case AccountChangeStatus.underReview:
       case AccountChangeStatus.waitingHolderConfirmation:
       case AccountChangeStatus.applicationFailed:
+      case AccountChangeStatus.waitingCpfCorrection:
       case AccountChangeStatus.unknown:
         return true;
       case AccountChangeStatus.completed:
@@ -156,6 +163,8 @@ class AccountChangePresentation {
       case AccountChangeStatus.cancelledByHolder:
       case AccountChangeStatus.expired:
         return DsCores.manutencao;
+      case AccountChangeStatus.waitingCpfCorrection:
+        return DsCores.correcao;
       case AccountChangeStatus.unknown:
         return DsCores.fallback;
     }
@@ -182,6 +191,8 @@ class AccountChangePresentation {
         return 'A alteração não foi realizada e seus dados anteriores continuam ativos.';
       case AccountChangeStatus.expired:
         return 'O prazo para concluir esta etapa terminou e a alteração não foi realizada.';
+      case AccountChangeStatus.waitingCpfCorrection:
+        return 'A equipe identificou que o CPF informado ou o documento de comprovação precisa ser corrigido.';
       case AccountChangeStatus.unknown:
         return 'O status está sendo atualizado.';
     }
@@ -200,7 +211,8 @@ class AccountChangePresentation {
   bool get canShowHolderDeadline {
     return request.holderDeadlineDueDate != null &&
         (request.status == AccountChangeStatus.waitingDocumentReplacement ||
-            request.status == AccountChangeStatus.waitingHolderConfirmation);
+            request.status == AccountChangeStatus.waitingHolderConfirmation ||
+            request.status == AccountChangeStatus.waitingCpfCorrection);
   }
 
   /// Retorna o texto formatado do prazo do titular, ou nulo se não puder ser exibido.
@@ -245,7 +257,8 @@ class AccountChangePresentation {
             AccountChangePublicAdminReasonCode.unknown ||
         request.publicAdminFeedback != null;
     return (request.status == AccountChangeStatus.waitingDocumentReplacement ||
-            request.status == AccountChangeStatus.rejectedByAdmin) &&
+            request.status == AccountChangeStatus.rejectedByAdmin ||
+            request.status == AccountChangeStatus.waitingCpfCorrection) &&
         hasInfo;
   }
 
