@@ -9,8 +9,6 @@ import 'package:conectea/core/campos_cadastrais/campos_cadastrais.dart';
 import 'package:conectea/features/home/app_navigation_guard_controller.dart';
 import 'package:conectea/services/google_drive_service.dart';
 import 'package:conectea/services/database_service.dart';
-import 'package:conectea/models/account_change_request.dart';
-import 'package:conectea/features/conta/perfil/alteracoes_conta/account_change_presentation.dart';
 import 'package:conectea/features/conta/perfil/alteracoes_conta/account_change_detail_view.dart';
 
 class CpfChangeFlow extends StatefulWidget {
@@ -59,16 +57,8 @@ class _CpfChangeFlowState extends State<CpfChangeFlow> {
 
   Future<void> _checkActiveRequestOnStart() async {
     try {
-      final list = await DatabaseService().listMyAccountChanges(limit: 20);
-
-      AccountChangeRequest? activeRequest;
-      for (final req in list) {
-        if (req.type == AccountChangeType.cpf &&
-            AccountChangePresentation(req).isOngoing) {
-          activeRequest = req;
-          break;
-        }
-      }
+      final activeRequest = await DatabaseService()
+          .getMyActiveCpfAccountChange();
 
       if (!mounted) return;
 
@@ -100,7 +90,7 @@ class _CpfChangeFlowState extends State<CpfChangeFlow> {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
               builder: (_) =>
-                  AccountChangeDetailView(requestId: activeRequest!.id),
+                  AccountChangeDetailView(requestId: activeRequest.id),
             ),
           );
         } else {

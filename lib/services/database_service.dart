@@ -1198,6 +1198,43 @@ class DatabaseService {
     return AccountChangeRequest.fromJson(rawMap);
   }
 
+  /// Consulta a solicitação ativa de alteração de CPF do titular autenticado.
+  Future<AccountChangeRequest?> getMyActiveCpfAccountChange() async {
+    final response = await _supabase.rpc(
+      'conectea_get_my_active_cpf_account_change_v1',
+    );
+
+    if (response == null) {
+      return null;
+    }
+
+    if (response is! List) {
+      throw const FormatException(
+        'Formato de resposta inesperado do servidor.',
+      );
+    }
+
+    if (response.isEmpty) {
+      return null;
+    }
+
+    if (response.length > 1) {
+      throw const FormatException(
+        'Mais de um registro retornado pelo servidor.',
+      );
+    }
+
+    final firstItem = response.first;
+    if (firstItem is! Map) {
+      throw const FormatException(
+        'Formato de registro inválido retornado pelo servidor.',
+      );
+    }
+
+    final rawMap = Map<String, dynamic>.from(firstItem);
+    return AccountChangeRequest.fromJson(rawMap);
+  }
+
   /// Consulta o ciclo ativo de alteração de e-mail usando RPC segura.
   Future<Map<String, dynamic>?> getActiveEmailChangeCycle() async {
     try {
