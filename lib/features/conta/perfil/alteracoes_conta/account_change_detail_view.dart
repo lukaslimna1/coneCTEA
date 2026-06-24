@@ -24,6 +24,7 @@ class _AccountChangeDetailViewState extends State<AccountChangeDetailView> {
   bool _isLoading = true;
   bool _notFound = false;
   String? _errorMessage;
+  bool _isCancelling = false;
 
   @override
   void initState() {
@@ -67,6 +68,89 @@ class _AccountChangeDetailViewState extends State<AccountChangeDetailView> {
           _isLoading = false;
           _notFound = false;
           _errorMessage = 'Não foi possível carregar os detalhes da alteração.';
+        });
+      }
+    }
+  }
+
+  Future<void> _handleCancel() async {
+    final confirm = await DsDialog.show<bool>(
+      context: context,
+      title: 'Cancelar solicitação?',
+      description:
+          'Ao cancelar, esta solicitação será encerrada e o documento enviado será encaminhado para descarte seguro. Depois disso, você poderá iniciar uma nova solicitação de revisão de CPF.',
+      icon: PhosphorIconsRegular.warning,
+      token: DsCores.perigo,
+      secondaryAction: const DsDialogAction(
+        label: 'Manter solicitação',
+        value: false,
+        variante: DsBotaoVariante.ghost,
+        token: DsCores.fallback,
+      ),
+      primaryAction: const DsDialogAction(
+        label: 'Cancelar solicitação',
+        value: true,
+        variante: DsBotaoVariante.acao,
+        token: DsCores.perigo,
+      ),
+    );
+
+    if (confirm != true) return;
+
+    setState(() {
+      _isCancelling = true;
+    });
+
+    try {
+      final result = await _databaseService.cancelCpfChangeRequest(
+        requestId: widget.requestId,
+      );
+
+      if (mounted) {
+        if (result['success'] == true) {
+          await _loadDetail(showLoading: true);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text('Solicitação cancelada com sucesso.'),
+                backgroundColor: DsCores.sucesso.accent,
+              ),
+            );
+          }
+        } else {
+          final error = result['error'];
+          String message =
+              'Não foi possível cancelar agora. Tente novamente em alguns instantes.';
+          if (error == 'not_found' || error == 'not_found_or_not_cancelable') {
+            message =
+                'Não foi possível cancelar esta solicitação. Ela pode já ter sido concluída ou alterada.';
+          } else if (error == 'invalid_status') {
+            message =
+                'Esta solicitação não pode mais ser cancelada nesta etapa.';
+          }
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(message),
+              backgroundColor: DsCores.perigo.accent,
+            ),
+          );
+        }
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text(
+              'Não foi possível cancelar agora. Tente novamente em alguns instantes.',
+            ),
+            backgroundColor: DsCores.perigo.accent,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isCancelling = false;
         });
       }
     }
@@ -426,6 +510,18 @@ class _AccountChangeDetailViewState extends State<AccountChangeDetailView> {
                   ],
                 ],
               ),
+            ),
+          ],
+
+          // G. BOTÃO DE CANCELAMENTO DA SOLICITAÇÃO (Se aplicável)
+          if (presentation.canCancelByHolder) ...[
+            const SizedBox(height: DsEspacamentos.lg),
+            DsBotao(
+              label: 'Cancelar solicitação',
+              onPressed: _isCancelling ? null : _handleCancel,
+              variante: DsBotaoVariante.perigo,
+              icon: PhosphorIconsRegular.xCircle,
+              isLoading: _isCancelling,
             ),
           ],
         ]),

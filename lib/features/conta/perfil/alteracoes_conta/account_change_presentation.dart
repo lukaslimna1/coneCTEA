@@ -206,6 +206,21 @@ class AccountChangePresentation {
     return '$d/$m/$y';
   }
 
+  /// Retorna true apenas se a solicitação for de CPF e estiver em um status
+  /// passível de cancelamento ativo pelo titular.
+  bool get canCancelByHolder {
+    if (request.type != AccountChangeType.cpf) return false;
+    switch (request.status) {
+      case AccountChangeStatus.underReview:
+      case AccountChangeStatus.waitingDocumentReplacement:
+      case AccountChangeStatus.waitingCpfCorrection:
+      case AccountChangeStatus.waitingHolderConfirmation:
+        return true;
+      default:
+        return false;
+    }
+  }
+
   /// Retorna true apenas quando holderDeadlineDueDate não for nulo
   /// e o status for waitingDocumentReplacement ou waitingHolderConfirmation.
   bool get canShowHolderDeadline {

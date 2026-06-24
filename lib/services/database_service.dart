@@ -1345,4 +1345,58 @@ class DatabaseService {
       };
     }
   }
+
+  String _sanitizeCpfCancelError(Object? value) {
+    final error = value?.toString();
+    switch (error) {
+      case 'not_found':
+      case 'invalid_status':
+      case 'not_found_or_not_cancelable':
+      case 'unavailable':
+      case 'temporarily_unavailable':
+        return error!;
+      default:
+        return 'unavailable';
+    }
+  }
+
+  /// Cancela uma solicitação ativa de alteração de CPF enviando o requestId para
+  /// a Edge Function correspondente, que também agenda o descarte do documento.
+  Future<Map<String, dynamic>> cancelCpfChangeRequest({
+    required String requestId,
+  }) async {
+    try {
+      final response = await _supabase.functions.invoke(
+        'cancel-cpf-change-request',
+        body: {'request_id': requestId},
+      );
+
+      final data = response.data;
+      if (data is Map) {
+        final success = data['success'] == true;
+        if (success) {
+          return {'success': true};
+        } else {
+          final errorRaw = data['error'] ?? data['message'];
+          return {'success': false, 'error': _sanitizeCpfCancelError(errorRaw)};
+        }
+      }
+
+      return {'success': false, 'error': 'unavailable'};
+    } catch (e) {
+      if (e is FunctionException) {
+        try {
+          final details = e.details;
+          if (details is Map) {
+            final errorRaw = details['error'] ?? details['message'];
+            return {
+              'success': false,
+              'error': _sanitizeCpfCancelError(errorRaw),
+            };
+          }
+        } catch (_) {}
+      }
+      return {'success': false, 'error': 'unavailable'};
+    }
+  }
 }
