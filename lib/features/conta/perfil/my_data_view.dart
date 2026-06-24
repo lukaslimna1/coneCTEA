@@ -11,6 +11,9 @@ import 'package:conectea/services/database_service.dart';
 import 'package:conectea/models/app_user.dart';
 import 'package:conectea/features/conta/perfil/alteracoes_conta/account_changes_view.dart';
 import 'package:conectea/features/conta/perfil/cpf_change/cpf_change_flow.dart';
+import 'package:conectea/models/account_change_request.dart';
+import 'package:conectea/features/conta/perfil/alteracoes_conta/account_change_presentation.dart';
+import 'package:conectea/features/conta/perfil/alteracoes_conta/account_change_detail_view.dart';
 
 class MyDataView extends StatefulWidget {
   final ValueChanged<AppUser> onProfileUpdated;
@@ -23,6 +26,7 @@ class MyDataView extends StatefulWidget {
 
 class _MyDataViewState extends State<MyDataView> {
   Future<AppUser?>? _profileFuture;
+  bool _isCheckingCpfChangeRequest = false;
 
   @override
   void initState() {
@@ -98,6 +102,79 @@ class _MyDataViewState extends State<MyDataView> {
     }
 
     return dateStr.trim();
+  }
+
+  Future<void> _handleCpfChangeRequestCheck(AppUser user) async {
+    setState(() {
+      _isCheckingCpfChangeRequest = true;
+    });
+
+    try {
+      final list = await DatabaseService().listMyAccountChanges(limit: 20);
+
+      AccountChangeRequest? activeRequest;
+      for (final req in list) {
+        if (req.type == AccountChangeType.cpf &&
+            AccountChangePresentation(req).isOngoing) {
+          activeRequest = req;
+          break;
+        }
+      }
+
+      if (!mounted) return;
+
+      if (activeRequest != null) {
+        final showDetail = await DsDialog.show<bool>(
+          context: context,
+          title: 'Solicitação em andamento',
+          description:
+              'Você já tem uma solicitação de revisão de CPF em andamento. Acompanhe a análise da equipe.',
+          icon: PhosphorIconsRegular.warningCircle,
+          token: DsCores.alerta,
+          secondaryAction: const DsDialogAction(
+            label: 'Voltar',
+            value: false,
+            variante: DsBotaoVariante.ghost,
+            token: DsCores.alerta,
+          ),
+          primaryAction: const DsDialogAction(
+            label: 'Acompanhar solicitação',
+            value: true,
+            variante: DsBotaoVariante.acao,
+            token: DsCores.sucesso,
+          ),
+        );
+
+        if (showDetail == true && mounted) {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) =>
+                  AccountChangeDetailView(requestId: activeRequest!.id),
+            ),
+          );
+        }
+      } else {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => CpfChangeFlow(currentCpf: _formatCpf(user.cpf)),
+          ),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => CpfChangeFlow(currentCpf: _formatCpf(user.cpf)),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isCheckingCpfChangeRequest = false;
+        });
+      }
+    }
   }
 
   @override
@@ -308,14 +385,12 @@ class _MyDataViewState extends State<MyDataView> {
         ),
         const SizedBox(height: 12),
         DsBotao(
-          label: 'Solicitar revisão de CPF',
-          onPressed: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => CpfChangeFlow(currentCpf: _formatCpf(user.cpf)),
-              ),
-            );
-          },
+          label: _isCheckingCpfChangeRequest
+              ? 'Verificando...'
+              : 'Solicitar revisão de CPF',
+          onPressed: _isCheckingCpfChangeRequest
+              ? null
+              : () => _handleCpfChangeRequestCheck(user),
           variante: DsBotaoVariante.acao,
           token: DsCores.correcao,
           icon: PhosphorIconsRegular.paperPlaneRight,
