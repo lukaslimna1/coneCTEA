@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -244,6 +246,14 @@ class _CpfChangeFlowState extends State<CpfChangeFlow> {
     return !hasError;
   }
 
+  String _buildSafeDriveFileName(String extension) {
+    final random = Random.secure();
+    final randomVal = random.nextInt(65536);
+    final hex = randomVal.toRadixString(16).padLeft(4, '0');
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    return 'ctea_anx_${timestamp}_$hex.$extension';
+  }
+
   Future<void> _handleSubmit() async {
     if (_isSubmitting) return;
     if (!_validateForm()) return;
@@ -253,8 +263,7 @@ class _CpfChangeFlowState extends State<CpfChangeFlow> {
     });
 
     final ext = _selectedFile!.extension?.toLowerCase() ?? 'pdf';
-    final fileName =
-        'cpf_revisao_${DateTime.now().millisecondsSinceEpoch}.$ext';
+    final fileName = _buildSafeDriveFileName(ext);
 
     final driveUrl = await GoogleDriveService().uploadFile(
       file: _selectedFile!,
