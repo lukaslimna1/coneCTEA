@@ -521,6 +521,33 @@ class _CpfChangeFlowState extends State<CpfChangeFlow> {
                           height: 1.4,
                         ),
                       ),
+                      const SizedBox(height: 12),
+                      DsCard(
+                        borderColor: DsCores.comunicacao.border.withValues(
+                          alpha: 0.15,
+                        ),
+                        padding: const EdgeInsets.all(DsEspacamentos.md),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(
+                              PhosphorIconsRegular.info,
+                              color: DsCores.comunicacao.accent,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                'Após o envio, a equipe administrativa analisará sua solicitação em até 10 dias corridos. Você poderá acompanhar o andamento em Minhas alterações de conta.',
+                                style: DsTipografia.bodySmall.copyWith(
+                                  color: DsCores.textSecondary,
+                                  height: 1.4,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                       const SizedBox(height: 24),
 
                       // =======================================================
