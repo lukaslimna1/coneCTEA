@@ -204,6 +204,72 @@ class _AccountChangeDetailViewState extends State<AccountChangeDetailView> {
           ),
           const SizedBox(height: DsEspacamentos.md),
 
+          // Prazo para Ação do Titular (Se aplicável)
+          if (presentation.canShowHolderDeadline) ...[
+            DsCard(
+              borderColor: DsCores.alerta.border.withValues(alpha: 0.3),
+              padding: const EdgeInsets.all(DsEspacamentos.md),
+              child: Row(
+                children: [
+                  Icon(
+                    PhosphorIconsRegular.clockCountdown,
+                    color: DsCores.alerta.accent,
+                    size: 20,
+                  ),
+                  const SizedBox(width: DsEspacamentos.md),
+                  Expanded(
+                    child: Text(
+                      presentation.holderDeadlineText ?? '',
+                      style: DsTipografia.bodySmall.copyWith(
+                        color: DsCores.textPrimary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: DsEspacamentos.md),
+          ],
+
+          // Orientação Pública Administrativa (Se aplicável)
+          if (presentation.canShowPublicAdminGuidance) ...[
+            _buildSectionHeader(
+              icon: PhosphorIconsRegular.info,
+              title: 'ORIENTAÇÃO DA ADMINISTRAÇÃO',
+            ),
+            const SizedBox(height: DsEspacamentos.sm),
+            DsCard(
+              borderColor: visualToken.border.withValues(alpha: 0.3),
+              padding: const EdgeInsets.all(DsEspacamentos.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (presentation.publicAdminReasonText != null)
+                    Text(
+                      presentation.publicAdminReasonText!,
+                      style: DsTipografia.bodySmall.copyWith(
+                        color: DsCores.textPrimary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  if (presentation.publicAdminReasonText != null &&
+                      presentation.publicAdminFeedbackText != null)
+                    const SizedBox(height: DsEspacamentos.xs),
+                  if (presentation.publicAdminFeedbackText != null)
+                    Text(
+                      presentation.publicAdminFeedbackText!,
+                      style: DsTipografia.bodySmall.copyWith(
+                        color: DsCores.textSecondary,
+                        height: 1.35,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: DsEspacamentos.md),
+          ],
+
           // B. IDENTIFICAÇÃO
           _buildSectionHeader(
             icon: PhosphorIconsRegular.fingerprint,
@@ -239,8 +305,19 @@ class _AccountChangeDetailViewState extends State<AccountChangeDetailView> {
                   ConecteaDateTimeHelper.formatProjectDateShort(
                     request.updatedAt,
                   ),
-                  isLast: true,
+                  isLast:
+                      !(request.status == AccountChangeStatus.underReview ||
+                          request.status == AccountChangeStatus.applying),
                 ),
+                if (request.status == AccountChangeStatus.underReview ||
+                    request.status == AccountChangeStatus.applying) ...[
+                  const SizedBox(height: DsEspacamentos.md),
+                  _buildCompactDetailRow(
+                    'Previsão de análise',
+                    'Até ${ConecteaDateTimeHelper.formatProjectDateShort(request.createdAt.add(const Duration(days: 10)))} (10 dias corridos)',
+                    isLast: true,
+                  ),
+                ],
               ],
             ),
           ),
@@ -312,6 +389,41 @@ class _AccountChangeDetailViewState extends State<AccountChangeDetailView> {
                       ),
                       isLast: true,
                     ),
+                ],
+              ),
+            ),
+          ],
+
+          // F. ENCERRAMENTO DA SOLICITAÇÃO (Se aplicável)
+          if (presentation.canShowClosedAt) ...[
+            const SizedBox(height: DsEspacamentos.md),
+            _buildSectionHeader(
+              icon: PhosphorIconsRegular.checkSquare,
+              title: 'ENCERRAMENTO',
+            ),
+            const SizedBox(height: DsEspacamentos.sm),
+            DsCard(
+              borderColor: DsCores.border.withValues(alpha: 0.5),
+              padding: const EdgeInsets.all(DsEspacamentos.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildCompactDetailRow(
+                    presentation.closedAtLabel ?? 'Encerramento',
+                    ConecteaDateTimeHelper.formatProjectDateShort(
+                      request.closedAt!,
+                    ),
+                    isLast: !presentation.canShowResolutionReason,
+                  ),
+                  if (presentation.canShowResolutionReason) ...[
+                    const SizedBox(height: DsEspacamentos.md),
+                    _buildCompactDetailRow(
+                      'Motivo',
+                      presentation.resolutionReasonText ??
+                          'Prazo ou cancelamento',
+                      isLast: true,
+                    ),
+                  ],
                 ],
               ),
             ),
