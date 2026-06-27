@@ -322,8 +322,9 @@ class AccountChangePresentation {
     switch (request.status) {
       case AccountChangeStatus.completed:
         return 'Concluída em';
-      case AccountChangeStatus.rejectedByAdmin:
       case AccountChangeStatus.cancelledByHolder:
+        return 'Cancelado em';
+      case AccountChangeStatus.rejectedByAdmin:
       case AccountChangeStatus.expired:
         return 'Encerrada em';
       default:
@@ -336,6 +337,13 @@ class AccountChangePresentation {
     if (!canShowClosedAt || request.closedAt == null) return null;
     final label = closedAtLabel;
     if (label == null) return null;
+    if (request.status == AccountChangeStatus.cancelledByHolder) {
+      final date = ConecteaDateTimeHelper.formatProjectDateShort(
+        request.closedAt!,
+      );
+      final time = ConecteaDateTimeHelper.formatProjectTime(request.closedAt!);
+      return '$label $date às $time';
+    }
     final formattedDate = ConecteaDateTimeHelper.formatProjectDateShort(
       request.closedAt!,
     );

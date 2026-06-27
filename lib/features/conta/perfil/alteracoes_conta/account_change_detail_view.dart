@@ -385,10 +385,14 @@ class _AccountChangeDetailViewState extends State<AccountChangeDetailView> {
                 ),
                 const SizedBox(height: DsEspacamentos.md),
                 _buildCompactDetailRow(
-                  'Última atualização',
-                  ConecteaDateTimeHelper.formatProjectDateShort(
-                    request.updatedAt,
-                  ),
+                  request.status == AccountChangeStatus.cancelledByHolder
+                      ? 'Cancelado em'
+                      : 'Última atualização',
+                  request.status == AccountChangeStatus.cancelledByHolder
+                      ? '${ConecteaDateTimeHelper.formatProjectDateShort(request.closedAt ?? request.updatedAt)} às ${ConecteaDateTimeHelper.formatProjectTime(request.closedAt ?? request.updatedAt)}'
+                      : ConecteaDateTimeHelper.formatProjectDateShort(
+                          request.updatedAt,
+                        ),
                   isLast:
                       !(request.status == AccountChangeStatus.underReview ||
                           request.status == AccountChangeStatus.applying),
