@@ -6,6 +6,7 @@ import {
 } from "./crypto_material.ts";
 
 declare const Deno: any;
+declare const EdgeRuntime: any;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -293,6 +294,43 @@ export async function handler(req: Request): Promise<Response> {
     const { success, error_code } = cancelResult;
 
     if (success === true) {
+      // Disparo automático e assíncrono (best-effort) do processador de descarte
+      try {
+        const workerKey = Deno.env.get("GC_DRIVE_WORKER_KEY") ?? "";
+        if (workerKey) {
+          const triggerWorkerPromise = (async () => {
+            try {
+              const workerUrl = `${supabaseUrl}/functions/v1/process-gc-drive-queue`;
+              const response = await fetch(workerUrl, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "x-worker-key": workerKey,
+                },
+              });
+              if (!response.ok) {
+                console.error("[cancel-cpf-change-request] Falha ao acionar worker de descarte (status não-ok).");
+              } else {
+                console.log("[cancel-cpf-change-request] Worker de descarte acionado com sucesso.");
+              }
+            } catch (_err) {
+              console.error("[cancel-cpf-change-request] Erro técnico sanitizado ao acionar worker de descarte.");
+            }
+          })();
+
+          // Utilizar EdgeRuntime.waitUntil para execução assíncrona pós-resposta
+          if (typeof EdgeRuntime !== "undefined" && EdgeRuntime.waitUntil) {
+            EdgeRuntime.waitUntil(triggerWorkerPromise);
+          } else {
+            triggerWorkerPromise.catch(() => {});
+          }
+        } else {
+          console.error("[cancel-cpf-change-request] Chave de worker indisponível no ambiente.");
+        }
+      } catch (_triggerErr) {
+        console.error("[cancel-cpf-change-request] Falha sanitizada ao agendar acionamento de descarte.");
+      }
+
       return new Response(
         JSON.stringify({ success: true }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
