@@ -4,7 +4,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/widgets/premium/premium_qr_button.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:conectea/core/constants/colors.dart';
 import 'package:conectea/services/database_service.dart';
@@ -13,8 +12,10 @@ import 'package:conectea/features/admin/solicitacoes_carteirinha/admin_requests_
 import 'package:conectea/features/admin/usuarios/admin_user_dialogs.dart';
 import 'package:conectea/features/admin/usuarios/admin_users_tab.dart';
 import 'package:conectea/features/admin/hub/admin_management_hub.dart';
+import 'package:conectea/features/admin/cpf_changes/admin_cpf_changes_tab.dart';
 import 'package:conectea/core/widgets/premium/conectea_role_badge.dart';
 import 'package:conectea/features/admin/manutencao/admin_maintenance_sheet.dart';
+import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 
 class AdminView extends StatefulWidget {
   const AdminView({super.key});
@@ -63,17 +64,21 @@ class _AdminViewState extends State<AdminView> {
         ? 'Gestão de Carteirinhas'
         : _selectedModule == 'users'
         ? 'Usuários e Permissões'
+        : _selectedModule == 'cpf_changes'
+        ? 'Revisão de CPF'
         : null;
 
     final String? moduleSubtitle = _selectedModule == 'requests'
         ? 'Solicitações, revisões e status das carteirinhas.'
         : _selectedModule == 'users'
         ? 'Contas, cargos e acessos administrativos.'
+        : _selectedModule == 'cpf_changes'
+        ? 'Gerencie solicitações de alteração de CPF.'
         : null;
 
     final bool hasSelectedModule = _selectedModule != null;
     final double computedHeaderTopPadding = hasSelectedModule
-        ? 12.0
+        ? 4.0
         : topPadding;
 
     return Scaffold(
@@ -98,7 +103,8 @@ class _AdminViewState extends State<AdminView> {
 
   Widget _buildHeader(double topPadding, {String? title, String? subtitle}) {
     final bool showRoleBadge = _selectedModule == null && _currentUser != null;
-    final bool showQrButton = _selectedModule != 'requests';
+    final bool showQrButton =
+        _selectedModule != 'requests' && _selectedModule != 'cpf_changes';
 
     return Center(
       child: ConstrainedBox(
@@ -159,50 +165,12 @@ class _AdminViewState extends State<AdminView> {
         constraints: const BoxConstraints(maxWidth: 800),
         child: Container(
           width: double.infinity,
-          padding: EdgeInsets.fromLTRB(24, topPadding, 24, 8),
+          padding: EdgeInsets.fromLTRB(24, topPadding, 24, 2),
           alignment: Alignment.centerLeft,
-          child: GestureDetector(
-            onTap: () => setState(() => _selectedModule = null),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 42,
-                  height: 42,
-                  decoration: BoxDecoration(
-                    color: const Color(0xA60F172A), // Dark Glass base
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: const Color(0x2E94A3B8), // Glass border
-                      width: 1,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 6,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: const Center(
-                    child: Icon(
-                      PhosphorIconsRegular.caretLeft,
-                      color: AppColors.cyan,
-                      size: 18,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  'Voltar ao Painel',
-                  style: GoogleFonts.inter(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xE6FFFFFF), // Branco suave
-                  ),
-                ),
-              ],
-            ),
+          child: DsBotaoVoltar(
+            onPressed: () => setState(() => _selectedModule = null),
+            label: 'Voltar',
+            token: DsCores.conta,
           ),
         ),
       ),
@@ -219,6 +187,8 @@ class _AdminViewState extends State<AdminView> {
         return _buildRequestsTab();
       case 'users':
         return _buildUsersTab();
+      case 'cpf_changes':
+        return _buildCpfChangesTab();
       default:
         return AdminManagementHub(
           currentUser: _currentUser,
@@ -232,6 +202,10 @@ class _AdminViewState extends State<AdminView> {
 
   Widget _buildRequestsTab() {
     return AdminRequestsTab(databaseService: _databaseService);
+  }
+
+  Widget _buildCpfChangesTab() {
+    return const AdminCpfChangesTab();
   }
 
   Widget _buildUsersTab() {

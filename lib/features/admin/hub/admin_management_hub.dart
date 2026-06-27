@@ -29,6 +29,8 @@ class AdminManagementHub extends StatelessWidget {
         role == UserRole.adminDev;
     final bool canAccessUsers =
         role == UserRole.adminMaster || role == UserRole.adminDev;
+    final bool canAccessCpfChanges =
+        role == UserRole.adminMaster || role == UserRole.adminDev;
     final bool canAccessMaintenance = role == UserRole.adminDev;
 
     return Center(
@@ -49,6 +51,29 @@ class AdminManagementHub extends StatelessWidget {
                   onSelectModule('requests');
                 } else {
                   _showToast(context, 'Acesso restrito à equipe de gestão.');
+                }
+              },
+            ),
+
+            // Módulo de Revisão de CPF
+            AdminModuleCard(
+              title: 'Revisão de CPF',
+              description: 'Solicitações de alteração de CPF de titulares.',
+              icon: PhosphorIconsRegular.identificationCard,
+              status: canAccessCpfChanges
+                  ? AdminModuleStatus.active
+                  : AdminModuleStatus.restricted,
+              token: canAccessCpfChanges
+                  ? ConecteaVisualTokens.usuariosPermissoes
+                  : ConecteaVisualTokens.restricao,
+              onTap: () {
+                if (canAccessCpfChanges) {
+                  onSelectModule('cpf_changes');
+                } else {
+                  _showToast(
+                    context,
+                    'Acesso restrito a administradores Master e Dev.',
+                  );
                 }
               },
             ),
