@@ -187,19 +187,23 @@ export async function handler(req: Request): Promise<Response> {
             signature,
           };
 
-          // Chamada segura para o GAS Separado
+          // Chamada segura para o GAS Separado com timeout de 20 segundos
           let gasResponse: any;
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 20000);
+
           try {
             const fetchResult = await fetch(gasDiscardUrl, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify(gasPayload),
               redirect: "follow",
+              signal: controller.signal,
             });
 
             gasResponse = await fetchResult.json();
           } catch (_fetchErr) {
-            // Falha de rede/timeout -> erro temporário
+            // Falha de rede/timeout/abort -> erro temporário
             const res = await resolveItem(supabaseAdmin, id, false, lockedBy, "gas_unavailable");
             if (res.ok) {
               if (res.finalStatus === "processed") processedCount++;
@@ -207,6 +211,8 @@ export async function handler(req: Request): Promise<Response> {
               else if (res.finalStatus === "failed") failedCount++;
             }
             continue;
+          } finally {
+            clearTimeout(timeoutId);
           }
 
           // Validar estritamente o formato da resposta do GAS
@@ -373,3 +379,6 @@ async function computeHmacHex(key: string, data: string): Promise<string> {
   const hashArray = Array.from(new Uint8Array(signature));
   return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
 }
+
+// Registro explícito do handler para o lifecycle da Edge Function
+serve(handler);

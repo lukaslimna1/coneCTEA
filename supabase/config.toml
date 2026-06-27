@@ -409,3 +409,6 @@ s3_secret_key = "env(S3_SECRET_KEY)"
 
 [functions.recover-email-by-cpf]
 verify_jwt = false
+
+[functions.process-gc-drive-queue]
+verify_jwt = false
