@@ -1,14 +1,95 @@
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 import 'package:conectea/core/utils/conectea_date_time_helper.dart';
 import 'package:conectea/models/account_change_request.dart';
 import 'package:conectea/features/admin/cpf_changes/models/admin_cpf_change_summary.dart';
+import 'package:conectea/services/database_service.dart';
 
-class AdminCpfChangeDetailsSheet extends StatelessWidget {
+class AdminCpfChangeDetailsSheet extends StatefulWidget {
   final AdminCpfChangeSummary summary;
 
   const AdminCpfChangeDetailsSheet({super.key, required this.summary});
+
+  @override
+  State<AdminCpfChangeDetailsSheet> createState() => _AdminCpfChangeDetailsSheetState();
+}
+
+class _AdminCpfChangeDetailsSheetState extends State<AdminCpfChangeDetailsSheet> {
+  final DatabaseService _databaseService = DatabaseService();
+
+  bool _isLoading = true;
+  bool _canView = false;
+  String? _oldCpfClear;
+  String? _newCpfClear;
+  bool _canViewDocument = false;
+  String? _documentFileId;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSensitiveReview();
+  }
+
+  Future<void> _loadSensitiveReview() async {
+    final isEditable = [
+      AccountChangeStatus.underReview,
+      AccountChangeStatus.waitingDocumentReplacement,
+      AccountChangeStatus.waitingCpfCorrection,
+    ].contains(widget.summary.status);
+
+    if (!isEditable) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _canView = false;
+        });
+      }
+      return;
+    }
+
+    try {
+      final res = await _databaseService.getCpfChangeSensitiveReview(
+        requestId: widget.summary.id,
+      );
+      if (mounted) {
+        setState(() {
+          _canView = res['can_view'] == true;
+          if (_canView) {
+            _oldCpfClear = res['old_cpf_clear'];
+            _newCpfClear = res['new_cpf_clear'];
+            _canViewDocument = res['can_view_document'] == true;
+            _documentFileId = res['document_file_id'];
+          }
+          _isLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _canView = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _openDocument(String fileId) async {
+    try {
+      final url = 'https://drive.google.com/file/d/$fileId/view?usp=drivesdk';
+      if (await canLaunchUrlString(url)) {
+        await launchUrlString(url, mode: LaunchMode.externalApplication);
+      }
+    } catch (_) {}
+  }
+
+  String _formatCpf(String? cpf) {
+    if (cpf == null) return 'Não informado';
+    final clean = cpf.replaceAll(RegExp(r'[^0-9]'), '');
+    if (clean.length != 11) return cpf;
+    return '${clean.substring(0, 3)}.${clean.substring(3, 6)}.${clean.substring(6, 9)}-${clean.substring(9, 11)}';
+  }
 
   String _getStatusLabel(AccountChangeStatus status) {
     switch (status) {
@@ -84,20 +165,20 @@ class AdminCpfChangeDetailsSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final statusToken = _getStatusToken(summary.status);
+    final statusToken = _getStatusToken(widget.summary.status);
     final statusColor = statusToken.primary;
     final isEditable = [
       AccountChangeStatus.underReview,
       AccountChangeStatus.waitingDocumentReplacement,
       AccountChangeStatus.waitingCpfCorrection,
-    ].contains(summary.status);
+    ].contains(widget.summary.status);
 
     // Regra do documento
     String documentStatusText;
     IconData documentIcon;
     Color documentColor;
 
-    if (!summary.hasDocument) {
+    if (!widget.summary.hasDocument) {
       documentStatusText = 'Documento não informado';
       documentIcon = PhosphorIconsRegular.fileX;
       documentColor = DsCores.textMuted;
@@ -213,7 +294,7 @@ class AdminCpfChangeDetailsSheet extends StatelessWidget {
                         ),
                         const SizedBox(height: DsEspacamentos.xs),
                         Text(
-                          '#${summary.protocolNumber}',
+                          '#${widget.summary.protocolNumber}',
                           style: DsTipografia.cardTitle.copyWith(
                             color: DsCores.textPrimary,
                             fontWeight: FontWeight.bold,
@@ -224,7 +305,7 @@ class AdminCpfChangeDetailsSheet extends StatelessWidget {
                           alignment: Alignment.centerLeft,
                           child: DsSelo(
                             label: _getStatusLabel(
-                              summary.status,
+                              widget.summary.status,
                             ).toUpperCase(),
                             labelColor: statusColor,
                             backgroundColor: statusColor.withValues(
@@ -273,16 +354,16 @@ class AdminCpfChangeDetailsSheet extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                summary.userFirstName.toUpperCase(),
+                                widget.summary.userFirstName.toUpperCase(),
                                 style: DsTipografia.body.copyWith(
                                   color: DsCores.textPrimary,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              if (summary.userEmailMasked.isNotEmpty) ...[
+                              if (widget.summary.userEmailMasked.isNotEmpty) ...[
                                 const SizedBox(height: 2),
                                 Text(
-                                  summary.userEmailMasked,
+                                  widget.summary.userEmailMasked,
                                   style: DsTipografia.caption.copyWith(
                                     color: DsCores.textSecondary,
                                   ),
@@ -298,7 +379,7 @@ class AdminCpfChangeDetailsSheet extends StatelessWidget {
 
                   // Seção: Alteração de CPF
                   Text(
-                    'VALORES DA REVISÃO',
+                    _canView ? 'DADOS PARA ANÁLISE' : 'VALORES DA REVISÃO',
                     style: DsTipografia.sectionLabel.copyWith(
                       color: DsCores.textMuted,
                     ),
@@ -307,65 +388,98 @@ class AdminCpfChangeDetailsSheet extends StatelessWidget {
                   DsCard(
                     padding: const EdgeInsets.all(DsEspacamentos.md),
                     margin: EdgeInsets.zero,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // CPF Anterior
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'CPF ANTERIOR',
-                              style: DsTipografia.caption.copyWith(
-                                fontSize: 10,
-                                color: DsCores.textMuted,
-                                fontWeight: FontWeight.bold,
+                    child: _isLoading
+                        ? Center(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: DsEspacamentos.md,
                               ),
-                            ),
-                            const SizedBox(height: DsEspacamentos.xs),
-                            Text(
-                              summary.oldValueMasked ?? 'Não informado',
-                              style: DsTipografia.body.copyWith(
-                                color: DsCores.textPrimary.withValues(
-                                  alpha: 0.8,
+                              child: Text(
+                                'Carregando dados para análise...',
+                                style: DsTipografia.caption.copyWith(
+                                  color: DsCores.textSecondary,
                                 ),
-                                fontWeight: FontWeight.w700,
                               ),
                             ),
-                          ],
-                        ),
-                        const Padding(
-                          padding: EdgeInsets.symmetric(
-                            vertical: DsEspacamentos.md,
+                          )
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // CPF Anterior / CPF atual
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _canView ? 'CPF ATUAL' : 'CPF ANTERIOR',
+                                    style: DsTipografia.caption.copyWith(
+                                      fontSize: 10,
+                                      color: DsCores.textMuted,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: DsEspacamentos.xs),
+                                  Text(
+                                    _canView
+                                        ? _formatCpf(_oldCpfClear)
+                                        : (widget.summary.oldValueMasked ?? 'Não informado'),
+                                    style: DsTipografia.body.copyWith(
+                                      color: DsCores.textPrimary.withValues(
+                                        alpha: 0.8,
+                                      ),
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const Padding(
+                                padding: EdgeInsets.symmetric(
+                                  vertical: DsEspacamentos.md,
+                                ),
+                                child: Divider(color: DsCores.border, height: 1),
+                              ),
+                              // CPF Novo / CPF solicitado
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _canView ? 'CPF SOLICITADO' : 'NOVO CPF SOLICITADO',
+                                    style: DsTipografia.caption.copyWith(
+                                      fontSize: 10,
+                                      color: DsCores.conta.accent.withValues(
+                                        alpha: 0.8,
+                                      ),
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: DsEspacamentos.xs),
+                                  Text(
+                                    _canView
+                                        ? _formatCpf(_newCpfClear)
+                                        : (widget.summary.newValueMasked ?? 'Não informado'),
+                                    style: DsTipografia.body.copyWith(
+                                      color: DsCores.conta.accent,
+                                      fontWeight: FontWeight.w900,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              if (!_canView && !_isLoading) ...[
+                                const Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    vertical: DsEspacamentos.md,
+                                  ),
+                                  child: Divider(color: DsCores.border, height: 1),
+                                ),
+                                Text(
+                                  'Dados sensíveis indisponíveis para este status.',
+                                  style: DsTipografia.caption.copyWith(
+                                    color: DsCores.perigo.accent,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
-                          child: Divider(color: DsCores.border, height: 1),
-                        ),
-                        // CPF Novo
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'NOVO CPF SOLICITADO',
-                              style: DsTipografia.caption.copyWith(
-                                fontSize: 10,
-                                color: DsCores.conta.accent.withValues(
-                                  alpha: 0.8,
-                                ),
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: DsEspacamentos.xs),
-                            Text(
-                              summary.newValueMasked ?? 'Não informado',
-                              style: DsTipografia.body.copyWith(
-                                color: DsCores.conta.accent,
-                                fontWeight: FontWeight.w900,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
                   ),
                   const SizedBox(height: DsEspacamentos.lg),
 
@@ -380,23 +494,37 @@ class AdminCpfChangeDetailsSheet extends StatelessWidget {
                   DsCard(
                     padding: const EdgeInsets.all(DsEspacamentos.md),
                     margin: EdgeInsets.zero,
-                    child: Row(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(
-                          documentIcon,
-                          color: documentColor,
-                          size: DsTamanhos.iconSm,
-                        ),
-                        const SizedBox(width: DsEspacamentos.md),
-                        Expanded(
-                          child: Text(
-                            documentStatusText,
-                            style: DsTipografia.bodySmall.copyWith(
-                              color: DsCores.textPrimary,
-                              fontWeight: FontWeight.w600,
+                        Row(
+                          children: [
+                            Icon(
+                              documentIcon,
+                              color: documentColor,
+                              size: DsTamanhos.iconSm,
                             ),
-                          ),
+                            const SizedBox(width: DsEspacamentos.md),
+                            Expanded(
+                              child: Text(
+                                documentStatusText,
+                                style: DsTipografia.bodySmall.copyWith(
+                                  color: DsCores.textPrimary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
+                        if (_canViewDocument && _documentFileId != null && _documentFileId!.isNotEmpty) ...[
+                          const SizedBox(height: DsEspacamentos.md),
+                          DsBotao(
+                            label: 'Abrir documento',
+                            variante: DsBotaoVariante.secundario,
+                            icon: PhosphorIconsRegular.arrowSquareOut,
+                            onPressed: () => _openDocument(_documentFileId!),
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -417,7 +545,7 @@ class AdminCpfChangeDetailsSheet extends StatelessWidget {
                       children: [
                         _buildTimelineItem(
                           label: 'Solicitação criada',
-                          value: _formatDateTime(summary.createdAt),
+                          value: _formatDateTime(widget.summary.createdAt),
                         ),
                         const Divider(
                           color: DsCores.border,
@@ -425,9 +553,9 @@ class AdminCpfChangeDetailsSheet extends StatelessWidget {
                         ),
                         _buildTimelineItem(
                           label: 'Última atualização',
-                          value: _formatDateTime(summary.updatedAt),
+                          value: _formatDateTime(widget.summary.updatedAt),
                         ),
-                        if (summary.adminDeadlineDueDate != null) ...[
+                        if (widget.summary.adminDeadlineDueDate != null) ...[
                           const Divider(
                             color: DsCores.border,
                             height: DsEspacamentos.lg,
@@ -435,14 +563,14 @@ class AdminCpfChangeDetailsSheet extends StatelessWidget {
                           _buildTimelineItem(
                             label: 'Prazo limite da análise admin',
                             value: _formatCivilDate(
-                              summary.adminDeadlineDueDate,
+                              widget.summary.adminDeadlineDueDate,
                             ),
-                            valueColor: summary.isOverdue
+                            valueColor: widget.summary.isOverdue
                                 ? DsCores.perigo.accent
                                 : DsCores.alerta.accent,
                           ),
                         ],
-                        if (summary.holderDeadlineDueDate != null) ...[
+                        if (widget.summary.holderDeadlineDueDate != null) ...[
                           const Divider(
                             color: DsCores.border,
                             height: DsEspacamentos.lg,
@@ -450,7 +578,7 @@ class AdminCpfChangeDetailsSheet extends StatelessWidget {
                           _buildTimelineItem(
                             label: 'Prazo limite de resposta do titular',
                             value: _formatCivilDate(
-                              summary.holderDeadlineDueDate,
+                              widget.summary.holderDeadlineDueDate,
                             ),
                             valueColor: DsCores.conta.accent,
                           ),

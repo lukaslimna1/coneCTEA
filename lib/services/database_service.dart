@@ -1399,4 +1399,24 @@ class DatabaseService {
       return {'success': false, 'error': 'unavailable'};
     }
   }
+
+  /// Obtém os dados sensíveis de auditoria de CPF (descriptografados) caso o
+  /// usuário logado seja um administrador autorizado (admin_master/admin_dev)
+  /// e a solicitação esteja em status elegível.
+  Future<Map<String, dynamic>> getCpfChangeSensitiveReview({
+    required String requestId,
+  }) async {
+    try {
+      final response = await _supabase.rpc(
+        'conectea_admin_get_cpf_change_sensitive_review_v1',
+        params: {'p_request_id': requestId},
+      );
+      if (response is Map) {
+        return Map<String, dynamic>.from(response);
+      }
+      return {'can_view': false};
+    } catch (_) {
+      return {'can_view': false};
+    }
+  }
 }
