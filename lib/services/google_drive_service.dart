@@ -139,14 +139,16 @@ class GoogleDriveService {
         try {
           final data = jsonDecode(response.body);
           if (data['status'] == 'success') {
-            final result = data['url'] ?? '';
-            final maskedId = result.length > 8
-                ? '${result.substring(0, 4)}...${result.substring(result.length - 4)}'
-                : result;
+            final url = data['url'] as String?;
+            if (url == null || url.isEmpty) return null;
+            final extractedId = extractFileId(url);
+            final maskedId = (extractedId != null && extractedId.length > 8)
+                ? '${extractedId.substring(0, 4)}...${extractedId.substring(extractedId.length - 4)}'
+                : 'id_desconhecido';
             debugPrint(
               '[$platform] Sucesso: Arquivo do Drive enviado (ID: $maskedId).',
             );
-            return data['url'] as String?;
+            return url;
           } else {
             debugPrint(
               '[$platform] GAS erro: ${data['message'] ?? 'Erro desconhecido'}',

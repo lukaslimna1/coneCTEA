@@ -354,7 +354,8 @@ class _CpfChangeFlowState extends State<CpfChangeFlow> {
     _uploadedDriveUrl = driveUrl;
 
     final fileId = GoogleDriveService().extractFileId(driveUrl);
-    if (fileId == null || fileId.isEmpty) {
+    final fileIdRegex = RegExp(r'^[a-zA-Z0-9_-]{10,256}$');
+    if (fileId == null || fileId.isEmpty || !fileIdRegex.hasMatch(fileId)) {
       await GoogleDriveService().deleteFile(driveUrl);
       setState(() {
         _uploadedDriveUrl = null;
