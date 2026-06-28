@@ -1419,4 +1419,23 @@ class DatabaseService {
       return {'can_view': false};
     }
   }
+  Future<Map<String, dynamic>> approveCpfChangeRequest({
+    required String requestId,
+  }) async {
+    try {
+      final response = await _supabase.rpc(
+        'conectea_admin_approve_cpf_change_request_v1',
+        params: {'p_request_id': requestId},
+      );
+      return {
+        'success': true,
+        'data': response,
+      };
+    } catch (_) {
+      return {
+        'success': false,
+        'error_code': 'approve_failed',
+      };
+    }
+  }
 }

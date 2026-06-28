@@ -6,6 +6,8 @@ import 'package:conectea/core/utils/conectea_date_time_helper.dart';
 import 'package:conectea/models/account_change_request.dart';
 import 'package:conectea/features/admin/cpf_changes/models/admin_cpf_change_summary.dart';
 import 'package:conectea/services/database_service.dart';
+import 'package:conectea/services/google_drive_service.dart';
+import 'package:conectea/core/widgets/premium/status_action_button.dart';
 
 class AdminCpfChangeDetailsSheet extends StatefulWidget {
   final AdminCpfChangeSummary summary;
@@ -26,6 +28,7 @@ class _AdminCpfChangeDetailsSheetState extends State<AdminCpfChangeDetailsSheet>
   bool _canViewDocument = false;
   String? _documentFileId;
   String? _justification;
+  bool _isProcessingAction = false;
 
   @override
   void initState() {
@@ -90,6 +93,103 @@ class _AdminCpfChangeDetailsSheetState extends State<AdminCpfChangeDetailsSheet>
         await launchUrlString(url, mode: LaunchMode.externalApplication);
       }
     } catch (_) {}
+  }
+
+  Future<void> _handleApprove() async {
+    if (_isProcessingAction) return;
+
+    if (_documentFileId == null || _documentFileId!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('ID do documento indisponível para descarte seguro.'),
+          backgroundColor: DsCores.perigo.accent,
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isProcessingAction = true;
+    });
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (loadingContext) => Center(
+        child: CircularProgressIndicator(color: DsCores.conta.accent),
+      ),
+    );
+
+    try {
+      final localDocumentUrl =
+          'https://drive.google.com/file/d/$_documentFileId/view?usp=drivesdk';
+
+      final res = await _databaseService.approveCpfChangeRequest(
+        requestId: widget.summary.id,
+      );
+
+      if (res['success'] == true) {
+        final deleteSuccess =
+            await GoogleDriveService().deleteFile(localDocumentUrl);
+
+        if (mounted) {
+          Navigator.of(context, rootNavigator: true).pop();
+
+          if (deleteSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text(
+                  'Solicitação aprovada. O solicitante será avisado para confirmar em até 10 dias úteis.',
+                ),
+                backgroundColor: DsCores.sucesso.accent,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text(
+                  'Solicitação aprovada, mas não foi possível confirmar o descarte imediato do documento agora.',
+                ),
+                backgroundColor: DsCores.alerta.accent,
+                behavior: SnackBarBehavior.floating,
+                duration: const Duration(seconds: 5),
+              ),
+            );
+          }
+          Navigator.of(context).pop(true);
+        }
+      } else {
+        if (mounted) {
+          Navigator.of(context, rootNavigator: true).pop();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content:
+                  const Text('Não foi possível aprovar a solicitação no momento.'),
+              backgroundColor: DsCores.perigo.accent,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Erro inesperado ao processar aprovação.'),
+            backgroundColor: DsCores.perigo.accent,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isProcessingAction = false;
+        });
+      }
+    }
   }
 
   String _formatCpf(String? cpf) {
@@ -647,49 +747,77 @@ class _AdminCpfChangeDetailsSheetState extends State<AdminCpfChangeDetailsSheet>
                     ),
                   ),
                   const SizedBox(height: DsEspacamentos.sm),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(DsEspacamentos.md),
-                    decoration: BoxDecoration(
-                      color: DsCores.surface.withValues(alpha: 0.4),
-                      borderRadius: BorderRadius.circular(DsRaios.md),
-                      border: Border.all(
-                        color: DsCores.border.withValues(alpha: 0.5),
+                  if (widget.summary.status == AccountChangeStatus.underReview &&
+                      _canView &&
+                      !_isLoading) ...[
+                    DsCard(
+                      padding: const EdgeInsets.all(DsEspacamentos.md),
+                      margin: EdgeInsets.zero,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'A solicitação será enviada ao solicitante para confirmação final em até 10 dias úteis.',
+                            style: DsTipografia.caption.copyWith(
+                              color: DsCores.textSecondary,
+                            ),
+                          ),
+                          const SizedBox(height: DsEspacamentos.md),
+                          StatusActionButton(
+                            label: 'Aprovar',
+                            statusKey: 'active',
+                            isExpanded: true,
+                            isLoading: _isProcessingAction,
+                            onTap: _isProcessingAction ? null : _handleApprove,
+                          ),
+                        ],
                       ),
                     ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Icon(
-                          PhosphorIconsRegular.info,
-                          color: DsCores.textMuted,
-                          size: DsTamanhos.iconSm,
+                  ] else ...[
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(DsEspacamentos.md),
+                      decoration: BoxDecoration(
+                        color: DsCores.surface.withValues(alpha: 0.4),
+                        borderRadius: BorderRadius.circular(DsRaios.md),
+                        border: Border.all(
+                          color: DsCores.border.withValues(alpha: 0.5),
                         ),
-                        const SizedBox(width: DsEspacamentos.sm),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Operações Indisponíveis',
-                                style: DsTipografia.bodySmall.copyWith(
-                                  color: DsCores.textPrimary,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: DsEspacamentos.xxs),
-                              Text(
-                                'As ações administrativas serão conectadas em uma próxima etapa.',
-                                style: DsTipografia.caption.copyWith(
-                                  color: DsCores.textSecondary,
-                                ),
-                              ),
-                            ],
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(
+                            PhosphorIconsRegular.info,
+                            color: DsCores.textMuted,
+                            size: DsTamanhos.iconSm,
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: DsEspacamentos.sm),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Operações Indisponíveis',
+                                  style: DsTipografia.bodySmall.copyWith(
+                                    color: DsCores.textPrimary,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: DsEspacamentos.xxs),
+                                Text(
+                                  'Não há ações administrativas disponíveis para o status atual.',
+                                  style: DsTipografia.caption.copyWith(
+                                    color: DsCores.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
+                  ],
                 ],
               ),
             ),
