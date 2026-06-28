@@ -8,6 +8,7 @@ import 'package:conectea/features/admin/cpf_changes/models/admin_cpf_change_filt
 import 'package:conectea/features/admin/cpf_changes/models/admin_cpf_change_summary.dart';
 import 'package:conectea/features/admin/cpf_changes/models/admin_cpf_change_list_result.dart';
 import 'package:conectea/features/admin/cpf_changes/services/admin_cpf_changes_repository.dart';
+import 'package:conectea/features/admin/cpf_changes/admin_cpf_change_details_sheet.dart';
 
 enum _CpfFilter {
   underReview,
@@ -203,6 +204,15 @@ class _AdminCpfChangesTabState extends State<AdminCpfChangesTab> {
     }
   }
 
+  void _openDetailSheet(AdminCpfChangeSummary summary) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => AdminCpfChangeDetailsSheet(summary: summary),
+    );
+  }
+
   String? _formatCivilDate(String? rawDate) {
     if (rawDate == null || rawDate.trim().isEmpty) return null;
     final clean = rawDate.trim();
@@ -338,256 +348,259 @@ class _AdminCpfChangesTabState extends State<AdminCpfChangesTab> {
 
     final String? deadlineText = _getDeadlineText(item);
 
-    return DsCard(
-      accentColor: statusColor,
-      showGlow: item.isOverdue,
-      padding: const EdgeInsets.all(20),
-      margin: const EdgeInsets.only(bottom: 12, left: 24, right: 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Linha 1 — Status + Prazo (Topo)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Flexible(child: _buildStatusSelo(item.status)),
-              const SizedBox(width: 12),
-              if (deadlineText != null)
-                Flexible(
-                  flex: 0,
-                  child: Text(
-                    deadlineText,
+    return GestureDetector(
+      onTap: () => _openDetailSheet(item),
+      child: DsCard(
+        accentColor: statusColor,
+        showGlow: item.isOverdue,
+        padding: const EdgeInsets.all(20),
+        margin: const EdgeInsets.only(bottom: 12, left: 24, right: 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Linha 1 — Status + Prazo (Topo)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Flexible(child: _buildStatusSelo(item.status)),
+                const SizedBox(width: 12),
+                if (deadlineText != null)
+                  Flexible(
+                    flex: 0,
+                    child: Text(
+                      deadlineText,
+                      style: DsTipografia.caption.copyWith(
+                        color: item.isOverdue
+                            ? DsCores.perigo.accent
+                            : DsCores.textSecondary.withValues(alpha: 0.65),
+                        fontWeight: item.isOverdue
+                            ? FontWeight.w800
+                            : FontWeight.w600,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 14),
+
+            // Linha 2 — Protocolo com destaque (Estilo Carteirinhas)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: statusColor.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: statusColor.withValues(alpha: 0.20),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    PhosphorIconsRegular.receipt,
+                    size: 14,
+                    color: statusColor.withValues(alpha: 0.8),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '#${item.protocolNumber}',
+                      style: DsTipografia.caption.copyWith(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: statusColor,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // Linha 3 — Nome do beneficiário (Caixa Alta) e E-mail
+            Text(
+              item.userFirstName.toUpperCase(),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: DsTipografia.body.copyWith(
+                fontSize: 15.5,
+                fontWeight: FontWeight.w900,
+                color: Colors.white,
+                letterSpacing: -0.5,
+              ),
+            ),
+            if (item.userEmailMasked.isNotEmpty) ...[
+              const SizedBox(height: 3),
+              Text(
+                item.userEmailMasked,
+                style: DsTipografia.caption.copyWith(
+                  color: DsCores.textSecondary.withValues(alpha: 0.55),
+                  fontSize: 12,
+                ),
+              ),
+            ],
+            const SizedBox(height: 14),
+
+            // Linha 4 — Datas Principais
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Solicitada em: ${_formatDateTime(item.createdAt)}',
+                  style: DsTipografia.caption.copyWith(
+                    color: DsCores.textSecondary.withValues(alpha: 0.45),
+                    fontSize: 11,
+                  ),
+                ),
+                if (item.status == AccountChangeStatus.cancelledByHolder) ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    'Cancelada em: ${_formatDateTime(item.closedAt ?? item.statusChangedAt ?? item.updatedAt)}',
                     style: DsTipografia.caption.copyWith(
-                      color: item.isOverdue
-                          ? DsCores.perigo.accent
-                          : DsCores.textSecondary.withValues(alpha: 0.65),
-                      fontWeight: item.isOverdue
-                          ? FontWeight.w800
-                          : FontWeight.w600,
+                      color: DsCores.textSecondary.withValues(alpha: 0.45),
                       fontSize: 11,
                     ),
                   ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 14),
-
-          // Linha 2 — Protocolo com destaque (Estilo Carteirinhas)
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: statusColor.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: statusColor.withValues(alpha: 0.20),
-                width: 1,
-              ),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  PhosphorIconsRegular.receipt,
-                  size: 14,
-                  color: statusColor.withValues(alpha: 0.8),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    '#${item.protocolNumber}',
+                ] else if (item.status == AccountChangeStatus.completed) ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    'Concluída em: ${_formatDateTime(item.closedAt ?? item.statusChangedAt ?? item.updatedAt)}',
                     style: DsTipografia.caption.copyWith(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: statusColor,
-                      letterSpacing: 0.2,
+                      color: DsCores.textSecondary.withValues(alpha: 0.45),
+                      fontSize: 11,
                     ),
                   ),
-                ),
+                ] else if (item.status ==
+                    AccountChangeStatus.rejectedByAdmin) ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    'Rejeitada em: ${_formatDateTime(item.closedAt ?? item.statusChangedAt ?? item.updatedAt)}',
+                    style: DsTipografia.caption.copyWith(
+                      color: DsCores.textSecondary.withValues(alpha: 0.45),
+                      fontSize: 11,
+                    ),
+                  ),
+                ] else if (item.status == AccountChangeStatus.expired) ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    'Expirada em: ${_formatDateTime(item.closedAt ?? item.statusChangedAt ?? item.updatedAt)}',
+                    style: DsTipografia.caption.copyWith(
+                      color: DsCores.textSecondary.withValues(alpha: 0.45),
+                      fontSize: 11,
+                    ),
+                  ),
+                ] else if (item.status ==
+                    AccountChangeStatus.applicationFailed) ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    'Falha em: ${_formatDateTime(item.closedAt ?? item.statusChangedAt ?? item.updatedAt)}',
+                    style: DsTipografia.caption.copyWith(
+                      color: DsCores.textSecondary.withValues(alpha: 0.45),
+                      fontSize: 11,
+                    ),
+                  ),
+                ] else if (item.status == AccountChangeStatus.underReview) ...[
+                  if (item.adminDeadlineDueDate != null) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      'Prazo de análise: ${_formatCivilDate(item.adminDeadlineDueDate)}',
+                      style: DsTipografia.caption.copyWith(
+                        color: DsCores.textSecondary.withValues(alpha: 0.45),
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ] else if (item.status ==
+                    AccountChangeStatus.waitingCpfCorrection) ...[
+                  if (item.holderDeadlineDueDate != null) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      'Prazo para corrigir CPF: ${_formatCivilDate(item.holderDeadlineDueDate)}',
+                      style: DsTipografia.caption.copyWith(
+                        color: DsCores.textSecondary.withValues(alpha: 0.45),
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ] else if (item.status ==
+                    AccountChangeStatus.waitingDocumentReplacement) ...[
+                  if (item.holderDeadlineDueDate != null) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      'Prazo para reenviar documento: ${_formatCivilDate(item.holderDeadlineDueDate)}',
+                      style: DsTipografia.caption.copyWith(
+                        color: DsCores.textSecondary.withValues(alpha: 0.45),
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ] else if (item.status ==
+                    AccountChangeStatus.waitingHolderConfirmation) ...[
+                  if (item.holderDeadlineDueDate != null) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      'Prazo para confirmar: ${_formatCivilDate(item.holderDeadlineDueDate)}',
+                      style: DsTipografia.caption.copyWith(
+                        color: DsCores.textSecondary.withValues(alpha: 0.45),
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ] else if (item.status == AccountChangeStatus.applying) ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    'Processando alteração',
+                    style: DsTipografia.caption.copyWith(
+                      color: DsCores.textSecondary.withValues(alpha: 0.45),
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ],
             ),
-          ),
-          const SizedBox(height: 12),
+            const SizedBox(height: 16),
 
-          // Linha 3 — Nome do beneficiário (Caixa Alta) e E-mail
-          Text(
-            item.userFirstName.toUpperCase(),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: DsTipografia.body.copyWith(
-              fontSize: 15.5,
-              fontWeight: FontWeight.w900,
-              color: Colors.white,
-              letterSpacing: -0.5,
-            ),
-          ),
-          if (item.userEmailMasked.isNotEmpty) ...[
-            const SizedBox(height: 3),
-            Text(
-              item.userEmailMasked,
-              style: DsTipografia.caption.copyWith(
-                color: DsCores.textSecondary.withValues(alpha: 0.55),
-                fontSize: 12,
+            // Linha 5 — Rodapé: Botão visual (CTA)
+            Container(
+              width: double.infinity,
+              height: 42,
+              decoration: BoxDecoration(
+                color: statusColor.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: statusColor.withValues(alpha: 0.25),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    item.status == AccountChangeStatus.underReview
+                        ? 'Analisar solicitação'
+                        : 'Ver solicitação',
+                    style: DsTipografia.caption.copyWith(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w800,
+                      color: statusColor,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Icon(
+                    PhosphorIconsRegular.arrowRight,
+                    size: 15,
+                    color: statusColor,
+                  ),
+                ],
               ),
             ),
           ],
-          const SizedBox(height: 14),
-
-          // Linha 4 — Datas Principais
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Solicitada em: ${_formatDateTime(item.createdAt)}',
-                style: DsTipografia.caption.copyWith(
-                  color: DsCores.textSecondary.withValues(alpha: 0.45),
-                  fontSize: 11,
-                ),
-              ),
-              if (item.status == AccountChangeStatus.cancelledByHolder) ...[
-                const SizedBox(height: 3),
-                Text(
-                  'Cancelada em: ${_formatDateTime(item.closedAt ?? item.statusChangedAt ?? item.updatedAt)}',
-                  style: DsTipografia.caption.copyWith(
-                    color: DsCores.textSecondary.withValues(alpha: 0.45),
-                    fontSize: 11,
-                  ),
-                ),
-              ] else if (item.status == AccountChangeStatus.completed) ...[
-                const SizedBox(height: 3),
-                Text(
-                  'Concluída em: ${_formatDateTime(item.closedAt ?? item.statusChangedAt ?? item.updatedAt)}',
-                  style: DsTipografia.caption.copyWith(
-                    color: DsCores.textSecondary.withValues(alpha: 0.45),
-                    fontSize: 11,
-                  ),
-                ),
-              ] else if (item.status ==
-                  AccountChangeStatus.rejectedByAdmin) ...[
-                const SizedBox(height: 3),
-                Text(
-                  'Rejeitada em: ${_formatDateTime(item.closedAt ?? item.statusChangedAt ?? item.updatedAt)}',
-                  style: DsTipografia.caption.copyWith(
-                    color: DsCores.textSecondary.withValues(alpha: 0.45),
-                    fontSize: 11,
-                  ),
-                ),
-              ] else if (item.status == AccountChangeStatus.expired) ...[
-                const SizedBox(height: 3),
-                Text(
-                  'Expirada em: ${_formatDateTime(item.closedAt ?? item.statusChangedAt ?? item.updatedAt)}',
-                  style: DsTipografia.caption.copyWith(
-                    color: DsCores.textSecondary.withValues(alpha: 0.45),
-                    fontSize: 11,
-                  ),
-                ),
-              ] else if (item.status ==
-                  AccountChangeStatus.applicationFailed) ...[
-                const SizedBox(height: 3),
-                Text(
-                  'Falha em: ${_formatDateTime(item.closedAt ?? item.statusChangedAt ?? item.updatedAt)}',
-                  style: DsTipografia.caption.copyWith(
-                    color: DsCores.textSecondary.withValues(alpha: 0.45),
-                    fontSize: 11,
-                  ),
-                ),
-              ] else if (item.status == AccountChangeStatus.underReview) ...[
-                if (item.adminDeadlineDueDate != null) ...[
-                  const SizedBox(height: 3),
-                  Text(
-                    'Prazo de análise: ${_formatCivilDate(item.adminDeadlineDueDate)}',
-                    style: DsTipografia.caption.copyWith(
-                      color: DsCores.textSecondary.withValues(alpha: 0.45),
-                      fontSize: 11,
-                    ),
-                  ),
-                ],
-              ] else if (item.status ==
-                  AccountChangeStatus.waitingCpfCorrection) ...[
-                if (item.holderDeadlineDueDate != null) ...[
-                  const SizedBox(height: 3),
-                  Text(
-                    'Prazo para corrigir CPF: ${_formatCivilDate(item.holderDeadlineDueDate)}',
-                    style: DsTipografia.caption.copyWith(
-                      color: DsCores.textSecondary.withValues(alpha: 0.45),
-                      fontSize: 11,
-                    ),
-                  ),
-                ],
-              ] else if (item.status ==
-                  AccountChangeStatus.waitingDocumentReplacement) ...[
-                if (item.holderDeadlineDueDate != null) ...[
-                  const SizedBox(height: 3),
-                  Text(
-                    'Prazo para reenviar documento: ${_formatCivilDate(item.holderDeadlineDueDate)}',
-                    style: DsTipografia.caption.copyWith(
-                      color: DsCores.textSecondary.withValues(alpha: 0.45),
-                      fontSize: 11,
-                    ),
-                  ),
-                ],
-              ] else if (item.status ==
-                  AccountChangeStatus.waitingHolderConfirmation) ...[
-                if (item.holderDeadlineDueDate != null) ...[
-                  const SizedBox(height: 3),
-                  Text(
-                    'Prazo para confirmar: ${_formatCivilDate(item.holderDeadlineDueDate)}',
-                    style: DsTipografia.caption.copyWith(
-                      color: DsCores.textSecondary.withValues(alpha: 0.45),
-                      fontSize: 11,
-                    ),
-                  ),
-                ],
-              ] else if (item.status == AccountChangeStatus.applying) ...[
-                const SizedBox(height: 3),
-                Text(
-                  'Processando alteração',
-                  style: DsTipografia.caption.copyWith(
-                    color: DsCores.textSecondary.withValues(alpha: 0.45),
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          // Linha 5 — Rodapé: Botão visual (CTA) inativo
-          Container(
-            width: double.infinity,
-            height: 42,
-            decoration: BoxDecoration(
-              color: statusColor.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: statusColor.withValues(alpha: 0.25),
-                width: 1,
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  item.status == AccountChangeStatus.underReview
-                      ? 'Analisar solicitação'
-                      : 'Ver solicitação',
-                  style: DsTipografia.caption.copyWith(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w800,
-                    color: statusColor,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Icon(
-                  PhosphorIconsRegular.arrowRight,
-                  size: 15,
-                  color: statusColor,
-                ),
-              ],
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
