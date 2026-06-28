@@ -14,29 +14,44 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+function safeEdgeLog({ correlationId, stage, code, rpcCode, sqlstate, constraint, table, column, datatype }: { correlationId: string, stage: string, code?: string, rpcCode?: string, sqlstate?: string, constraint?: string, table?: string, column?: string, datatype?: string }) {
+  const parts = [`[Correlation ID: ${correlationId}] stage=${stage}`];
+  if (code) parts.push(`code=${code}`);
+  if (rpcCode) parts.push(`rpcCode=${rpcCode}`);
+  if (sqlstate) parts.push(`sqlstate=${sqlstate}`);
+  if (constraint) parts.push(`constraint=${constraint}`);
+  if (table) parts.push(`table=${table}`);
+  if (column) parts.push(`column=${column}`);
+  if (datatype) parts.push(`datatype=${datatype}`);
+  console.error(parts.join(' '));
+}
+
 export async function handler(req: Request): Promise<Response> {
   // 1. CORS Preflight
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  const correlationId = createCorrelationId();
+
   // 2. Aceita apenas POST
   if (req.method !== "POST") {
+    safeEdgeLog({ correlationId, stage: "invalid_method" });
     return new Response(
-      JSON.stringify({ error: "invalid_request" }),
+      JSON.stringify({ error: "invalid_request", correlation_id: correlationId }),
       { status: 405, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 
-  const correlationId = createCorrelationId();
   let hasValidFileIdForCleanup = false;
 
   try {
     // 3. Validar cabeçalho Authorization (JWT)
     const authHeader = req.headers.get("Authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      safeEdgeLog({ correlationId, stage: "unauthenticated_user", code: "missing_header" });
       return new Response(
-        JSON.stringify({ error: "unauthorized" }),
+        JSON.stringify({ error: "unauthorized", correlation_id: correlationId }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -45,9 +60,9 @@ export async function handler(req: Request): Promise<Response> {
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 
     if (!supabaseUrl || !supabaseAnonKey) {
-      console.error(`[Correlation ID: ${correlationId}] Configuração de ambiente Supabase ausente.`);
+      safeEdgeLog({ correlationId, stage: "missing_supabase_env" });
       return new Response(
-        JSON.stringify({ error: "temporarily_unavailable" }),
+        JSON.stringify({ error: "temporarily_unavailable", correlation_id: correlationId }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -59,8 +74,9 @@ export async function handler(req: Request): Promise<Response> {
 
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
     if (authError || !user) {
+      safeEdgeLog({ correlationId, stage: "unauthenticated_user", code: "invalid_token" });
       return new Response(
-        JSON.stringify({ error: "unauthorized" }),
+        JSON.stringify({ error: "unauthorized", correlation_id: correlationId }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -72,16 +88,18 @@ export async function handler(req: Request): Promise<Response> {
     try {
       body = await req.json();
     } catch (_err) {
+      safeEdgeLog({ correlationId, stage: "invalid_body", code: "json_parse_error" });
       return new Response(
-        JSON.stringify({ error: "invalid_request" }),
+        JSON.stringify({ error: "invalid_request", correlation_id: correlationId }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     // Validação estrita de tipo de body
     if (body === null || typeof body !== "object" || Array.isArray(body)) {
+      safeEdgeLog({ correlationId, stage: "invalid_body", code: "not_an_object" });
       return new Response(
-        JSON.stringify({ error: "invalid_request" }),
+        JSON.stringify({ error: "invalid_request", correlation_id: correlationId }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -95,8 +113,9 @@ export async function handler(req: Request): Promise<Response> {
 
     for (const key of forbiddenKeys) {
       if (key in body) {
+        safeEdgeLog({ correlationId, stage: "forbidden_key_present", code: key });
         return new Response(
-          JSON.stringify({ error: "invalid_request" }),
+          JSON.stringify({ error: "invalid_request", correlation_id: correlationId }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
@@ -106,11 +125,12 @@ export async function handler(req: Request): Promise<Response> {
     const allowedKeys = ["new_cpf", "file_id", "justification"];
     const bodyKeys = Object.keys(body);
     const hasInvalidKeys = bodyKeys.some(k => !allowedKeys.includes(k));
-    
+
     // Deve conter no mínimo "new_cpf" e "file_id"
     if (hasInvalidKeys || !body.new_cpf || !body.file_id) {
+      safeEdgeLog({ correlationId, stage: "missing_required_fields" });
       return new Response(
-        JSON.stringify({ error: "invalid_request" }),
+        JSON.stringify({ error: "invalid_request", correlation_id: correlationId }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -118,8 +138,9 @@ export async function handler(req: Request): Promise<Response> {
     const { new_cpf, file_id, justification } = body;
 
     if (typeof new_cpf !== "string" || typeof file_id !== "string") {
+      safeEdgeLog({ correlationId, stage: "invalid_field_type" });
       return new Response(
-        JSON.stringify({ error: "invalid_request" }),
+        JSON.stringify({ error: "invalid_request", correlation_id: correlationId }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -134,8 +155,9 @@ export async function handler(req: Request): Promise<Response> {
       file_id.includes("?") ||
       file_id.includes("&")
     ) {
+      safeEdgeLog({ correlationId, stage: "invalid_file_id" });
       return new Response(
-        JSON.stringify({ error: "invalid_request" }),
+        JSON.stringify({ error: "invalid_request", correlation_id: correlationId }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -148,10 +170,12 @@ export async function handler(req: Request): Promise<Response> {
     try {
       normalizedCpf = normalizeCpf(new_cpf);
     } catch (_err) {
+      safeEdgeLog({ correlationId, stage: "invalid_new_cpf" });
       return new Response(
         JSON.stringify({
           error: "invalid_request",
-          should_cleanup_upload: hasValidFileIdForCleanup
+          should_cleanup_upload: hasValidFileIdForCleanup,
+          correlation_id: correlationId
         }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
@@ -161,20 +185,24 @@ export async function handler(req: Request): Promise<Response> {
     let normalizedJustification = "";
     if (justification !== undefined && justification !== null) {
       if (typeof justification !== "string") {
+        safeEdgeLog({ correlationId, stage: "invalid_justification", code: "not_string" });
         return new Response(
           JSON.stringify({
             error: "invalid_request",
-            should_cleanup_upload: hasValidFileIdForCleanup
+            should_cleanup_upload: hasValidFileIdForCleanup,
+            correlation_id: correlationId
           }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
       normalizedJustification = justification.trim();
       if (normalizedJustification.length > 1000) {
+        safeEdgeLog({ correlationId, stage: "invalid_justification", code: "too_long" });
         return new Response(
           JSON.stringify({
             error: "invalid_request",
-            should_cleanup_upload: hasValidFileIdForCleanup
+            should_cleanup_upload: hasValidFileIdForCleanup,
+            correlation_id: correlationId
           }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
@@ -186,22 +214,38 @@ export async function handler(req: Request): Promise<Response> {
     const decryptionKeyV1 = Deno.env.get("CONECTEA_DECRYPTION_KEY_V1");
 
     if (!cpfHmacKey || !decryptionKeyV1) {
-      console.error(`[Correlation ID: ${correlationId}] Chaves criptográficas ausentes no ambiente.`);
+      safeEdgeLog({ correlationId, stage: "missing_crypto_env" });
       return new Response(
         JSON.stringify({
           error: "temporarily_unavailable",
-          should_cleanup_upload: hasValidFileIdForCleanup
+          should_cleanup_upload: hasValidFileIdForCleanup,
+          correlation_id: correlationId
         }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     // 6. Computar HMAC do CPF
-    const cpfHmacStr = await generateHmacSha256({
-      secretKeyBase64Url: cpfHmacKey,
-      domainPrefix: "conectea:cpf_change:new_cpf:v1:",
-      message: normalizedCpf
-    });
+    let cpfHmacStr: string;
+    try {
+      cpfHmacStr = await generateHmacSha256({
+        secretKeyBase64Url: cpfHmacKey,
+        domainPrefix: "conectea:cpf_change:new_cpf:v1:",
+        message: normalizedCpf
+      });
+    } catch (error: any) {
+      const allowed = ["missing_secret_key", "invalid_key_format", "invalid_key_length", "hmac_generation_failed"];
+      const code = allowed.includes(error.message) ? error.message : "hmac_failed";
+      safeEdgeLog({ correlationId, stage: "hmac_failed", code });
+      return new Response(
+        JSON.stringify({
+          error: "temporarily_unavailable",
+          should_cleanup_upload: hasValidFileIdForCleanup,
+          correlation_id: correlationId
+        }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     // 7. Criptografar o payload AES-256-GCM
     const nowIso = new Date().toISOString();
@@ -214,20 +258,36 @@ export async function handler(req: Request): Promise<Response> {
       created_at: nowIso
     };
 
-    const encResult = await encryptAes256Gcm({
-      plainText: JSON.stringify(payloadObj),
-      keyBase64Url: decryptionKeyV1,
-      keyVersion: 1
-    });
+    let encResult: any;
+    try {
+      encResult = await encryptAes256Gcm({
+        plainText: JSON.stringify(payloadObj),
+        keyBase64Url: decryptionKeyV1,
+        keyVersion: 1
+      });
+    } catch (error: any) {
+      const allowed = ["missing_encryption_key", "invalid_key_format", "invalid_key_length", "encrypt_failed"];
+      const code = allowed.includes(error.message) ? error.message : "encryption_failed";
+      safeEdgeLog({ correlationId, stage: "encryption_failed", code });
+      return new Response(
+        JSON.stringify({
+          error: "temporarily_unavailable",
+          should_cleanup_upload: hasValidFileIdForCleanup,
+          correlation_id: correlationId
+        }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     // 8. Instanciar Supabase Admin com a service role
     const supabaseServiceRole = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
     if (!supabaseServiceRole) {
-      console.error(`[Correlation ID: ${correlationId}] SUPABASE_SERVICE_ROLE_KEY ausente.`);
+      safeEdgeLog({ correlationId, stage: "missing_service_role" });
       return new Response(
         JSON.stringify({
           error: "temporarily_unavailable",
-          should_cleanup_upload: hasValidFileIdForCleanup
+          should_cleanup_upload: hasValidFileIdForCleanup,
+          correlation_id: correlationId
         }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
@@ -253,12 +313,25 @@ export async function handler(req: Request): Promise<Response> {
       }
     );
 
-    if (rpcError || !rpcData) {
-      console.error(`[Correlation ID: ${correlationId}] Erro de execução da RPC no Supabase.`);
+    if (rpcError) {
+      safeEdgeLog({ correlationId, stage: "rpc_transport_error", rpcCode: rpcError.code });
       return new Response(
         JSON.stringify({
           error: "temporarily_unavailable",
-          should_cleanup_upload: hasValidFileIdForCleanup
+          should_cleanup_upload: hasValidFileIdForCleanup,
+          correlation_id: correlationId
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (!rpcData) {
+      safeEdgeLog({ correlationId, stage: "rpc_empty_response" });
+      return new Response(
+        JSON.stringify({
+          error: "temporarily_unavailable",
+          should_cleanup_upload: hasValidFileIdForCleanup,
+          correlation_id: correlationId
         }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
@@ -276,27 +349,49 @@ export async function handler(req: Request): Promise<Response> {
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     } else {
+      const codeToLog = typeof error_code === "string" ? error_code : "unknown";
+
+      const sanitizeLog = (val: any) => {
+        if (typeof val === 'string' && val.length <= 120 && /^[a-zA-Z0-9_\-\.]+$/.test(val)) {
+          return val;
+        }
+        return undefined;
+      };
+
+      safeEdgeLog({
+        correlationId,
+        stage: "rpc_business_error",
+        code: codeToLog,
+        sqlstate: sanitizeLog(rpcData.sqlstate),
+        constraint: sanitizeLog(rpcData.constraint),
+        table: sanitizeLog(rpcData.table),
+        column: sanitizeLog(rpcData.column),
+        datatype: sanitizeLog(rpcData.datatype)
+      });
+
       // Mapeamento seguro de erros de lógica/negócio retornados pelo banco
-      const mappedError = error_code === "active_request_exists" 
-        ? "active_request_exists" 
+      const mappedError = error_code === "active_request_exists"
+        ? "active_request_exists"
         : (error_code === "unavailable" || error_code === "invalid_request" ? error_code : "unavailable");
 
       return new Response(
         JSON.stringify({
           success: false,
           error: mappedError,
-          should_cleanup_upload: hasValidFileIdForCleanup
+          should_cleanup_upload: hasValidFileIdForCleanup,
+          correlation_id: correlationId
         }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
   } catch (_err) {
-    console.error(`[Correlation ID: ${correlationId}] Erro inesperado no handler da Edge Function.`);
+    safeEdgeLog({ correlationId, stage: "unexpected_handler_error" });
     return new Response(
       JSON.stringify({
         error: "internal_error",
-        should_cleanup_upload: hasValidFileIdForCleanup
+        should_cleanup_upload: hasValidFileIdForCleanup,
+        correlation_id: correlationId
       }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
