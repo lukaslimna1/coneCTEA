@@ -55,10 +55,8 @@ class _AdminViewState extends State<AdminView> {
   @override
   Widget build(BuildContext context) {
     final double topSafeArea = MediaQuery.paddingOf(context).top;
-    const double headerVisualHeight = 64.0;
-    const double headerClearance = 4.0;
-    final double topPadding =
-        topSafeArea + headerVisualHeight + headerClearance;
+    const double headerClearance = 12.0;
+    final double topPadding = topSafeArea + headerClearance;
 
     final String? moduleTitle = _selectedModule == 'requests'
         ? 'Gestão de Carteirinhas'
@@ -84,18 +82,22 @@ class _AdminViewState extends State<AdminView> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
-      body: AppBackground(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (hasSelectedModule) _buildBackButton(topPadding),
-            _buildHeader(
-              computedHeaderTopPadding,
-              title: moduleTitle,
-              subtitle: moduleSubtitle,
-            ),
-            Expanded(child: _buildBody()),
-          ],
+      body: MediaQuery.removePadding(
+        context: context,
+        removeTop: true,
+        child: AppBackground(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (hasSelectedModule) _buildBackButton(topPadding),
+              _buildHeader(
+                computedHeaderTopPadding,
+                title: moduleTitle,
+                subtitle: moduleSubtitle,
+              ),
+              Expanded(child: _buildBody()),
+            ],
+          ),
         ),
       ),
     );
