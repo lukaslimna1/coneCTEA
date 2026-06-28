@@ -25,6 +25,7 @@ class _AdminCpfChangeDetailsSheetState extends State<AdminCpfChangeDetailsSheet>
   String? _newCpfClear;
   bool _canViewDocument = false;
   String? _documentFileId;
+  String? _justification;
 
   @override
   void initState() {
@@ -61,6 +62,13 @@ class _AdminCpfChangeDetailsSheetState extends State<AdminCpfChangeDetailsSheet>
             _newCpfClear = res['new_cpf_clear'];
             _canViewDocument = res['can_view_document'] == true;
             _documentFileId = res['document_file_id'];
+
+            final String? rawJust = res['justification'] as String?;
+            if (rawJust != null && rawJust.trim().isNotEmpty) {
+              _justification = rawJust.trim();
+            } else {
+              _justification = null;
+            }
           }
           _isLoading = false;
         });
@@ -526,6 +534,49 @@ class _AdminCpfChangeDetailsSheetState extends State<AdminCpfChangeDetailsSheet>
                           ),
                         ],
                       ],
+                    ),
+                  ),
+                  const SizedBox(height: DsEspacamentos.lg),
+
+                  // Seção: Observação do solicitante
+                  Text(
+                    'OBSERVAÇÃO DO SOLICITANTE',
+                    style: DsTipografia.sectionLabel.copyWith(
+                      color: DsCores.textMuted,
+                    ),
+                  ),
+                  const SizedBox(height: DsEspacamentos.sm),
+                  DsCard(
+                    padding: const EdgeInsets.all(DsEspacamentos.md),
+                    margin: EdgeInsets.zero,
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: _isLoading
+                          ? Padding(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: DsEspacamentos.md,
+                              ),
+                              child: Text(
+                                'Carregando dados para análise...',
+                                style: DsTipografia.caption.copyWith(
+                                  color: DsCores.textSecondary,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            )
+                          : Text(
+                              (!_canView)
+                                  ? 'Dados indisponíveis para este status.'
+                                  : (_justification ?? 'Nenhuma observação informada.'),
+                              style: DsTipografia.body.copyWith(
+                                color: (!_canView || _justification == null)
+                                    ? DsCores.textSecondary
+                                    : DsCores.textPrimary,
+                                fontStyle: (!_canView || _justification == null)
+                                    ? FontStyle.italic
+                                    : FontStyle.normal,
+                              ),
+                            ),
                     ),
                   ),
                   const SizedBox(height: DsEspacamentos.lg),
