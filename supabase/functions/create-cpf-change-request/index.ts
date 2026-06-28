@@ -238,7 +238,7 @@ export async function handler(req: Request): Promise<Response> {
 
     // 9. Executar a RPC wrapper no schema public
     const { data: rpcData, error: rpcError } = await supabaseAdmin.rpc(
-      "conectea_create_cpf_change_request_v1",
+      "conectea_create_cpf_change_request_v2",
       {
         p_user_id: authUserId,
         p_new_cpf_clear: normalizedCpf,
@@ -248,7 +248,8 @@ export async function handler(req: Request): Promise<Response> {
         p_nonce: encResult.nonce,
         p_auth_tag: encResult.authTag,
         p_algorithm: "aes-256-gcm",
-        p_key_version: 1
+        p_key_version: 1,
+        p_document_file_id: file_id
       }
     );
 
