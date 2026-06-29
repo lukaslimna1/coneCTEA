@@ -67,7 +67,7 @@ class DsFeedbackBanner extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(DsEspacamentos.md),
             decoration: BoxDecoration(
-              color: DsCores.glassStrong,
+              color: DsCores.glassFume,
               borderRadius: BorderRadius.circular(DsRaios.card),
               border: Border.all(
                 color: token.accent.withValues(alpha: 0.8),

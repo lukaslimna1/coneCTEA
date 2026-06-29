@@ -90,6 +90,9 @@ class DsCores {
   static const Color surfaceCardHover = Color(0xFF163F72);
   static const Color glass = Color(0x990B1D3A);
   static const Color glassStrong = Color(0xD90B1D3A);
+  /// Dark Glass Preto-fumê para feedbacks e overlays de alto contraste
+  /// que precisam neutralizar o fundo sem se misturar com o azul da surface.
+  static const Color glassFume = Color(0xCC020617);
 
   /// Fundo escuro para molduras de ícone (DsMolduraIcone).
   /// Valor próximo de #020617 — quase preto com leve tint azul noturno.
