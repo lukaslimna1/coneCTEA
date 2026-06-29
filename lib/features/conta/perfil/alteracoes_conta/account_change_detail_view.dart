@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'dart:math';
+
+import 'package:conectea/core/campos_cadastrais/campos/campo_cpf.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/utils/conectea_date_time_helper.dart';
@@ -7,6 +8,10 @@ import 'package:conectea/features/conta/perfil/alteracoes_conta/account_change_p
 import 'package:conectea/features/conta/perfil/alteracoes_conta/widgets/account_change_value_delta.dart';
 import 'package:conectea/models/account_change_request.dart';
 import 'package:conectea/services/database_service.dart';
+import 'package:conectea/services/google_drive_service.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class AccountChangeDetailView extends StatefulWidget {
   final String requestId;
@@ -25,6 +30,19 @@ class _AccountChangeDetailViewState extends State<AccountChangeDetailView> {
   bool _notFound = false;
   String? _errorMessage;
   bool _isCancelling = false;
+
+  // Variáveis para as novas ações
+  bool _isSubmittingDocument = false;
+  bool _isSubmittingCpf = false;
+  final TextEditingController _correctionCpfController =
+      TextEditingController();
+  final GlobalKey<FormState> _correctionFormKey = GlobalKey<FormState>();
+
+  @override
+  void dispose() {
+    _correctionCpfController.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -151,15 +169,204 @@ class _AccountChangeDetailViewState extends State<AccountChangeDetailView> {
     }
   }
 
+  String _buildSafeDriveFileName(String extension) {
+    final random = Random.secure();
+    final randomVal = random.nextInt(65536);
+    final hex = randomVal.toRadixString(16).padLeft(4, '0');
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    return 'ctea_anx_${timestamp}_$hex.$extension';
+  }
+
+  void _showFeedback(String message, DsFeedbackTipo tipo) {
+    DsFeedback.showSnackBar(context: context, mensagem: message, tipo: tipo);
+  }
+
+  String _getErrorMessage(String errorCode) {
+    switch (errorCode) {
+      case 'expired':
+        return 'Seu prazo para concluir esta etapa expirou.';
+      case 'invalid_status':
+        return 'Essa solicitação não está mais aguardando esta ação.';
+      case 'invalid_document':
+        return 'Não foi possível validar o documento enviado.';
+      case 'missing_document':
+        return 'Documento não encontrado. Tente enviar novamente.';
+      case 'invalid_cpf':
+        return 'O CPF informado não parece válido.';
+      case 'cpf_unchanged':
+        return 'Informe um CPF diferente do CPF atual.';
+      case 'cpf_conflict':
+        return 'Não foi possível usar esse CPF. Verifique os dados informados.';
+      case 'forbidden':
+        return 'Você não tem permissão para alterar esta solicitação.';
+      case 'unauthenticated':
+        return 'Sessão expirada. Entre novamente.';
+      case 'temporarily_unavailable':
+      case 'internal_error':
+      default:
+        return 'Não foi possível concluir agora. Tente novamente.';
+    }
+  }
+
+  Future<void> _handleReplaceDocument(AccountChangeRequest request) async {
+    if (_isSubmittingDocument) return;
+
+    PlatformFile? selectedFile;
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        withData: true,
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+      );
+      if (result == null || result.files.isEmpty) return;
+      selectedFile = result.files.first;
+
+      const maxFileSize = 5 * 1024 * 1024; // 5MB
+      if (selectedFile.size > maxFileSize) {
+        _showFeedback(
+          'O arquivo excede o limite máximo de 5MB.',
+          DsFeedbackTipo.erro,
+        );
+        return;
+      }
+    } catch (_) {
+      _showFeedback(
+        'Não foi possível selecionar o arquivo.',
+        DsFeedbackTipo.erro,
+      );
+      return;
+    }
+
+    setState(() {
+      _isSubmittingDocument = true;
+    });
+
+    String? uploadedDriveUrl;
+    try {
+      final ext = selectedFile.extension?.toLowerCase() ?? 'pdf';
+      final fileName = _buildSafeDriveFileName(ext);
+      uploadedDriveUrl = await GoogleDriveService().uploadFile(
+        file: selectedFile,
+        fileName: fileName,
+      );
+
+      if (uploadedDriveUrl == null || uploadedDriveUrl.isEmpty) {
+        _showFeedback(
+          'Não foi possível enviar o documento. Tente novamente.',
+          DsFeedbackTipo.erro,
+        );
+        return;
+      }
+
+      final fileId = GoogleDriveService().extractFileId(uploadedDriveUrl);
+      if (fileId == null || fileId.isEmpty) {
+        await GoogleDriveService().deleteFile(uploadedDriveUrl);
+        _showFeedback(
+          'Não foi possível preparar o documento. Tente novamente.',
+          DsFeedbackTipo.erro,
+        );
+        return;
+      }
+
+      final result = await _databaseService.submitCpfDocumentReplacement(
+        requestId: request.id,
+        documentFileId: fileId,
+      );
+
+      if (!mounted) return;
+
+      if (result['success'] == true) {
+        _showFeedback('Documento enviado com sucesso.', DsFeedbackTipo.sucesso);
+        await _loadDetail(showLoading: true);
+      } else {
+        await GoogleDriveService().deleteFile(uploadedDriveUrl);
+        final errorCode = result['error_code'] ?? 'internal_error';
+        _showFeedback(_getErrorMessage(errorCode), DsFeedbackTipo.erro);
+        if (errorCode == 'expired' || errorCode == 'invalid_status') {
+          await _loadDetail(showLoading: true);
+        }
+      }
+    } catch (_) {
+      if (uploadedDriveUrl != null) {
+        await GoogleDriveService().deleteFile(uploadedDriveUrl);
+      }
+      if (mounted) {
+        _showFeedback(
+          'Erro inesperado. Tente novamente mais tarde.',
+          DsFeedbackTipo.erro,
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmittingDocument = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _handleCorrectCpf(AccountChangeRequest request) async {
+    if (_isSubmittingCpf) return;
+
+    if (!_correctionFormKey.currentState!.validate()) {
+      return;
+    }
+
+    setState(() {
+      _isSubmittingCpf = true;
+    });
+
+    try {
+      final cpfVal = _correctionCpfController.text;
+      final result = await _databaseService.submitCpfCorrection(
+        requestId: request.id,
+        newCpf: cpfVal,
+      );
+
+      if (!mounted) return;
+
+      if (result['success'] == true) {
+        _showFeedback('CPF corrigido com sucesso.', DsFeedbackTipo.sucesso);
+        _correctionCpfController.clear();
+        await _loadDetail(showLoading: true);
+      } else {
+        final errorCode = result['error_code'] ?? 'internal_error';
+        _showFeedback(_getErrorMessage(errorCode), DsFeedbackTipo.erro);
+        if (errorCode == 'expired' || errorCode == 'invalid_status') {
+          await _loadDetail(showLoading: true);
+        }
+      }
+    } catch (_) {
+      if (mounted) {
+        _showFeedback(
+          'Erro inesperado. Tente novamente mais tarde.',
+          DsFeedbackTipo.erro,
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmittingCpf = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: AppBackground(
-        child: RefreshIndicator(
-          onRefresh: () => _loadDetail(showLoading: false),
-          color: DsCores.correcao.accent,
-          child: _buildBody(),
+      body: DsLoadingOverlay(
+        isLoading: _isSubmittingDocument || _isSubmittingCpf,
+        message: _isSubmittingDocument
+            ? 'Enviando documento...'
+            : 'Enviando correção...',
+        child: AppBackground(
+          child: RefreshIndicator(
+            onRefresh: () => _loadDetail(showLoading: false),
+            color: DsCores.correcao.accent,
+            child: _buildBody(),
+          ),
         ),
       ),
     );
@@ -410,11 +617,25 @@ class _AccountChangeDetailViewState extends State<AccountChangeDetailView> {
             isCompleted: isCompleted,
           ),
 
-          // CONFIRMAÇÃO DO TITULAR (Somente para CPF aguardando confirmação)
           if (request.type == AccountChangeType.cpf &&
-              request.status == AccountChangeStatus.waitingHolderConfirmation) ...[
+              request.status ==
+                  AccountChangeStatus.waitingHolderConfirmation) ...[
             const SizedBox(height: DsEspacamentos.md),
             _buildConfirmationSection(request, visualToken),
+          ],
+
+          // AÇÕES DO SOLICITANTE
+          if (request.type == AccountChangeType.cpf &&
+              request.status ==
+                  AccountChangeStatus.waitingDocumentReplacement) ...[
+            const SizedBox(height: DsEspacamentos.md),
+            _buildDocumentReplacementSection(request, visualToken),
+          ],
+
+          if (request.type == AccountChangeType.cpf &&
+              request.status == AccountChangeStatus.waitingCpfCorrection) ...[
+            const SizedBox(height: DsEspacamentos.md),
+            _buildCpfCorrectionSection(request, visualToken),
           ],
 
           // D. JUSTIFICATIVA
@@ -715,9 +936,11 @@ class _AccountChangeDetailViewState extends State<AccountChangeDetailView> {
         if (errorCode == 'expired') {
           message = 'O prazo para confirmar esta solicitação expirou.';
         } else if (errorCode == 'cpf_conflict') {
-          message = 'Não foi possível concluir a troca porque o CPF informado não está disponível.';
+          message =
+              'Não foi possível concluir a troca porque o CPF informado não está disponível.';
         } else if (errorCode == 'current_cpf_mismatch') {
-          message = 'Não foi possível concluir porque os dados da conta mudaram.';
+          message =
+              'Não foi possível concluir porque os dados da conta mudaram.';
         }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -726,7 +949,9 @@ class _AccountChangeDetailViewState extends State<AccountChangeDetailView> {
           ),
         );
 
-        if (errorCode == 'expired' || errorCode == 'cpf_conflict' || errorCode == 'current_cpf_mismatch') {
+        if (errorCode == 'expired' ||
+            errorCode == 'cpf_conflict' ||
+            errorCode == 'current_cpf_mismatch') {
           await _loadDetail(showLoading: true);
         }
       }
@@ -747,8 +972,12 @@ class _AccountChangeDetailViewState extends State<AccountChangeDetailView> {
     }
   }
 
-  Widget _buildConfirmationSection(AccountChangeRequest request, DsCorVisual visualToken) {
-    String deadlineText = 'Confirme dentro do prazo informado para a solicitação.';
+  Widget _buildConfirmationSection(
+    AccountChangeRequest request,
+    DsCorVisual visualToken,
+  ) {
+    String deadlineText =
+        'Confirme dentro do prazo informado para a solicitação.';
     if (request.holderDeadlineDueDate != null) {
       final date = request.holderDeadlineDueDate!;
       final day = date.day.toString().padLeft(2, '0');
@@ -826,7 +1055,9 @@ class _AccountChangeDetailViewState extends State<AccountChangeDetailView> {
                 width: double.infinity,
                 child: DsBotao(
                   label: 'Confirmar',
-                  onPressed: _isConfirming ? null : () => _handleConfirmCpfChange(request),
+                  onPressed: _isConfirming
+                      ? null
+                      : () => _handleConfirmCpfChange(request),
                   variante: DsBotaoVariante.acao,
                   token: DsCores.sucesso,
                   icon: PhosphorIconsRegular.check,
@@ -840,5 +1071,213 @@ class _AccountChangeDetailViewState extends State<AccountChangeDetailView> {
     );
   }
 
+  Widget _buildDocumentReplacementSection(
+    AccountChangeRequest request,
+    DsCorVisual visualToken,
+  ) {
+    final bool isExpired =
+        request.holderDeadlineDueDate != null &&
+        DateTime.now().isAfter(
+          DateTime(
+            request.holderDeadlineDueDate!.year,
+            request.holderDeadlineDueDate!.month,
+            request.holderDeadlineDueDate!.day,
+            23,
+            59,
+            59,
+          ),
+        );
 
+    String deadlineText = 'Reenvie o documento dentro do prazo.';
+    if (request.holderDeadlineDueDate != null) {
+      final date = request.holderDeadlineDueDate!;
+      final day = date.day.toString().padLeft(2, '0');
+      final month = date.month.toString().padLeft(2, '0');
+      final year = date.year.toString().padLeft(4, '0');
+      deadlineText = 'Você tem até $day/$month/$year para concluir essa etapa.';
+    }
+
+    if (isExpired) {
+      deadlineText =
+          'O prazo para concluir essa etapa expirou. Esta solicitação não pode mais ser alterada.';
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader(
+          icon: PhosphorIconsRegular.fileArrowUp,
+          title: 'REENVIO DE DOCUMENTO PENDENTE',
+        ),
+        const SizedBox(height: DsEspacamentos.sm),
+        DsCard(
+          borderColor: DsCores.alerta.border,
+          padding: const EdgeInsets.all(DsEspacamentos.md),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'A equipe identificou um problema no documento enviado. Por favor, reenvie um documento válido para continuarmos a análise.',
+                style: DsTipografia.body.copyWith(
+                  color: DsCores.textPrimary,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: DsEspacamentos.md),
+              Row(
+                children: [
+                  Icon(
+                    isExpired
+                        ? PhosphorIconsRegular.xCircle
+                        : PhosphorIconsRegular.clockCountdown,
+                    color: isExpired
+                        ? DsCores.perigo.accent
+                        : DsCores.alerta.accent,
+                    size: 16,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      deadlineText,
+                      style: DsTipografia.caption.copyWith(
+                        color: isExpired
+                            ? DsCores.perigo.accent
+                            : DsCores.textSecondary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              if (!isExpired) ...[
+                const SizedBox(height: DsEspacamentos.lg),
+                SizedBox(
+                  width: double.infinity,
+                  child: DsBotao(
+                    label: 'Reenviar documento',
+                    onPressed: _isSubmittingDocument
+                        ? null
+                        : () => _handleReplaceDocument(request),
+                    variante: DsBotaoVariante.acao,
+                    token: DsCores.alerta,
+                    icon: PhosphorIconsRegular.uploadSimple,
+                    isLoading: _isSubmittingDocument,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCpfCorrectionSection(
+    AccountChangeRequest request,
+    DsCorVisual visualToken,
+  ) {
+    final bool isExpired =
+        request.holderDeadlineDueDate != null &&
+        DateTime.now().isAfter(
+          DateTime(
+            request.holderDeadlineDueDate!.year,
+            request.holderDeadlineDueDate!.month,
+            request.holderDeadlineDueDate!.day,
+            23,
+            59,
+            59,
+          ),
+        );
+
+    String deadlineText = 'Corrija o CPF dentro do prazo.';
+    if (request.holderDeadlineDueDate != null) {
+      final date = request.holderDeadlineDueDate!;
+      final day = date.day.toString().padLeft(2, '0');
+      final month = date.month.toString().padLeft(2, '0');
+      final year = date.year.toString().padLeft(4, '0');
+      deadlineText = 'Você tem até $day/$month/$year para concluir essa etapa.';
+    }
+
+    if (isExpired) {
+      deadlineText =
+          'O prazo para concluir essa etapa expirou. Esta solicitação não pode mais ser alterada.';
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader(
+          icon: PhosphorIconsRegular.pencilSimple,
+          title: 'CORREÇÃO DE CPF PENDENTE',
+        ),
+        const SizedBox(height: DsEspacamentos.sm),
+        DsCard(
+          borderColor: DsCores.conta.border,
+          padding: const EdgeInsets.all(DsEspacamentos.md),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'A equipe identificou um problema no CPF informado. O documento enviado anteriormente será mantido, por favor, corrija o número do CPF.',
+                style: DsTipografia.body.copyWith(
+                  color: DsCores.textPrimary,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: DsEspacamentos.md),
+              Row(
+                children: [
+                  Icon(
+                    isExpired
+                        ? PhosphorIconsRegular.xCircle
+                        : PhosphorIconsRegular.clockCountdown,
+                    color: isExpired
+                        ? DsCores.perigo.accent
+                        : DsCores.alerta.accent,
+                    size: 16,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      deadlineText,
+                      style: DsTipografia.caption.copyWith(
+                        color: isExpired
+                            ? DsCores.perigo.accent
+                            : DsCores.textSecondary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              if (!isExpired) ...[
+                const SizedBox(height: DsEspacamentos.md),
+                Form(
+                  key: _correctionFormKey,
+                  child: CampoCpf(
+                    controller: _correctionCpfController,
+                    enabled: !_isSubmittingCpf,
+                  ),
+                ),
+                const SizedBox(height: DsEspacamentos.lg),
+                SizedBox(
+                  width: double.infinity,
+                  child: DsBotao(
+                    label: 'Enviar CPF corrigido',
+                    onPressed: _isSubmittingCpf
+                        ? null
+                        : () => _handleCorrectCpf(request),
+                    variante: DsBotaoVariante.acao,
+                    token: DsCores.conta,
+                    icon: PhosphorIconsRegular.paperPlaneRight,
+                    isLoading: _isSubmittingCpf,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
 }
