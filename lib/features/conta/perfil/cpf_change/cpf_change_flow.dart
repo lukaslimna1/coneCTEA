@@ -70,6 +70,7 @@ class _CpfChangeFlowState extends State<CpfChangeFlow> {
               'Você já tem uma solicitação de revisão de CPF em andamento. Acompanhe a análise da equipe.',
           icon: PhosphorIconsRegular.warningCircle,
           token: DsCores.alerta,
+          forceVerticalActions: true,
           secondaryAction: const DsDialogAction(
             label: 'Voltar',
             value: false,
@@ -164,6 +165,7 @@ class _CpfChangeFlowState extends State<CpfChangeFlow> {
           'As informações preenchidas ainda não foram enviadas. Se sair agora, elas serão descartadas.',
       icon: PhosphorIconsRegular.warningCircle,
       token: DsCores.alerta,
+      forceVerticalActions: true,
       secondaryAction: const DsDialogAction(
         label: 'Descartar',
         value: true,
@@ -647,14 +649,14 @@ class _CpfChangeFlowState extends State<CpfChangeFlow> {
                                       vertical: 4,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: Colors.white.withValues(
+                                      color: DsCores.textSecondary.withValues(
                                         alpha: 0.03,
                                       ),
                                       borderRadius: BorderRadius.circular(
                                         DsRaios.pill,
                                       ),
                                       border: Border.all(
-                                        color: Colors.white.withValues(
+                                        color: DsCores.textSecondary.withValues(
                                           alpha: 0.05,
                                         ),
                                       ),
@@ -782,7 +784,7 @@ class _CpfChangeFlowState extends State<CpfChangeFlow> {
                                             Container(
                                               padding: const EdgeInsets.all(6),
                                               decoration: BoxDecoration(
-                                                color: Colors.white.withValues(
+                                                color: DsCores.textSecondary.withValues(
                                                   alpha: 0.03,
                                                 ),
                                                 shape: BoxShape.circle,

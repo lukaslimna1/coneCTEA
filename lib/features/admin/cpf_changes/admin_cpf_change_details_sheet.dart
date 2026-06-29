@@ -7,7 +7,6 @@ import 'package:conectea/models/account_change_request.dart';
 import 'package:conectea/features/admin/cpf_changes/models/admin_cpf_change_summary.dart';
 import 'package:conectea/services/database_service.dart';
 import 'package:conectea/services/google_drive_service.dart';
-import 'package:conectea/core/widgets/premium/status_action_button.dart';
 
 class AdminCpfChangeDetailsSheet extends StatefulWidget {
   final AdminCpfChangeSummary summary;
@@ -207,6 +206,7 @@ class _AdminCpfChangeDetailsSheetState extends State<AdminCpfChangeDetailsSheet>
       title: 'Solicitar novo documento?',
       description: 'Essa ação pede que a pessoa envie um novo documento. O documento atual será marcado para descarte e a solicitação aguardará novo envio.',
       token: DsCores.alerta,
+      forceVerticalActions: true,
       primaryAction: const DsDialogAction(
         label: 'Solicitar novo documento',
         value: true,
@@ -233,6 +233,12 @@ class _AdminCpfChangeDetailsSheetState extends State<AdminCpfChangeDetailsSheet>
       );
 
       if (res['success'] == true) {
+        final localDocumentUrl =
+            'https://drive.google.com/file/d/$_documentFileId/view?usp=drivesdk';
+        try {
+          await GoogleDriveService().deleteFile(localDocumentUrl);
+        } catch (_) {}
+
         if (mounted) {
           DsFeedback.showSnackBar(
             context: context,
@@ -302,6 +308,7 @@ class _AdminCpfChangeDetailsSheetState extends State<AdminCpfChangeDetailsSheet>
       title: 'Solicitar correção do CPF?',
       description: 'Essa ação mantém o documento enviado e pede que a pessoa corrija apenas o CPF informado.',
       token: DsCores.conta,
+      forceVerticalActions: true,
       primaryAction: const DsDialogAction(
         label: 'Solicitar correção',
         value: true,
@@ -469,8 +476,20 @@ class _AdminCpfChangeDetailsSheetState extends State<AdminCpfChangeDetailsSheet>
   Widget build(BuildContext context) {
     final statusToken = _getStatusToken(widget.summary.status);
     final isWaitingHolder = widget.summary.status == AccountChangeStatus.waitingHolderConfirmation;
-    final statusColor = isWaitingHolder ? DsCores.conta.accent : statusToken.primary;
-    final statusIcon = isWaitingHolder ? PhosphorIconsFill.userCheck : statusToken.icon;
+    final isWaitingDocs = widget.summary.status == AccountChangeStatus.waitingDocumentReplacement;
+
+    final statusColor = isWaitingHolder
+        ? DsCores.conta.accent
+        : isWaitingDocs
+            ? DsCores.correcao.accent
+            : statusToken.primary;
+
+    final statusIcon = isWaitingHolder
+        ? PhosphorIconsFill.userCheck
+        : isWaitingDocs
+            ? PhosphorIconsFill.files
+            : statusToken.icon;
+
     final isEditable = [
       AccountChangeStatus.underReview,
       AccountChangeStatus.waitingDocumentReplacement,
@@ -532,7 +551,7 @@ class _AdminCpfChangeDetailsSheetState extends State<AdminCpfChangeDetailsSheet>
                     width: 38,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
+                      color: DsCores.textSecondary.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -1014,30 +1033,34 @@ class _AdminCpfChangeDetailsSheetState extends State<AdminCpfChangeDetailsSheet>
                             ),
                             const SizedBox(height: DsEspacamentos.md),
                           ],
-                          StatusActionButton(
+                          DsBotao(
                             label: 'Aprovar',
-                            statusKey: 'active',
-                            isExpanded: true,
+                            variante: DsBotaoVariante.acao,
+                            token: DsCores.sucesso,
+                            icon: PhosphorIconsRegular.check,
+                            fullWidth: true,
                             isLoading: _isProcessingAction,
-                            onTap: _isProcessingAction ? null : _handleApprove,
+                            onPressed: _isProcessingAction ? null : _handleApprove,
                           ),
                           const SizedBox(height: DsEspacamentos.sm),
-                          StatusActionButton(
+                          DsBotao(
                             label: 'Revisar Documento',
-                            statusKey: 'reviewing_data',
-                            iconOverride: PhosphorIconsRegular.file,
-                            isExpanded: true,
+                            variante: DsBotaoVariante.acao,
+                            token: DsCores.correcao,
+                            icon: PhosphorIconsRegular.file,
+                            fullWidth: true,
                             isLoading: _isProcessingAction,
-                            onTap: _isProcessingAction ? null : _handleRequestDocumentReplacement,
+                            onPressed: _isProcessingAction ? null : _handleRequestDocumentReplacement,
                           ),
                           const SizedBox(height: DsEspacamentos.sm),
-                          StatusActionButton(
+                          DsBotao(
                             label: 'Revisar CPF',
-                            statusKey: 'waiting_docs',
-                            iconOverride: PhosphorIconsRegular.identificationCard,
-                            isExpanded: true,
+                            variante: DsBotaoVariante.acao,
+                            token: DsCores.correcao,
+                            icon: PhosphorIconsRegular.identificationCard,
+                            fullWidth: true,
                             isLoading: _isProcessingAction,
-                            onTap: _isProcessingAction ? null : _handleRequestCpfCorrection,
+                            onPressed: _isProcessingAction ? null : _handleRequestCpfCorrection,
                           ),
                         ],
                       ),

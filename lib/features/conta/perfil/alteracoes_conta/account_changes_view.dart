@@ -202,7 +202,9 @@ class _AccountChangesViewState extends State<AccountChangesView> {
             label: 'Carregando alterações...',
             child: Text(
               'Carregando alterações...',
-              style: TextStyle(color: DsCores.textSecondary, fontSize: 14),
+              style: DsTipografia.bodySmall.copyWith(
+                color: DsCores.textSecondary,
+              ),
             ),
           ),
         ],

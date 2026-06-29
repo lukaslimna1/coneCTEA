@@ -99,6 +99,7 @@ class _AccountChangeDetailViewState extends State<AccountChangeDetailView> {
           'Ao cancelar, esta solicitação será encerrada e o documento enviado será encaminhado para descarte seguro. Depois disso, você poderá iniciar uma nova solicitação de revisão de CPF.',
       icon: PhosphorIconsRegular.warning,
       token: DsCores.perigo,
+      forceVerticalActions: true,
       secondaryAction: const DsDialogAction(
         label: 'Manter solicitação',
         value: false,
@@ -797,7 +798,7 @@ class _AccountChangeDetailViewState extends State<AccountChangeDetailView> {
         ),
         if (!isLast) ...[
           const SizedBox(height: DsEspacamentos.sm),
-          Divider(color: Colors.white.withValues(alpha: 0.06), height: 1),
+          Divider(color: DsCores.border.withValues(alpha: 0.06), height: 1),
         ],
       ],
     );
@@ -814,7 +815,9 @@ class _AccountChangeDetailViewState extends State<AccountChangeDetailView> {
             label: 'Carregando detalhes...',
             child: Text(
               'Carregando detalhes...',
-              style: TextStyle(color: DsCores.textSecondary, fontSize: 14),
+              style: DsTipografia.bodySmall.copyWith(
+                color: DsCores.textSecondary,
+              ),
             ),
           ),
         ],
@@ -942,11 +945,10 @@ class _AccountChangeDetailViewState extends State<AccountChangeDetailView> {
           message =
               'Não foi possível concluir porque os dados da conta mudaram.';
         }
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(message),
-            backgroundColor: DsCores.perigo.accent,
-          ),
+        DsFeedback.showSnackBar(
+          context: context,
+          mensagem: message,
+          tipo: DsFeedbackTipo.erro,
         );
 
         if (errorCode == 'expired' ||
@@ -1212,15 +1214,23 @@ class _AccountChangeDetailViewState extends State<AccountChangeDetailView> {
         ),
         const SizedBox(height: DsEspacamentos.sm),
         DsCard(
-          borderColor: DsCores.conta.border,
+          borderColor: visualToken.border,
           padding: const EdgeInsets.all(DsEspacamentos.md),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'A equipe identificou um problema no CPF informado. O documento enviado anteriormente será mantido, por favor, corrija o número do CPF.',
+                'Precisamos que você corrija o número do CPF para continuar a análise.',
                 style: DsTipografia.body.copyWith(
                   color: DsCores.textPrimary,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: DsEspacamentos.xs),
+              Text(
+                'O documento enviado anteriormente será mantido.',
+                style: DsTipografia.bodySmall.copyWith(
+                  color: DsCores.textSecondary,
                   height: 1.4,
                 ),
               ),
@@ -1268,7 +1278,7 @@ class _AccountChangeDetailViewState extends State<AccountChangeDetailView> {
                         ? null
                         : () => _handleCorrectCpf(request),
                     variante: DsBotaoVariante.acao,
-                    token: DsCores.conta,
+                    token: visualToken,
                     icon: PhosphorIconsRegular.paperPlaneRight,
                     isLoading: _isSubmittingCpf,
                   ),

@@ -248,73 +248,86 @@ class _AdminCpfChangesTabState extends State<AdminCpfChangesTab> {
     return null;
   }
 
+  DsCorVisual _getSemanticTokenForStatus(AccountChangeStatus status) {
+    switch (status) {
+      case AccountChangeStatus.underReview:
+        return DsCores.alerta;
+      case AccountChangeStatus.waitingCpfCorrection:
+      case AccountChangeStatus.waitingDocumentReplacement:
+        return DsCores.correcao;
+      case AccountChangeStatus.completed:
+        return DsCores.sucesso;
+      case AccountChangeStatus.waitingHolderConfirmation:
+      case AccountChangeStatus.applying:
+        return DsCores.conta;
+      case AccountChangeStatus.rejectedByAdmin:
+      case AccountChangeStatus.applicationFailed:
+        return DsCores.perigo;
+      case AccountChangeStatus.cancelledByHolder:
+      case AccountChangeStatus.expired:
+      default:
+        return DsCores.manutencao;
+    }
+  }
+
   Widget _buildStatusSelo(AccountChangeStatus status) {
+    final DsCorVisual semanticToken = _getSemanticTokenForStatus(status);
+    final Color color = semanticToken.accent;
+
     String label;
     IconData icon;
-    Color color;
 
     switch (status) {
       case AccountChangeStatus.underReview:
         label = 'EM ANÁLISE';
         icon = PhosphorIconsFill.clockCountdown;
-        color = const Color(0xFFF59E0B);
         break;
       case AccountChangeStatus.waitingCpfCorrection:
         label = 'CORRIGIR CPF';
         icon = PhosphorIconsFill.warningCircle;
-        color = const Color(0xFFFF7A1A);
         break;
       case AccountChangeStatus.waitingDocumentReplacement:
         label = 'REENVIAR DOC';
         icon = PhosphorIconsFill.files;
-        color = const Color(0xFF22D3EE);
         break;
       case AccountChangeStatus.waitingHolderConfirmation:
         label = 'CONFIRMAR';
         icon = PhosphorIconsFill.userCheck;
-        color = const Color(0xFF22D3EE);
         break;
       case AccountChangeStatus.completed:
         label = 'CONCLUÍDA';
         icon = PhosphorIconsFill.checkCircle;
-        color = const Color(0xFF00FF85);
         break;
       case AccountChangeStatus.rejectedByAdmin:
         label = 'REJEITADA';
         icon = PhosphorIconsFill.xCircle;
-        color = const Color(0xFFE11D48);
         break;
       case AccountChangeStatus.cancelledByHolder:
         label = 'CANCELADA';
         icon = PhosphorIconsFill.calendarX;
-        color = const Color(0xFFCBD5E1);
         break;
       case AccountChangeStatus.expired:
         label = 'EXPIRADA';
         icon = PhosphorIconsFill.calendarX;
-        color = const Color(0xFFCBD5E1);
         break;
       case AccountChangeStatus.applicationFailed:
         label = 'FALHA';
         icon = PhosphorIconsFill.warningOctagon;
-        color = const Color(0xFFE11D48);
         break;
       case AccountChangeStatus.applying:
         label = 'PROCESSANDO';
         icon = PhosphorIconsFill.arrowsClockwise;
-        color = const Color(0xFF22D3EE);
         break;
       default:
         label = 'DESCONHECIDO';
         icon = PhosphorIconsFill.question;
-        color = const Color(0xFFCBD5E1);
     }
 
     return DsSelo(
       label: label,
       labelColor: color,
-      backgroundColor: color.withValues(alpha: 0.12),
-      borderColor: color.withValues(alpha: 0.25),
+      backgroundColor: semanticToken.softBackground,
+      borderColor: semanticToken.border,
       icon: icon,
       iconColor: color,
       compact: true,
@@ -322,29 +335,8 @@ class _AdminCpfChangesTabState extends State<AdminCpfChangesTab> {
   }
 
   Widget _buildItemCard(AdminCpfChangeSummary item) {
-    Color statusColor;
-    switch (item.status) {
-      case AccountChangeStatus.underReview:
-        statusColor = const Color(0xFFF59E0B);
-        break;
-      case AccountChangeStatus.waitingCpfCorrection:
-        statusColor = const Color(0xFFFF7A1A);
-        break;
-      case AccountChangeStatus.waitingDocumentReplacement:
-        statusColor = const Color(0xFF22D3EE);
-        break;
-      case AccountChangeStatus.waitingHolderConfirmation:
-        statusColor = const Color(0xFF22D3EE);
-        break;
-      case AccountChangeStatus.completed:
-        statusColor = const Color(0xFF00FF85);
-        break;
-      case AccountChangeStatus.rejectedByAdmin:
-        statusColor = const Color(0xFFE11D48);
-        break;
-      default:
-        statusColor = const Color(0xFFCBD5E1);
-    }
+    final DsCorVisual semanticToken = _getSemanticTokenForStatus(item.status);
+    final Color statusColor = semanticToken.accent;
 
     final String? deadlineText = _getDeadlineText(item);
 
@@ -429,7 +421,7 @@ class _AdminCpfChangesTabState extends State<AdminCpfChangesTab> {
               style: DsTipografia.body.copyWith(
                 fontSize: 15.5,
                 fontWeight: FontWeight.w900,
-                color: Colors.white,
+                color: DsCores.textPrimary,
                 letterSpacing: -0.5,
               ),
             ),
@@ -653,7 +645,7 @@ class _AdminCpfChangesTabState extends State<AdminCpfChangesTab> {
                   style: DsTipografia.caption.copyWith(
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
-                    color: Colors.white.withValues(alpha: 0.35),
+                    color: DsCores.textSecondary.withValues(alpha: 0.35),
                     letterSpacing: 0.5,
                   ),
                 ),
@@ -662,7 +654,7 @@ class _AdminCpfChangesTabState extends State<AdminCpfChangesTab> {
                   width: 14,
                   height: 3,
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.3),
+                    color: DsCores.textSecondary.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(1.5),
                   ),
                 ),
@@ -671,7 +663,7 @@ class _AdminCpfChangesTabState extends State<AdminCpfChangesTab> {
                   width: 3,
                   height: 3,
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
+                    color: DsCores.textSecondary.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -680,7 +672,7 @@ class _AdminCpfChangesTabState extends State<AdminCpfChangesTab> {
                   width: 3,
                   height: 3,
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
+                    color: DsCores.textSecondary.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -747,16 +739,16 @@ class _AdminCpfChangesTabState extends State<AdminCpfChangesTab> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(
+                            Icon(
                               PhosphorIconsRegular.warningCircle,
                               size: 40,
-                              color: Colors.redAccent,
+                              color: DsCores.perigo.accent,
                             ),
                             const SizedBox(height: DsEspacamentos.sm),
                             Text(
                               _errorMessage!,
                               style: DsTipografia.body.copyWith(
-                                color: Colors.white70,
+                                color: DsCores.textSecondary,
                               ),
                               textAlign: TextAlign.center,
                             ),
