@@ -202,38 +202,20 @@ class _AdminCpfChangeDetailsSheetState extends State<AdminCpfChangeDetailsSheet>
   Future<void> _handleRequestDocumentReplacement() async {
     if (_isProcessingAction) return;
 
-    final confirmed = await showDialog<bool>(
+    final confirmed = await DsDialog.show<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: DsCores.surface,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(DsRaios.md),
-          side: BorderSide(color: DsCores.border.withValues(alpha: 0.5)),
-        ),
-        title: Text(
-          'Solicitar novo documento?',
-          style: DsTipografia.sectionTitle.copyWith(color: DsCores.textPrimary),
-        ),
-        content: Text(
-          'Essa ação pede que o solicitante envie um novo documento. O documento atual será marcado para descarte e a solicitação aguardará novo envio.',
-          style: DsTipografia.body.copyWith(color: DsCores.textSecondary),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(
-              'Cancelar',
-              style: DsTipografia.button.copyWith(color: DsCores.textMuted),
-            ),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(
-              'Solicitar novo documento',
-              style: DsTipografia.button.copyWith(color: const Color(0xFFFFB020)),
-            ),
-          ),
-        ],
+      title: 'Solicitar novo documento?',
+      description: 'Essa ação pede que a pessoa envie um novo documento. O documento atual será marcado para descarte e a solicitação aguardará novo envio.',
+      token: DsCores.alerta,
+      primaryAction: const DsDialogAction(
+        label: 'Solicitar novo documento',
+        value: true,
+        variante: DsBotaoVariante.acao,
+      ),
+      secondaryAction: const DsDialogAction(
+        label: 'Cancelar',
+        value: false,
+        variante: DsBotaoVariante.ghost,
       ),
     );
 
@@ -315,38 +297,20 @@ class _AdminCpfChangeDetailsSheetState extends State<AdminCpfChangeDetailsSheet>
   Future<void> _handleRequestCpfCorrection() async {
     if (_isProcessingAction) return;
 
-    final confirmed = await showDialog<bool>(
+    final confirmed = await DsDialog.show<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: DsCores.surface,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(DsRaios.md),
-          side: BorderSide(color: DsCores.border.withValues(alpha: 0.5)),
-        ),
-        title: Text(
-          'Solicitar correção do CPF?',
-          style: DsTipografia.sectionTitle.copyWith(color: DsCores.textPrimary),
-        ),
-        content: Text(
-          'Essa ação mantém o documento enviado e pede que o solicitante corrija apenas o CPF informado.',
-          style: DsTipografia.body.copyWith(color: DsCores.textSecondary),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(
-              'Cancelar',
-              style: DsTipografia.button.copyWith(color: DsCores.textMuted),
-            ),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(
-              'Solicitar correção',
-              style: DsTipografia.button.copyWith(color: const Color(0xFF2DD4BF)),
-            ),
-          ),
-        ],
+      title: 'Solicitar correção do CPF?',
+      description: 'Essa ação mantém o documento enviado e pede que a pessoa corrija apenas o CPF informado.',
+      token: DsCores.conta,
+      primaryAction: const DsDialogAction(
+        label: 'Solicitar correção',
+        value: true,
+        variante: DsBotaoVariante.acao,
+      ),
+      secondaryAction: const DsDialogAction(
+        label: 'Cancelar',
+        value: false,
+        variante: DsBotaoVariante.ghost,
       ),
     );
 
