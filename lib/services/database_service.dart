@@ -1570,4 +1570,95 @@ class DatabaseService {
       return {'success': false, 'error_code': 'internal_error'};
     }
   }
+  String _sanitizeSubmitCpfError(Object? value) {
+    final error = value?.toString();
+    switch (error) {
+      case 'unauthenticated':
+      case 'forbidden':
+      case 'not_found':
+      case 'invalid_type':
+      case 'invalid_status':
+      case 'expired':
+      case 'missing_review_data':
+      case 'missing_document':
+      case 'invalid_document':
+      case 'invalid_cpf':
+      case 'cpf_unchanged':
+      case 'cpf_conflict':
+      case 'internal_error':
+      case 'temporarily_unavailable':
+        return error!;
+      default:
+        return 'internal_error';
+    }
+  }
+
+  Future<Map<String, dynamic>> submitCpfDocumentReplacement({
+    required String requestId,
+    required String documentFileId,
+  }) async {
+    try {
+      final response = await _supabase.rpc(
+        'conectea_submit_cpf_document_replacement_v1',
+        params: {
+          'p_request_id': requestId,
+          'p_document_file_id': documentFileId,
+        },
+      );
+
+      if (response != null && response is Map) {
+        final success = response['success'] == true;
+        if (success) {
+          return {'success': true};
+        } else {
+          final errorCode = response['error_code'];
+          return {'success': false, 'error_code': _sanitizeSubmitCpfError(errorCode)};
+        }
+      }
+      return {'success': false, 'error_code': 'temporarily_unavailable'};
+    } catch (e) {
+      return {'success': false, 'error_code': 'internal_error'};
+    }
+  }
+
+  Future<Map<String, dynamic>> submitCpfCorrection({
+    required String requestId,
+    required String newCpf,
+  }) async {
+    try {
+      final cleanCpf = newCpf.replaceAll(RegExp(r'[^0-9]'), '');
+
+      final response = await _supabase.functions.invoke(
+        'submit-cpf-correction',
+        body: {
+          'request_id': requestId,
+          'new_cpf': cleanCpf,
+        },
+      );
+
+      final data = response.data;
+      if (data is Map) {
+        final success = data['success'] == true;
+        if (success) {
+          return {'success': true};
+        } else {
+          final errorRaw = data['error'] ?? data['message'] ?? data['error_code'];
+          return {'success': false, 'error_code': _sanitizeSubmitCpfError(errorRaw)};
+        }
+      }
+
+      return {'success': false, 'error_code': 'temporarily_unavailable'};
+    } catch (e) {
+      if (e is FunctionException) {
+        try {
+          final details = e.details;
+          if (details is Map) {
+            final errorRaw = details['error'] ?? details['message'] ?? details['error_code'];
+            return {'success': false, 'error_code': _sanitizeSubmitCpfError(errorRaw)};
+          }
+        } catch (_) {}
+      }
+      return {'success': false, 'error_code': 'internal_error'};
+    }
+  }
 }
