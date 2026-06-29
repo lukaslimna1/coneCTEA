@@ -466,6 +466,18 @@ class DsCores {
     colors: [Color(0xFF14D9D0), Color(0xFF0EA8A1)],
   );
 
+  static LinearGradient get conecteaBrandGradient => LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          admin.accent,         // Roxo vivo
+          suporte.accent,       // Azul vivo
+          conta.accent,         // Ciano vivo
+          sucesso.accent,       // Verde vivo
+        ],
+        stops: const [0.0, 0.35, 0.7, 1.0],
+      );
+
   // ---------------------------------------------------------------------------
   // RESOLUÇÃO SEMÂNTICA — visualFromKey
   //

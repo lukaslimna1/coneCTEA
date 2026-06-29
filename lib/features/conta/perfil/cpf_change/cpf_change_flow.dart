@@ -541,7 +541,10 @@ class _CpfChangeFlowState extends State<CpfChangeFlow> {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         extendBodyBehindAppBar: true,
-        body: AppBackground(
+        body: DsLoadingOverlay(
+          isLoading: _isSubmitting,
+          message: 'Enviando...',
+          child: AppBackground(
           child: _isCheckingActiveRequest
               ? const Center(
                   child: CircularProgressIndicator(
@@ -936,6 +939,7 @@ class _CpfChangeFlowState extends State<CpfChangeFlow> {
                                   ? 'Enviando...'
                                   : 'Revisar solicitação',
                               onPressed: _isSubmitting ? null : _handleSubmit,
+                              isLoading: _isSubmitting,
                               variante: DsBotaoVariante.acao,
                               token: DsCores.correcao,
                               icon: PhosphorIconsRegular.paperPlaneRight,
@@ -946,6 +950,7 @@ class _CpfChangeFlowState extends State<CpfChangeFlow> {
                     ),
                   ],
                 ),
+        ),
         ),
       ),
     );

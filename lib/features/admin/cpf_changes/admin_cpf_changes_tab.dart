@@ -272,7 +272,7 @@ class _AdminCpfChangesTabState extends State<AdminCpfChangesTab> {
       case AccountChangeStatus.waitingHolderConfirmation:
         label = 'CONFIRMAR';
         icon = PhosphorIconsFill.userCheck;
-        color = const Color(0xFF8B3DFF);
+        color = const Color(0xFF22D3EE);
         break;
       case AccountChangeStatus.completed:
         label = 'CONCLUÍDA';
@@ -334,7 +334,7 @@ class _AdminCpfChangesTabState extends State<AdminCpfChangesTab> {
         statusColor = const Color(0xFF22D3EE);
         break;
       case AccountChangeStatus.waitingHolderConfirmation:
-        statusColor = const Color(0xFF8B3DFF);
+        statusColor = const Color(0xFF22D3EE);
         break;
       case AccountChangeStatus.completed:
         statusColor = const Color(0xFF00FF85);
@@ -735,7 +735,7 @@ class _AdminCpfChangesTabState extends State<AdminCpfChangesTab> {
                       child: Center(
                         child: Padding(
                           padding: EdgeInsets.all(48.0),
-                          child: CircularProgressIndicator(),
+                          child: DsLoadingSpinner(),
                         ),
                       ),
                     )

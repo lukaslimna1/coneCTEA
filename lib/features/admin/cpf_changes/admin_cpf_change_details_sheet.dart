@@ -29,6 +29,8 @@ class _AdminCpfChangeDetailsSheetState extends State<AdminCpfChangeDetailsSheet>
   String? _documentFileId;
   String? _justification;
   bool _isProcessingAction = false;
+  String? _actionErrorMessage;
+  String? _actionErrorTitle;
 
   @override
   void initState() {
@@ -99,26 +101,20 @@ class _AdminCpfChangeDetailsSheetState extends State<AdminCpfChangeDetailsSheet>
     if (_isProcessingAction) return;
 
     if (_documentFileId == null || _documentFileId!.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('ID do documento indisponível para descarte seguro.'),
-          backgroundColor: DsCores.perigo.accent,
-        ),
-      );
+      setState(() {
+        _actionErrorTitle = 'Não foi possível aprovar';
+        _actionErrorMessage = 'ID do documento indisponível para descarte seguro.';
+      });
       return;
     }
 
     setState(() {
+      _actionErrorTitle = null;
+      _actionErrorMessage = null;
       _isProcessingAction = true;
     });
 
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (loadingContext) => Center(
-        child: CircularProgressIndicator(color: DsCores.conta.accent),
-      ),
-    );
+
 
     try {
       final localDocumentUrl =
@@ -133,55 +129,67 @@ class _AdminCpfChangeDetailsSheetState extends State<AdminCpfChangeDetailsSheet>
             await GoogleDriveService().deleteFile(localDocumentUrl);
 
         if (mounted) {
-          Navigator.of(context, rootNavigator: true).pop();
 
           if (deleteSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: const Text(
+            DsFeedback.showSnackBar(
+              context: context,
+              mensagem:
                   'Solicitação aprovada. O solicitante será avisado para confirmar em até 10 dias úteis.',
-                ),
-                backgroundColor: DsCores.sucesso.accent,
-                behavior: SnackBarBehavior.floating,
-              ),
+              tipo: DsFeedbackTipo.sucesso,
             );
           } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: const Text(
+            DsFeedback.showSnackBar(
+              context: context,
+              mensagem:
                   'Solicitação aprovada, mas não foi possível confirmar o descarte imediato do documento agora.',
-                ),
-                backgroundColor: DsCores.alerta.accent,
-                behavior: SnackBarBehavior.floating,
-                duration: const Duration(seconds: 5),
-              ),
+              tipo: DsFeedbackTipo.alerta,
+              duration: const Duration(seconds: 5),
             );
           }
           Navigator.of(context).pop(true);
         }
       } else {
         if (mounted) {
-          Navigator.of(context, rootNavigator: true).pop();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content:
-                  const Text('Não foi possível aprovar a solicitação no momento.'),
-              backgroundColor: DsCores.perigo.accent,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+
+          final errorCode = res['error_code']?.toString() ?? 'internal_error';
+          debugPrint('[CPF Approval] Falha segura ao aprovar: error_code=$errorCode');
+
+          String errorMessage;
+          switch (errorCode) {
+            case 'invalid_status':
+              errorMessage = 'Não foi possível aprovar porque a solicitação não está mais em análise.';
+              break;
+            case 'forbidden':
+              errorMessage = 'Você não tem permissão para aprovar esta solicitação.';
+              break;
+            case 'not_found':
+              errorMessage = 'Solicitação não encontrada.';
+              break;
+            case 'missing_review_data':
+              errorMessage = 'Não foi possível aprovar porque os dados de revisão não estão completos.';
+              break;
+            case 'invalid_type':
+              errorMessage = 'Esta solicitação não é de alteração de CPF.';
+              break;
+            case 'internal_error':
+              errorMessage = 'Não foi possível aprovar agora. Tente novamente.';
+              break;
+            default:
+              errorMessage = 'Não foi possível aprovar a solicitação.';
+          }
+
+          setState(() {
+            _actionErrorTitle = 'Não foi possível aprovar';
+            _actionErrorMessage = errorMessage;
+          });
         }
       }
     } catch (e) {
       if (mounted) {
-        Navigator.of(context, rootNavigator: true).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Erro inesperado ao processar aprovação.'),
-            backgroundColor: DsCores.perigo.accent,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        setState(() {
+          _actionErrorTitle = 'Não foi possível aprovar';
+          _actionErrorMessage = 'Erro inesperado ao processar aprovação.';
+        });
       }
     } finally {
       if (mounted) {
@@ -274,7 +282,9 @@ class _AdminCpfChangeDetailsSheetState extends State<AdminCpfChangeDetailsSheet>
   @override
   Widget build(BuildContext context) {
     final statusToken = _getStatusToken(widget.summary.status);
-    final statusColor = statusToken.primary;
+    final isWaitingHolder = widget.summary.status == AccountChangeStatus.waitingHolderConfirmation;
+    final statusColor = isWaitingHolder ? DsCores.conta.accent : statusToken.primary;
+    final statusIcon = isWaitingHolder ? PhosphorIconsFill.userCheck : statusToken.icon;
     final isEditable = [
       AccountChangeStatus.underReview,
       AccountChangeStatus.waitingDocumentReplacement,
@@ -300,8 +310,11 @@ class _AdminCpfChangeDetailsSheetState extends State<AdminCpfChangeDetailsSheet>
       documentColor = DsCores.textSecondary.withValues(alpha: 0.6);
     }
 
-    return Container(
-      height: MediaQuery.sizeOf(context).height * 0.85,
+    return DsLoadingOverlay(
+      isLoading: _isProcessingAction,
+      message: 'Aprovando...',
+      child: Container(
+        height: MediaQuery.sizeOf(context).height * 0.85,
       decoration: const BoxDecoration(
         color: DsCores.background,
         borderRadius: BorderRadius.only(
@@ -420,7 +433,7 @@ class _AdminCpfChangeDetailsSheetState extends State<AdminCpfChangeDetailsSheet>
                               alpha: 0.12,
                             ),
                             borderColor: statusColor.withValues(alpha: 0.25),
-                            icon: statusToken.icon,
+                            icon: statusIcon,
                             iconColor: statusColor,
                             compact: true,
                           ),
@@ -502,11 +515,17 @@ class _AdminCpfChangeDetailsSheetState extends State<AdminCpfChangeDetailsSheet>
                               padding: const EdgeInsets.symmetric(
                                 vertical: DsEspacamentos.md,
                               ),
-                              child: Text(
-                                'Carregando dados para análise...',
-                                style: DsTipografia.caption.copyWith(
-                                  color: DsCores.textSecondary,
-                                ),
+                              child: Column(
+                                children: [
+                                  const DsLoadingSpinner(),
+                                  const SizedBox(height: DsEspacamentos.md),
+                                  Text(
+                                    'Carregando dados para análise...',
+                                    style: DsTipografia.caption.copyWith(
+                                      color: DsCores.textSecondary,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           )
@@ -763,6 +782,52 @@ class _AdminCpfChangeDetailsSheetState extends State<AdminCpfChangeDetailsSheet>
                             ),
                           ),
                           const SizedBox(height: DsEspacamentos.md),
+                          if (_actionErrorMessage != null) ...[
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(DsEspacamentos.md),
+                              decoration: BoxDecoration(
+                                color: DsCores.surface.withValues(alpha: 0.4),
+                                borderRadius: BorderRadius.circular(DsRaios.md),
+                                border: Border.all(
+                                  color: DsCores.perigo.accent.withValues(alpha: 0.5),
+                                ),
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Icon(
+                                    PhosphorIconsRegular.warningCircle,
+                                    color: DsCores.perigo.accent,
+                                    size: DsTamanhos.iconSm,
+                                  ),
+                                  const SizedBox(width: DsEspacamentos.sm),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          _actionErrorTitle ?? 'Atenção',
+                                          style: DsTipografia.bodySmall.copyWith(
+                                            color: DsCores.textPrimary,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        const SizedBox(height: DsEspacamentos.xxs),
+                                        Text(
+                                          _actionErrorMessage!,
+                                          style: DsTipografia.caption.copyWith(
+                                            color: DsCores.textSecondary,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: DsEspacamentos.md),
+                          ],
                           StatusActionButton(
                             label: 'Aprovar',
                             statusKey: 'active',
@@ -824,9 +889,8 @@ class _AdminCpfChangeDetailsSheetState extends State<AdminCpfChangeDetailsSheet>
           ),
         ],
       ),
-    );
+    ));
   }
-
   Widget _buildTimelineItem({
     required String label,
     required String value,

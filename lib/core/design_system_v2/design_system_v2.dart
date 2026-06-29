@@ -25,6 +25,9 @@ export 'componentes/ds_bottom_nav_bar.dart';
 export 'componentes/ds_app_top_header.dart';
 export 'componentes/ds_status_dialog.dart';
 export 'componentes/ds_dialog.dart';
+export 'componentes/ds_loading_spinner.dart';
+export 'componentes/ds_loading_overlay.dart';
+export 'componentes/ds_feedback_banner.dart';
 
 // Padrões
 export 'padroes/ds_card_hub.dart';

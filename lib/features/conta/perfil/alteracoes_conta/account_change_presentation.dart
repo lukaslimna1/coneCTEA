@@ -153,7 +153,7 @@ class AccountChangePresentation {
       case AccountChangeStatus.applicationFailed:
         return DsCores.perigo;
       case AccountChangeStatus.waitingHolderConfirmation:
-        return DsCores.alerta;
+        return DsCores.conta;
       case AccountChangeStatus.waitingDocumentReplacement:
         return DsCores.correcao;
       case AccountChangeStatus.applying:

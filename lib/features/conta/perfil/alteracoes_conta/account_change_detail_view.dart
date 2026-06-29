@@ -110,11 +110,10 @@ class _AccountChangeDetailViewState extends State<AccountChangeDetailView> {
         if (result['success'] == true) {
           await _loadDetail(showLoading: true);
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: const Text('Solicitação cancelada com sucesso.'),
-                backgroundColor: DsCores.sucesso.accent,
-              ),
+            DsFeedback.showSnackBar(
+              context: context,
+              mensagem: 'Solicitação cancelada com sucesso.',
+              tipo: DsFeedbackTipo.sucesso,
             );
           }
         } else {
@@ -128,23 +127,19 @@ class _AccountChangeDetailViewState extends State<AccountChangeDetailView> {
             message =
                 'Esta solicitação não pode mais ser cancelada nesta etapa.';
           }
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(message),
-              backgroundColor: DsCores.perigo.accent,
-            ),
+          DsFeedback.showSnackBar(
+            context: context,
+            mensagem: message,
+            tipo: DsFeedbackTipo.erro,
           );
         }
       }
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text(
-              'Não foi possível cancelar agora. Tente novamente em alguns instantes.',
-            ),
-            backgroundColor: DsCores.perigo.accent,
-          ),
+        DsFeedback.showSnackBar(
+          context: context,
+          mensagem: 'Ocorreu um erro ao cancelar. Tente novamente mais tarde.',
+          tipo: DsFeedbackTipo.erro,
         );
       }
     } finally {
@@ -379,9 +374,7 @@ class _AccountChangeDetailViewState extends State<AccountChangeDetailView> {
                 const SizedBox(height: DsEspacamentos.md),
                 _buildCompactDetailRow(
                   'Data da solicitação',
-                  ConecteaDateTimeHelper.formatProjectDateShort(
-                    request.createdAt,
-                  ),
+                  '${ConecteaDateTimeHelper.formatProjectDateShort(request.createdAt)} às ${ConecteaDateTimeHelper.formatProjectTime(request.createdAt)}',
                 ),
                 const SizedBox(height: DsEspacamentos.md),
                 _buildCompactDetailRow(
@@ -390,9 +383,7 @@ class _AccountChangeDetailViewState extends State<AccountChangeDetailView> {
                       : 'Última atualização',
                   request.status == AccountChangeStatus.cancelledByHolder
                       ? '${ConecteaDateTimeHelper.formatProjectDateShort(request.closedAt ?? request.updatedAt)} às ${ConecteaDateTimeHelper.formatProjectTime(request.closedAt ?? request.updatedAt)}'
-                      : ConecteaDateTimeHelper.formatProjectDateShort(
-                          request.updatedAt,
-                        ),
+                      : '${ConecteaDateTimeHelper.formatProjectDateShort(request.updatedAt)} às ${ConecteaDateTimeHelper.formatProjectTime(request.updatedAt)}',
                   isLast:
                       !(request.status == AccountChangeStatus.underReview ||
                           request.status == AccountChangeStatus.applying),
@@ -418,6 +409,13 @@ class _AccountChangeDetailViewState extends State<AccountChangeDetailView> {
             statusToken: visualToken,
             isCompleted: isCompleted,
           ),
+
+          // CONFIRMAÇÃO DO TITULAR (Somente para CPF aguardando confirmação)
+          if (request.type == AccountChangeType.cpf &&
+              request.status == AccountChangeStatus.waitingHolderConfirmation) ...[
+            const SizedBox(height: DsEspacamentos.md),
+            _buildConfirmationSection(request, visualToken),
+          ],
 
           // D. JUSTIFICATIVA
           if (hasJustification) ...[
@@ -457,24 +455,18 @@ class _AccountChangeDetailViewState extends State<AccountChangeDetailView> {
                   if (request.holderConfirmedAt != null)
                     _buildCompactDetailRow(
                       'Confirmação do titular',
-                      ConecteaDateTimeHelper.formatProjectDateShort(
-                        request.holderConfirmedAt!,
-                      ),
+                      '${ConecteaDateTimeHelper.formatProjectDateShort(request.holderConfirmedAt!)} às ${ConecteaDateTimeHelper.formatProjectTime(request.holderConfirmedAt!)}',
                     ),
                   if (request.applicationStartedAt != null)
                     _buildCompactDetailRow(
                       'Aplicação iniciada',
-                      ConecteaDateTimeHelper.formatProjectDateShort(
-                        request.applicationStartedAt!,
-                      ),
+                      '${ConecteaDateTimeHelper.formatProjectDateShort(request.applicationStartedAt!)} às ${ConecteaDateTimeHelper.formatProjectTime(request.applicationStartedAt!)}',
                       isLast: request.applicationCompletedAt == null,
                     ),
                   if (request.applicationCompletedAt != null)
                     _buildCompactDetailRow(
                       'Alteração concluída',
-                      ConecteaDateTimeHelper.formatProjectDateShort(
-                        request.applicationCompletedAt!,
-                      ),
+                      '${ConecteaDateTimeHelper.formatProjectDateShort(request.applicationCompletedAt!)} às ${ConecteaDateTimeHelper.formatProjectTime(request.applicationCompletedAt!)}',
                       isLast: true,
                     ),
                 ],
@@ -498,9 +490,7 @@ class _AccountChangeDetailViewState extends State<AccountChangeDetailView> {
                 children: [
                   _buildCompactDetailRow(
                     presentation.closedAtLabel ?? 'Encerramento',
-                    ConecteaDateTimeHelper.formatProjectDateShort(
-                      request.closedAt!,
-                    ),
+                    '${ConecteaDateTimeHelper.formatProjectDateShort(request.closedAt!)} às ${ConecteaDateTimeHelper.formatProjectTime(request.closedAt!)}',
                     isLast: !presentation.canShowResolutionReason,
                   ),
                   if (presentation.canShowResolutionReason) ...[
@@ -696,4 +686,159 @@ class _AccountChangeDetailViewState extends State<AccountChangeDetailView> {
       ),
     );
   }
+
+  bool _isConfirming = false;
+
+  Future<void> _handleConfirmCpfChange(AccountChangeRequest request) async {
+    if (_isConfirming) return;
+    setState(() {
+      _isConfirming = true;
+    });
+
+    try {
+      final result = await _databaseService.confirmCpfChangeRequest(
+        requestId: request.id,
+      );
+
+      if (!mounted) return;
+
+      if (result['success'] == true) {
+        DsFeedback.showSnackBar(
+          context: context,
+          mensagem: 'Alteração confirmada com sucesso.',
+          tipo: DsFeedbackTipo.sucesso,
+        );
+        await _loadDetail(showLoading: true);
+      } else {
+        final errorCode = result['error_code'];
+        String message = 'Não foi possível confirmar a troca agora.';
+        if (errorCode == 'expired') {
+          message = 'O prazo para confirmar esta solicitação expirou.';
+        } else if (errorCode == 'cpf_conflict') {
+          message = 'Não foi possível concluir a troca porque o CPF informado não está disponível.';
+        } else if (errorCode == 'current_cpf_mismatch') {
+          message = 'Não foi possível concluir porque os dados da conta mudaram.';
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: DsCores.perigo.accent,
+          ),
+        );
+
+        if (errorCode == 'expired' || errorCode == 'cpf_conflict' || errorCode == 'current_cpf_mismatch') {
+          await _loadDetail(showLoading: true);
+        }
+      }
+    } catch (_) {
+      if (!mounted) return;
+      DsFeedback.showSnackBar(
+        context: context,
+        mensagem:
+            'Não foi possível confirmar a alteração. Tente novamente mais tarde.',
+        tipo: DsFeedbackTipo.erro,
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isConfirming = false;
+        });
+      }
+    }
+  }
+
+  Widget _buildConfirmationSection(AccountChangeRequest request, DsCorVisual visualToken) {
+    String deadlineText = 'Confirme dentro do prazo informado para a solicitação.';
+    if (request.holderDeadlineDueDate != null) {
+      final date = request.holderDeadlineDueDate!;
+      final day = date.day.toString().padLeft(2, '0');
+      final month = date.month.toString().padLeft(2, '0');
+      final year = date.year.toString().padLeft(4, '0');
+      deadlineText = 'Você pode confirmar até $day/$month/$year.';
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader(
+          icon: PhosphorIconsRegular.checkCircle,
+          title: 'CONFIRME A TROCA DE CPF',
+        ),
+        const SizedBox(height: DsEspacamentos.sm),
+        DsCard(
+          borderColor: visualToken.border,
+          padding: const EdgeInsets.all(DsEspacamentos.md),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'A Gestão aprovou sua solicitação. Confira os dados abaixo e escolha se deseja continuar.',
+                style: DsTipografia.body.copyWith(
+                  color: DsCores.textPrimary,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: DsEspacamentos.md),
+              Container(
+                padding: const EdgeInsets.all(DsEspacamentos.sm),
+                decoration: BoxDecoration(
+                  color: DsCores.surfaceElevated,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildCompactDetailRow(
+                      'CPF atual',
+                      request.oldValueMasked ?? '***.***.***-**',
+                    ),
+                    const SizedBox(height: DsEspacamentos.sm),
+                    _buildCompactDetailRow(
+                      'Novo CPF',
+                      request.newValueMasked,
+                      isLast: true,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: DsEspacamentos.md),
+              Row(
+                children: [
+                  Icon(
+                    PhosphorIconsRegular.clockCountdown,
+                    color: DsCores.alerta.accent,
+                    size: 16,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      deadlineText,
+                      style: DsTipografia.caption.copyWith(
+                        color: DsCores.textSecondary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: DsEspacamentos.lg),
+              SizedBox(
+                width: double.infinity,
+                child: DsBotao(
+                  label: 'Confirmar',
+                  onPressed: _isConfirming ? null : () => _handleConfirmCpfChange(request),
+                  variante: DsBotaoVariante.acao,
+                  token: DsCores.sucesso,
+                  icon: PhosphorIconsRegular.check,
+                  isLoading: _isConfirming,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+
 }

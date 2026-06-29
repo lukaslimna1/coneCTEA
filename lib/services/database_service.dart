@@ -1427,15 +1427,63 @@ class DatabaseService {
         'conectea_admin_approve_cpf_change_request_v1',
         params: {'p_request_id': requestId},
       );
-      return {
-        'success': true,
-        'data': response,
-      };
-    } catch (_) {
+      if (response != null && response is Map) {
+        final success = response['success'] == true;
+        if (success) {
+          return {
+            'success': true,
+            'data': response,
+          };
+        } else {
+          final errorCode =
+              response['error_code']?.toString() ?? 'internal_error';
+          return {
+            'success': false,
+            'error_code': errorCode,
+          };
+        }
+      }
       return {
         'success': false,
-        'error_code': 'approve_failed',
+        'error_code': 'unavailable',
       };
+    } catch (e) {
+      if (e is PostgrestException) {
+        return {
+          'success': false,
+          'error_code': 'unavailable',
+        };
+      }
+      return {
+        'success': false,
+        'error_code': 'internal_error',
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> confirmCpfChangeRequest({
+    required String requestId,
+  }) async {
+    try {
+      final response = await _supabase.rpc(
+        'conectea_confirm_cpf_change_request_v1',
+        params: {'p_request_id': requestId},
+      );
+      if (response != null && response is Map) {
+        final success = response['success'] == true;
+        if (success) {
+          return {'success': true};
+        } else {
+          final errorCode = response['error_code']?.toString() ?? 'internal_error';
+          return {'success': false, 'error_code': errorCode};
+        }
+      }
+      return {'success': false, 'error_code': 'unavailable'};
+    } catch (e) {
+      if (e is PostgrestException) {
+        return {'success': false, 'error_code': 'unavailable'};
+      }
+      return {'success': false, 'error_code': 'internal_error'};
     }
   }
 }
