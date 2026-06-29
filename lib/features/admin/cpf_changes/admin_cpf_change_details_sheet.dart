@@ -199,6 +199,228 @@ class _AdminCpfChangeDetailsSheetState extends State<AdminCpfChangeDetailsSheet>
       }
     }
   }
+  Future<void> _handleRequestDocumentReplacement() async {
+    if (_isProcessingAction) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: DsCores.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(DsRaios.md),
+          side: BorderSide(color: DsCores.border.withValues(alpha: 0.5)),
+        ),
+        title: Text(
+          'Solicitar novo documento?',
+          style: DsTipografia.sectionTitle.copyWith(color: DsCores.textPrimary),
+        ),
+        content: Text(
+          'Essa ação pede que o solicitante envie um novo documento. O documento atual será marcado para descarte e a solicitação aguardará novo envio.',
+          style: DsTipografia.body.copyWith(color: DsCores.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(
+              'Cancelar',
+              style: DsTipografia.button.copyWith(color: DsCores.textMuted),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(
+              'Solicitar novo documento',
+              style: DsTipografia.button.copyWith(color: const Color(0xFFFFB020)),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    setState(() {
+      _actionErrorTitle = null;
+      _actionErrorMessage = null;
+      _isProcessingAction = true;
+    });
+
+    try {
+      final res = await _databaseService.requestCpfDocumentReplacement(
+        requestId: widget.summary.id,
+      );
+
+      if (res['success'] == true) {
+        if (mounted) {
+          DsFeedback.showSnackBar(
+            context: context,
+            mensagem: 'Novo documento solicitado. A pessoa será orientada a reenviar o arquivo.',
+            tipo: DsFeedbackTipo.sucesso,
+          );
+          Navigator.of(context).pop(true);
+        }
+      } else {
+        if (mounted) {
+          final errorCode = res['error_code']?.toString() ?? 'internal_error';
+          String errorMessage;
+          switch (errorCode) {
+            case 'unauthenticated':
+              errorMessage = 'Sessão expirada. Entre novamente.';
+              break;
+            case 'forbidden':
+              errorMessage = 'Você não tem permissão para executar esta ação.';
+              break;
+            case 'not_found':
+              errorMessage = 'Solicitação não encontrada.';
+              break;
+            case 'invalid_type':
+              errorMessage = 'Essa ação só está disponível para alteração de CPF.';
+              break;
+            case 'invalid_status':
+              errorMessage = 'Essa solicitação não está mais em análise.';
+              break;
+            case 'missing_review_data':
+              errorMessage = 'Dados de revisão indisponíveis para esta solicitação.';
+              break;
+            case 'missing_document':
+              errorMessage = 'Documento não encontrado para revisão.';
+              break;
+            case 'internal_error':
+            default:
+              errorMessage = 'Não foi possível concluir a ação agora. Tente novamente.';
+          }
+
+          setState(() {
+            _actionErrorTitle = 'Não foi possível solicitar documento';
+            _actionErrorMessage = errorMessage;
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _actionErrorTitle = 'Não foi possível solicitar documento';
+          _actionErrorMessage = 'Não foi possível concluir a ação agora. Tente novamente.';
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isProcessingAction = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _handleRequestCpfCorrection() async {
+    if (_isProcessingAction) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: DsCores.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(DsRaios.md),
+          side: BorderSide(color: DsCores.border.withValues(alpha: 0.5)),
+        ),
+        title: Text(
+          'Solicitar correção do CPF?',
+          style: DsTipografia.sectionTitle.copyWith(color: DsCores.textPrimary),
+        ),
+        content: Text(
+          'Essa ação mantém o documento enviado e pede que o solicitante corrija apenas o CPF informado.',
+          style: DsTipografia.body.copyWith(color: DsCores.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(
+              'Cancelar',
+              style: DsTipografia.button.copyWith(color: DsCores.textMuted),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(
+              'Solicitar correção',
+              style: DsTipografia.button.copyWith(color: const Color(0xFF2DD4BF)),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    setState(() {
+      _actionErrorTitle = null;
+      _actionErrorMessage = null;
+      _isProcessingAction = true;
+    });
+
+    try {
+      final res = await _databaseService.requestCpfCorrection(
+        requestId: widget.summary.id,
+      );
+
+      if (res['success'] == true) {
+        if (mounted) {
+          DsFeedback.showSnackBar(
+            context: context,
+            mensagem: 'Correção de CPF solicitada. A pessoa será orientada a ajustar o CPF informado.',
+            tipo: DsFeedbackTipo.sucesso,
+          );
+          Navigator.of(context).pop(true);
+        }
+      } else {
+        if (mounted) {
+          final errorCode = res['error_code']?.toString() ?? 'internal_error';
+          String errorMessage;
+          switch (errorCode) {
+            case 'unauthenticated':
+              errorMessage = 'Sessão expirada. Entre novamente.';
+              break;
+            case 'forbidden':
+              errorMessage = 'Você não tem permissão para executar esta ação.';
+              break;
+            case 'not_found':
+              errorMessage = 'Solicitação não encontrada.';
+              break;
+            case 'invalid_type':
+              errorMessage = 'Essa ação só está disponível para alteração de CPF.';
+              break;
+            case 'invalid_status':
+              errorMessage = 'Essa solicitação não está mais em análise.';
+              break;
+            case 'missing_review_data':
+              errorMessage = 'Dados de revisão indisponíveis para esta solicitação.';
+              break;
+            case 'internal_error':
+            default:
+              errorMessage = 'Não foi possível concluir a ação agora. Tente novamente.';
+          }
+
+          setState(() {
+            _actionErrorTitle = 'Não foi possível solicitar correção';
+            _actionErrorMessage = errorMessage;
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _actionErrorTitle = 'Não foi possível solicitar correção';
+          _actionErrorMessage = 'Não foi possível concluir a ação agora. Tente novamente.';
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isProcessingAction = false;
+        });
+      }
+    }
+  }
 
   String _formatCpf(String? cpf) {
     if (cpf == null) return 'Não informado';
@@ -834,6 +1056,24 @@ class _AdminCpfChangeDetailsSheetState extends State<AdminCpfChangeDetailsSheet>
                             isExpanded: true,
                             isLoading: _isProcessingAction,
                             onTap: _isProcessingAction ? null : _handleApprove,
+                          ),
+                          const SizedBox(height: DsEspacamentos.sm),
+                          StatusActionButton(
+                            label: 'Revisar Documento',
+                            statusKey: 'reviewing_data',
+                            iconOverride: PhosphorIconsRegular.file,
+                            isExpanded: true,
+                            isLoading: _isProcessingAction,
+                            onTap: _isProcessingAction ? null : _handleRequestDocumentReplacement,
+                          ),
+                          const SizedBox(height: DsEspacamentos.sm),
+                          StatusActionButton(
+                            label: 'Revisar CPF',
+                            statusKey: 'waiting_docs',
+                            iconOverride: PhosphorIconsRegular.identificationCard,
+                            isExpanded: true,
+                            isLoading: _isProcessingAction,
+                            onTap: _isProcessingAction ? null : _handleRequestCpfCorrection,
                           ),
                         ],
                       ),

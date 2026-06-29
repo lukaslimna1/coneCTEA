@@ -1461,6 +1461,90 @@ class DatabaseService {
     }
   }
 
+  Future<Map<String, dynamic>> requestCpfDocumentReplacement({
+    required String requestId,
+  }) async {
+    try {
+      final response = await _supabase.rpc(
+        'conectea_admin_request_cpf_document_replacement_v1',
+        params: {'p_request_id': requestId},
+      );
+      if (response != null && response is Map) {
+        final success = response['success'] == true;
+        if (success) {
+          return {
+            'success': true,
+            'data': response,
+          };
+        } else {
+          final errorCode =
+              response['error_code']?.toString() ?? 'internal_error';
+          return {
+            'success': false,
+            'error_code': errorCode,
+          };
+        }
+      }
+      return {
+        'success': false,
+        'error_code': 'unavailable',
+      };
+    } catch (e) {
+      if (e is PostgrestException) {
+        return {
+          'success': false,
+          'error_code': 'unavailable',
+        };
+      }
+      return {
+        'success': false,
+        'error_code': 'internal_error',
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> requestCpfCorrection({
+    required String requestId,
+  }) async {
+    try {
+      final response = await _supabase.rpc(
+        'conectea_admin_request_cpf_correction_v1',
+        params: {'p_request_id': requestId},
+      );
+      if (response != null && response is Map) {
+        final success = response['success'] == true;
+        if (success) {
+          return {
+            'success': true,
+            'data': response,
+          };
+        } else {
+          final errorCode =
+              response['error_code']?.toString() ?? 'internal_error';
+          return {
+            'success': false,
+            'error_code': errorCode,
+          };
+        }
+      }
+      return {
+        'success': false,
+        'error_code': 'unavailable',
+      };
+    } catch (e) {
+      if (e is PostgrestException) {
+        return {
+          'success': false,
+          'error_code': 'unavailable',
+        };
+      }
+      return {
+        'success': false,
+        'error_code': 'internal_error',
+      };
+    }
+  }
+
   Future<Map<String, dynamic>> confirmCpfChangeRequest({
     required String requestId,
   }) async {
