@@ -61,6 +61,42 @@ class DatabaseService {
     }
   }
 
+  Future<Map<String, String?>?> getAdminCpfChangeUser(String requestId) async {
+    try {
+      final requestData = await _supabase
+          .from('account_change_requests')
+          .select('user_id')
+          .eq('id', requestId)
+          .maybeSingle();
+
+      if (requestData == null || requestData['user_id'] == null) return null;
+
+      final profileData = await _supabase
+          .from('profiles')
+          .select('name, full_name, social_name, date_of_birth')
+          .eq('id', requestData['user_id'])
+          .maybeSingle();
+
+      if (profileData == null) return null;
+
+      final nameVal = profileData['name']?.toString();
+      final fullNameVal = profileData['full_name']?.toString();
+      final name = (nameVal != null && nameVal.trim().isNotEmpty)
+          ? nameVal
+          : ((fullNameVal != null && fullNameVal.trim().isNotEmpty)
+              ? fullNameVal
+              : 'Usuário');
+
+      return {
+        'name': name,
+        'social_name': profileData['social_name']?.toString(),
+        'date_of_birth': profileData['date_of_birth']?.toString(),
+      };
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<void> createUserProfile(AppUser user) async {
     await _supabase.from('profiles').upsert(user.toJson());
   }

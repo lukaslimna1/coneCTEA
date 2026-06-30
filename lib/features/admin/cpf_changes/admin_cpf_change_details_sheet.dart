@@ -24,6 +24,9 @@ class _AdminCpfChangeDetailsSheetState extends State<AdminCpfChangeDetailsSheet>
   bool _canView = false;
   String? _oldCpfClear;
   String? _newCpfClear;
+  String? _fullName;
+  String? _socialName;
+  String? _birthDate;
   bool _canViewDocument = false;
   String? _documentFileId;
   String? _justification;
@@ -58,6 +61,8 @@ class _AdminCpfChangeDetailsSheetState extends State<AdminCpfChangeDetailsSheet>
       final res = await _databaseService.getCpfChangeSensitiveReview(
         requestId: widget.summary.id,
       );
+      final userProfile = await _databaseService.getAdminCpfChangeUser(widget.summary.id);
+
       if (mounted) {
         setState(() {
           _canView = res['can_view'] == true;
@@ -66,6 +71,12 @@ class _AdminCpfChangeDetailsSheetState extends State<AdminCpfChangeDetailsSheet>
             _newCpfClear = res['new_cpf_clear'];
             _canViewDocument = res['can_view_document'] == true;
             _documentFileId = res['document_file_id'];
+
+            if (userProfile != null) {
+              _fullName = userProfile['name'];
+              _socialName = userProfile['social_name'];
+              _birthDate = userProfile['date_of_birth'];
+            }
 
             final String? rawJust = res['justification'] as String?;
             if (rawJust != null && rawJust.trim().isNotEmpty) {
@@ -817,6 +828,102 @@ class _AdminCpfChangeDetailsSheetState extends State<AdminCpfChangeDetailsSheet>
                         : Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              // Nome Completo
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'NOME COMPLETO',
+                                    style: DsTipografia.caption.copyWith(
+                                      fontSize: 10,
+                                      color: DsCores.textMuted,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: DsEspacamentos.xs),
+                                  Text(
+                                    _canView
+                                        ? (_fullName ?? 'Não informado')
+                                        : 'Não informado',
+                                    style: DsTipografia.body.copyWith(
+                                      color: DsCores.textPrimary.withValues(
+                                        alpha: 0.8,
+                                      ),
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const Padding(
+                                padding: EdgeInsets.symmetric(
+                                  vertical: DsEspacamentos.md,
+                                ),
+                                child: Divider(color: DsCores.border, height: 1),
+                              ),
+                              // Nome Social
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'NOME SOCIAL',
+                                    style: DsTipografia.caption.copyWith(
+                                      fontSize: 10,
+                                      color: DsCores.textMuted,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: DsEspacamentos.xs),
+                                  Text(
+                                    _canView
+                                        ? (_socialName?.isNotEmpty == true ? _socialName! : 'Não informado')
+                                        : 'Não informado',
+                                    style: DsTipografia.body.copyWith(
+                                      color: DsCores.textPrimary.withValues(
+                                        alpha: 0.8,
+                                      ),
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const Padding(
+                                padding: EdgeInsets.symmetric(
+                                  vertical: DsEspacamentos.md,
+                                ),
+                                child: Divider(color: DsCores.border, height: 1),
+                              ),
+                              // Data de Aniversário
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'DATA DE ANIVERSÁRIO',
+                                    style: DsTipografia.caption.copyWith(
+                                      fontSize: 10,
+                                      color: DsCores.textMuted,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: DsEspacamentos.xs),
+                                  Text(
+                                    _canView
+                                        ? _formatCivilDate(_birthDate)
+                                        : 'Não informado',
+                                    style: DsTipografia.body.copyWith(
+                                      color: DsCores.textPrimary.withValues(
+                                        alpha: 0.8,
+                                      ),
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const Padding(
+                                padding: EdgeInsets.symmetric(
+                                  vertical: DsEspacamentos.md,
+                                ),
+                                child: Divider(color: DsCores.border, height: 1),
+                              ),
                               // CPF Anterior / CPF atual
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
