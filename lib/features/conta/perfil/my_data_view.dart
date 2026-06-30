@@ -323,8 +323,9 @@ class _MyDataViewState extends State<MyDataView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // 1. Meus dados de cadastro
         _buildSectionTitle(
-          'Meus dados cadastrados',
+          'Meus dados de cadastro',
           PhosphorIconsRegular.identificationCard,
         ),
         const SizedBox(height: 16),
@@ -346,9 +347,34 @@ class _MyDataViewState extends State<MyDataView> {
             isLast: true,
           ),
         ]),
+        const SizedBox(height: 16),
+        DsBotao(
+          label: 'Editar meus dados',
+          onPressed: () async {
+            final updatedUser = await Navigator.of(context).push<AppUser>(
+              MaterialPageRoute(
+                builder: (context) => EditMyDataView(user: user),
+              ),
+            );
+            if (updatedUser != null && mounted) {
+              setState(() {
+                _profileFuture = Future<AppUser?>.value(updatedUser);
+              });
+              widget.onProfileUpdated(updatedUser);
+              ScaffoldMessenger.of(context).clearSnackBars();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Dados atualizados com sucesso.')),
+              );
+            }
+          },
+          variante: DsBotaoVariante.acao,
+          token: DsCores.conta,
+          icon: PhosphorIconsRegular.pencilSimple,
+        ),
 
-        const SizedBox(height: 32),
+        const SizedBox(height: 40),
 
+        // 2. Dados protegidos
         _buildSectionTitle(
           'Dados protegidos',
           PhosphorIconsRegular.shieldCheck,
@@ -416,8 +442,11 @@ class _MyDataViewState extends State<MyDataView> {
           icon: PhosphorIconsRegular.pencilSimple,
         ),
 
-        const SizedBox(height: 32),
+        const SizedBox(height: 40),
 
+        // 3. Histórico
+        _buildSectionTitle('Histórico', PhosphorIconsRegular.clockCounterClockwise),
+        const SizedBox(height: 16),
         DsCard(
           onTap: () {
             Navigator.of(context).push(
@@ -458,34 +487,6 @@ class _MyDataViewState extends State<MyDataView> {
               ),
             ],
           ),
-        ),
-
-        const SizedBox(height: 32),
-
-        _buildSectionTitle('Ações', PhosphorIconsRegular.lightning),
-        const SizedBox(height: 16),
-        DsBotao(
-          label: 'Editar meus dados',
-          onPressed: () async {
-            final updatedUser = await Navigator.of(context).push<AppUser>(
-              MaterialPageRoute(
-                builder: (context) => EditMyDataView(user: user),
-              ),
-            );
-            if (updatedUser != null && mounted) {
-              setState(() {
-                _profileFuture = Future<AppUser?>.value(updatedUser);
-              });
-              widget.onProfileUpdated(updatedUser);
-              ScaffoldMessenger.of(context).clearSnackBars();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Dados atualizados com sucesso.')),
-              );
-            }
-          },
-          variante: DsBotaoVariante.acao,
-          token: DsCores.conta,
-          icon: PhosphorIconsRegular.pencilSimple,
         ),
 
         const SizedBox(height: 40),
