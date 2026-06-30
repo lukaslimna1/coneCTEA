@@ -1545,6 +1545,54 @@ class DatabaseService {
     }
   }
 
+  Future<Map<String, dynamic>> rejectCpfChangeRequest({
+    required String requestId,
+    required String adminReason,
+    required String adminFeedback,
+  }) async {
+    try {
+      final response = await _supabase.rpc(
+        'conectea_admin_reject_cpf_change_request_v1',
+        params: {
+          'p_request_id': requestId,
+          'p_admin_reason': adminReason,
+          'p_admin_feedback': adminFeedback,
+        },
+      );
+      if (response != null && response is Map) {
+        final success = response['success'] == true;
+        if (success) {
+          return {
+            'success': true,
+            'data': response,
+          };
+        } else {
+          final errorCode =
+              response['error_code']?.toString() ?? 'internal_error';
+          return {
+            'success': false,
+            'error_code': errorCode,
+          };
+        }
+      }
+      return {
+        'success': false,
+        'error_code': 'unavailable',
+      };
+    } catch (e) {
+      if (e is PostgrestException) {
+        return {
+          'success': false,
+          'error_code': 'unavailable',
+        };
+      }
+      return {
+        'success': false,
+        'error_code': 'internal_error',
+      };
+    }
+  }
+
   Future<Map<String, dynamic>> confirmCpfChangeRequest({
     required String requestId,
   }) async {

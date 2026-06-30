@@ -393,6 +393,86 @@ class _AdminCpfChangeDetailsSheetState extends State<AdminCpfChangeDetailsSheet>
     }
   }
 
+  Future<void> _handleReject() async {
+    if (_isProcessingAction) return;
+
+    final confirmed = await DsDialog.show<bool>(
+      context: context,
+      title: 'Rejeitar solicitação?',
+      description: 'Essa ação encerra a análise desta alteração de CPF. A pessoa será informada pelo app.',
+      token: DsCores.perigo,
+      forceVerticalActions: true,
+      primaryAction: const DsDialogAction(
+        label: 'Rejeitar solicitação',
+        value: true,
+        variante: DsBotaoVariante.perigo,
+      ),
+      secondaryAction: const DsDialogAction(
+        label: 'Cancelar',
+        value: false,
+        variante: DsBotaoVariante.ghost,
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    setState(() {
+      _actionErrorTitle = null;
+      _actionErrorMessage = null;
+      _isProcessingAction = true;
+    });
+
+    try {
+      final String? localDocumentUrl =
+          (_documentFileId != null && _documentFileId!.isNotEmpty)
+              ? 'https://drive.google.com/file/d/$_documentFileId/view?usp=drivesdk'
+              : null;
+
+      final response = await _databaseService.rejectCpfChangeRequest(
+        requestId: widget.summary.id,
+        adminReason: 'other',
+        adminFeedback: 'Solicitação rejeitada pela administração.',
+      );
+
+      if (mounted) {
+        if (response['success'] == true) {
+          if (localDocumentUrl != null) {
+            await GoogleDriveService().deleteFile(localDocumentUrl);
+          }
+
+          if (mounted) {
+            DsFeedback.showSnackBar(
+              context: context,
+              mensagem: 'Solicitação rejeitada com sucesso.',
+              tipo: DsFeedbackTipo.sucesso,
+            );
+            Navigator.of(context).pop(true);
+          }
+        } else {
+          setState(() {
+            _actionErrorTitle = 'Não foi possível rejeitar';
+            _actionErrorMessage = response['error_code'] == 'unavailable'
+                ? 'Sem conexão com o servidor. Tente novamente mais tarde.'
+                : 'Ocorreu um erro ao processar sua solicitação. Tente novamente.';
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _actionErrorTitle = 'Não foi possível rejeitar';
+          _actionErrorMessage = 'Não foi possível concluir a ação agora. Tente novamente.';
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isProcessingAction = false;
+        });
+      }
+    }
+  }
+
   String _formatCpf(String? cpf) {
     if (cpf == null) return 'Não informado';
     final clean = cpf.replaceAll(RegExp(r'[^0-9]'), '');
@@ -1061,6 +1141,16 @@ class _AdminCpfChangeDetailsSheetState extends State<AdminCpfChangeDetailsSheet>
                             fullWidth: true,
                             isLoading: _isProcessingAction,
                             onPressed: _isProcessingAction ? null : _handleRequestCpfCorrection,
+                          ),
+                          const SizedBox(height: DsEspacamentos.sm),
+                          DsBotao(
+                            label: 'Rejeitar',
+                            variante: DsBotaoVariante.perigo,
+                            token: DsCores.perigo,
+                            icon: PhosphorIconsRegular.x,
+                            fullWidth: true,
+                            isLoading: _isProcessingAction,
+                            onPressed: _isProcessingAction ? null : _handleReject,
                           ),
                         ],
                       ),

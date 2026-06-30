@@ -294,6 +294,9 @@ class AccountChangePresentation {
       case AccountChangePublicAdminReasonCode.cpfMismatch:
         return 'O CPF no documento não confere com a alteração solicitada.';
       case AccountChangePublicAdminReasonCode.other:
+        if (request.status == AccountChangeStatus.rejectedByAdmin) {
+          return 'Solicitação rejeitada pela administração.';
+        }
         return 'Precisamos de um ajuste no documento para continuar.';
       case AccountChangePublicAdminReasonCode.unknown:
         return null;
