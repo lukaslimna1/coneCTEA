@@ -2,14 +2,38 @@ import 'package:flutter/material.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 import 'package:conectea/features/conta/perfil/dependentes/dependent_details_view.dart';
+import 'package:conectea/models/member.dart';
+import 'package:conectea/services/database_service.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Tela visual de Dependentes dentro de Meus Dados.
 ///
-/// Esta tela é apenas visual/mockada nesta fase.
-/// Não busca dados no banco, não salva nada, não conecta com Supabase.
-class DependentsView extends StatelessWidget {
+/// Exibe os dependentes reais da conta via DatabaseService.
+class DependentsView extends StatefulWidget {
   const DependentsView({super.key});
+
+  @override
+  State<DependentsView> createState() => _DependentsViewState();
+}
+
+class _DependentsViewState extends State<DependentsView> {
+  late Future<List<Member>> _membersFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMembers();
+  }
+
+  void _loadMembers() {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId != null) {
+      _membersFuture = DatabaseService().getMembers(userId);
+    } else {
+      _membersFuture = Future.value([]);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,17 +71,40 @@ class DependentsView extends StatelessWidget {
                     _buildInfoCard(),
                     const SizedBox(height: 32),
 
-                    // Lista mock visual — sem dados reais
-                    _buildDependentCard(
-                      context,
-                      nome: 'Exemplo de dependente',
-                      vinculo: 'Cadastro vinculado',
-                    ),
-                    const SizedBox(height: 12),
-                    _buildDependentCard(
-                      context,
-                      nome: 'Exemplo de dependente',
-                      vinculo: 'Cadastro vinculado',
+                    // Lista mock visual — substituída por dados reais
+                    FutureBuilder<List<Member>>(
+                      future: _membersFuture,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(32.0),
+                              child: CircularProgressIndicator(),
+                            ),
+                          );
+                        }
+
+                        if (snapshot.hasError) {
+                          return _buildEmptyState('Erro ao carregar dependentes.');
+                        }
+
+                        final members = snapshot.data ?? [];
+                        if (members.isEmpty) {
+                          return _buildEmptyState('Você ainda não tem dependentes vinculados.');
+                        }
+
+                        return Column(
+                          children: members.map((member) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: _buildDependentCard(
+                                context,
+                                member: member,
+                              ),
+                            );
+                          }).toList(),
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -110,14 +157,36 @@ class DependentsView extends StatelessWidget {
     );
   }
 
-  /// Card visual mockado de dependente.
+  /// Estado vazio
+  Widget _buildEmptyState(String message) {
+    return DsCard(
+      padding: const EdgeInsets.all(24),
+      child: Center(
+        child: Text(
+          message,
+          style: DsTipografia.body.copyWith(color: DsCores.textSecondary),
+          textAlign: TextAlign.center,
+        ),
+      ),
+    );
+  }
+
+  /// Card visual de dependente com dados reais (mascarados).
   ///
-  /// Sem dados sensíveis (CPF, e-mail, laudo, CID ou documentos).
+  /// Sem dados sensíveis no card (CPF, e-mail, laudo, CID ou documentos).
   Widget _buildDependentCard(
     BuildContext context, {
-    required String nome,
-    required String vinculo,
+    required Member member,
   }) {
+    final nome = member.displayName;
+
+    String vinculoLabel = 'Cadastro vinculado';
+    if (member.teaRelationType == 'pessoa_tea') {
+      vinculoLabel = 'Pessoa TEA';
+    } else if (member.teaRelationType == 'rede_apoio_tea') {
+      vinculoLabel = 'Rede de apoio TEA';
+    }
+
     return DsCard(
       accentColor: DsCores.dependente.accent,
       borderColor: DsCores.dependente.border,
@@ -139,23 +208,19 @@ class DependentsView extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      nome,
-                      style: DsTipografia.cardTitle.copyWith(
-                        color: DsCores.textPrimary,
+                      Text(
+                        nome,
+                        style: DsTipografia.cardTitle.copyWith(
+                          color: DsCores.textPrimary,
+                        ),
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      vinculo,
-                      style: DsTipografia.bodySmall.copyWith(
-                        color: DsCores.textSecondary,
+                      const SizedBox(height: 4),
+                      Text(
+                        vinculoLabel,
+                        style: DsTipografia.bodySmall.copyWith(
+                          color: DsCores.textSecondary,
+                        ),
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
                   ],
                 ),
               ),
@@ -163,20 +228,13 @@ class DependentsView extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          // Badge de status visual neutro
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            decoration: BoxDecoration(
-              color: DsCores.dependente.softBackground,
-              borderRadius: BorderRadius.circular(DsRaios.sm),
-              border: Border.all(color: DsCores.dependente.border),
-            ),
-            child: Text(
-              'Visual em construção',
-              style: DsTipografia.caption.copyWith(
-                color: DsCores.dependente.accent,
-                fontWeight: FontWeight.w600,
-              ),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: DsSelo.fromCorVisual(
+              label: vinculoLabel == 'Cadastro vinculado' ? 'Cadastro vinculado' : 'Vínculo: $vinculoLabel',
+              token: DsCores.conta,
+              compact: true,
+              uppercase: false,
             ),
           ),
           const SizedBox(height: 16),
@@ -196,7 +254,7 @@ class DependentsView extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const DependentDetailsView(),
+                      builder: (context) => DependentDetailsView(member: member),
                     ),
                   );
                 },

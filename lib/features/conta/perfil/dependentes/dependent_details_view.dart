@@ -4,16 +4,16 @@ import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 
 import 'package:conectea/features/conta/perfil/dependentes/dependent_correction_view.dart';
 import 'package:conectea/core/campos_cadastrais/campos_cadastrais.dart';
+import 'package:conectea/models/member.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 /// Tela visual de Dados do Dependente dentro de Meus Dados.
 ///
-/// Esta tela é apenas visual/mockada nesta fase.
-/// Não busca dados no banco, não salva nada, não conecta com Supabase.
-/// CPF e CID exibidos usando os widgets reutilizáveis CampoCpfProtegido e CampoCidProtegido.
-/// Sem documentos, URL, fileId, base64, upload ou dado real.
+/// Exibe dados reais recebidos pelo Member.
 class DependentDetailsView extends StatelessWidget {
-  const DependentDetailsView({super.key});
+  final Member member;
+
+  const DependentDetailsView({super.key, required this.member});
 
   @override
   Widget build(BuildContext context) {
@@ -54,15 +54,18 @@ class DependentDetailsView extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     _buildReadOnlyCard([
-                      _buildDataRow('Nome completo', 'Exemplo de dependente'),
-                      const CampoCpfProtegido(),
+                      _buildDataRow('Nome social', _val(member.socialName)),
+                      _buildDataRow('Nome completo', _val(member.name)),
+                      CampoCpfProtegido(
+                        valorVisivel: _formatCpf(member.cpf),
+                      ),
                       const SizedBox(height: 12),
                       Divider(
                         color: Colors.white.withValues(alpha: 0.1),
                         height: 1,
                       ),
-                      _buildDataRow('Data de nascimento', 'Não informado'),
-                      _buildDataRow('Telefone', 'Não informado', isLast: true),
+                      _buildDataRow('Data de nascimento', _formatDateString(member.dateOfBirth)),
+                      _buildDataRow('Telefone', _val(member.phone), isLast: true),
                     ]),
 
                     const SizedBox(height: 32),
@@ -74,8 +77,8 @@ class DependentDetailsView extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     _buildReadOnlyCard([
-                      _buildDataRow('Estado', 'Não informado'),
-                      _buildDataRow('Cidade', 'Não informado', isLast: true),
+                      _buildDataRow('Estado', _val(member.state)),
+                      _buildDataRow('Cidade', _val(member.city), isLast: true),
                     ]),
 
                     const SizedBox(height: 32),
@@ -87,10 +90,10 @@ class DependentDetailsView extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     _buildReadOnlyCard([
-                      _buildDataRow('Nome do responsável', 'Não informado'),
+                      _buildDataRow('Nome do responsável', _val(member.responsiblePersonName)),
                       _buildDataRow(
                         'Telefone do responsável',
-                        'Não informado',
+                        _val(member.responsiblePhone),
                         isLast: true,
                       ),
                     ]),
@@ -104,10 +107,10 @@ class DependentDetailsView extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     _buildReadOnlyCard([
-                      _buildDataRow('Nome do contato', 'Não informado'),
+                      _buildDataRow('Nome do contato', _val(member.emergencyPersonName)),
                       _buildDataRow(
                         'Telefone do contato',
-                        'Não informado',
+                        _val(member.emergencyPhone),
                         isLast: true,
                       ),
                     ]),
@@ -121,10 +124,12 @@ class DependentDetailsView extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     _buildReadOnlyCard([
-                      _buildDataRow('Gênero', 'Não informado'),
-                      _buildDataRow('Raça / Cor', 'Não informado'),
-                      _buildDataRow('Tipo sanguíneo', 'Não informado'),
-                      const CampoCidProtegido(),
+                      _buildDataRow('Gênero', _val(member.gender)),
+                      _buildDataRow('Raça / Cor', _val(member.racaCor)),
+                      _buildDataRow('Tipo sanguíneo', _val(member.bloodType)),
+                      CampoCidProtegido(
+                        valorVisivel: _val(member.cid),
+                      ),
                     ]),
 
                     const SizedBox(height: 40),
@@ -138,7 +143,7 @@ class DependentDetailsView extends StatelessWidget {
                           context,
                           MaterialPageRoute(
                             builder: (context) =>
-                                const DependentCorrectionView(),
+                                DependentCorrectionView(member: member),
                           ),
                         );
                       },
@@ -225,5 +230,28 @@ class DependentDetailsView extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _val(String? val) {
+    if (val == null || val.trim().isEmpty) return 'Não informado';
+    return val;
+  }
+
+  String _formatDateString(String? dateStr) {
+    if (dateStr == null || dateStr.isEmpty) return 'Não informado';
+    try {
+      final parts = dateStr.split('-');
+      if (parts.length == 3) {
+        return '${parts[2]}/${parts[1]}/${parts[0]}';
+      }
+    } catch (_) {}
+    return dateStr;
+  }
+
+  String _formatCpf(String? cpf) {
+    if (cpf == null || cpf.trim().isEmpty) return 'Não informado';
+    final numeric = cpf.replaceAll(RegExp(r'[^0-9]'), '');
+    if (numeric.length != 11) return cpf;
+    return '${numeric.substring(0, 3)}.${numeric.substring(3, 6)}.${numeric.substring(6, 9)}-${numeric.substring(9)}';
   }
 }

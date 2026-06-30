@@ -2,17 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 import 'package:conectea/core/campos_cadastrais/campos_cadastrais.dart';
+import 'package:conectea/models/member.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-/// Tela visual/mockada de solicitação de correção de dados do dependente.
+/// Tela visual de solicitação de correção de dados do dependente.
 ///
-/// Esta tela é apenas visual nesta fase.
-/// Não envia dados, não salva, não conecta com Supabase, Auth, Drive ou banco.
-/// Não exibe CPF real, CID real, documento, URL, fileId ou laudo.
-/// Não altera status de carteirinha. Não valida dados reais.
-/// Ao selecionar um campo corrigível, abre o campo específico logo abaixo.
+/// Exibe dados reais. Ainda não conecta com Supabase para enviar dados.
 class DependentCorrectionView extends StatefulWidget {
-  const DependentCorrectionView({super.key});
+  final Member member;
+
+  const DependentCorrectionView({super.key, required this.member});
 
   @override
   State<DependentCorrectionView> createState() =>
@@ -38,24 +37,6 @@ class _DependentCorrectionViewState extends State<DependentCorrectionView> {
     'Raça / Cor': false,
     'Tipo sanguíneo': false,
     'CID': false,
-  };
-
-  // Valor atual mockado por campo — nunca exibe dados reais.
-  static const Map<String, String> _valorAtual = {
-    'Nome completo': 'Exemplo de dependente',
-    'CPF': '***.***.***-**',
-    'Data de nascimento': 'Não informado',
-    'Telefone': 'Não informado',
-    'Estado': 'Não informado',
-    'Cidade': 'Não informado',
-    'Nome do responsável': 'Não informado',
-    'Telefone do responsável': 'Não informado',
-    'Contato de emergência': 'Não informado',
-    'Telefone do contato de emergência': 'Não informado',
-    'Gênero': 'Não informado',
-    'Raça / Cor': 'Não informado',
-    'Tipo sanguíneo': 'Não informado',
-    'CID': 'Oculto',
   };
 
   // Campos que exigem aviso de conferência administrativa.
@@ -258,7 +239,7 @@ class _DependentCorrectionViewState extends State<DependentCorrectionView> {
   Widget _buildItemCorrigivel(String campo) {
     final isSelected = _selecionados[campo] ?? false;
     final temAviso = _camposComAviso.contains(campo);
-    final valorAtualStr = _valorAtual[campo] ?? 'Não informado';
+    final valorAtualStr = _getValorAtual(campo);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
@@ -651,5 +632,67 @@ class _DependentCorrectionViewState extends State<DependentCorrectionView> {
         ),
       ],
     );
+  }
+
+  // -------------------------------------------------------------------
+  // Resgata o valor atual real do Member
+  // -------------------------------------------------------------------
+  String _getValorAtual(String campo) {
+    final m = widget.member;
+    switch (campo) {
+      case 'Nome completo':
+        return _val(m.name);
+      case 'CPF':
+        return _formatCpf(m.cpf);
+      case 'Data de nascimento':
+        return _formatDateString(m.dateOfBirth);
+      case 'Telefone':
+        return _val(m.phone);
+      case 'Estado':
+        return _val(m.state);
+      case 'Cidade':
+        return _val(m.city);
+      case 'Nome do responsável':
+        return m.responsiblePersonName ?? 'Não informado';
+      case 'Telefone do responsável':
+        return m.responsiblePhone ?? 'Não informado';
+      case 'Contato de emergência':
+        return m.emergencyPersonName ?? 'Não informado';
+      case 'Telefone do contato de emergência':
+        return m.emergencyPhone ?? 'Não informado';
+      case 'Gênero':
+        return m.gender ?? 'Não informado';
+      case 'Raça / Cor':
+        return m.racaCor ?? 'Não informado';
+      case 'Tipo sanguíneo':
+        return _val(m.bloodType);
+      case 'CID':
+        return _val(m.cid);
+      default:
+        return 'Não informado';
+    }
+  }
+
+  String _val(String? val) {
+    if (val == null || val.trim().isEmpty) return 'Não informado';
+    return val;
+  }
+
+  String _formatCpf(String? cpf) {
+    if (cpf == null || cpf.trim().isEmpty) return 'Não informado';
+    final numeric = cpf.replaceAll(RegExp(r'[^0-9]'), '');
+    if (numeric.length != 11) return cpf;
+    return '${numeric.substring(0, 3)}.${numeric.substring(3, 6)}.${numeric.substring(6, 9)}-${numeric.substring(9)}';
+  }
+
+  String _formatDateString(String? dateStr) {
+    if (dateStr == null || dateStr.isEmpty) return 'Não informado';
+    try {
+      final parts = dateStr.split('-');
+      if (parts.length == 3) {
+        return '${parts[2]}/${parts[1]}/${parts[0]}';
+      }
+    } catch (_) {}
+    return dateStr;
   }
 }
