@@ -63,34 +63,25 @@ class DatabaseService {
 
   Future<Map<String, String?>?> getAdminCpfChangeUser(String requestId) async {
     try {
-      final requestData = await _supabase
-          .from('account_change_requests')
-          .select('user_id')
-          .eq('id', requestId)
-          .maybeSingle();
+      final response = await _supabase.rpc(
+        'conectea_admin_get_cpf_change_identity_v1',
+        params: {'p_request_id': requestId},
+      );
 
-      if (requestData == null || requestData['user_id'] == null) return null;
+      final data = response as Map<String, dynamic>?;
+      if (data == null || data['success'] != true) {
+        return null;
+      }
 
-      final profileData = await _supabase
-          .from('profiles')
-          .select('name, full_name, social_name, date_of_birth')
-          .eq('id', requestData['user_id'])
-          .maybeSingle();
-
-      if (profileData == null) return null;
-
-      final nameVal = profileData['name']?.toString();
-      final fullNameVal = profileData['full_name']?.toString();
+      final nameVal = data['name']?.toString();
       final name = (nameVal != null && nameVal.trim().isNotEmpty)
           ? nameVal
-          : ((fullNameVal != null && fullNameVal.trim().isNotEmpty)
-              ? fullNameVal
-              : 'Usuário');
+          : 'Usuário';
 
       return {
         'name': name,
-        'social_name': profileData['social_name']?.toString(),
-        'date_of_birth': profileData['date_of_birth']?.toString(),
+        'social_name': data['social_name']?.toString(),
+        'date_of_birth': data['date_of_birth']?.toString(),
       };
     } catch (_) {
       return null;
