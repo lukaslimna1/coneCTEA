@@ -8,6 +8,7 @@ import 'package:conectea/models/notification_item.dart';
 import 'package:conectea/features/carteirinhas/models/fill_empty_member_optional_fields_params.dart';
 import 'package:conectea/features/carteirinhas/models/fill_empty_member_optional_fields_result.dart';
 import 'package:conectea/models/account_change_request.dart';
+import 'package:conectea/models/dependent_cpf_change_request.dart';
 
 class DatabaseService {
   final _supabase = Supabase.instance.client;
@@ -1919,5 +1920,17 @@ class DatabaseService {
       }
       return {'success': false, 'error_code': 'internal_error'};
     }
+  }
+
+  // --- Alterações de CPF de Dependente ---
+
+  /// Escuta em tempo real as solicitações de alteração de CPF de dependente do usuário logado.
+  Stream<List<DependentCpfChangeRequest>> dependentCpfChangeRequestsStream(String userId) {
+    return _supabase
+        .from('dependent_cpf_change_requests')
+        .stream(primaryKey: ['id'])
+        .eq('user_id', userId)
+        .order('created_at', ascending: false)
+        .map((data) => data.map((json) => DependentCpfChangeRequest.fromJson(json)).toList());
   }
 }
