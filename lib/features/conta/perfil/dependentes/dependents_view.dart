@@ -197,11 +197,10 @@ class _DependentsViewState extends State<DependentsView> {
           // Cabeçalho do card
           Row(
             children: [
-              DsMolduraIcone(
-                icon: PhosphorIconsRegular.user,
-                accentColor: DsCores.dependente.accent,
+              DsAvatar(
+                initials: nome,
                 size: 44,
-                iconSize: 22,
+                paletteSeed: member.userId,
               ),
               const SizedBox(width: 14),
               Expanded(

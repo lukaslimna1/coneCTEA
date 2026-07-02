@@ -607,14 +607,14 @@ class _MyDataViewState extends State<MyDataView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Exemplo de dependente',
+                      'Gerenciar dependentes',
                       style: DsTipografia.cardTitle.copyWith(
                         color: DsCores.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Toque para ver os dados cadastrados.',
+                      'Veja os dependentes vinculados à sua conta.',
                       style: DsTipografia.bodySmall.copyWith(
                         color: DsCores.textSecondary,
                       ),
