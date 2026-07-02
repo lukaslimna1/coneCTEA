@@ -7,13 +7,20 @@ import 'package:conectea/core/campos_cadastrais/campos_cadastrais.dart';
 import 'package:conectea/models/member.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
+
 /// Tela visual de Dados do Dependente dentro de Meus Dados.
 ///
 /// Exibe dados reais recebidos pelo Member.
-class DependentDetailsView extends StatelessWidget {
+class DependentDetailsView extends StatefulWidget {
   final Member member;
 
   const DependentDetailsView({super.key, required this.member});
+
+  @override
+  State<DependentDetailsView> createState() => _DependentDetailsViewState();
+}
+
+class _DependentDetailsViewState extends State<DependentDetailsView> {
 
   @override
   Widget build(BuildContext context) {
@@ -54,18 +61,28 @@ class DependentDetailsView extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     _buildReadOnlyCard([
-                      _buildDataRow('Nome social', _val(member.socialName)),
-                      _buildDataRow('Nome completo', _val(member.name)),
+                      _buildDataRow(
+                        'Nome social',
+                        _val(widget.member.socialName),
+                      ),
+                      _buildDataRow('Nome completo', _val(widget.member.name)),
                       CampoCpfProtegido(
-                        valorVisivel: _formatCpf(member.cpf),
+                        valorVisivel: _formatCpf(widget.member.cpf),
                       ),
                       const SizedBox(height: 12),
                       Divider(
                         color: Colors.white.withValues(alpha: 0.1),
                         height: 1,
                       ),
-                      _buildDataRow('Data de nascimento', _formatDateString(member.dateOfBirth)),
-                      _buildDataRow('Telefone', _val(member.phone), isLast: true),
+                      _buildDataRow(
+                        'Data de nascimento',
+                        _formatDateString(widget.member.dateOfBirth),
+                      ),
+                      _buildDataRow(
+                        'Telefone',
+                        _val(widget.member.phone),
+                        isLast: true,
+                      ),
                     ]),
 
                     const SizedBox(height: 32),
@@ -77,8 +94,12 @@ class DependentDetailsView extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     _buildReadOnlyCard([
-                      _buildDataRow('Estado', _val(member.state)),
-                      _buildDataRow('Cidade', _val(member.city), isLast: true),
+                      _buildDataRow('Estado', _val(widget.member.state)),
+                      _buildDataRow(
+                        'Cidade',
+                        _val(widget.member.city),
+                        isLast: true,
+                      ),
                     ]),
 
                     const SizedBox(height: 32),
@@ -90,10 +111,13 @@ class DependentDetailsView extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     _buildReadOnlyCard([
-                      _buildDataRow('Nome do responsável', _val(member.responsiblePersonName)),
+                      _buildDataRow(
+                        'Nome do responsável',
+                        _val(widget.member.responsiblePersonName),
+                      ),
                       _buildDataRow(
                         'Telefone do responsável',
-                        _val(member.responsiblePhone),
+                        _val(widget.member.responsiblePhone),
                         isLast: true,
                       ),
                     ]),
@@ -107,10 +131,13 @@ class DependentDetailsView extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     _buildReadOnlyCard([
-                      _buildDataRow('Nome do contato', _val(member.emergencyPersonName)),
+                      _buildDataRow(
+                        'Nome do contato',
+                        _val(widget.member.emergencyPersonName),
+                      ),
                       _buildDataRow(
                         'Telefone do contato',
-                        _val(member.emergencyPhone),
+                        _val(widget.member.emergencyPhone),
                         isLast: true,
                       ),
                     ]),
@@ -124,32 +151,148 @@ class DependentDetailsView extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     _buildReadOnlyCard([
-                      _buildDataRow('Gênero', _val(member.gender)),
-                      _buildDataRow('Raça / Cor', _val(member.racaCor)),
-                      _buildDataRow('Tipo sanguíneo', _val(member.bloodType)),
-                      CampoCidProtegido(
-                        valorVisivel: _val(member.cid),
+                      _buildDataRow('Gênero', _val(widget.member.gender)),
+                      _buildDataRow('Raça / Cor', _val(widget.member.racaCor)),
+                      _buildDataRow(
+                        'Tipo sanguíneo',
+                        _val(widget.member.bloodType),
                       ),
+                      CampoCidProtegido(valorVisivel: _val(widget.member.cid)),
                     ]),
 
                     const SizedBox(height: 40),
 
-                    // Ação — Solicitar correção: abre DependentCorrectionView.
-                    // Coluna vertical para evitar overflow em 360dp.
-                    DsBotao(
-                      label: 'Solicitar correção',
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                DependentCorrectionView(member: member),
+                    // Seção de ações: Alterações da carteirinha
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Alterações da carteirinha',
+                          style: DsTipografia.sectionTitle.copyWith(
+                            color: DsCores.textPrimary,
                           ),
-                        );
-                      },
-                      variante: DsBotaoVariante.acao,
-                      token: DsCores.correcao,
-                      icon: PhosphorIconsRegular.paperPlaneRight,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Escolha o tipo de alteração que deseja fazer para este dependente.',
+                          style: DsTipografia.bodySmall.copyWith(
+                            color: DsCores.textSecondary,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Card 1: Alterar dados comuns
+                        DsCard(
+                          accentColor: DsCores.correcao.accent,
+                          borderColor: DsCores.correcao.border,
+                          padding: const EdgeInsets.all(20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  DsMolduraIcone(
+                                    icon: PhosphorIconsRegular.pencilSimpleLine,
+                                    accentColor: DsCores.correcao.accent,
+                                    size: 32,
+                                    iconSize: 18,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      'Alterar dados comuns',
+                                      style: DsTipografia.cardTitle.copyWith(
+                                        color: DsCores.textPrimary,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                'Atualize informações como nome, telefone, localização, responsáveis, contato de emergência e dados complementares.',
+                                style: DsTipografia.body.copyWith(
+                                  color: DsCores.textSecondary,
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              DsBotao(
+                                label: 'Alterar dados',
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          DependentCorrectionView(
+                                        member: widget.member,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                variante: DsBotaoVariante.acao,
+                                token: DsCores.correcao,
+                                icon: PhosphorIconsRegular.paperPlaneRight,
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 24),
+
+                        // Card 2: Alterar CPF da carteirinha
+                        DsCard(
+                          accentColor: DsCores.dadosProtegidos.accent,
+                          borderColor: DsCores.dadosProtegidos.border,
+                          padding: const EdgeInsets.all(20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  DsMolduraIcone(
+                                    icon: PhosphorIconsRegular.shieldCheck,
+                                    accentColor: DsCores.dadosProtegidos.accent,
+                                    size: 32,
+                                    iconSize: 18,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      'Alterar CPF da carteirinha',
+                                      style: DsTipografia.cardTitle.copyWith(
+                                        color: DsCores.textPrimary,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                'O CPF é um dado protegido. Essa alteração terá um fluxo próprio com análise da equipe e envio de documento.',
+                                style: DsTipografia.body.copyWith(
+                                  color: DsCores.textSecondary,
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              DsBotao(
+                                label: 'Solicitar alteração',
+                                onPressed: () {
+                                  DsFeedback.showSnackBar(
+                                    context: context,
+                                    tipo: DsFeedbackTipo.info,
+                                    titulo: 'Em breve',
+                                    mensagem:
+                                        'O fluxo de alteração de CPF da carteirinha será liberado em uma próxima etapa.',
+                                  );
+                                },
+                                variante: DsBotaoVariante.acao,
+                                token: DsCores.dadosProtegidos,
+                                icon: PhosphorIconsRegular.lockKey,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),

@@ -79,7 +79,7 @@ class _DependentsViewState extends State<DependentsView> {
                           return const Center(
                             child: Padding(
                               padding: EdgeInsets.all(32.0),
-                              child: CircularProgressIndicator(),
+                              child: DsLoadingSpinner(),
                             ),
                           );
                         }
@@ -365,20 +365,11 @@ class _DependentsViewState extends State<DependentsView> {
                     },
                   ).then((confirmed) {
                     if (confirmed == true && context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'Fluxo visual em construção.',
-                            style: DsTipografia.body.copyWith(
-                              color: DsCores.textPrimary,
-                            ),
-                          ),
-                          backgroundColor: DsCores.surfaceElevated,
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
+                      DsFeedback.showSnackBar(
+                        context: context,
+                        mensagem:
+                            'Esse fluxo será liberado em uma próxima etapa.',
+                        tipo: DsFeedbackTipo.info,
                       );
                     }
                   });
