@@ -87,15 +87,31 @@ class DsBotao extends StatelessWidget {
   _DsBotaoStyle _resolveStyle() {
     switch (variante) {
       case DsBotaoVariante.primario:
+        final effectiveToken = token ?? DsCores.carteirinha;
+        if (effectiveToken.key == 'admin') {
+          return _DsBotaoStyle(
+            gradient: DsCores.adminGradient,
+            textColor: Colors.white,
+            borderColor: Colors.white.withValues(alpha: 0.15),
+            borderWidth: 1,
+            shadows: DsSombras.glow(
+              DsCores.admin.accent,
+              alpha: 0.18,
+              blurRadius: 16,
+            ),
+          );
+        }
+
         return _DsBotaoStyle(
-          gradient: DsCores.adminGradient,
+          backgroundColor: DsCores.surfaceCard.withValues(alpha: 0.80),
           textColor: Colors.white,
-          borderColor: Colors.white.withValues(alpha: 0.15),
-          borderWidth: 1,
+          iconColor: effectiveToken.accent,
+          borderColor: effectiveToken.accent.withValues(alpha: 0.60),
+          borderWidth: 1.5,
           shadows: DsSombras.glow(
-            DsCores.admin.accent,
-            alpha: 0.18,
-            blurRadius: 16,
+            effectiveToken.accent,
+            alpha: 0.15,
+            blurRadius: 12,
           ),
         );
 
