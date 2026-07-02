@@ -3,9 +3,12 @@ import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 
 import 'package:conectea/features/conta/perfil/dependentes/dependent_correction_view.dart';
+import 'package:conectea/features/conta/perfil/dependentes/dependent_cpf_change_flow.dart';
 import 'package:conectea/core/campos_cadastrais/campos_cadastrais.dart';
 import 'package:conectea/models/member.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:conectea/services/database_service.dart';
 
 
 /// Tela visual de Dados do Dependente dentro de Meus Dados.
@@ -21,13 +24,58 @@ class DependentDetailsView extends StatefulWidget {
 }
 
 class _DependentDetailsViewState extends State<DependentDetailsView> {
+  bool _isOwnerCpfLoading = true;
+  bool _ownerCpfLoadFailed = false;
+  String? _ownerCpf;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadOwnerCpf();
+  }
+
+  Future<void> _loadOwnerCpf() async {
+    setState(() {
+      _isOwnerCpfLoading = true;
+      _ownerCpfLoadFailed = false;
+    });
+    try {
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+      if (userId != null) {
+        final profile = await DatabaseService().getUserProfile(userId);
+        if (profile != null) {
+          final clean = profile.cpf.replaceAll(RegExp(r'[^0-9]'), '');
+          if (clean.length == 11) {
+            _ownerCpf = profile.cpf;
+          } else {
+            _ownerCpfLoadFailed = true;
+          }
+        } else {
+          _ownerCpfLoadFailed = true;
+        }
+      } else {
+        _ownerCpfLoadFailed = true;
+      }
+    } catch (_) {
+      _ownerCpfLoadFailed = true;
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isOwnerCpfLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
-      body: AppBackground(
+      body: DsLoadingOverlay(
+        isLoading: _isOwnerCpfLoading,
+        message: 'Conferindo dados da conta...',
+        child: AppBackground(
         child: Column(
           children: [
             Expanded(
@@ -276,15 +324,60 @@ class _DependentDetailsViewState extends State<DependentDetailsView> {
                               const SizedBox(height: 24),
                               DsBotao(
                                 label: 'Solicitar alteração',
-                                onPressed: () {
-                                  DsFeedback.showSnackBar(
-                                    context: context,
-                                    tipo: DsFeedbackTipo.info,
-                                    titulo: 'Em breve',
-                                    mensagem:
-                                        'O fluxo de alteração de CPF da carteirinha será liberado em uma próxima etapa.',
-                                  );
-                                },
+                                onPressed: _isOwnerCpfLoading
+                                    ? null
+                                    : () {
+                                        if (_ownerCpfLoadFailed ||
+                                            _ownerCpf == null) {
+                                          DsDialog.show<void>(
+                                            context: context,
+                                            title: 'Não foi possível conferir',
+                                            description:
+                                                'Não foi possível conferir os dados da conta agora. Tente novamente em instantes.',
+                                            icon: PhosphorIconsRegular.warningCircle,
+                                            token: DsCores.alerta,
+                                            primaryAction: const DsDialogAction(
+                                              label: 'Entendido',
+                                              value: null,
+                                              variante: DsBotaoVariante.acao,
+                                              token: DsCores.sucesso,
+                                            ),
+                                          );
+                                          return;
+                                        }
+
+                                        final cleanDep = widget.member.cpf
+                                            .replaceAll(RegExp(r'[^0-9]'), '');
+                                        final cleanOwner = _ownerCpf!
+                                            .replaceAll(RegExp(r'[^0-9]'), '');
+                                        if (cleanDep == cleanOwner) {
+                                          DsDialog.show<void>(
+                                            context: context,
+                                            title: 'Use o fluxo da conta',
+                                            description:
+                                                'CPF vinculado à conta. Altere pelo fluxo de CPF da conta.',
+                                            icon: PhosphorIconsRegular.warningCircle,
+                                            token: DsCores.alerta,
+                                            primaryAction: const DsDialogAction(
+                                              label: 'Entendido',
+                                              value: null,
+                                              variante: DsBotaoVariante.acao,
+                                              token: DsCores.sucesso,
+                                            ),
+                                          );
+                                        } else {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  DependentCpfChangeFlow(
+                                                member: widget.member,
+                                                ownerCpf: _ownerCpf!,
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                      },
                                 variante: DsBotaoVariante.acao,
                                 token: DsCores.dadosProtegidos,
                                 icon: PhosphorIconsRegular.lockKey,
@@ -300,6 +393,7 @@ class _DependentDetailsViewState extends State<DependentDetailsView> {
             ),
           ],
         ),
+      ),
       ),
     );
   }
