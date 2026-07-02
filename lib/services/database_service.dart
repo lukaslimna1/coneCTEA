@@ -218,7 +218,6 @@ class DatabaseService {
     }
   }
 
-  // --- Membros ---
   Future<List<Member>> getMembers(String userId) async {
     try {
       final List<dynamic> data = await _supabase
@@ -230,6 +229,102 @@ class DatabaseService {
       return data.map((json) => Member.fromJson(json)).toList();
     } catch (e) {
       return [];
+    }
+  }
+
+  Future<bool> hasPendingDependentCorrection(String memberId) async {
+    final data = await _supabase
+        .from('dependent_correction_requests')
+        .select('id')
+        .eq('member_id', memberId)
+        .eq('status', 'under_review')
+        .limit(1);
+    return data.isNotEmpty;
+  }
+
+  Future<Map<String, dynamic>> submitDependentCorrection({
+    required String memberId,
+    required Map<String, dynamic> reviewData,
+    String? observation,
+  }) async {
+    try {
+      final response = await _supabase.rpc(
+        'conectea_submit_dependent_correction_v1',
+        params: {
+          'p_member_id': memberId,
+          'p_review_data': reviewData,
+          'p_observation': observation,
+        },
+      );
+
+      final data = response as Map<String, dynamic>?;
+      if (data == null) {
+        return {'success': false, 'error_code': 'unknown'};
+      }
+
+      return data;
+    } on PostgrestException catch (e) {
+      return {
+        'success': false,
+        'error_code': e.code,
+      };
+    } catch (e) {
+      return {
+        'success': false,
+        'error_code': 'unknown',
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> updateDependentCommonData({
+    required String memberId,
+    required Map<String, dynamic> updates,
+  }) async {
+    try {
+      final response = await _supabase.rpc(
+        'conectea_update_dependent_common_data_v1',
+        params: {
+          'p_member_id': memberId,
+          'p_updates': updates,
+        },
+      );
+      return {'success': true, 'data': response};
+    } on PostgrestException catch (e) {
+      final msg = e.message;
+      String errorCode = 'unavailable';
+      String errorMessage = 'Ocorreu um erro ao atualizar os dados.';
+
+      if (msg.contains('invalid_payload')) {
+        errorCode = 'invalid_payload';
+        errorMessage = 'Os dados enviados são inválidos.';
+      } else if (msg.contains('forbidden_field')) {
+        errorCode = 'forbidden_field';
+        errorMessage = 'Tentativa de atualizar um campo restrito.';
+      } else if (msg.contains('unsupported_field')) {
+        errorCode = 'unsupported_field';
+        errorMessage = 'Esse campo não pode ser atualizado diretamente.';
+      } else if (msg.contains('invalid_contact_pair')) {
+        errorCode = 'invalid_contact_pair';
+        errorMessage = 'O contato exige nome e telefone preenchidos juntos.';
+      } else if (msg.contains('not_found')) {
+        errorCode = 'not_found';
+        errorMessage = 'Dependente não encontrado ou não autorizado.';
+      } else if (msg.contains('unauthenticated')) {
+        errorCode = 'unauthenticated';
+        errorMessage = 'Sessão expirada. Por favor, faça login novamente.';
+      }
+
+      return {
+        'success': false,
+        'error_code': errorCode,
+        'error_message': errorMessage,
+      };
+    } catch (_) {
+      return {
+        'success': false,
+        'error_code': 'unavailable',
+        'error_message': 'Ocorreu um erro inesperado ao atualizar os dados.',
+      };
     }
   }
 
