@@ -1468,6 +1468,95 @@ class DatabaseService {
     }
   }
 
+  String _sanitizeDependentCpfChangeError(Object? value) {
+    final error = value?.toString();
+    switch (error) {
+      case 'invalid_request':
+      case 'unauthorized':
+      case 'temporarily_unavailable':
+      case 'active_request_exists':
+      case 'member_not_found':
+      case 'forbidden':
+      case 'account_cpf_flow_required':
+      case 'unavailable':
+      case 'internal_error':
+        return error!;
+      default:
+        return 'temporarily_unavailable';
+    }
+  }
+
+  /// Solicita a alteração do CPF de um dependente enviando o memberId, novo CPF
+  /// e o ID do documento de comprovação que foi enviado para o Google Drive.
+  Future<Map<String, dynamic>> createDependentCpfChangeRequest({
+    required String memberId,
+    required String newCpf,
+    required String fileId,
+  }) async {
+    try {
+      final cleanCpf = newCpf.replaceAll(RegExp(r'[^0-9]'), '');
+
+      final response = await _supabase.functions.invoke(
+        'create-dependent-cpf-change-request',
+        body: {
+          'member_id': memberId,
+          'new_cpf': cleanCpf,
+          'file_id': fileId,
+        },
+      );
+
+      final data = response.data;
+      if (data is Map) {
+        final success = data['success'] == true;
+        if (success) {
+          return {
+            'success': true,
+            'request_id': data['request_id'],
+            'protocol_number': data['protocol_number'],
+          };
+        } else {
+          final errorRaw = data['error'] ?? data['message'];
+          final shouldCleanup = data['should_cleanup_upload'] is bool
+              ? data['should_cleanup_upload'] as bool
+              : true;
+          return {
+            'success': false,
+            'error': _sanitizeDependentCpfChangeError(errorRaw),
+            'should_cleanup_upload': shouldCleanup,
+          };
+        }
+      }
+
+      return {
+        'success': false,
+        'error': 'temporarily_unavailable',
+        'should_cleanup_upload': true,
+      };
+    } catch (e) {
+      if (e is FunctionException) {
+        try {
+          final details = e.details;
+          if (details is Map) {
+            final errorRaw = details['error'] ?? details['message'];
+            final shouldCleanup = details['should_cleanup_upload'] is bool
+                ? details['should_cleanup_upload'] as bool
+                : true;
+            return {
+              'success': false,
+              'error': _sanitizeDependentCpfChangeError(errorRaw),
+              'should_cleanup_upload': shouldCleanup,
+            };
+          }
+        } catch (_) {}
+      }
+      return {
+        'success': false,
+        'error': 'temporarily_unavailable',
+        'should_cleanup_upload': true,
+      };
+    }
+  }
+
   String _sanitizeCpfCancelError(Object? value) {
     final error = value?.toString();
     switch (error) {
