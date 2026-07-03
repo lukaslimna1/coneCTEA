@@ -170,7 +170,14 @@ class _CardsViewState extends State<CardsView> {
     }
 
     if (_showHistory) {
-      return RequestsView(onBack: () => setState(() => _showHistory = false));
+      final double topSafeArea = MediaQuery.paddingOf(context).top;
+      final double topInset =
+          topSafeArea; // O conteúdo do histórico já herda o posicionamento do shell da aba.
+      // Aqui mantemos apenas o recuo seguro da status bar.
+      return Padding(
+        padding: EdgeInsets.only(top: topInset),
+        child: RequestsView(onBack: () => setState(() => _showHistory = false)),
+      );
     }
 
     return Scaffold(

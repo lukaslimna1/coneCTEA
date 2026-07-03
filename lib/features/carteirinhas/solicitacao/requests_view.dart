@@ -7,11 +7,12 @@ import 'package:conectea/core/widgets/premium/status_action_button.dart';
 import 'package:conectea/services/database_service.dart';
 import 'package:conectea/services/auth_service.dart';
 import 'package:conectea/models/card_request.dart';
-import 'package:conectea/core/widgets/premium/app_background.dart';
 import 'package:conectea/core/widgets/premium/premium_card.dart';
 import 'package:intl/intl.dart';
 import 'package:conectea/features/carteirinhas/solicitacao/add_member_page.dart';
-
+import 'package:conectea/models/dependent_cpf_change_request.dart';
+import 'package:conectea/features/carteirinhas/solicitacao/widgets/dependent_cpf_change_summary_card.dart';
+import 'package:conectea/features/carteirinhas/solicitacao/dependent_cpf_change_detail_view.dart';
 class RequestsView extends StatefulWidget {
   final VoidCallback? onBack;
 
@@ -23,6 +24,8 @@ class RequestsView extends StatefulWidget {
 
 class _RequestsViewState extends State<RequestsView> {
   Stream<List<CardRequest>>? _cardRequestsStream;
+  Stream<List<DependentCpfChangeRequest>>? _dependentCpfRequestsStream;
+  DependentCpfChangeRequest? _selectedCpfRequest;
 
   @override
   void initState() {
@@ -34,17 +37,18 @@ class _RequestsViewState extends State<RequestsView> {
     final userId = AuthService().currentUser?.id;
     if (userId != null) {
       _cardRequestsStream = DatabaseService().cardRequestsStream(userId);
+      _dependentCpfRequestsStream = DatabaseService().dependentCpfChangeRequestsStream(userId);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final double topSafeArea = MediaQuery.paddingOf(context).top;
-    const double headerVisualHeight = 64.0;
-    const double headerClearance = 4.0;
-    final double topPadding =
-        topSafeArea + headerVisualHeight + headerClearance;
-
+    if (_selectedCpfRequest != null) {
+      return DependentCpfChangeDetailView(
+        request: _selectedCpfRequest!,
+        onBack: () => setState(() => _selectedCpfRequest = null),
+      );
+    }
     final authService = AuthService();
     final userId = authService.currentUser?.id;
 
@@ -52,36 +56,46 @@ class _RequestsViewState extends State<RequestsView> {
       return const Center(child: Text('Por favor, faça login'));
     }
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      extendBodyBehindAppBar: true,
-      body: AppBackground(
-        child: StreamBuilder<List<CardRequest>>(
+    return StreamBuilder<List<CardRequest>>(
           stream: _cardRequestsStream,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(
-                child: CircularProgressIndicator(color: AppColors.primary),
-              );
-            }
+          builder: (context, cardRequestsSnap) {
+            return StreamBuilder<List<DependentCpfChangeRequest>>(
+              stream: _dependentCpfRequestsStream,
+              builder: (context, depCpfSnap) {
+                if (cardRequestsSnap.connectionState == ConnectionState.waiting ||
+                    depCpfSnap.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: AppColors.primary),
+                  );
+                }
 
-            final requests = snapshot.data ?? [];
+                final cardRequests = cardRequestsSnap.data ?? [];
+                final depCpfRequests = depCpfSnap.data ?? [];
 
-            // Ordenação: em andamento primeiro, depois por data
-            requests.sort((a, b) {
-              final aIsOngoing = _isOngoing(a.status);
-              final bIsOngoing = _isOngoing(b.status);
-              if (aIsOngoing && !bIsOngoing) return -1;
-              if (!aIsOngoing && bIsOngoing) return 1;
-              return b.createdAt.compareTo(a.createdAt);
-            });
+                final List<dynamic> allRequests = [...cardRequests, ...depCpfRequests];
 
-            final ongoing = requests
-                .where((r) => _isOngoing(r.status))
-                .toList();
-            final history = requests
-                .where((r) => !_isOngoing(r.status))
-                .toList();
+                // Ordenação: em andamento primeiro, depois por data decrescente
+                allRequests.sort((a, b) {
+                  final DateTime aDate = a is CardRequest ? a.createdAt : (a as DependentCpfChangeRequest).createdAt;
+                  final DateTime bDate = b is CardRequest ? b.createdAt : (b as DependentCpfChangeRequest).createdAt;
+
+                  final bool aIsOngoing = a is CardRequest ? _isOngoing(a.status) : _isDependentCpfOngoing((a as DependentCpfChangeRequest).status);
+                  final bool bIsOngoing = b is CardRequest ? _isOngoing(b.status) : _isDependentCpfOngoing((b as DependentCpfChangeRequest).status);
+
+                  if (aIsOngoing && !bIsOngoing) return -1;
+                  if (!aIsOngoing && bIsOngoing) return 1;
+                  return bDate.compareTo(aDate);
+                });
+
+                final ongoing = allRequests.where((r) {
+                  if (r is CardRequest) return _isOngoing(r.status);
+                  return _isDependentCpfOngoing((r as DependentCpfChangeRequest).status);
+                }).toList();
+
+                final history = allRequests.where((r) {
+                  if (r is CardRequest) return !_isOngoing(r.status);
+                  return !_isDependentCpfOngoing((r as DependentCpfChangeRequest).status);
+                }).toList();
 
             return CustomScrollView(
               physics: const AlwaysScrollableScrollPhysics(
@@ -90,7 +104,7 @@ class _RequestsViewState extends State<RequestsView> {
               slivers: [
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: EdgeInsets.fromLTRB(24, topPadding, 24, 8),
+                    padding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -162,10 +176,22 @@ class _RequestsViewState extends State<RequestsView> {
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     sliver: SliverList(
                       delegate: SliverChildBuilderDelegate(
-                        (context, index) => Padding(
-                          padding: const EdgeInsets.only(bottom: 16),
-                          child: _buildRequestCard(context, ongoing[index]),
-                        ),
+                        (context, index) {
+                          final req = ongoing[index];
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: req is CardRequest
+                                ? _buildRequestCard(context, req)
+                                : DependentCpfChangeSummaryCard(
+                                    request: req as DependentCpfChangeRequest,
+                                    onTap: () {
+                                      setState(() {
+                                        _selectedCpfRequest = req;
+                                      });
+                                    },
+                                  ),
+                          );
+                        },
                         childCount: ongoing.length,
                       ),
                     ),
@@ -185,21 +211,33 @@ class _RequestsViewState extends State<RequestsView> {
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     sliver: SliverList(
                       delegate: SliverChildBuilderDelegate(
-                        (context, index) => Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: _buildRequestCard(
-                            context,
-                            history[index],
-                            isHistory: true,
-                          ),
-                        ),
+                        (context, index) {
+                          final req = history[index];
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: req is CardRequest
+                                ? _buildRequestCard(
+                                    context,
+                                    req,
+                                    isHistory: true,
+                                  )
+                                : DependentCpfChangeSummaryCard(
+                                    request: req as DependentCpfChangeRequest,
+                                    onTap: () {
+                                      setState(() {
+                                        _selectedCpfRequest = req;
+                                      });
+                                    },
+                                  ),
+                          );
+                        },
                         childCount: history.length,
                       ),
                     ),
                   ),
                 ],
 
-                if (requests.isEmpty)
+                if (allRequests.isEmpty)
                   SliverFillRemaining(
                     hasScrollBody: false,
                     child: _buildEmptyState(context),
@@ -209,8 +247,8 @@ class _RequestsViewState extends State<RequestsView> {
               ],
             );
           },
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -221,6 +259,16 @@ class _RequestsViewState extends State<RequestsView> {
         s != 'suspended' &&
         s != 'expired';
   }
+
+  bool _isDependentCpfOngoing(String status) {
+    final s = status.toLowerCase();
+    return s == 'under_review' ||
+        s == 'waiting_document_replacement' ||
+        s == 'waiting_cpf_correction' ||
+        s == 'applying' ||
+        s == 'application_failed';
+  }
+
 
   Widget _buildSectionHeader(
     BuildContext context,
