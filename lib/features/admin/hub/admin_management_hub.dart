@@ -58,7 +58,7 @@ class AdminManagementHub extends StatelessWidget {
             // Módulo de Revisão de CPF
             AdminModuleCard(
               title: 'Revisão de CPF',
-              description: 'Solicitações de alteração de CPF de titulares.',
+              description: 'Solicitações de alteração de CPF de contas e dependentes.',
               icon: PhosphorIconsRegular.identificationCard,
               status: canAccessCpfChanges
                   ? AdminModuleStatus.active

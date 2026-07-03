@@ -6,9 +6,14 @@ import 'package:conectea/core/utils/conectea_date_time_helper.dart';
 import 'package:conectea/models/account_change_request.dart';
 import 'package:conectea/features/admin/cpf_changes/models/admin_cpf_change_filter.dart';
 import 'package:conectea/features/admin/cpf_changes/models/admin_cpf_change_summary.dart';
+import 'package:conectea/features/admin/cpf_changes/models/admin_cpf_change_counts.dart';
 import 'package:conectea/features/admin/cpf_changes/models/admin_cpf_change_list_result.dart';
+import 'package:conectea/features/admin/cpf_changes/models/admin_unified_cpf_change_summary.dart';
 import 'package:conectea/features/admin/cpf_changes/services/admin_cpf_changes_repository.dart';
 import 'package:conectea/features/admin/cpf_changes/admin_cpf_change_details_sheet.dart';
+
+import 'package:conectea/features/admin/cpf_dependente/models/admin_dependent_cpf_change_list_result.dart';
+import 'package:conectea/features/admin/cpf_dependente/services/admin_dependent_cpf_changes_repository.dart';
 
 enum _CpfFilter {
   underReview,
@@ -30,7 +35,7 @@ extension _CpfFilterExtension on _CpfFilter {
       case _CpfFilter.completed:
         return 'Concluídas';
       case _CpfFilter.waitingHolderConfirmation:
-        return 'Confirmar';
+        return 'Confirmação';
       case _CpfFilter.rejectedByAdmin:
         return 'Rejeitadas';
       case _CpfFilter.cancelledByHolder:
@@ -49,7 +54,7 @@ extension _CpfFilterExtension on _CpfFilter {
       case _CpfFilter.completed:
         return 'Solicitações Concluídas';
       case _CpfFilter.waitingHolderConfirmation:
-        return 'Aguardando Confirmação do Titular';
+        return 'Solicitações aguardando confirmação do titular ou processamento interno';
       case _CpfFilter.rejectedByAdmin:
         return 'Solicitações Rejeitadas';
       case _CpfFilter.cancelledByHolder:
@@ -68,7 +73,7 @@ extension _CpfFilterExtension on _CpfFilter {
       case _CpfFilter.completed:
         return PhosphorIconsRegular.checkCircle;
       case _CpfFilter.waitingHolderConfirmation:
-        return PhosphorIconsRegular.userCheck;
+        return PhosphorIconsRegular.hourglass;
       case _CpfFilter.rejectedByAdmin:
         return PhosphorIconsRegular.prohibit;
       case _CpfFilter.cancelledByHolder:
@@ -98,6 +103,12 @@ extension _CpfFilterExtension on _CpfFilter {
   }
 }
 
+class _UnifiedResult {
+  final List<AdminUnifiedCpfChangeSummary> items;
+  final AdminCpfChangeCounts counts;
+  const _UnifiedResult({required this.items, required this.counts});
+}
+
 class AdminCpfChangesTab extends StatefulWidget {
   const AdminCpfChangesTab({super.key});
 
@@ -107,6 +118,7 @@ class AdminCpfChangesTab extends StatefulWidget {
 
 class _AdminCpfChangesTabState extends State<AdminCpfChangesTab> {
   late final AdminCpfChangesRepository _repository;
+  late final AdminDependentCpfChangesRepository _dependentRepository;
   late final TextEditingController _searchController;
   late final ValueNotifier<_CpfFilter> _selectedFilterNotifier;
   late final ValueNotifier<String> _searchQueryNotifier;
@@ -114,18 +126,18 @@ class _AdminCpfChangesTabState extends State<AdminCpfChangesTab> {
   Timer? _debounceTimer;
   bool _isLoading = false;
   String? _errorMessage;
-  AdminCpfChangeListResult? _result;
+  _UnifiedResult? _result;
   int _currentRequestVersion = 0;
 
   @override
   void initState() {
     super.initState();
     _repository = AdminCpfChangesRepository();
+    _dependentRepository = AdminDependentCpfChangesRepository();
     _searchController = TextEditingController();
     _selectedFilterNotifier = ValueNotifier<_CpfFilter>(_CpfFilter.underReview);
     _searchQueryNotifier = ValueNotifier<String>('');
 
-    // Recarrega os dados dinamicamente ao trocar de aba
     _selectedFilterNotifier.addListener(() {
       _loadData();
     });
@@ -175,20 +187,53 @@ class _AdminCpfChangesTabState extends State<AdminCpfChangesTab> {
     try {
       final query = _searchQueryNotifier.value.trim();
       final filter = _selectedFilterNotifier.value;
+      final repoFilter = _mapCpfFilterToRepositoryFilter(filter);
 
-      final result = await _repository.listCpfChangeRequests(
-        filter: query.isNotEmpty
-            ? AdminCpfChangeFilter.all
-            : _mapCpfFilterToRepositoryFilter(filter),
-        search: query,
-        limit: 20,
-        offset: 0,
-      );
+      // Chamadas paralelas para buscar solicitações de contas e dependentes
+      final futures = await Future.wait([
+        _repository.listCpfChangeRequests(
+          filter: query.isNotEmpty ? AdminCpfChangeFilter.all : repoFilter,
+          search: query,
+          limit: 20,
+          offset: 0,
+        ),
+        _dependentRepository.listDependentCpfChangeRequests(
+          filter: query.isNotEmpty ? AdminCpfChangeFilter.all : repoFilter,
+          search: query,
+          limit: 20,
+          offset: 0,
+        ),
+      ]);
 
       if (thisVersion != _currentRequestVersion) return;
 
+      final accountResult = futures[0] as AdminCpfChangeListResult;
+      final dependentResult = futures[1] as AdminDependentCpfChangeListResult;
+
+      // 1. Converter e combinar itens
+      final List<AdminUnifiedCpfChangeSummary> combinedItems = [];
+      combinedItems.addAll(accountResult.items.map((e) => AdminUnifiedCpfChangeSummary.fromAccount(e)));
+      combinedItems.addAll(dependentResult.items.map((e) => AdminUnifiedCpfChangeSummary.fromDependent(e)));
+
+      // 2. Ordenar por data de criação decrescente
+      combinedItems.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+      // 3. Consolidar contadores de status
+      final combinedCounts = AdminCpfChangeCounts(
+        analysis: accountResult.counts.analysis + dependentResult.counts.analysis,
+        corrections: accountResult.counts.corrections + dependentResult.counts.corrections,
+        completed: accountResult.counts.completed + dependentResult.counts.completed,
+        confirmation: accountResult.counts.confirmation + dependentResult.counts.applying,
+        rejected: accountResult.counts.rejected + dependentResult.counts.rejected,
+        cancelled: accountResult.counts.cancelled + dependentResult.counts.cancelled,
+        expired: accountResult.counts.expired + dependentResult.counts.expired,
+        failed: accountResult.counts.failed + dependentResult.counts.failed,
+        expiredFailed: accountResult.counts.expiredFailed + dependentResult.counts.expiredFailed,
+        total: accountResult.counts.total + dependentResult.counts.total,
+      );
+
       setState(() {
-        _result = result;
+        _result = _UnifiedResult(items: combinedItems, counts: combinedCounts);
       });
     } catch (_) {
       if (thisVersion != _currentRequestVersion) return;
@@ -232,7 +277,7 @@ class _AdminCpfChangesTabState extends State<AdminCpfChangesTab> {
     return '$dateStr às $timeStr';
   }
 
-  String? _getDeadlineText(AdminCpfChangeSummary item) {
+  String? _getDeadlineText(AdminUnifiedCpfChangeSummary item) {
     if (item.status == AccountChangeStatus.underReview) {
       final formatted = _formatCivilDate(item.adminDeadlineDueDate);
       if (formatted != null) {
@@ -270,7 +315,7 @@ class _AdminCpfChangesTabState extends State<AdminCpfChangesTab> {
     }
   }
 
-  Widget _buildStatusSelo(AccountChangeStatus status) {
+  Widget _buildStatusSelo(AccountChangeStatus status, CpfChangeRequestType type) {
     final DsCorVisual semanticToken = _getSemanticTokenForStatus(status);
     final Color color = semanticToken.accent;
 
@@ -291,7 +336,7 @@ class _AdminCpfChangesTabState extends State<AdminCpfChangesTab> {
         icon = PhosphorIconsFill.files;
         break;
       case AccountChangeStatus.waitingHolderConfirmation:
-        label = 'CONFIRMAR';
+        label = type == CpfChangeRequestType.dependent ? 'PROCESSANDO' : 'CONFIRMAR';
         icon = PhosphorIconsFill.userCheck;
         break;
       case AccountChangeStatus.completed:
@@ -334,50 +379,57 @@ class _AdminCpfChangesTabState extends State<AdminCpfChangesTab> {
     );
   }
 
-  Widget _buildItemCard(AdminCpfChangeSummary item) {
+  Widget _buildItemCard(AdminUnifiedCpfChangeSummary item) {
     final DsCorVisual semanticToken = _getSemanticTokenForStatus(item.status);
     final Color statusColor = semanticToken.accent;
 
     final String? deadlineText = _getDeadlineText(item);
+    final bool isAccount = item.type == CpfChangeRequestType.account;
 
     return GestureDetector(
-      onTap: () => _openDetailSheet(item),
+      onTap: isAccount && item.rawAccountSummary != null
+          ? () => _openDetailSheet(item.rawAccountSummary!)
+          : null,
       child: DsCard(
         accentColor: statusColor,
-        showGlow: item.isOverdue,
+        showGlow: isAccount ? item.isOverdue : false,
         padding: const EdgeInsets.all(20),
         margin: const EdgeInsets.only(bottom: 12, left: 24, right: 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Linha 1 — Status + Prazo (Topo)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
+            // Linha 1 — Status, Tipo e Prazo (Wrap para segurança em 360dp)
+            Wrap(
+              spacing: 8,
+              runSpacing: 6,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                Flexible(child: _buildStatusSelo(item.status)),
-                const SizedBox(width: 12),
+                _buildStatusSelo(item.status, item.type),
+                DsSelo(
+                  label: isAccount ? 'CONTA' : 'DEPENDENTE',
+                  labelColor: isAccount ? DsCores.conta.accent : DsCores.alerta.accent,
+                  backgroundColor: isAccount ? DsCores.conta.softBackground : DsCores.alerta.softBackground,
+                  borderColor: isAccount ? DsCores.conta.border : DsCores.alerta.border,
+                  compact: true,
+                ),
                 if (deadlineText != null)
-                  Flexible(
-                    flex: 0,
-                    child: Text(
-                      deadlineText,
-                      style: DsTipografia.caption.copyWith(
-                        color: item.isOverdue
-                            ? DsCores.perigo.accent
-                            : DsCores.textSecondary.withValues(alpha: 0.65),
-                        fontWeight: item.isOverdue
-                            ? FontWeight.w800
-                            : FontWeight.w600,
-                        fontSize: 11,
-                      ),
+                  Text(
+                    deadlineText,
+                    style: DsTipografia.caption.copyWith(
+                      color: isAccount && item.isOverdue
+                          ? DsCores.perigo.accent
+                          : DsCores.textSecondary.withValues(alpha: 0.65),
+                      fontWeight: isAccount && item.isOverdue
+                          ? FontWeight.w800
+                          : FontWeight.w600,
+                      fontSize: 11,
                     ),
                   ),
               ],
             ),
             const SizedBox(height: 14),
 
-            // Linha 2 — Protocolo com destaque (Estilo Carteirinhas)
+            // Linha 2 — Protocolo com destaque
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -413,18 +465,41 @@ class _AdminCpfChangesTabState extends State<AdminCpfChangesTab> {
             ),
             const SizedBox(height: 12),
 
-            // Linha 3 — Nome do beneficiário (Caixa Alta) e E-mail
-            Text(
-              item.userFirstName.toUpperCase(),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: DsTipografia.body.copyWith(
-                fontSize: 15.5,
-                fontWeight: FontWeight.w900,
-                color: DsCores.textPrimary,
-                letterSpacing: -0.5,
+            // Linha 3 — Nome do titular/dependente e e-mail
+            if (isAccount) ...[
+              Text(
+                item.userFirstName.toUpperCase(),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: DsTipografia.body.copyWith(
+                  fontSize: 15.5,
+                  fontWeight: FontWeight.w900,
+                  color: DsCores.textPrimary,
+                  letterSpacing: -0.5,
+                ),
               ),
-            ),
+            ] else ...[
+              Text(
+                item.dependentFullName ?? 'Dependente',
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: DsTipografia.body.copyWith(
+                  fontSize: 15.5,
+                  fontWeight: FontWeight.w900,
+                  color: DsCores.textPrimary,
+                  letterSpacing: -0.5,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Titular: ${item.userFirstName}',
+                style: DsTipografia.caption.copyWith(
+                  color: DsCores.textSecondary.withValues(alpha: 0.7),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
             if (item.userEmailMasked.isNotEmpty) ...[
               const SizedBox(height: 3),
               Text(
@@ -435,6 +510,60 @@ class _AdminCpfChangesTabState extends State<AdminCpfChangesTab> {
                 ),
               ),
             ],
+            const SizedBox(height: 12),
+
+            // Mapeamento visual das mudanças de CPF
+            Divider(color: Colors.white.withValues(alpha: 0.08)),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'CPF Atual:',
+                        style: DsTipografia.caption.copyWith(
+                          color: DsCores.textSecondary.withValues(alpha: 0.5),
+                          fontSize: 11,
+                        ),
+                      ),
+                      Text(
+                        item.oldValueMasked,
+                        style: DsTipografia.body.copyWith(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: DsCores.textPrimary.withValues(alpha: 0.8),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Novo CPF Solicitado:',
+                        style: DsTipografia.caption.copyWith(
+                          color: DsCores.textSecondary.withValues(alpha: 0.5),
+                          fontSize: 11,
+                        ),
+                      ),
+                      Text(
+                        item.newValueMasked,
+                        style: DsTipografia.body.copyWith(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: statusColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 14),
 
             // Linha 4 — Datas Principais
@@ -557,40 +686,73 @@ class _AdminCpfChangesTabState extends State<AdminCpfChangesTab> {
             ),
             const SizedBox(height: 16),
 
-            // Linha 5 — Rodapé: Botão visual (CTA)
-            Container(
-              width: double.infinity,
-              height: 42,
-              decoration: BoxDecoration(
-                color: statusColor.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: statusColor.withValues(alpha: 0.25),
-                  width: 1,
+            // Linha 5 — Rodapé: CTA para conta / Faixa informativa para dependente
+            if (isAccount)
+              Container(
+                width: double.infinity,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: statusColor.withValues(alpha: 0.25),
+                    width: 1,
+                  ),
                 ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    item.status == AccountChangeStatus.underReview
-                        ? 'Analisar solicitação'
-                        : 'Ver solicitação',
-                    style: DsTipografia.caption.copyWith(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w800,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      item.status == AccountChangeStatus.underReview
+                          ? 'Analisar solicitação'
+                          : 'Ver solicitação',
+                      style: DsTipografia.caption.copyWith(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w800,
+                        color: statusColor,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Icon(
+                      PhosphorIconsRegular.arrowRight,
+                      size: 15,
                       color: statusColor,
                     ),
+                  ],
+                ),
+              )
+            else
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
+                decoration: BoxDecoration(
+                  color: DsCores.textSecondary.withValues(alpha: 0.04),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: DsCores.textSecondary.withValues(alpha: 0.10),
+                    width: 1,
                   ),
-                  const SizedBox(width: 6),
-                  Icon(
-                    PhosphorIconsRegular.arrowRight,
-                    size: 15,
-                    color: statusColor,
-                  ),
-                ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      PhosphorIconsRegular.info,
+                      size: 14,
+                      color: DsCores.textSecondary.withValues(alpha: 0.45),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Somente leitura nesta fase',
+                      style: DsTipografia.caption.copyWith(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: DsCores.textSecondary.withValues(alpha: 0.45),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
           ],
         ),
       ),
@@ -611,7 +773,7 @@ class _AdminCpfChangesTabState extends State<AdminCpfChangesTab> {
             child: DsInput(
               label: 'Buscar solicitação',
               controller: _searchController,
-              hint: 'Buscar por protocolo ou titular',
+              hint: 'Buscar por protocolo, dependente ou titular',
               icon: PhosphorIconsRegular.magnifyingGlass,
               onChanged: (val) {
                 _debounceTimer?.cancel();
@@ -881,7 +1043,7 @@ class _AdminCpfChangesTabState extends State<AdminCpfChangesTab> {
           Text(
             query.isEmpty
                 ? 'Quando houver registros, eles aparecerão aqui.'
-                : 'Tente buscar por protocolo ou titular.',
+                : 'Tente buscar por protocolo, dependente ou titular.',
             style: DsTipografia.caption.copyWith(
               color: DsCores.textSecondary.withValues(alpha: 0.5),
             ),
