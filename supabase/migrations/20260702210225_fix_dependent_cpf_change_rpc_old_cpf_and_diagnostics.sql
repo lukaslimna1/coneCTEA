@@ -1,17 +1,16 @@
 -- =========================================================================
--- ConeCTEA — Correção SQLSTATE 2201B no Fluxo de CPF de Dependente
+-- ConeCTEA — RPC de Alteração de CPF de Dependente (Correção e Diagnósticos)
 --
--- MIGRATION: 20260702182500_fix_dependent_cpf_change_regex_sqlstate_2201b.sql
+-- MIGRATION: 20260702210225_fix_dependent_cpf_change_rpc_old_cpf_and_diagnostics.sql
 -- OBJETIVO:
+--   - Corrigir a vulnerabilidade de check_violation na constraint chk_dep_cpf_review_old_cpf
+--     quando public.members.cpf estiver preenchido com string vazia ('').
+--   - Adicionar diagnósticos seguros (stacked diagnostics) no bloco WHEN OTHERS.
 --   - Corrigir o uso de {10,256} em expressões regulares que causam SQLSTATE 2201B
 --     (invalid_regular_expression) porque o PostgreSQL limita repetições a 255.
 --   - Alterar a constraint `chk_dep_cpf_review_doc_file_id` em
 --     `private.dependent_cpf_change_review_data`
 --   - Atualizar a RPC `private.conectea_create_dependent_cpf_change_request_v1`
---
--- PADRÃO DE REFERÊNCIA:
---   Migration anterior do fluxo de CPF da conta:
---   20260628133500_fix_cpf_change_request_regex_sqlstate_2201b.sql
 -- =========================================================================
 
 -- 1. CORREÇÃO DA CONSTRAINT
