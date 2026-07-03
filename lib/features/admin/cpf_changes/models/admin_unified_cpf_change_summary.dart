@@ -37,6 +37,9 @@ class AdminUnifiedCpfChangeSummary {
   // Referência para o summary original da conta (para não quebrar abertura de detalhes)
   final AdminCpfChangeSummary? rawAccountSummary;
 
+  // Referência para o summary original de dependente
+  final AdminDependentCpfChangeSummary? rawDependentSummary;
+
   const AdminUnifiedCpfChangeSummary({
     required this.id,
     required this.protocolNumber,
@@ -57,6 +60,7 @@ class AdminUnifiedCpfChangeSummary {
     this.holderDeadlineDueDate,
     this.isOverdue = false,
     this.rawAccountSummary,
+    this.rawDependentSummary,
   });
 
   // Converte a partir do model de CPF da conta (titular)
@@ -79,6 +83,7 @@ class AdminUnifiedCpfChangeSummary {
       holderDeadlineDueDate: summary.holderDeadlineDueDate,
       isOverdue: summary.isOverdue,
       rawAccountSummary: summary,
+      rawDependentSummary: null,
     );
   }
 
@@ -104,6 +109,7 @@ class AdminUnifiedCpfChangeSummary {
       holderDeadlineDueDate: null,
       isOverdue: false,
       rawAccountSummary: null,
+      rawDependentSummary: summary,
     );
   }
 }

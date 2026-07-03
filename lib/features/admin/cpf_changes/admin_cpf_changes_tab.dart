@@ -13,7 +13,9 @@ import 'package:conectea/features/admin/cpf_changes/services/admin_cpf_changes_r
 import 'package:conectea/features/admin/cpf_changes/admin_cpf_change_details_sheet.dart';
 
 import 'package:conectea/features/admin/cpf_dependente/models/admin_dependent_cpf_change_list_result.dart';
+import 'package:conectea/features/admin/cpf_dependente/models/admin_dependent_cpf_change_summary.dart';
 import 'package:conectea/features/admin/cpf_dependente/services/admin_dependent_cpf_changes_repository.dart';
+import 'package:conectea/features/admin/cpf_dependente/admin_dependent_cpf_change_details_sheet.dart';
 
 enum _CpfFilter {
   underReview,
@@ -258,6 +260,19 @@ class _AdminCpfChangesTabState extends State<AdminCpfChangesTab> {
     );
   }
 
+  void _openDependentDetailSheet(AdminDependentCpfChangeSummary summary) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => AdminDependentCpfChangeDetailsSheet(summary: summary),
+    ).then((value) {
+      if (value == true) {
+        _loadData();
+      }
+    });
+  }
+
   String? _formatCivilDate(String? rawDate) {
     if (rawDate == null || rawDate.trim().isEmpty) return null;
     final clean = rawDate.trim();
@@ -387,9 +402,13 @@ class _AdminCpfChangesTabState extends State<AdminCpfChangesTab> {
     final bool isAccount = item.type == CpfChangeRequestType.account;
 
     return GestureDetector(
-      onTap: isAccount && item.rawAccountSummary != null
-          ? () => _openDetailSheet(item.rawAccountSummary!)
-          : null,
+      onTap: () {
+        if (isAccount && item.rawAccountSummary != null) {
+          _openDetailSheet(item.rawAccountSummary!);
+        } else if (!isAccount && item.rawDependentSummary != null) {
+          _openDependentDetailSheet(item.rawDependentSummary!);
+        }
+      },
       child: DsCard(
         accentColor: statusColor,
         showGlow: isAccount ? item.isOverdue : false,
@@ -686,73 +705,40 @@ class _AdminCpfChangesTabState extends State<AdminCpfChangesTab> {
             ),
             const SizedBox(height: 16),
 
-            // Linha 5 — Rodapé: CTA para conta / Faixa informativa para dependente
-            if (isAccount)
-              Container(
-                width: double.infinity,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: statusColor.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: statusColor.withValues(alpha: 0.25),
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      item.status == AccountChangeStatus.underReview
-                          ? 'Analisar solicitação'
-                          : 'Ver solicitação',
-                      style: DsTipografia.caption.copyWith(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w800,
-                        color: statusColor,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Icon(
-                      PhosphorIconsRegular.arrowRight,
-                      size: 15,
-                      color: statusColor,
-                    ),
-                  ],
-                ),
-              )
-            else
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
-                decoration: BoxDecoration(
-                  color: DsCores.textSecondary.withValues(alpha: 0.04),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: DsCores.textSecondary.withValues(alpha: 0.10),
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      PhosphorIconsRegular.info,
-                      size: 14,
-                      color: DsCores.textSecondary.withValues(alpha: 0.45),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Somente leitura nesta fase',
-                      style: DsTipografia.caption.copyWith(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: DsCores.textSecondary.withValues(alpha: 0.45),
-                      ),
-                    ),
-                  ],
+            // Linha 5 — Rodapé: CTA final e unificado (Conta e Dependente)
+            Container(
+              width: double.infinity,
+              height: 42,
+              decoration: BoxDecoration(
+                color: statusColor.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: statusColor.withValues(alpha: 0.25),
+                  width: 1,
                 ),
               ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    item.status == AccountChangeStatus.underReview
+                        ? 'Analisar solicitação'
+                        : 'Ver solicitação',
+                    style: DsTipografia.caption.copyWith(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w800,
+                      color: statusColor,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Icon(
+                    PhosphorIconsRegular.arrowRight,
+                    size: 15,
+                    color: statusColor,
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),

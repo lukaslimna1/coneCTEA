@@ -1,6 +1,8 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:conectea/features/admin/cpf_changes/models/admin_cpf_change_filter.dart';
 import 'package:conectea/features/admin/cpf_dependente/models/admin_dependent_cpf_change_list_result.dart';
+import 'package:conectea/features/admin/cpf_dependente/models/admin_dependent_cpf_change_sensitive_review.dart';
+
 
 class AdminDependentCpfChangesRepository {
   final SupabaseClient _supabase;
@@ -55,6 +57,34 @@ class AdminDependentCpfChangesRepository {
         throw Exception('Acesso negado: privilégios insuficientes.');
       }
       throw Exception('Erro ao processar listagem de solicitações.');
+    } catch (_) {
+      throw Exception('Erro de conexão ou comunicação com o banco.');
+    }
+  }
+
+  /// Obtém os dados sensíveis de auditoria de CPF de dependente caso o administrador logado seja autorizado.
+  Future<AdminDependentCpfChangeSensitiveReview> getDependentCpfChangeSensitiveReview({
+    required String requestId,
+  }) async {
+    try {
+      final response = await _supabase.rpc(
+        'conectea_admin_get_dependent_cpf_change_sensitive_review_v1',
+        params: {'p_request_id': requestId},
+      );
+      if (response == null) {
+        throw const FormatException('Retorno nulo da RPC de dados sensíveis de dependente.');
+      }
+      final Map<String, dynamic> data = Map<String, dynamic>.from(
+        response as Map,
+      );
+      return AdminDependentCpfChangeSensitiveReview.fromJson(data);
+    } on PostgrestException catch (e) {
+      if (e.code == '42501') {
+        throw Exception('Acesso negado: privilégios insuficientes.');
+      } else if (e.code == 'P0002') {
+        throw Exception('Solicitação não encontrada.');
+      }
+      throw Exception('Erro ao processar revisão de dados sensíveis.');
     } catch (_) {
       throw Exception('Erro de conexão ou comunicação com o banco.');
     }
