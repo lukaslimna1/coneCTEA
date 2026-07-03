@@ -139,16 +139,38 @@ class GoogleDriveService {
         try {
           final data = jsonDecode(response.body);
           if (data['status'] == 'success') {
-            final url = data['url'] as String?;
-            if (url == null || url.isEmpty) return null;
-            final extractedId = extractFileId(url);
-            final maskedId = (extractedId != null && extractedId.length > 8)
-                ? '${extractedId.substring(0, 4)}...${extractedId.substring(extractedId.length - 4)}'
-                : 'id_desconhecido';
+            String? resolvedFileId;
+            final idCandidate = data['fileId'] ?? data['id'];
+            final fileIdRegex = RegExp(r'^[a-zA-Z0-9_-]{10,256}$');
+
+            if (idCandidate is String && idCandidate.isNotEmpty && fileIdRegex.hasMatch(idCandidate)) {
+              resolvedFileId = idCandidate;
+            }
+
+            if (resolvedFileId == null) {
+              final urlCandidate = data['url'] ?? data['fileUrl'] ?? data['driveUrl'] ?? data['webViewLink'];
+              if (urlCandidate is String && urlCandidate.isNotEmpty) {
+                final extractedId = extractFileId(urlCandidate);
+                if (extractedId != null && fileIdRegex.hasMatch(extractedId)) {
+                  resolvedFileId = extractedId;
+                }
+              }
+            }
+
+            if (resolvedFileId == null) {
+              debugPrint('[$platform] Erro: Não foi possível obter ou validar o ID do arquivo na resposta.');
+              return null;
+            }
+
+            final canonicalUrl = 'https://drive.google.com/file/d/$resolvedFileId/view';
+            final maskedId = resolvedFileId.length > 8
+                ? '${resolvedFileId.substring(0, 4)}...${resolvedFileId.substring(resolvedFileId.length - 4)}'
+                : resolvedFileId;
+
             debugPrint(
               '[$platform] Sucesso: Arquivo do Drive enviado (ID: $maskedId).',
             );
-            return url;
+            return canonicalUrl;
           } else {
             debugPrint(
               '[$platform] GAS erro: ${data['message'] ?? 'Erro desconhecido'}',

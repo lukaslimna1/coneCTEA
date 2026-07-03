@@ -1520,10 +1520,12 @@ class DatabaseService {
           final shouldCleanup = data['should_cleanup_upload'] is bool
               ? data['should_cleanup_upload'] as bool
               : true;
+          final correlationId = data['correlation_id']?.toString();
           return {
             'success': false,
             'error': _sanitizeDependentCpfChangeError(errorRaw),
             'should_cleanup_upload': shouldCleanup,
+            'correlation_id': correlationId,
           };
         }
       }
@@ -1542,10 +1544,12 @@ class DatabaseService {
             final shouldCleanup = details['should_cleanup_upload'] is bool
                 ? details['should_cleanup_upload'] as bool
                 : true;
+            final correlationId = details['correlation_id']?.toString();
             return {
               'success': false,
               'error': _sanitizeDependentCpfChangeError(errorRaw),
               'should_cleanup_upload': shouldCleanup,
+              'correlation_id': correlationId,
             };
           }
         } catch (_) {}

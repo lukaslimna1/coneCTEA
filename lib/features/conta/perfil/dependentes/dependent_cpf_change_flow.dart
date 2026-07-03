@@ -369,17 +369,9 @@ class _DependentCpfChangeFlowState extends State<DependentCpfChangeFlow> {
         }
       }
     } else {
-      final shouldCleanup = result['should_cleanup_upload'] == true;
-      bool cleanedUp = false;
-      if (shouldCleanup) {
-        cleanedUp = await GoogleDriveService().deleteFile(driveUrl);
-        if (cleanedUp) {
-          setState(() {
-            _uploadedDriveUrl = null;
-          });
-        }
-      }
+      final cleanedUp = await GoogleDriveService().deleteFile(driveUrl);
       setState(() {
+        _uploadedDriveUrl = null;
         _isSubmitting = false;
       });
 
@@ -411,18 +403,37 @@ class _DependentCpfChangeFlowState extends State<DependentCpfChangeFlow> {
           errorMsg =
               'Sua sessão expirou. Entre novamente para continuar.';
           break;
+        case 'unavailable':
+          errorMsg =
+              'Não foi possível usar este CPF agora. Ele pode já estar vinculado a uma solicitação em andamento ou reservado para análise. Confira o Histórico de Carteirinhas antes de tentar novamente.';
+          break;
+        case 'temporarily_unavailable':
+          errorMsg =
+              'O serviço de análise não está disponível agora. Tente novamente mais tarde.';
+          break;
+        case 'internal_error':
+          errorMsg =
+              'Não foi possível concluir a solicitação agora. Tente novamente mais tarde.';
+          break;
         default:
           errorMsg =
               'Não foi possível concluir a solicitação agora. Tente novamente mais tarde.';
       }
 
+      final correlationId = result['correlation_id']?.toString();
+      final String codeSupportSuffix = (correlationId != null && correlationId.isNotEmpty)
+          ? '\n\nCódigo de suporte: $correlationId'
+          : '';
+
+      final String descriptionMsg = cleanedUp
+          ? '$errorMsg\n\nO documento enviado foi removido com segurança.$codeSupportSuffix'
+          : '$errorMsg\n\nPor segurança, tente novamente mais tarde ou procure o suporte.$codeSupportSuffix';
+
       if (mounted) {
         await DsDialog.show<void>(
           context: context,
           title: 'Não foi possível enviar',
-          description: cleanedUp
-              ? '$errorMsg\n\nO documento enviado foi removido com segurança.'
-              : '$errorMsg\n\nPor segurança, tente novamente mais tarde ou procure o suporte.',
+          description: descriptionMsg,
           icon: PhosphorIconsRegular.warningCircle,
           token: DsCores.alerta,
           primaryAction: const DsDialogAction(
