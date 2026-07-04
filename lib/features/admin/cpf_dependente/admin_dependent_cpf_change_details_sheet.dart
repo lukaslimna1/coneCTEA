@@ -21,6 +21,9 @@ class _AdminDependentCpfChangeDetailsSheetState extends State<AdminDependentCpfC
   bool _isLoading = true;
   String? _errorMessage;
   AdminDependentCpfChangeSensitiveReview? _review;
+  bool _isProcessingAction = false;
+  String? _actionErrorTitle;
+  String? _actionErrorMessage;
 
   @override
   void initState() {
@@ -61,6 +64,78 @@ class _AdminDependentCpfChangeDetailsSheetState extends State<AdminDependentCpfC
         setState(() {
           _errorMessage = e.toString().replaceFirst('Exception: ', '');
           _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _handleApprove() async {
+    if (_isProcessingAction) return;
+
+    final confirmed = await DsDialog.show<bool>(
+      context: context,
+      title: 'Confirmar aprovação',
+      description: 'Esta ação vai aprovar a alteração de CPF do dependente e atualizar o cadastro do beneficiário. Depois de concluída, os dados sensíveis da revisão serão limpos conforme as regras do ConeCTEA.',
+      token: DsCores.sucesso,
+      forceVerticalActions: true,
+      primaryAction: const DsDialogAction(
+        label: 'Aprovar',
+        value: true,
+        variante: DsBotaoVariante.acao,
+        token: DsCores.sucesso,
+      ),
+      secondaryAction: const DsDialogAction(
+        label: 'Cancelar',
+        value: false,
+        variante: DsBotaoVariante.ghost,
+      ),
+    );
+
+    if (confirmed != true) return;
+    if (!mounted) return;
+
+    setState(() {
+      _actionErrorTitle = null;
+      _actionErrorMessage = null;
+      _isProcessingAction = true;
+    });
+
+    bool shouldResetProcessing = true;
+
+    try {
+      final res = await _repository.approveDependentCpfChangeRequest(
+        requestId: widget.summary.id,
+      );
+
+      if (res.success) {
+        if (mounted) {
+          shouldResetProcessing = false;
+          DsFeedback.showSnackBar(
+            context: context,
+            mensagem: 'Solicitação de CPF de dependente aprovada com sucesso.',
+            tipo: DsFeedbackTipo.sucesso,
+          );
+          Navigator.of(context).pop(true);
+        }
+      } else {
+        if (mounted) {
+          setState(() {
+            _actionErrorTitle = 'Não foi possível aprovar';
+            _actionErrorMessage = res.message.isNotEmpty ? res.message : 'Erro ao processar aprovação.';
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _actionErrorTitle = 'Não foi possível aprovar';
+          _actionErrorMessage = e.toString().replaceFirst('Exception: ', '');
+        });
+      }
+    } finally {
+      if (mounted && shouldResetProcessing) {
+        setState(() {
+          _isProcessingAction = false;
         });
       }
     }
@@ -172,16 +247,19 @@ class _AdminDependentCpfChangeDetailsSheetState extends State<AdminDependentCpfC
       documentColor = DsCores.textMuted;
     }
 
-    return Container(
-      height: MediaQuery.sizeOf(context).height * 0.85,
-      decoration: const BoxDecoration(
-        color: DsCores.background,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(DsRaios.modal),
-          topRight: Radius.circular(DsRaios.modal),
+    return DsLoadingOverlay(
+      isLoading: _isProcessingAction,
+      message: 'Aprovando...',
+      child: Container(
+        height: MediaQuery.sizeOf(context).height * 0.85,
+        decoration: const BoxDecoration(
+          color: DsCores.background,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(DsRaios.modal),
+            topRight: Radius.circular(DsRaios.modal),
+          ),
         ),
-      ),
-      child: Column(
+        child: Column(
         children: [
           // Header Fixo
           Container(
@@ -648,56 +726,180 @@ class _AdminDependentCpfChangeDetailsSheetState extends State<AdminDependentCpfC
                     ),
                   ),
                   const SizedBox(height: DsEspacamentos.sm),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(DsEspacamentos.md),
-                    decoration: BoxDecoration(
-                      color: DsCores.surface.withValues(alpha: 0.4),
-                      borderRadius: BorderRadius.circular(DsRaios.md),
-                      border: Border.all(
-                        color: DsCores.border.withValues(alpha: 0.5),
+                  if (widget.summary.status == AccountChangeStatus.underReview &&
+                      _review != null &&
+                      _review!.canView &&
+                      !_isLoading) ...[
+                    DsCard(
+                      padding: const EdgeInsets.all(DsEspacamentos.md),
+                      margin: EdgeInsets.zero,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Esta ação aprova a solicitação e atualiza o cadastro do beneficiário.',
+                            style: DsTipografia.caption.copyWith(
+                              color: DsCores.textSecondary,
+                            ),
+                          ),
+                          const SizedBox(height: DsEspacamentos.md),
+                          if (_review!.canViewDocument != true) ...[
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(DsEspacamentos.md),
+                              decoration: BoxDecoration(
+                                color: DsCores.surface.withValues(alpha: 0.4),
+                                borderRadius: BorderRadius.circular(DsRaios.md),
+                                border: Border.all(
+                                  color: DsCores.alerta.accent.withValues(alpha: 0.5),
+                                ),
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Icon(
+                                    PhosphorIconsRegular.warning,
+                                    color: DsCores.alerta.accent,
+                                    size: DsTamanhos.iconSm,
+                                  ),
+                                  const SizedBox(width: DsEspacamentos.sm),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Documento indisponível',
+                                          style: DsTipografia.bodySmall.copyWith(
+                                            color: DsCores.textPrimary,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        const SizedBox(height: DsEspacamentos.xxs),
+                                        Text(
+                                          'Não é possível aprovar porque o documento anexado está indisponível ou já foi descartado.',
+                                          style: DsTipografia.caption.copyWith(
+                                            color: DsCores.textSecondary,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: DsEspacamentos.md),
+                          ] else if (_actionErrorMessage != null) ...[
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(DsEspacamentos.md),
+                              decoration: BoxDecoration(
+                                color: DsCores.surface.withValues(alpha: 0.4),
+                                borderRadius: BorderRadius.circular(DsRaios.md),
+                                border: Border.all(
+                                  color: DsCores.perigo.accent.withValues(alpha: 0.5),
+                                ),
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Icon(
+                                    PhosphorIconsRegular.warningCircle,
+                                    color: DsCores.perigo.accent,
+                                    size: DsTamanhos.iconSm,
+                                  ),
+                                  const SizedBox(width: DsEspacamentos.sm),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          _actionErrorTitle ?? 'Não foi possível aprovar',
+                                          style: DsTipografia.bodySmall.copyWith(
+                                            color: DsCores.textPrimary,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        const SizedBox(height: DsEspacamentos.xxs),
+                                        Text(
+                                          _actionErrorMessage!,
+                                          style: DsTipografia.caption.copyWith(
+                                            color: DsCores.textSecondary,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: DsEspacamentos.md),
+                          ],
+                          DsBotao(
+                            label: 'Aprovar',
+                            variante: DsBotaoVariante.acao,
+                            token: DsCores.sucesso,
+                            icon: PhosphorIconsRegular.check,
+                            fullWidth: true,
+                            isLoading: _isProcessingAction,
+                            onPressed: (_isProcessingAction || _review!.canViewDocument != true)
+                                ? null
+                                : _handleApprove,
+                          ),
+                        ],
                       ),
                     ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Icon(
-                          PhosphorIconsRegular.info,
-                          color: DsCores.textMuted,
-                          size: DsTamanhos.iconSm,
+                  ] else ...[
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(DsEspacamentos.md),
+                      decoration: BoxDecoration(
+                        color: DsCores.surface.withValues(alpha: 0.4),
+                        borderRadius: BorderRadius.circular(DsRaios.md),
+                        border: Border.all(
+                          color: DsCores.border.withValues(alpha: 0.5),
                         ),
-                        const SizedBox(width: DsEspacamentos.sm),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Operações Indisponíveis',
-                                style: DsTipografia.bodySmall.copyWith(
-                                  color: DsCores.textPrimary,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: DsEspacamentos.xxs),
-                              Text(
-                                'As ações administrativas para CPF de dependente serão liberadas em uma próxima etapa.',
-                                style: DsTipografia.caption.copyWith(
-                                  color: DsCores.textSecondary,
-                                ),
-                              ),
-                            ],
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(
+                            PhosphorIconsRegular.info,
+                            color: DsCores.textMuted,
+                            size: DsTamanhos.iconSm,
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: DsEspacamentos.sm),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Operações Indisponíveis',
+                                  style: DsTipografia.bodySmall.copyWith(
+                                    color: DsCores.textPrimary,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: DsEspacamentos.xxs),
+                                Text(
+                                  'Não há ações administrativas disponíveis para o status atual.',
+                                  style: DsTipografia.caption.copyWith(
+                                    color: DsCores.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
+                  ],
                 ],
               ),
             ),
           ),
         ],
       ),
-    );
+    ));
   }
 
   Widget _buildTimelineItem({
