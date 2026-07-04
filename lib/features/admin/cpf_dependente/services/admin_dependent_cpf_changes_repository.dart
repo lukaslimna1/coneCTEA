@@ -89,23 +89,22 @@ class AdminDependentCpfChangesRepository {
     }
   }
 
-  /// Aprova transacionalmente a alteração de CPF de dependente chamando a RPC segura.
+  /// Aprova transacionalmente a alteração de CPF de dependente chamando a Edge Function de descarte direto.
   Future<AdminDependentCpfChangeActionResult> approveDependentCpfChangeRequest({
     required String requestId,
   }) async {
     try {
-      final response = await _supabase.rpc(
-        'conectea_admin_approve_dependent_cpf_change_request_v1',
-        params: {'p_request_id': requestId},
+      final response = await _supabase.functions.invoke(
+        'approve-dependent-cpf-change-request',
+        body: {'request_id': requestId},
       );
 
-      if (response == null) {
-        throw const FormatException('Retorno nulo da RPC de aprovação de CPF de dependente.');
+      final responseData = response.data;
+      if (responseData == null || responseData is! Map) {
+        throw const FormatException('Retorno inválido ou nulo da Edge Function.');
       }
 
-      final Map<String, dynamic> data = Map<String, dynamic>.from(
-        response as Map,
-      );
+      final Map<String, dynamic> data = Map<String, dynamic>.from(responseData);
 
       final bool success = data['success'] as bool? ?? false;
       if (success) {
@@ -115,18 +114,25 @@ class AdminDependentCpfChangesRepository {
         final message = _mapErrorCodeToMessage(errorCode);
         throw Exception(message);
       }
+    } on FunctionException catch (_) {
+      throw Exception('Não foi possível concluir a aprovação agora.');
     } on PostgrestException catch (e) {
       if (e.code == '42501') {
         throw Exception('Acesso negado: privilégios insuficientes.');
       }
       throw Exception('Não foi possível concluir a aprovação agora.');
-    } catch (_) {
+    } catch (e) {
+      if (e is Exception && e.toString().startsWith('Exception: ')) {
+        rethrow;
+      }
       throw Exception('Não foi possível concluir a aprovação agora.');
     }
   }
 
   String _mapErrorCodeToMessage(String? errorCode) {
     switch (errorCode) {
+      case 'method_not_allowed':
+        return 'Método de requisição não suportado.';
       case 'unauthorized':
         return 'Sua sessão expirou. Faça login novamente.';
       case 'forbidden':
@@ -157,6 +163,20 @@ class AdminDependentCpfChangesRepository {
         return 'O CPF do dependente não pode ser igual ao CPF de uma conta.';
       case 'reservation_unavailable':
         return 'Reserva de CPF indisponível.';
+      case 'discard_not_configured':
+        return 'Serviço de descarte de documentos não configurado.';
+      case 'discard_timeout':
+        return 'O descarte no Google Drive excedeu o tempo limite.';
+      case 'discard_auth_failed':
+        return 'Falha de autenticação com o provedor de descarte.';
+      case 'discard_failed':
+        return 'Não foi possível remover o documento no Google Drive.';
+      case 'rollback_failed':
+        return 'Erro crítico ao reverter a trava operacional.';
+      case 'commit_failed':
+        return 'Não foi possível consolidar a aprovação da alteração de CPF.';
+      case 'commit_after_discard_failed':
+        return 'Documento removido, mas a consolidação do CPF falhou. Avise o suporte técnico antes de tentar novamente.';
       case 'internal_error':
         return 'Não foi possível aprovar a solicitação neste momento.';
       default:
