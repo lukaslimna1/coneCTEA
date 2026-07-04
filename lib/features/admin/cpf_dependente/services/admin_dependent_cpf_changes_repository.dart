@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:conectea/features/admin/cpf_changes/models/admin_cpf_change_filter.dart';
 import 'package:conectea/features/admin/cpf_dependente/models/admin_dependent_cpf_change_list_result.dart';
@@ -114,8 +115,9 @@ class AdminDependentCpfChangesRepository {
         final message = _mapErrorCodeToMessage(errorCode);
         throw Exception(message);
       }
-    } on FunctionException catch (_) {
-      throw Exception('Não foi possível concluir a aprovação agora.');
+    } on FunctionException catch (e) {
+      final safeMessage = _extractSafeErrorMessageFromException(e);
+      throw Exception(safeMessage);
     } on PostgrestException catch (e) {
       if (e.code == '42501') {
         throw Exception('Acesso negado: privilégios insuficientes.');
@@ -182,5 +184,77 @@ class AdminDependentCpfChangesRepository {
       default:
         return 'Não foi possível concluir a aprovação agora.';
     }
+  }
+
+  String _extractSafeErrorMessageFromException(FunctionException e) {
+    final details = e.details;
+    Map<dynamic, dynamic>? errorMap;
+
+    if (details is Map) {
+      errorMap = details;
+    } else if (details is String && details.trim().isNotEmpty) {
+      try {
+        final decoded = jsonDecode(details);
+        if (decoded is Map) {
+          errorMap = decoded;
+        }
+      } catch (_) {
+        // Ignora erros de parse
+      }
+    }
+
+    if (errorMap != null) {
+      final errorCode = errorMap['error_code']?.toString() ??
+                        errorMap['error']?.toString();
+
+      if (errorCode != null && errorCode.trim().isNotEmpty) {
+        final mappedMessage = _mapErrorCodeToMessage(errorCode.trim());
+        if (mappedMessage != 'Não foi possível concluir a aprovação agora.') {
+          return mappedMessage;
+        }
+      }
+
+      final message = errorMap['message']?.toString();
+      if (message != null && _isMessageSafe(message)) {
+        return message;
+      }
+    }
+
+    return 'Não foi possível concluir a aprovação agora.';
+  }
+
+  bool _isMessageSafe(String msg) {
+    if (msg.trim().isEmpty) return false;
+
+    final lower = msg.toLowerCase();
+
+    if (RegExp(r'\d{3}\.?\d{3}\.?\d{3}-?\d{2}').hasMatch(msg)) return false;
+
+    if (lower.contains('fileid') ||
+        lower.contains('file_id') ||
+        lower.contains('document_file_id') ||
+        lower.contains('documentfileid')) {
+      return false;
+    }
+
+    if (lower.contains('http://') || lower.contains('https://') || lower.contains('www.')) {
+      return false;
+    }
+
+    if (lower.contains('postgrestexception') ||
+        lower.contains('functionexception') ||
+        lower.contains('exception') ||
+        lower.contains('stacktrace') ||
+        lower.contains('stack trace') ||
+        lower.contains('sql') ||
+        lower.contains('jwt') ||
+        lower.contains('bearer') ||
+        lower.contains('token') ||
+        lower.contains('payload') ||
+        lower.contains('response.data')) {
+      return false;
+    }
+
+    return true;
   }
 }
