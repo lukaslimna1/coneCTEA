@@ -24,10 +24,15 @@ class GoogleDriveService {
     'rtf',
   ];
 
+  void _debugLog(String message) {
+    if (kDebugMode) {
+      debugPrint(message);
+    }
+  }
+
   /// Centraliza a chamada ao Google Apps Script para lidar com redirects (302)
   /// que ocorrem tanto no Web quanto no Mobile.
   Future<http.Response> _callGas(Map<String, dynamic> payload) async {
-    final platform = kIsWeb ? 'Web' : 'Mobile';
     final uri = Uri.parse(_gasUrl);
 
     // Tentativa inicial com POST
@@ -63,9 +68,7 @@ class GoogleDriveService {
 
         if (location != null) {
           final redirectUri = Uri.parse(location);
-          debugPrint(
-            '[$platform] Seguindo redirect GAS (${response.statusCode}) para: ${redirectUri.host}',
-          );
+          _debugLog('GoogleDriveService: redirecionamento tratado.');
           // Após o POST inicial, o GAS redireciona para um GET no echo service para retornar o JSON
           response = await http.get(redirectUri);
         } else {
@@ -83,20 +86,17 @@ class GoogleDriveService {
     required PlatformFile file,
     required String fileName,
   }) async {
-    final platform = kIsWeb ? 'Web' : 'Mobile';
     try {
       // Validação de extensão
       final ext = file.extension?.toLowerCase() ?? '';
       if (!_allowedExtensions.contains(ext)) {
-        debugPrint('[$platform] Erro: Extensão .$ext não permitida.');
+        _debugLog('GoogleDriveService: extensão de arquivo não permitida.');
         return null;
       }
 
       // Validação de tamanho
       if (file.size > _maxFileSize) {
-        debugPrint(
-          '[$platform] Erro: Arquivo excede o limite de 5MB (${file.size} bytes).',
-        );
+        _debugLog('GoogleDriveService: arquivo acima do limite permitido.');
         return null;
       }
 
@@ -106,9 +106,7 @@ class GoogleDriveService {
         if (!kIsWeb && file.path != null && file.path!.isNotEmpty) {
           bytes = await io.File(file.path!).readAsBytes();
         } else {
-          debugPrint(
-            '[$platform] Erro: file.bytes está nulo e não há fallback possível.',
-          );
+          _debugLog('GoogleDriveService: conteúdo do arquivo indisponível.');
           return null;
         }
       }
@@ -121,9 +119,7 @@ class GoogleDriveService {
         'content': base64Content,
       };
 
-      debugPrint(
-        '[$platform] Iniciando upload de arquivo — tamanho: ${bytes.length} bytes',
-      );
+      _debugLog('GoogleDriveService: upload iniciado.');
 
       // Faz a chamada ao GAS tratando redirects
       final response = await _callGas(payload);
@@ -132,7 +128,7 @@ class GoogleDriveService {
         // Proteção contra resposta HTML em caso de falha no redirect
         if (response.body.trim().startsWith('<!DOCTYPE html>') ||
             response.body.trim().startsWith('<html')) {
-          debugPrint('[$platform] Erro: Resposta GAS é HTML em vez de JSON.');
+          _debugLog('GoogleDriveService: resposta de upload em formato inesperado.');
           return null;
         }
 
@@ -158,37 +154,28 @@ class GoogleDriveService {
             }
 
             if (resolvedFileId == null) {
-              debugPrint('[$platform] Erro: Não foi possível obter ou validar o ID do arquivo na resposta.');
+              _debugLog('GoogleDriveService: identificador do arquivo não validado.');
               return null;
             }
 
             final canonicalUrl = 'https://drive.google.com/file/d/$resolvedFileId/view';
-            final maskedId = resolvedFileId.length > 8
-                ? '${resolvedFileId.substring(0, 4)}...${resolvedFileId.substring(resolvedFileId.length - 4)}'
-                : resolvedFileId;
 
-            debugPrint(
-              '[$platform] Sucesso: Arquivo do Drive enviado (ID: $maskedId).',
-            );
+            _debugLog('GoogleDriveService: upload concluído.');
             return canonicalUrl;
           } else {
-            debugPrint(
-              '[$platform] GAS erro: ${data['message'] ?? 'Erro desconhecido'}',
-            );
+            _debugLog('GoogleDriveService: upload recusado pelo serviço.');
             return null;
           }
-        } catch (e) {
-          debugPrint('[$platform] Erro ao decodificar JSON do GAS: $e');
+        } catch (_) {
+          _debugLog('GoogleDriveService: resposta de upload inválida.');
           return null;
         }
       }
 
-      debugPrint('[$platform] Erro de rede: statusCode=${response.statusCode}');
+      _debugLog('GoogleDriveService: falha de rede no upload.');
       return null;
-    } catch (e, stacktrace) {
-      final platform = kIsWeb ? 'Web' : 'Mobile';
-      debugPrint('[$platform] Erro no upload: $e');
-      debugPrint('Stacktrace: $stacktrace');
+    } catch (_) {
+      _debugLog('GoogleDriveService: falha inesperada no upload.');
       return null;
     }
   }
@@ -214,14 +201,11 @@ class GoogleDriveService {
   }
 
   Future<bool> deleteFile(String fileUrl) async {
-    final platform = kIsWeb ? 'Web' : 'Mobile';
     try {
       final fileId = extractFileId(fileUrl);
 
       if (fileId == null || fileId.isEmpty) {
-        debugPrint(
-          '[$platform] Erro: Não foi possível extrair o ID do arquivo para deleção.',
-        );
+        _debugLog('GoogleDriveService: identificador indisponível para descarte.');
         return false;
       }
 
@@ -231,34 +215,24 @@ class GoogleDriveService {
         // Proteção contra resposta HTML
         if (response.body.trim().startsWith('<!DOCTYPE html>') ||
             response.body.trim().startsWith('<html')) {
-          debugPrint('[$platform] Erro ao deletar: Resposta GAS é HTML.');
+          _debugLog('GoogleDriveService: resposta de descarte em formato inesperado.');
           return false;
         }
 
         final data = jsonDecode(response.body);
         final success = data['status'] == 'success';
         if (success) {
-          final maskedId = fileId.length > 8
-              ? '${fileId.substring(0, 4)}...${fileId.substring(fileId.length - 4)}'
-              : fileId;
-          debugPrint(
-            '[$platform] Sucesso: Arquivo do Drive deletado com segurança (ID: $maskedId).',
-          );
+          _debugLog('GoogleDriveService: descarte concluído.');
         } else {
-          debugPrint(
-            '[$platform] Erro no GAS ao deletar: ${data['message'] ?? data}',
-          );
+          _debugLog('GoogleDriveService: descarte recusado pelo serviço.');
         }
         return success;
       }
 
-      debugPrint(
-        '[$platform] Erro de rede ao deletar: statusCode=${response.statusCode}',
-      );
+      _debugLog('GoogleDriveService: falha de rede no descarte.');
       return false;
-    } catch (e) {
-      final platform = kIsWeb ? 'Web' : 'Mobile';
-      debugPrint('[$platform] Erro na função deleteFile: $e');
+    } catch (_) {
+      _debugLog('GoogleDriveService: falha inesperada no descarte.');
       return false;
     }
   }
