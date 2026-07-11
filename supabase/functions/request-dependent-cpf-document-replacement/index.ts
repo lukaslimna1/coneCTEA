@@ -275,7 +275,7 @@ export async function handler(req: Request): Promise<Response> {
 
     const timestamp = new Date().toISOString();
     const action = "secure_discard_v1";
-    const reason = "document_replacement_requested";
+    const reason = "document_replaced";
 
     // String canônica para HMAC
     const canonicalString = `${action}|${documentFileId}|${requestId}|${reason}|${timestamp}`;
