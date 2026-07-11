@@ -131,6 +131,86 @@ class AdminDependentCpfChangesRepository {
     }
   }
 
+  /// Solicita a correção do CPF do dependente chamando a RPC conectea_admin_request_dependent_cpf_correction_v1.
+  Future<AdminDependentCpfChangeActionResult> requestDependentCpfCorrection({
+    required String requestId,
+  }) async {
+    try {
+      final response = await _supabase.rpc(
+        'conectea_admin_request_dependent_cpf_correction_v1',
+        params: {'p_request_id': requestId},
+      );
+
+      if (response == null) {
+        throw const FormatException('Retorno nulo da RPC de solicitação de correção de CPF.');
+      }
+
+      final Map<String, dynamic> data = Map<String, dynamic>.from(
+        response as Map,
+      );
+
+      final bool success = data['success'] as bool? ?? false;
+      if (success) {
+        return AdminDependentCpfChangeActionResult.fromJson(data);
+      } else {
+        final errorCode = data['error_code'] as String?;
+        final message = _mapErrorCodeToMessage(errorCode);
+        throw Exception(message);
+      }
+    } on PostgrestException catch (e) {
+      if (e.code == '42501') {
+        throw Exception('Acesso negado: privilégios insuficientes.');
+      }
+      throw Exception('Não foi possível concluir a ação agora.');
+    } catch (e) {
+      if (e is Exception && e.toString().startsWith('Exception: ')) {
+        rethrow;
+      }
+      throw Exception('Não foi possível concluir a ação agora.');
+    }
+  }
+
+  /// Solicita o reenvio do documento chamando a Edge Function request-dependent-cpf-document-replacement.
+  Future<AdminDependentCpfChangeActionResult> requestDependentCpfDocumentReplacement({
+    required String requestId,
+  }) async {
+    try {
+      final response = await _supabase.functions.invoke(
+        'request-dependent-cpf-document-replacement',
+        body: {'request_id': requestId},
+      );
+
+      final responseData = response.data;
+      if (responseData == null || responseData is! Map) {
+        throw const FormatException('Retorno inválido ou nulo da Edge Function.');
+      }
+
+      final Map<String, dynamic> data = Map<String, dynamic>.from(responseData);
+
+      final bool success = data['success'] as bool? ?? false;
+      if (success) {
+        return AdminDependentCpfChangeActionResult.fromJson(data);
+      } else {
+        final errorCode = data['error_code'] as String?;
+        final message = _mapErrorCodeToMessage(errorCode);
+        throw Exception(message);
+      }
+    } on FunctionException catch (e) {
+      final safeMessage = _extractSafeErrorMessageFromException(e);
+      throw Exception(safeMessage);
+    } on PostgrestException catch (e) {
+      if (e.code == '42501') {
+        throw Exception('Acesso negado: privilégios insuficientes.');
+      }
+      throw Exception('Não foi possível solicitar documento agora.');
+    } catch (e) {
+      if (e is Exception && e.toString().startsWith('Exception: ')) {
+        rethrow;
+      }
+      throw Exception('Não foi possível solicitar documento agora.');
+    }
+  }
+
   String _mapErrorCodeToMessage(String? errorCode) {
     switch (errorCode) {
       case 'method_not_allowed':

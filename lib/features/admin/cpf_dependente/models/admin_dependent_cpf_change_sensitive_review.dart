@@ -8,6 +8,7 @@ class AdminDependentCpfChangeSensitiveReview {
   final String? newCpfClear;
   final String documentState;
   final bool canViewDocument;
+  final String? documentFileId;
   final DateTime? serverNow;
 
   const AdminDependentCpfChangeSensitiveReview({
@@ -18,6 +19,7 @@ class AdminDependentCpfChangeSensitiveReview {
     this.newCpfClear,
     required this.documentState,
     required this.canViewDocument,
+    this.documentFileId,
     this.serverNow,
   });
 
@@ -70,6 +72,7 @@ class AdminDependentCpfChangeSensitiveReview {
       newCpfClear: json['new_cpf_clear'] as String?,
       documentState: json['document_state'] as String? ?? 'unavailable',
       canViewDocument: json['can_view_document'] as bool? ?? false,
+      documentFileId: json['document_file_id'] as String?,
       serverNow: serverNow,
     );
   }

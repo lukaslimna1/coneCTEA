@@ -1,11 +1,16 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 import 'package:conectea/core/utils/conectea_date_time_helper.dart';
+import 'package:conectea/core/campos_cadastrais/campos/campo_cpf.dart';
 import 'package:conectea/features/carteirinhas/solicitacao/dependent_cpf_change_presentation.dart';
 import 'package:conectea/models/dependent_cpf_change_request.dart';
+import 'package:conectea/services/database_service.dart';
+import 'package:conectea/services/google_drive_service.dart';
 
-class DependentCpfChangeDetailView extends StatelessWidget {
+class DependentCpfChangeDetailView extends StatefulWidget {
   final DependentCpfChangeRequest request;
   final VoidCallback onBack;
 
@@ -16,15 +21,47 @@ class DependentCpfChangeDetailView extends StatelessWidget {
   });
 
   @override
+  State<DependentCpfChangeDetailView> createState() =>
+      _DependentCpfChangeDetailViewState();
+}
+
+class _DependentCpfChangeDetailViewState
+    extends State<DependentCpfChangeDetailView> {
+  final DatabaseService _databaseService = DatabaseService();
+
+  // Estados locais para controle de submissão
+  bool _isSubmittingCpf = false;
+  bool _isSubmittingDocument = false;
+  final TextEditingController _correctionCpfController =
+      TextEditingController();
+  final GlobalKey<FormState> _correctionFormKey = GlobalKey<FormState>();
+
+  @override
+  void dispose() {
+    _correctionCpfController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     // Como a tela de detalhes é renderizada embutida na aba sob a HomePage,
     // não criamos um Scaffold ou AppBackground aninhados. Isso evita duplicações de SafeAreas
     // e gradientes. Retornamos o corpo da view que se integrará diretamente ao Scaffold da HomePage.
-    return _buildBody(context);
+    return DsLoadingOverlay(
+      isLoading: _isSubmittingCpf || _isSubmittingDocument,
+      message: _isSubmittingDocument
+          ? 'Enviando documento...'
+          : 'Enviando correção...',
+      child: _buildBody(context),
+    );
   }
 
+
   Widget _buildBody(BuildContext context) {
+    final request = widget.request;
+    final onBack = widget.onBack;
     final presentation = DependentCpfChangePresentation(request);
+
     final visualToken = presentation.visualToken;
 
     final hasFeedback = request.adminFeedback != null && request.adminFeedback!.trim().isNotEmpty;
@@ -163,6 +200,17 @@ class DependentCpfChangeDetailView extends StatelessWidget {
                 const SizedBox(height: DsEspacamentos.md),
               ],
 
+              // AÇÕES DO SOLICITANTE
+              if (request.status.toLowerCase() == 'waiting_document_replacement') ...[
+                _buildDocumentReplacementSection(request, visualToken),
+                const SizedBox(height: DsEspacamentos.md),
+              ],
+
+              if (request.status.toLowerCase() == 'waiting_cpf_correction') ...[
+                _buildCpfCorrectionSection(request, visualToken),
+                const SizedBox(height: DsEspacamentos.md),
+              ],
+
               // D. IDENTIFICAÇÃO da Solicitação
               _buildSectionHeader(
                 icon: PhosphorIconsRegular.fingerprint,
@@ -217,6 +265,8 @@ class DependentCpfChangeDetailView extends StatelessWidget {
               const SizedBox(height: DsEspacamentos.sm),
               _buildValueDeltaBlock(isCompleted, visualToken),
               const SizedBox(height: DsEspacamentos.md),
+
+
 
               // F. DATAS REGISTRADAS
               _buildSectionHeader(
@@ -350,8 +400,10 @@ class DependentCpfChangeDetailView extends StatelessWidget {
   }
 
   Widget _buildValueDeltaBlock(bool isCompleted, DsCorVisual statusToken) {
+    final request = widget.request;
     final hasOldValue = request.currentCpfMasked != null && request.currentCpfMasked!.trim().isNotEmpty;
     final targetToken = isCompleted ? DsCores.sucesso : statusToken;
+
 
     return DsCard(
       borderColor: DsCores.border.withValues(alpha: 0.5),
@@ -426,6 +478,369 @@ class DependentCpfChangeDetailView extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  String _getErrorMessage(String errorCode) {
+    switch (errorCode) {
+      case 'unauthenticated':
+        return 'Sessão expirada. Entre novamente.';
+      case 'forbidden':
+        return 'Você não tem permissão para alterar esta solicitação.';
+      case 'not_found':
+        return 'Solicitação não encontrada.';
+      case 'invalid_status':
+        return 'Essa solicitação não está mais aguardando esta ação.';
+      case 'expired':
+        return 'Seu prazo para concluir esta etapa expirou.';
+      case 'invalid_cpf':
+        return 'O CPF informado não parece válido.';
+      case 'cpf_unchanged':
+        return 'Informe um CPF diferente do CPF atual.';
+      case 'account_cpf_conflict':
+      case 'cpf_in_use':
+      case 'reservation_unavailable':
+        return 'Não foi possível usar esse CPF. Verifique os dados informados.';
+      case 'invalid_file_id':
+      case 'invalid_document_state':
+        return 'Não foi possível validar o documento enviado.';
+      case 'temporarily_unavailable':
+      case 'internal_error':
+      default:
+        return 'Não foi possível concluir agora. Tente novamente.';
+    }
+  }
+
+  void _showFeedback(BuildContext context, String message, DsFeedbackTipo tipo) {
+    DsFeedback.showSnackBar(context: context, mensagem: message, tipo: tipo);
+  }
+
+  String _buildSafeDriveFileName(String extension) {
+    final random = Random.secure();
+    final randomVal = random.nextInt(65536);
+    final hex = randomVal.toRadixString(16).padLeft(4, '0');
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    return 'ctea_dep_anx_${timestamp}_$hex.$extension';
+  }
+
+  Future<void> _handleReplaceDocument() async {
+    if (_isSubmittingDocument) return;
+
+    PlatformFile? selectedFile;
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        withData: true,
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+      );
+      if (result == null || result.files.isEmpty) return;
+      selectedFile = result.files.first;
+
+      const maxFileSize = 5 * 1024 * 1024; // 5MB
+      if (selectedFile.size > maxFileSize) {
+        if (mounted) {
+          _showFeedback(
+            context,
+            'O arquivo excede o limite máximo de 5MB.',
+            DsFeedbackTipo.erro,
+          );
+        }
+        return;
+      }
+    } catch (_) {
+      if (mounted) {
+        _showFeedback(
+          context,
+          'Não foi possível selecionar o arquivo.',
+          DsFeedbackTipo.erro,
+        );
+      }
+      return;
+    }
+
+    setState(() {
+      _isSubmittingDocument = true;
+    });
+
+    String? uploadedDriveUrl;
+    try {
+      final ext = selectedFile.extension?.toLowerCase() ?? 'pdf';
+      final fileName = _buildSafeDriveFileName(ext);
+      uploadedDriveUrl = await GoogleDriveService().uploadFile(
+        file: selectedFile,
+        fileName: fileName,
+      );
+
+      if (uploadedDriveUrl == null || uploadedDriveUrl.isEmpty) {
+        if (mounted) {
+          _showFeedback(
+            context,
+            'Não foi possível enviar o documento. Tente novamente.',
+            DsFeedbackTipo.erro,
+          );
+        }
+        return;
+      }
+
+      final fileId = GoogleDriveService().extractFileId(uploadedDriveUrl);
+      if (fileId == null || fileId.isEmpty) {
+        await GoogleDriveService().deleteFile(uploadedDriveUrl);
+        if (mounted) {
+          _showFeedback(
+            context,
+            'Não foi possível preparar o documento. Tente novamente.',
+            DsFeedbackTipo.erro,
+          );
+        }
+        return;
+      }
+
+      final result = await _databaseService.submitDependentCpfDocumentReplacement(
+        requestId: widget.request.id,
+        documentFileId: fileId,
+      );
+
+      if (!mounted) return;
+
+      if (result['success'] == true) {
+        _showFeedback(context, 'Documento enviado com sucesso.', DsFeedbackTipo.sucesso);
+        widget.onBack();
+      } else {
+        await GoogleDriveService().deleteFile(uploadedDriveUrl);
+        if (!mounted) return;
+        final errorCode = result['error_code'] ?? 'internal_error';
+        _showFeedback(context, _getErrorMessage(errorCode), DsFeedbackTipo.erro);
+      }
+
+    } catch (_) {
+      if (uploadedDriveUrl != null) {
+        await GoogleDriveService().deleteFile(uploadedDriveUrl);
+      }
+      if (mounted) {
+        _showFeedback(
+          context,
+          'Erro inesperado. Tente novamente mais tarde.',
+          DsFeedbackTipo.erro,
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmittingDocument = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _handleCorrectCpf() async {
+    if (_isSubmittingCpf) return;
+
+    if (!_correctionFormKey.currentState!.validate()) {
+      return;
+    }
+
+    setState(() {
+      _isSubmittingCpf = true;
+    });
+
+    try {
+      final cpfVal = _correctionCpfController.text;
+      final result = await _databaseService.submitDependentCpfCorrection(
+        requestId: widget.request.id,
+        newCpf: cpfVal,
+      );
+
+      if (!mounted) return;
+
+      if (result['success'] == true) {
+        _showFeedback(context, 'CPF corrigido com sucesso.', DsFeedbackTipo.sucesso);
+        FocusScope.of(context).unfocus();
+        _correctionCpfController.clear();
+        widget.onBack();
+      } else {
+        final errorCode = result['error_code'] ?? 'internal_error';
+        _showFeedback(context, _getErrorMessage(errorCode), DsFeedbackTipo.erro);
+      }
+    } catch (_) {
+      if (mounted) {
+        _showFeedback(
+          context,
+          'Erro inesperado. Tente novamente mais tarde.',
+          DsFeedbackTipo.erro,
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmittingCpf = false;
+        });
+      }
+    }
+  }
+
+  Widget _buildDocumentReplacementSection(
+    DependentCpfChangeRequest request,
+    DsCorVisual visualToken,
+  ) {
+    String deadlineText = 'Reenvie o documento dentro do prazo.';
+    if (request.expiresAt != null) {
+      final date = request.expiresAt!;
+      final day = date.day.toString().padLeft(2, '0');
+      final month = date.month.toString().padLeft(2, '0');
+      final year = date.year.toString().padLeft(4, '0');
+      deadlineText = 'Você tem até $day/$month/$year para concluir essa etapa.';
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader(
+          icon: PhosphorIconsRegular.fileArrowUp,
+          title: 'REENVIO DE DOCUMENTO PENDENTE',
+        ),
+        const SizedBox(height: DsEspacamentos.sm),
+        DsCard(
+          borderColor: DsCores.alerta.border,
+          padding: const EdgeInsets.all(DsEspacamentos.md),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'A equipe identificou um problema no documento enviado. Por favor, reenvie um documento válido para continuarmos a análise.',
+                style: DsTipografia.body.copyWith(
+                  color: DsCores.textPrimary,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: DsEspacamentos.md),
+              Row(
+                children: [
+                  Icon(
+                    PhosphorIconsRegular.clockCountdown,
+                    color: DsCores.alerta.accent,
+                    size: 16,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      deadlineText,
+                      style: DsTipografia.caption.copyWith(
+                        color: DsCores.textSecondary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: DsEspacamentos.lg),
+              SizedBox(
+                width: double.infinity,
+                child: DsBotao(
+                  label: 'Reenviar documento',
+                  onPressed: _isSubmittingDocument
+                      ? null
+                      : _handleReplaceDocument,
+                  variante: DsBotaoVariante.acao,
+                  token: DsCores.alerta,
+                  icon: PhosphorIconsRegular.uploadSimple,
+                  isLoading: _isSubmittingDocument,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCpfCorrectionSection(
+    DependentCpfChangeRequest request,
+    DsCorVisual visualToken,
+  ) {
+    String deadlineText = 'Corrija o CPF dentro do prazo.';
+    if (request.expiresAt != null) {
+      final date = request.expiresAt!;
+      final day = date.day.toString().padLeft(2, '0');
+      final month = date.month.toString().padLeft(2, '0');
+      final year = date.year.toString().padLeft(4, '0');
+      deadlineText = 'Você tem até $day/$month/$year para concluir essa etapa.';
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader(
+          icon: PhosphorIconsRegular.pencilSimple,
+          title: 'CORREÇÃO DE CPF PENDENTE',
+        ),
+        const SizedBox(height: DsEspacamentos.sm),
+        DsCard(
+          borderColor: visualToken.border,
+          padding: const EdgeInsets.all(DsEspacamentos.md),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Precisamos que você corrija o número do CPF para continuar a análise.',
+                style: DsTipografia.body.copyWith(
+                  color: DsCores.textPrimary,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: DsEspacamentos.xs),
+              Text(
+                'O documento enviado anteriormente será mantido.',
+                style: DsTipografia.bodySmall.copyWith(
+                  color: DsCores.textSecondary,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: DsEspacamentos.md),
+              Row(
+                children: [
+                  Icon(
+                    PhosphorIconsRegular.clockCountdown,
+                    color: DsCores.alerta.accent,
+                    size: 16,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      deadlineText,
+                      style: DsTipografia.caption.copyWith(
+                        color: DsCores.textSecondary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: DsEspacamentos.md),
+              Form(
+                key: _correctionFormKey,
+                child: CampoCpf(
+                  controller: _correctionCpfController,
+                  enabled: !_isSubmittingCpf,
+                ),
+              ),
+              const SizedBox(height: DsEspacamentos.lg),
+              SizedBox(
+                width: double.infinity,
+                child: DsBotao(
+                  label: 'Enviar CPF corrigido',
+                  onPressed: _isSubmittingCpf
+                      ? null
+                      : _handleCorrectCpf,
+                  variante: DsBotaoVariante.acao,
+                  token: visualToken,
+                  icon: PhosphorIconsRegular.paperPlaneRight,
+                  isLoading: _isSubmittingCpf,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 import 'package:conectea/core/design_system_v2/design_system_v2.dart';
 import 'package:conectea/core/utils/conectea_date_time_helper.dart';
 import 'package:conectea/models/account_change_request.dart';
@@ -89,6 +90,40 @@ class _AdminDependentCpfChangeDetailsSheetState extends State<AdminDependentCpfC
     }
   }
 
+  Future<void> _openDocument(String fileId) async {
+    if (fileId.trim().isEmpty) {
+      DsFeedback.showSnackBar(
+        context: context,
+        mensagem: 'Não foi possível abrir o documento agora.',
+        tipo: DsFeedbackTipo.erro,
+      );
+      return;
+    }
+
+    try {
+      final url = 'https://drive.google.com/file/d/$fileId/view?usp=drivesdk';
+      if (await canLaunchUrlString(url)) {
+        await launchUrlString(url, mode: LaunchMode.externalApplication);
+      } else {
+        if (mounted) {
+          DsFeedback.showSnackBar(
+            context: context,
+            mensagem: 'Não foi possível abrir o documento agora.',
+            tipo: DsFeedbackTipo.erro,
+          );
+        }
+      }
+    } catch (_) {
+      if (mounted) {
+        DsFeedback.showSnackBar(
+          context: context,
+          mensagem: 'Não foi possível abrir o documento agora.',
+          tipo: DsFeedbackTipo.erro,
+        );
+      }
+    }
+  }
+
   Future<void> _handleApprove() async {
     if (_isProcessingAction) return;
 
@@ -147,6 +182,152 @@ class _AdminDependentCpfChangeDetailsSheetState extends State<AdminDependentCpfC
         final errorMsg = e.toString().replaceFirst('Exception: ', '');
         setState(() {
           _actionErrorTitle = 'Não foi possível aprovar';
+          _actionErrorMessage = errorMsg.isNotEmpty
+              ? errorMsg
+              : 'Não foi possível concluir a ação agora. Tente novamente.';
+        });
+        _scrollToBottom();
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isProcessingAction = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _handleRequestCpfCorrection() async {
+    if (_isProcessingAction) return;
+
+    final confirmed = await DsDialog.show<bool>(
+      context: context,
+      title: 'Solicitar correção do CPF?',
+      description: 'Essa ação mantém o documento enviado e pede que a pessoa corrija apenas o CPF informado.',
+      token: DsCores.conta,
+      forceVerticalActions: true,
+      primaryAction: const DsDialogAction(
+        label: 'Solicitar correção',
+        value: true,
+        variante: DsBotaoVariante.acao,
+      ),
+      secondaryAction: const DsDialogAction(
+        label: 'Cancelar',
+        value: false,
+        variante: DsBotaoVariante.ghost,
+      ),
+    );
+
+    if (confirmed != true) return;
+    if (!mounted) return;
+
+    setState(() {
+      _actionErrorTitle = null;
+      _actionErrorMessage = null;
+      _isProcessingAction = true;
+    });
+
+    try {
+      final res = await _repository.requestDependentCpfCorrection(
+        requestId: widget.summary.id,
+      );
+
+      if (!mounted) return;
+
+      if (res.success) {
+        DsFeedback.showSnackBar(
+          context: context,
+          mensagem: 'Correção de CPF solicitada. A pessoa será orientada a ajustar o CPF informado.',
+          tipo: DsFeedbackTipo.sucesso,
+        );
+        Navigator.of(context).pop(true);
+      } else {
+        setState(() {
+          _actionErrorTitle = 'Não foi possível solicitar correção';
+          _actionErrorMessage = res.message.isNotEmpty
+              ? res.message
+              : 'Ocorreu um erro ao processar sua solicitação. Tente novamente.';
+        });
+        _scrollToBottom();
+      }
+    } catch (e) {
+      if (mounted) {
+        final errorMsg = e.toString().replaceFirst('Exception: ', '');
+        setState(() {
+          _actionErrorTitle = 'Não foi possível solicitar correção';
+          _actionErrorMessage = errorMsg.isNotEmpty
+              ? errorMsg
+              : 'Não foi possível concluir a ação agora. Tente novamente.';
+        });
+        _scrollToBottom();
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isProcessingAction = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _handleRequestDocumentReplacement() async {
+    if (_isProcessingAction) return;
+
+    final confirmed = await DsDialog.show<bool>(
+      context: context,
+      title: 'Solicitar novo documento?',
+      description: 'Essa ação descarta o documento atual com segurança e pede que a pessoa envie um novo comprovante.',
+      token: DsCores.alerta,
+      forceVerticalActions: true,
+      primaryAction: const DsDialogAction(
+        label: 'Solicitar novo documento',
+        value: true,
+        variante: DsBotaoVariante.acao,
+      ),
+      secondaryAction: const DsDialogAction(
+        label: 'Cancelar',
+        value: false,
+        variante: DsBotaoVariante.ghost,
+      ),
+    );
+
+    if (confirmed != true) return;
+    if (!mounted) return;
+
+    setState(() {
+      _actionErrorTitle = null;
+      _actionErrorMessage = null;
+      _isProcessingAction = true;
+    });
+
+    try {
+      final res = await _repository.requestDependentCpfDocumentReplacement(
+        requestId: widget.summary.id,
+      );
+
+      if (!mounted) return;
+
+      if (res.success) {
+        DsFeedback.showSnackBar(
+          context: context,
+          mensagem: 'Novo documento solicitado. A pessoa será orientada a reenviar o arquivo.',
+          tipo: DsFeedbackTipo.sucesso,
+        );
+        Navigator.of(context).pop(true);
+      } else {
+        setState(() {
+          _actionErrorTitle = 'Não foi possível solicitar documento';
+          _actionErrorMessage = res.message.isNotEmpty
+              ? res.message
+              : 'Ocorreu um erro ao processar sua solicitação. Tente novamente.';
+        });
+        _scrollToBottom();
+      }
+    } catch (e) {
+      if (mounted) {
+        final errorMsg = e.toString().replaceFirst('Exception: ', '');
+        setState(() {
+          _actionErrorTitle = 'Não foi possível solicitar documento';
           _actionErrorMessage = errorMsg.isNotEmpty
               ? errorMsg
               : 'Não foi possível concluir a ação agora. Tente novamente.';
@@ -682,6 +863,21 @@ class _AdminDependentCpfChangeDetailsSheetState extends State<AdminDependentCpfC
                               ),
                             ],
                           ),
+                          if (_review != null &&
+                              _review!.canViewDocument &&
+                              _review!.documentFileId != null &&
+                              _review!.documentFileId!.trim().isNotEmpty) ...[
+                            const SizedBox(height: DsEspacamentos.md),
+                            SizedBox(
+                              width: double.infinity,
+                              child: DsBotao(
+                                label: 'Abrir documento',
+                                variante: DsBotaoVariante.secundario,
+                                icon: PhosphorIconsRegular.arrowSquareOut,
+                                onPressed: () => _openDocument(_review!.documentFileId!),
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -786,15 +982,42 @@ class _AdminDependentCpfChangeDetailsSheetState extends State<AdminDependentCpfC
                       ),
                     ],
                     if (widget.summary.status == AccountChangeStatus.underReview) ...[
-                      SizedBox(
-                        width: double.infinity,
-                        child: DsBotao(
-                          label: 'Aprovar',
-                          variante: DsBotaoVariante.acao,
-                          token: DsCores.sucesso,
-                          onPressed: _isProcessingAction ? null : _handleApprove,
-                          icon: PhosphorIconsRegular.check,
-                        ),
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(
+                            width: double.infinity,
+                            child: DsBotao(
+                              label: 'Aprovar',
+                              variante: DsBotaoVariante.acao,
+                              token: DsCores.sucesso,
+                              onPressed: _isProcessingAction ? null : _handleApprove,
+                              icon: PhosphorIconsRegular.check,
+                            ),
+                          ),
+                          const SizedBox(height: DsEspacamentos.sm),
+                          SizedBox(
+                            width: double.infinity,
+                            child: DsBotao(
+                              label: 'Revisar CPF',
+                              variante: DsBotaoVariante.acao,
+                              token: DsCores.correcao,
+                              onPressed: _isProcessingAction ? null : _handleRequestCpfCorrection,
+                              icon: PhosphorIconsRegular.identificationCard,
+                            ),
+                          ),
+                          const SizedBox(height: DsEspacamentos.sm),
+                          SizedBox(
+                            width: double.infinity,
+                            child: DsBotao(
+                              label: 'Reenviar Documento',
+                              variante: DsBotaoVariante.acao,
+                              token: DsCores.correcao,
+                              onPressed: _isProcessingAction ? null : _handleRequestDocumentReplacement,
+                              icon: PhosphorIconsRegular.file,
+                            ),
+                          ),
+                        ],
                       ),
                     ] else ...[
                       Container(
