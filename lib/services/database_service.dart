@@ -1635,6 +1635,7 @@ class DatabaseService {
       return {'can_view': false};
     }
   }
+
   Future<Map<String, dynamic>> approveCpfChangeRequest({
     required String requestId,
   }) async {
@@ -1834,6 +1835,7 @@ class DatabaseService {
       return {'success': false, 'error_code': 'internal_error'};
     }
   }
+
   String _sanitizeSubmitCpfError(Object? value) {
     final error = value?.toString();
     switch (error) {
@@ -1851,7 +1853,17 @@ class DatabaseService {
       case 'cpf_conflict':
       case 'internal_error':
       case 'temporarily_unavailable':
+      case 'member_not_found':
+      case 'account_cpf_conflict':
+      case 'cpf_in_use':
+      case 'reservation_unavailable':
+      case 'invalid_file_id':
+      case 'invalid_document_state':
         return error!;
+      case 'unauthorized':
+        return 'unauthenticated';
+      case 'unavailable':
+        return 'temporarily_unavailable';
       default:
         return 'internal_error';
     }
@@ -1922,6 +1934,83 @@ class DatabaseService {
           }
         } catch (_) {}
       }
+      return {'success': false, 'error_code': 'internal_error'};
+    }
+  }
+
+  Future<Map<String, dynamic>> submitDependentCpfCorrection({
+    required String requestId,
+    required String newCpf,
+  }) async {
+    try {
+      final cleanCpf = newCpf.replaceAll(RegExp(r'[^0-9]'), '');
+
+      final response = await _supabase.functions.invoke(
+        'submit-dependent-cpf-correction',
+        body: {'request_id': requestId, 'new_cpf': cleanCpf},
+      );
+
+      final data = response.data;
+      if (data is Map) {
+        final success = data['success'] == true;
+        if (success) {
+          return {'success': true};
+        } else {
+          final errorRaw =
+              data['error'] ?? data['message'] ?? data['error_code'];
+          return {
+            'success': false,
+            'error_code': _sanitizeSubmitCpfError(errorRaw),
+          };
+        }
+      }
+
+      return {'success': false, 'error_code': 'temporarily_unavailable'};
+    } catch (e) {
+      if (e is FunctionException) {
+        try {
+          final details = e.details;
+          if (details is Map) {
+            final errorRaw =
+                details['error'] ?? details['message'] ?? details['error_code'];
+            return {
+              'success': false,
+              'error_code': _sanitizeSubmitCpfError(errorRaw),
+            };
+          }
+        } catch (_) {}
+      }
+      return {'success': false, 'error_code': 'internal_error'};
+    }
+  }
+
+  Future<Map<String, dynamic>> submitDependentCpfDocumentReplacement({
+    required String requestId,
+    required String documentFileId,
+  }) async {
+    try {
+      final response = await _supabase.rpc(
+        'conectea_submit_dependent_cpf_document_replacement_v1',
+        params: {
+          'p_request_id': requestId,
+          'p_document_file_id': documentFileId,
+        },
+      );
+
+      if (response != null && response is Map) {
+        final success = response['success'] == true;
+        if (success) {
+          return {'success': true};
+        } else {
+          final errorCode = response['error_code'];
+          return {
+            'success': false,
+            'error_code': _sanitizeSubmitCpfError(errorCode),
+          };
+        }
+      }
+      return {'success': false, 'error_code': 'temporarily_unavailable'};
+    } catch (e) {
       return {'success': false, 'error_code': 'internal_error'};
     }
   }
