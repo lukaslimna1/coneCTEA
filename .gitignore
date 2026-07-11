@@ -58,3 +58,6 @@ analyze.txt
 # Local Releases
 releases/
 .vscode/
+
+# Local security PoCs
+tools/security_poc/
