@@ -1481,6 +1481,8 @@ class DatabaseService {
       case 'account_cpf_flow_required':
       case 'unavailable':
       case 'internal_error':
+      case 'member_not_active':
+      case 'same_current_cpf':
         return error!;
       default:
         return 'temporarily_unavailable';

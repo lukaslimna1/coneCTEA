@@ -403,9 +403,17 @@ class _DependentCpfChangeFlowState extends State<DependentCpfChangeFlow> {
           errorMsg =
               'Sua sessão expirou. Entre novamente para continuar.';
           break;
+        case 'member_not_active':
+          errorMsg =
+              'Este dependente não está ativo para solicitar alteração de CPF agora. Confira o cadastro ou procure o suporte.';
+          break;
+        case 'same_current_cpf':
+          errorMsg =
+              'O CPF informado já é o CPF cadastrado para este dependente. Confira os dados antes de enviar uma nova solicitação.';
+          break;
         case 'unavailable':
           errorMsg =
-              'Não foi possível usar este CPF agora. Ele pode já estar vinculado a uma solicitação em andamento ou reservado para análise. Confira o Histórico de Carteirinhas antes de tentar novamente.';
+              'Não foi possível usar este CPF para este dependente agora. Ele pode já estar vinculado, reservado ou em análise. Confira os dados e tente novamente mais tarde.';
           break;
         case 'temporarily_unavailable':
           errorMsg =

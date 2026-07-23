@@ -347,7 +347,8 @@ export async function handler(req: Request): Promise<Response> {
     } else {
       const safeLogCodes = [
         "active_request_exists", "member_not_found", "forbidden",
-        "account_cpf_flow_required", "invalid_request", "unavailable", "internal_error"
+        "account_cpf_flow_required", "invalid_request", "unavailable", "internal_error",
+        "member_not_active", "same_current_cpf"
       ];
       const codeToLog = (typeof error_code === "string" && safeLogCodes.includes(error_code))
         ? error_code
@@ -378,7 +379,9 @@ export async function handler(req: Request): Promise<Response> {
         "forbidden",
         "account_cpf_flow_required",
         "invalid_request",
-        "unavailable"
+        "unavailable",
+        "member_not_active",
+        "same_current_cpf"
       ];
       const mappedError = safeErrorCodes.includes(error_code)
         ? error_code
